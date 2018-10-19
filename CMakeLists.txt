@@ -8,3 +8,14 @@ set(SOURCE_FILES
         )
 
 add_executable(c4 ${SOURCE_FILES})
+
+add_library(Catch INTERFACE)
+target_include_directories(Catch INTERFACE ${test/catch.hpp})
+
+set(TEST_FILES
+        test/first_test.cpp
+        )
+
+add_executable(tests ${TEST_FILES})
+target_link_libraries(tests Catch)
+add_test(NAME tests COMMAND tests)
