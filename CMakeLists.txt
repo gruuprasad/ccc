@@ -13,6 +13,7 @@ add_library(Catch INTERFACE)
 target_include_directories(Catch INTERFACE ${test/catch.hpp})
 
 set(TEST_FILES
+        test/test_main.cpp
         test/first_test.cpp
         )
 
