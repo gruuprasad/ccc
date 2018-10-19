@@ -1,4 +1,4 @@
-uild/
+build/
 llvm/
 
 # Created by https://www.gitignore.io/api/c,c++
@@ -70,5 +70,3 @@ llvm/
 
 
 \.idea/
-
-build/
