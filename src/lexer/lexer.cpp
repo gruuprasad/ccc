@@ -12,7 +12,13 @@ int Lexer::lex(std::string input) {
       {
           {"[0-9]+" , "NUMBERS"} ,
           {"[a-z]+" , "IDENTIFIERS"},
-          {"\\*|\\+", "OPERATORS"}
+          {"\\*", "STAR"},
+          {"\\+", "PLUS"},
+          {"\\-", "MINUS"},
+          {"\\{", "BRACE_OPEN"},
+          {"\\}", "BRACE_CLOSE"},
+          {"\n", "LINE_BREAK"},
+          {"[ \t]+", "WHITESPACE"},
       };
 
   std::string reg;
@@ -27,6 +33,9 @@ int Lexer::lex(std::string input) {
   auto words_begin = std::sregex_iterator(input.begin(), input.end(), re);
   auto words_end = std::sregex_iterator();
 
+  unsigned long line = 0;
+  unsigned long column = 0;
+
   for(auto it = words_begin; it != words_end; ++it)
   {
     size_t index = 0;
@@ -35,7 +44,18 @@ int Lexer::lex(std::string input) {
       if(!it->str(index + 1).empty()) // determine which submatch was matched
         break;
 
-    std::cout << it->str() << "\t" << v[index].second << std::endl;
+    if(v[index].second == "WHITESPACE"){
+      column += it->str().size();
+      continue;
+    }
+    if(v[index].second == "LINE_BREAK"){
+      line += 1;
+      column = 0;
+      continue;
+    }
+
+    std::cout << line << ',' << column << " \t" << it->str() << "\t" << v[index].second << std::endl;
+    column += it->str().size();
   }
   std::cout << input << std::endl;
   return 0;
