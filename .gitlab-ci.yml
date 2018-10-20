@@ -1,0 +1,18 @@
+variables:
+  GIT_SSL_NO_VERIFY: "true"
+
+build:
+  stage: build
+  script:
+  - mkdir -p build
+  - make
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
+  - make -j$(nproc) c4 tests
+  - ./tests
+  - chmod +x ../scripts/coverage.sh
+  - ../scripts/coverage.sh
+  # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
+  cache:
+     paths:
+       - "build/*"

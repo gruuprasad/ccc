@@ -70,3 +70,5 @@ llvm/
 
 
 \.idea/
+
+coverage/
