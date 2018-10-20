@@ -10,7 +10,7 @@ Lexer::Lexer() = default;
 
 std::list<Token, std::allocator<Token>> Lexer::lex(std::string input) {
   // use std::vector instead, we need to have it in this order
-  std::vector<std::pair<std::string, TokenType >> v
+  std::vector<std::pair<std::string, TokenType >> keywords
       {
           {"auto", TokenType::AUTO},
           {"break", TokenType::BREAK},
@@ -54,6 +54,11 @@ std::list<Token, std::allocator<Token>> Lexer::lex(std::string input) {
           {"_Noreturn", TokenType::NO_RETURN},
           {"_Static_assert", TokenType::STATIC_ASSERT},
           {"_Thread_local", TokenType::THREAD_LOCAL},
+      };
+
+  std::vector<std::pair<std::string, TokenType >> all
+      {
+          {"[a-zA-Z_][a-zA-Z_0-9]*", TokenType::IDENTIFIER},
           {"\\<\\<", TokenType::LEFT_SHIFT},
           {"\\>\\>", TokenType::RIGHT_SHIFT},
           {"\\>\\=", TokenType::GREATER_EQUAL},
@@ -90,46 +95,67 @@ std::list<Token, std::allocator<Token>> Lexer::lex(std::string input) {
           {"\n", TokenType::LINE_BREAK},
           {"[ \t]+", TokenType::WHITESPACE},
           {"[0-9]+", TokenType::NUMBER},
-          {"[a-z]+", TokenType::IDENTIFIER},
       };
 
-  std::string reg;
+  all.insert(all.end(), keywords.begin(), keywords.end());
 
-  for (auto const &x : v)
-    reg += "(" + x.first + ")|"; // parenthesize the submatches
+  std::string all_regex_string;
+  for (auto const &x : all) {
+    all_regex_string += "(" + x.first + ")|"; // parenthesize the submatches
+  }
+  all_regex_string.pop_back();
 
-  reg.pop_back();
+  std::string keywords_regex_string;
+  for (auto const &x : keywords) {
+    keywords_regex_string += "(" + x.first + ")|"; // parenthesize the submatches
+  }
+  keywords_regex_string.pop_back();
 
-  std::regex re(reg);
-  auto words_begin = std::sregex_iterator(input.begin(), input.end(), re);
+  std::regex all_regex(all_regex_string);
+  std::regex keywords_regex(keywords_regex_string);
+  auto words_begin = std::sregex_iterator(input.begin(), input.end(), all_regex);
   auto words_end = std::sregex_iterator();
 
   unsigned long line = 0;
   unsigned long column = 0;
 
   auto token_list = std::list<Token>();
-
+  TokenType token_type;
+  size_t index = 0;
   for (auto it = words_begin; it != words_end; ++it) {
-    size_t index = 0;
-
-    for (; index < it->size(); ++index)
-      if (!it->str(index + 1).empty()) // determine which submatch was matched
+    index = 0;
+    for (; index < it->size(); ++index) {
+      // determine which submatch was matched
+      if (!it->str(index + 1).empty()) {
         break;
+      }
+    }
 
-    if (v[index].second == TokenType::WHITESPACE) {
-      column += it->str().size();
+    token_type = all[index].second;
+    const std::string &match = it->str();
+
+    if (token_type == TokenType::WHITESPACE) {
+      column += match.size();
       continue;
     }
-    if (v[index].second == TokenType::LINE_BREAK) {
+    if (token_type == TokenType::LINE_BREAK) {
       line += 1;
       column = 0;
       continue;
     }
 
-    const Token token = Token(v[index].second, line, column, it->str());
+    if (token_type == TokenType::IDENTIFIER) {
+      for( auto keyword : keywords){
+        if(keyword.first == match){
+          token_type = keyword.second;
+        }
+      }
+    }
+
+    const Token token = Token(token_type, line, column, match);
     token_list.push_back(token);
 
-    column += it->str().size();
+    column += match.size();
   }
   return token_list;
 }

@@ -16,7 +16,7 @@ TEST_CASE("Lexer Simple Operator tests.") {
   REQUIRE(Lexer().lex("--").front().getType() == TokenType::MINUSMINUS);
 }
 
-TEST_CASE("Lexer keywork max munch test."){
+TEST_CASE("Lexer keyword max munch test."){
 
   auto token_list = Lexer().lex("automa");
   for (const auto &token : token_list){
@@ -25,4 +25,8 @@ TEST_CASE("Lexer keywork max munch test."){
   Token &token = token_list.front();
   REQUIRE(token.getType() == TokenType::IDENTIFIER);
   REQUIRE(token.getExtra() == "automa");
+}
+
+TEST_CASE("Lexer keyword prio test."){
+  REQUIRE(Lexer().lex("auto").front().getType() == TokenType::AUTO);
 }
