@@ -58,6 +58,7 @@ std::list<Token, std::allocator<Token>> Lexer::lex(std::string input) {
 
   std::vector<std::pair<std::string, TokenType >> all
       {
+          {R"("[^"]*")", TokenType::STRING_LITERAL},
           {"[a-zA-Z_][a-zA-Z_0-9]*", TokenType::IDENTIFIER},
           {"\\<\\<", TokenType::LEFT_SHIFT},
           {"\\>\\>", TokenType::RIGHT_SHIFT},

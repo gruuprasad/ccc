@@ -101,12 +101,99 @@ const std::string Token::name() const {
   case TokenType::STAR_ASSIGN:return "star assign";
   case TokenType::DIV_ASSIGN:return "div assign";
   case TokenType::MOD_ASSIGN:return "mod assign";
+  case TokenType::STRING_LITERAL:return "string literal";
+  }
+  std::cerr << "error: unknown TokenType";
+  return "unknown type";
+}
+
+const std::string Token::token_type() const {
+  switch (type) {
+  case TokenType::NUMBER: return "constant";
+  case TokenType::IDENTIFIER:return "identifier";
+  case TokenType::STAR:return "punctuator";
+  case TokenType::PLUS:return "punctuator";
+  case TokenType::PLUSPLUS:return "punctuator";
+  case TokenType::MINUS:return "punctuator";
+  case TokenType::BRACE_OPEN:return "punctuator";
+  case TokenType::BRACE_CLOSE:return "punctuator";
+  case TokenType::LINE_BREAK:return "whitespace";
+  case TokenType::WHITESPACE:return "whitespace";
+  case TokenType::AUTO:return "keyword";
+  case TokenType::BREAK:return "keyword";
+  case TokenType::CASE:return "keyword";
+  case TokenType::CHAR:return "keyword";
+  case TokenType::CONST:return "keyword";
+  case TokenType::CONTINUE:return "keyword";
+  case TokenType::DEFAULT:return "keyword";
+  case TokenType::DO:return "keyword";
+  case TokenType::ELSE:return "keyword";
+  case TokenType::ENUM:return "keyword";
+  case TokenType::EXTERN:return "keyword";
+  case TokenType::FOR:return "keyword";
+  case TokenType::GOTO:return "keyword";
+  case TokenType::IF:return "keyword";
+  case TokenType::INLINE:return "keyword";
+  case TokenType::INT:return "keyword";
+  case TokenType::LONG:return "keyword";
+  case TokenType::REGISTER:return "keyword";
+  case TokenType::RESTRICTED:return "keyword";
+  case TokenType::RETURN:return "keyword";
+  case TokenType::SHORT:return "keyword";
+  case TokenType::SIGNED:return "keyword";
+  case TokenType::SIZEOF:return "keyword";
+  case TokenType::STATIC:return "keyword";
+  case TokenType::STRUCT:return "keyword";
+  case TokenType::SWITCH:return "keyword";
+  case TokenType::TYPEDEF:return "keyword";
+  case TokenType::UNION:return "keyword";
+  case TokenType::UNSIGNED:return "keyword";
+  case TokenType::VOID:return "keyword";
+  case TokenType::VOLATILE:return "keyword";
+  case TokenType::WHILE:return "keyword";
+  case TokenType::ALIGN_AS:return "keyword";
+  case TokenType::ALIGN_OF:return "keyword";
+  case TokenType::ATOMIC:return "keyword";
+  case TokenType::BOOL:return "keyword";
+  case TokenType::COMPLEX:return "keyword";
+  case TokenType::GENERIC:return "keyword";
+  case TokenType::IMAGINARY:return "keyword";
+  case TokenType::NO_RETURN:return "nkeyword";
+  case TokenType::STATIC_ASSERT:return "keyword";
+  case TokenType::THREAD_LOCAL:return "keyword";
+  case TokenType::BRACKET_OPEN:return "punctuator";
+  case TokenType::BRACKET_CLOSE:return "punctuator";
+  case TokenType::PARENTHESIS_OPEN:return "punctuator";
+  case TokenType::PARENTHESIS_CLOSE:return "punctuator";
+  case TokenType::AMPERSAND:return "punctuator";
+  case TokenType::PIPE:return "punctuator";
+  case TokenType::CARET:return "punctuator";
+  case TokenType::TILDE:return "punctuator";
+  case TokenType::LEFT_SHIFT:return "punctuator";
+  case TokenType::RIGHT_SHIFT:return "punctuator";
+  case TokenType::GREATER_EQUAL:return "punctuator";
+  case TokenType::LESS_EQUAL:return "punctuator";
+  case TokenType::EQUAL:return "punctuator";
+  case TokenType::ASSIGN:return "punctuator";
+  case TokenType::MINUSMINUS:return "punctuator";
+  case TokenType::DIV:return "punctuator";
+  case TokenType::MOD:return "punctuator";
+  case TokenType::PLUS_ASSIGN:return "punctuator";
+  case TokenType::MINUS_ASSIGN:return "punctuator";
+  case TokenType::AMPERSAND_ASSIGN:return "punctuator";
+  case TokenType::PIPE_ASSIGN:return "punctuator";
+  case TokenType::CARET_ASSIGN:return "punctuator";
+  case TokenType::TILDE_ASSIGN:return "punctuator";
+  case TokenType::STAR_ASSIGN:return "punctuator";
+  case TokenType::DIV_ASSIGN:return "punctuator";
+  case TokenType::MOD_ASSIGN:return "mpunctuator";
+  case TokenType::STRING_LITERAL:return "string-literal";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
-  os << token.line << ',' << token.column << " \t" << token.extra << "   \t" << token.name();
+  os << token.line << ':' << token.column << ": " << token.token_type() << " " << token.extra;
   return os;
 }

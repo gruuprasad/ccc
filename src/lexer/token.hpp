@@ -13,6 +13,7 @@ public:
   const unsigned long getColumn() const;
   const std::string &getExtra() const;
   const std::string name() const;
+  const std::string token_type() const;
 private:
   const TokenType type;
   const unsigned long line;

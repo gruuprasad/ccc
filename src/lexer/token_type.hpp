@@ -80,7 +80,8 @@ enum class TokenType {
   TILDE_ASSIGN,
   STAR_ASSIGN,
   DIV_ASSIGN,
-  MOD_ASSIGN
+  MOD_ASSIGN,
+  STRING_LITERAL
 };
 
 #endif //C4_TOKEN_TYPE_HPP
