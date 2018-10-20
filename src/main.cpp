@@ -1,8 +1,7 @@
 #include <iostream>
+#include "entry/entry_point_handler.hpp"
 
-using namespace std;
-
-int main(int, char **const) {
-    cerr << "TODO: Implement a compiler." << std::endl;
-    return EXIT_FAILURE;
+int main(int argCount, char **const ppArgs) {
+  return EntryPointHandler().handle(argCount, ppArgs);
 }
+
