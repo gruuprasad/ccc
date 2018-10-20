@@ -10,7 +10,7 @@ endif ()
 set(SOURCE_FILES
         src/main.cpp
         src/entry/entry_point_handler.cpp src/entry/entry_point_handler.hpp
-        )
+        src/lexer/lexer.cpp src/lexer/lexer.hpp src/lexer/token_type.cpp src/lexer/token_type.hpp)
 
 add_executable(c4 ${SOURCE_FILES})
 
@@ -22,6 +22,7 @@ list(SUBLIST SOURCE_FILES 1 -1 TEST_SOURCE_FILES)
 set(TEST_FILES
         test/test_main.cpp
         test/first_test.cpp
+        test/lexer_test.cpp
         )
 
 add_executable(tests ${TEST_SOURCE_FILES} ${TEST_FILES})
