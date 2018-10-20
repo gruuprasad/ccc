@@ -10,7 +10,7 @@ endif ()
 set(SOURCE_FILES
         src/main.cpp
         src/entry/entry_point_handler.cpp src/entry/entry_point_handler.hpp
-        src/lexer/lexer.cpp src/lexer/lexer.hpp src/lexer/token_type.cpp src/lexer/token_type.hpp)
+        src/lexer/lexer.cpp src/lexer/lexer.hpp src/lexer/token_type.cpp src/lexer/token_type.hpp src/lexer/token.cpp src/lexer/token.hpp)
 
 add_executable(c4 ${SOURCE_FILES})
 

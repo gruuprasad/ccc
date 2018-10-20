@@ -2,10 +2,12 @@
 #define C4_LEXER_HPP
 
 #include <string>
+#include <list>
+#include "token.hpp"
 class Lexer {
 public:
   Lexer();
-  int lex(std::string input);
+  std::list<Token, std::allocator<Token>> lex(std::string input);
 };
 
 #endif //C4_LEXER_HPP
