@@ -3,18 +3,17 @@
 #include <string>
 #include <iostream>
 #include "token.hpp"
-#include "token_type.hpp"
 
 Token::Token(const TokenType type, const unsigned long line, const unsigned long column, const std::string extra) :
     type(type), line(line), column(column), extra(extra) {}
 
-const TokenType Token::getType() const {
+TokenType Token::getType() const {
   return type;
 }
-const unsigned long Token::getLine() const {
+unsigned long Token::getLine() const {
   return line;
 }
-const unsigned long Token::getColumn() const {
+unsigned long Token::getColumn() const {
   return column;
 }
 const std::string &Token::getExtra() const {
@@ -31,8 +30,6 @@ const std::string Token::name() const {
   case TokenType::MINUS:return "minus";
   case TokenType::BRACE_OPEN:return "brace open";
   case TokenType::BRACE_CLOSE:return "brace close";
-  case TokenType::LINE_BREAK:return "line break";
-  case TokenType::WHITESPACE:return "whitespace";
   case TokenType::AUTO:return "auto";
   case TokenType::BREAK:return "break";
   case TokenType::CASE:return "case";
@@ -97,11 +94,28 @@ const std::string Token::name() const {
   case TokenType::AMPERSAND_ASSIGN:return "ampersand assign";
   case TokenType::PIPE_ASSIGN:return "pipe assign";
   case TokenType::CARET_ASSIGN:return "caret assign";
-  case TokenType::TILDE_ASSIGN:return "tilde assign";
   case TokenType::STAR_ASSIGN:return "star assign";
   case TokenType::DIV_ASSIGN:return "div assign";
   case TokenType::MOD_ASSIGN:return "mod assign";
-  case TokenType::STRING_LITERAL:return "string literal";
+  case TokenType::STRING:return "STRING";
+  case TokenType::LEFT:return "PUNCT";
+  case TokenType::RIGHT:return "PUNCT";
+  case TokenType::NOT_EQUAL:return "PUNCT";
+  case TokenType::NOT:return "PUNCT";
+  case TokenType::ARROW:return "PUNCT";
+  case TokenType::ARROW_STAR:return "PUNCT";
+  case TokenType::COMMA:return "PUNCT";
+  case TokenType::COLON:return "PUNCT";
+  case TokenType::COLON_COLON:return "PUNCT";
+  case TokenType::QUESTION:return "PUNCT";
+  case TokenType::SEMICOLON:return "PUNCT";
+  case TokenType::TRI_DOTS:return "PUNCT";
+  case TokenType::DOT_STAR:return "PUNCT";
+  case TokenType::DOT:return "PUNCT";
+  case TokenType::AND:return "PUNCT";
+  case TokenType::OR:return "PUNCT";
+  case TokenType::LEFT_SHIFT_ASSIGN:return "PUNCT";
+  case TokenType::RIGHT_SHIFT_ASSIGN:return "PUNCT";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
@@ -117,8 +131,6 @@ const std::string Token::token_type() const {
   case TokenType::MINUS:return "punctuator";
   case TokenType::BRACE_OPEN:return "punctuator";
   case TokenType::BRACE_CLOSE:return "punctuator";
-  case TokenType::LINE_BREAK:return "whitespace";
-  case TokenType::WHITESPACE:return "whitespace";
   case TokenType::AUTO:return "keyword";
   case TokenType::BREAK:return "keyword";
   case TokenType::CASE:return "keyword";
@@ -183,11 +195,28 @@ const std::string Token::token_type() const {
   case TokenType::AMPERSAND_ASSIGN:return "punctuator";
   case TokenType::PIPE_ASSIGN:return "punctuator";
   case TokenType::CARET_ASSIGN:return "punctuator";
-  case TokenType::TILDE_ASSIGN:return "punctuator";
   case TokenType::STAR_ASSIGN:return "punctuator";
   case TokenType::DIV_ASSIGN:return "punctuator";
-  case TokenType::MOD_ASSIGN:return "mpunctuator";
-  case TokenType::STRING_LITERAL:return "string-literal";
+  case TokenType::MOD_ASSIGN:return "punctuator";
+  case TokenType::STRING:return "string-literal";
+  case TokenType::LEFT:return "punctuator";
+  case TokenType::RIGHT:return "punctuator";
+  case TokenType::NOT_EQUAL:return "punctuator";
+  case TokenType::NOT:return "punctuator";
+  case TokenType::ARROW:return "punctuator";
+  case TokenType::ARROW_STAR:return "punctuator";
+  case TokenType::COMMA:return "punctuator";
+  case TokenType::COLON:return "punctuator";
+  case TokenType::COLON_COLON:return "punctuator";
+  case TokenType::QUESTION:return "punctuator";
+  case TokenType::SEMICOLON:return "punctuator";
+  case TokenType::TRI_DOTS:return "punctuator";
+  case TokenType::DOT_STAR:return "punctuator";
+  case TokenType::DOT:return "punctuator";
+  case TokenType::AND:return "punctuator";
+  case TokenType::OR:return "punctuator";
+  case TokenType::LEFT_SHIFT_ASSIGN:return "punctuator";
+  case TokenType::RIGHT_SHIFT_ASSIGN:return "punctuator";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";

@@ -1,20 +1,25 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include "entry_point_handler.hpp"
-#include "../lexer/lexer.hpp"
+#include "../lexer/reflex_lexer.hpp"
 
 EntryPointHandler::EntryPointHandler() = default;
 
 int EntryPointHandler::handle(int argCount, char **const ppArgs) {
-  if(argCount == 3 && std::string(ppArgs[1]) == "--tokenize"){
-    auto filename = std::string(ppArgs[2]);
-    std::ifstream t(filename);
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-    const auto content = buffer.str();
-    const auto token_list = Lexer().lex(content);
-    for (const auto &token : token_list){
+  if (argCount == 3 && std::string(ppArgs[1]) == "--tokenize") {
+
+    auto filename = ppArgs[2];
+
+    FILE *fd;
+    if ((fd = fopen(filename, "r")) == nullptr) {
+      std::cerr << "file not found!\r";
+      return 1;
+    }
+
+    ReflexLexer lexer(fd);
+    lexer.lex();
+
+    const auto token_list = lexer.results();
+    for (const auto &token : token_list) {
       std::cout << filename << ":" << token << std::endl;
     }
     return 0;
