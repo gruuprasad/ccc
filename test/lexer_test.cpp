@@ -1,12 +1,47 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include "catch.hpp"
 #include "../src/lexer/lexer.hpp"
+#include "../src/entry/entry_point_handler.hpp"
+
+#define COMPARE(name) \
+TEST_CASE("Compare "#name" .c to "#name".txt") { \
+  REQUIRE(lexing_of(#name".c", to_match(#name".txt"))); \
+}
+
+
+bool lexing_of(const std::string &filename, const std::string &result) {
+  std::stringstream buffer;
+  EntryPointHandler().tokenize(std::ifstream("../examples/" + filename), filename, buffer);
+  const auto content = buffer.str();
+  if (content != result) {
+    std::cerr << std::endl << "content of " << filename << " did not match expected, got:" << std::endl << ">>>"
+              << std::endl << content << std::endl << "---" << std::endl << result << ">>>" << std::endl;
+    return false;
+  }
+  return true;
+}
+
+std::string to_match(const std::string &filename) {
+  std::ifstream t("../examples/" + filename);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  return buffer.str();
+}
+
+COMPARE(test)
+COMPARE(hello_world)
+COMPARE(error)
+COMPARE(everything)
+COMPARE(comments)
+COMPARE(lorem_ipsum)
+COMPARE(extra)
+COMPARE(transpose)
+COMPARE(lots_of_real_code)
 
 TEST_CASE("Lexer Smoke test.") {
   auto token_list = Lexer().lex("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee");
-  for (const auto &token : token_list) {
-    std::cout << token << std::endl;
-  }
 }
 
 TEST_CASE("Lexer Simple Operator tests.") {

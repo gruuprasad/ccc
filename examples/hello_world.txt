@@ -1,0 +1,14 @@
+hello_world.c:1:0: keyword int
+hello_world.c:1:4: identifier main
+hello_world.c:1:8: punctuator (
+hello_world.c:1:9: punctuator )
+hello_world.c:2:0: punctuator {
+hello_world.c:4:2: identifier printf
+hello_world.c:4:8: punctuator (
+hello_world.c:4:9: string-literal "Hello, World!"
+hello_world.c:4:24: punctuator )
+hello_world.c:4:25: punctuator ;
+hello_world.c:5:2: keyword return
+hello_world.c:5:9: constant 0
+hello_world.c:5:10: punctuator ;
+hello_world.c:6:0: punctuator }
