@@ -41,6 +41,7 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "../reflex/abslexer.h"
+#include "lexer_exception.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -404,9 +405,7 @@ int ReflexLexer::lex()
       token_list.emplace_back(Token(TokenType::QUESTION, lineno(), columno(), str()));
       break;
     case 99: // rule at line 139: .
-      printf("*** ERROR '%s' at line %zu\n", text(), lineno());
-
-      break;
+      throw LexerException(Token(TokenType::AUTO, lineno(), columno(), str()));
     }
   }
 }
