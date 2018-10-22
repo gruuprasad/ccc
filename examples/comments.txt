@@ -1,0 +1,11 @@
+comments.c:1:0: constant 42
+comments.c:1:3: keyword if
+comments.c:2:2: string-literal "bla\n"
+comments.c:2:9: identifier x
+comments.c:2:10: punctuator +
+comments.c:10:0: identifier tost
+comments.c:10:5: punctuator *
+comments.c:10:6: punctuator /
+comments.c:17:0: identifier iaeo
+comments.c:19:0: identifier oea
+comments.c:20:0: identifier ia

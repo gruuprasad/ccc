@@ -13,7 +13,6 @@ TEST_CASE("Compare "#name" .c to "#name".txt") { \
 
 bool lexing_of(const std::string &filename, const std::string &result) {
   std::stringstream buffer;
-  std::cout << filename << std::endl;
   EntryPointHandler().tokenize(std::ifstream("../examples/" + filename), filename, buffer);
   const auto content = buffer.str();
   if (content != result) {
@@ -34,7 +33,10 @@ std::string to_match(const std::string &filename) {
 COMPARE(test)
 COMPARE(hello_world)
 COMPARE(error)
-
+COMPARE(everything)
+COMPARE(comments)
+COMPARE(lorem_ipsum)
+COMPARE(extra)
 
 TEST_CASE("Lexer Smoke test.") {
   auto token_list = Lexer().lex("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee");
