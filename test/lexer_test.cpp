@@ -5,8 +5,15 @@
 #include "../src/lexer/lexer.hpp"
 #include "../src/entry/entry_point_handler.hpp"
 
+#define COMPARE(name) \
+TEST_CASE("Compare "#name" .c to "#name".txt") { \
+  REQUIRE(lexing_of(#name".c", to_match(#name".txt"))); \
+}
+
+
 bool lexing_of(const std::string &filename, const std::string &result) {
   std::stringstream buffer;
+  std::cout << filename << std::endl;
   EntryPointHandler().tokenize(std::ifstream("../examples/" + filename), filename, buffer);
   const auto content = buffer.str();
   if (content != result) {
@@ -24,17 +31,10 @@ std::string to_match(const std::string &filename) {
   return buffer.str();
 }
 
-TEST_CASE("Compare test.c") {
-  REQUIRE(lexing_of("test.c", to_match("test.txt")));
-}
+COMPARE(test)
+COMPARE(hello_world)
+COMPARE(error)
 
-TEST_CASE("Compare small.c") {
-  REQUIRE(lexing_of("small.c", to_match("small.txt")));
-}
-
-TEST_CASE("Compare hello_world.c") {
-  REQUIRE(lexing_of("hello_world.c", to_match("hello_world.txt")));
-}
 
 TEST_CASE("Lexer Smoke test.") {
   auto token_list = Lexer().lex("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee");
