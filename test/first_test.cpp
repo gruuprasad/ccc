@@ -6,6 +6,26 @@ TEST_CASE("Our compiler should fail for now.") {
   REQUIRE(1 == EntryPointHandler().handle(0, nullptr));
 }
 
+TEST_CASE("Our tokenizer should work.") {
+  char *args[] = {
+      (char*)"c4",
+      (char*)"--tokenize",
+      (char*)"../examples/test.c",
+      nullptr
+  };
+  REQUIRE(0 == EntryPointHandler().handle(3, args));
+}
+
+TEST_CASE("Our tokenizer should fail on invalid.") {
+  char *args[] = {
+      (char*)"c4",
+      (char*)"--tokenize",
+      (char*)"../examples/error.c",
+      nullptr
+  };
+  REQUIRE(1 == EntryPointHandler().handle(3, args));
+}
+
 TEST_CASE("Smoke test generated lexer.") {
   FILE *fd = stdin;
   if ((fd = fopen("../examples/test.c", "r")) == nullptr) {
@@ -19,9 +39,6 @@ TEST_CASE("Smoke test generated lexer.") {
   // display the results
 
   auto token_list = lexer.results();
-  for (const auto &token : token_list) {
-    std::cout << token << std::endl;
-  }
   if (fd != stdin)
     fclose(fd);
 }
