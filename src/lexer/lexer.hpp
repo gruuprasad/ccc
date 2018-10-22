@@ -4,10 +4,11 @@
 #include <string>
 #include <list>
 #include "token.hpp"
+#include "../reflex/input.h"
 class Lexer {
 public:
   Lexer();
-  std::list<Token, std::allocator<Token>> lex(std::string input);
+  std::list<Token, std::allocator<Token>> lex(const reflex::Input& input);
 };
 
 #endif //C4_LEXER_HPP

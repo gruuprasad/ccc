@@ -1,6 +1,32 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include "catch.hpp"
 #include "../src/lexer/lexer.hpp"
+#include "../src/entry/entry_point_handler.hpp"
+
+bool lexing_of(const std::string &filename, const std::string &result){
+  std::stringstream buffer;
+  EntryPointHandler().tokenize(std::ifstream("../examples/" + filename), filename, buffer);
+  const auto content = buffer.str();
+  if (content != result){
+    std::cerr << std::endl << "content of " << filename << " did not match expected, got:" << std::endl << std::endl
+    << content << std::endl << "Expected:" << std::endl << result << std::endl;
+    return false;
+  }
+  return true;
+}
+
+std::string to_match(const std::string &filename){
+  std::ifstream t("../examples/" + filename);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  return buffer.str();
+}
+
+TEST_CASE("Compare test.c") {
+ REQUIRE(lexing_of("test.c", to_match("test.out")));
+}
 
 TEST_CASE("Lexer Smoke test.") {
   auto token_list = Lexer().lex("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee");
