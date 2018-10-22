@@ -5,7 +5,7 @@
 #include "token.hpp"
 
 Token::Token(const TokenType type, const unsigned long line, const unsigned long column, const std::string extra) :
-    type(type), line(line), column(column), extra(extra) {}
+    type(type), line(line), column(column + 1), extra(extra) {}
 
 TokenType Token::getType() const {
   return type;
