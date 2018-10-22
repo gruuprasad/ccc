@@ -25,7 +25,7 @@ std::string to_match(const std::string &filename){
 }
 
 TEST_CASE("Compare test.c") {
- REQUIRE(lexing_of("test.c", to_match("test.out")));
+ REQUIRE(lexing_of("test.c", to_match("test.txt")));
 }
 
 TEST_CASE("Lexer Smoke test.") {
