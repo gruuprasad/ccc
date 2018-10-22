@@ -14,7 +14,7 @@ set(SOURCE_FILES
         src/lexer/token_type.cpp src/lexer/token_type.hpp
         src/lexer/token.cpp src/lexer/token.hpp
         src/lexer/reflex_lexer.cpp src/lexer/reflex_lexer.hpp
-        )
+        src/lexer/lexer_exception.cpp src/lexer/lexer_exception.hpp)
 
 set(REFLEX
         src/reflex/abslexer.h
