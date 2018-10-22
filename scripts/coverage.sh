@@ -7,6 +7,7 @@ lcov --remove coverage.info '/usr/include/*' --output-file coverage.info  &> /de
 lcov --remove coverage.info '/usr/sbin/*' --output-file coverage.info  &> /dev/null
 lcov --remove coverage.info '/usr/share/*' --output-file coverage.info  &> /dev/null
 lcov --remove coverage.info 'test/*' --output-file coverage.info  &> /dev/null
+lcov --remove coverage.info 'src/reflex/*' --output-file coverage.info  &> /dev/null
 lcov --remove coverage.info 'src/lexer/reflex_lexer.l' --output-file coverage.info  &> /dev/null
 lcov --list coverage.info \
         | grep "Total:" \

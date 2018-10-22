@@ -37,6 +37,8 @@ COMPARE(everything)
 COMPARE(comments)
 COMPARE(lorem_ipsum)
 COMPARE(extra)
+COMPARE(transpose)
+COMPARE(lots_of_real_code)
 
 TEST_CASE("Lexer Smoke test.") {
   auto token_list = Lexer().lex("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee");
