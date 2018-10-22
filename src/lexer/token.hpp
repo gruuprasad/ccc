@@ -8,9 +8,9 @@
 class Token {
 public:
   Token(TokenType type, unsigned long line, unsigned long column, std::string extra);
-  const TokenType getType() const;
-  const unsigned long getLine() const;
-  const unsigned long getColumn() const;
+  TokenType getType() const;
+  unsigned long getLine() const;
+  unsigned long getColumn() const;
   const std::string &getExtra() const;
   const std::string name() const;
   const std::string token_type() const;
