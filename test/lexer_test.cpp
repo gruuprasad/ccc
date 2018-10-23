@@ -105,10 +105,58 @@ TEST_CASE("Fast Lexer number test.") {
 }
 
 TEST_CASE("Fast Lexer number with extra test.") {
-  auto token_list = FastLexer("123a").lex();
+  auto token_list = FastLexer("123afg").lex();
   auto firstToken = token_list.front();
+  auto secondToken = token_list.back();
   REQUIRE(firstToken.getType() == TokenType::NUMBER);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
   REQUIRE(firstToken.getExtra() == "123");
+  REQUIRE(secondToken.getType() == TokenType::IDENTIFIER);
+  REQUIRE(secondToken.getLine() == 1);
+  REQUIRE(secondToken.getColumn() == 4);
+  REQUIRE(secondToken.getExtra() == "afg");
 }
+
+TEST_CASE("Fast Lexer keyword auto positive.") {
+  auto firstToken = FastLexer("auto").lex().front();
+  REQUIRE(firstToken.getType() == TokenType::AUTO);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+}
+
+TEST_CASE("Fast Lexer keyword auto positive cont.") {
+  auto firstToken = FastLexer("auto+").lex().front();
+  REQUIRE(firstToken.getType() == TokenType::AUTO);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+}
+
+TEST_CASE("Fast Lexer keyword auto negative cont.") {
+  auto firstToken = FastLexer("auton").lex().front();
+  REQUIRE(firstToken.getType() == TokenType::IDENTIFIER);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+}
+
+TEST_CASE("Fast Lexer keyword break positive.") {
+  auto firstToken = FastLexer("break").lex().front();
+  REQUIRE(firstToken.getType() == TokenType::BREAK);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+}
+
+TEST_CASE("Fast Lexer keyword break positive cont.") {
+  auto firstToken = FastLexer("break+").lex().front();
+  REQUIRE(firstToken.getType() == TokenType::BREAK);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+}
+
+TEST_CASE("Fast Lexer keyword break negative cont.") {
+  auto firstToken = FastLexer("breakn").lex().front();
+  REQUIRE(firstToken.getType() == TokenType::IDENTIFIER);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+}
+
