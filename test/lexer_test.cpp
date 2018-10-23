@@ -161,5 +161,10 @@ KEYWORD_TESTS(do, TokenType::DO)
 KEYWORD_TESTS(else, TokenType::ELSE)
 KEYWORD_TESTS(enum, TokenType::ENUM)
 KEYWORD_TESTS(extern, TokenType::EXTERN)
+KEYWORD_TESTS(for, TokenType::FOR)
+KEYWORD_TESTS(goto, TokenType::GOTO)
+KEYWORD_TESTS(if, TokenType::IF)
+KEYWORD_TESTS(inline, TokenType::INLINE)
+KEYWORD_TESTS(int, TokenType::INT)
 
 

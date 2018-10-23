@@ -161,6 +161,63 @@ inline bool FastLexer::isKeyword() {
     default:break;
     }
     break;
+  case 'f':
+    if (getCharAt(position + 1) == 'o'
+        && getCharAt(position + 2) == 'r'
+        && keyWordEnd(position + 3)
+        ) {
+      token_list.emplace_back(Token(TokenType::FOR, line, column, ""));
+      position += 3;
+      column += 3;
+      return true;
+    }
+    break;
+  case 'g':
+    if (getCharAt(position + 1) == 'o'
+        && getCharAt(position + 2) == 't'
+        && getCharAt(position + 3) == 'o'
+        && keyWordEnd(position + 4)
+        ) {
+      token_list.emplace_back(Token(TokenType::GOTO, line, column, ""));
+      position += 4;
+      column += 4;
+      return true;
+    }
+    break;
+  case 'i':
+    switch (getCharAt(position + 1)){
+    case 'f':
+      if(keyWordEnd(position + 2)){
+        token_list.emplace_back(Token(TokenType::IF, line, column, ""));
+        position += 2;
+        column += 2;
+        return true;
+      }
+      break;
+    case 'n':
+      if (getCharAt(position + 2) == 't'
+          && keyWordEnd(position + 3)
+          ) {
+        token_list.emplace_back(Token(TokenType::INT, line, column, ""));
+        position += 3;
+        column += 3;
+        return true;
+      }
+      if (getCharAt(position + 2) == 'l'
+          && getCharAt(position + 3) == 'i'
+          && getCharAt(position + 4) == 'n'
+          && getCharAt(position + 5) == 'e'
+          && keyWordEnd(position + 6)
+          ) {
+        token_list.emplace_back(Token(TokenType::INLINE, line, column, ""));
+        position += 6;
+        column += 6;
+        return true;
+      }
+      break;
+    default:break;
+    }
+    break;
   default:break;
   }
   /*
