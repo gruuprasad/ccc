@@ -108,12 +108,14 @@ inline bool FastLexer::isKeyword() {
 
 bool FastLexer::munch() {
   char first = getCharAt(position);
+
   /*
    * At end of file, return
    */
   if (first == 0) {
     return false;
   }
+
   /*
    * Munch away all whitespace
    */
@@ -137,6 +139,7 @@ bool FastLexer::munch() {
   }
   unsigned long oldPosition = position;
   std::stringstream tokenStream;
+
   /*
    * Check if we have a number at hand
    */
@@ -149,6 +152,7 @@ bool FastLexer::munch() {
     column += position - oldPosition;
     return true;
   }
+
   /*
    * Check if we have an identifier or a keyword at hand
    */
@@ -161,6 +165,7 @@ bool FastLexer::munch() {
        */
       return true;
     }
+
     /*
      * No keyword, check for identifier
      */
@@ -175,6 +180,21 @@ bool FastLexer::munch() {
     column += position - oldPosition;
     return true;
   }
+
+  /*
+   * Check if we have a character constant
+   */
+  if (first == '\'') {
+
+  }
+
+  /*
+   * Check if we have a string literal
+   */
+  if (first == '"') {
+
+  }
+
   /*
    * We matched nothing, we should fail the lexing!
    */
