@@ -15,6 +15,7 @@ class FastLexer {
   inline char getCharAt(unsigned long position);
   inline bool keyWordEnd(unsigned long position);
   inline bool isKeyword();
+  inline bool isPunctuator();
 public:
   FastLexer(const std::string &content);
   std::list<Token, std::allocator<Token>> lex();

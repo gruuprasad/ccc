@@ -1,7 +1,6 @@
 #include <sstream>
 #include "lexer_exception.hpp"
 #include "fast_lexer.hpp"
-#include "lexer_exception.hpp"
 
 FastLexer::FastLexer(const std::string &content) : content(content) {
   token_list = std::list<Token, std::allocator<Token>>();
@@ -20,6 +19,19 @@ inline bool FastLexer::keyWordEnd(unsigned long position) {
       || ('a' <= first && first <= 'z')
       || ('A' <= first && first <= 'Z')
       || first == '_');
+}
+
+inline bool FastLexer::isPunctuator() {
+  const char first = getCharAt(position);
+  switch (first) {
+  case '{':
+    break;
+  default:break;
+  }
+  /*
+   * Fallthrough, no punctuator matched!
+   */
+  return false;
 }
 
 inline bool FastLexer::isKeyword() {
@@ -738,6 +750,13 @@ bool FastLexer::munch() {
         || first == '_');
     token_list.emplace_back(Token(TokenType::IDENTIFIER, line, column, tokenStream.str()));
     column += position - oldPosition;
+    return true;
+  }
+
+  if (isPunctuator()) {
+    /*
+     * We found a punctuator already munched, return
+     */
     return true;
   }
 
