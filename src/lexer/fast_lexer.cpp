@@ -1,4 +1,5 @@
 #include <sstream>
+#include "lexer_exception.hpp"
 #include "fast_lexer.hpp"
 FastLexer::FastLexer(const std::string &content) : content(content) {
   token_list = std::list<Token, std::allocator<Token>>();
@@ -192,6 +193,7 @@ bool FastLexer::munch() {
       column += position - oldPosition;
       return true;
     }
+    throw LexerException(Token{TokenType::CHAR, line, column, &first});
   }
 
   /*
