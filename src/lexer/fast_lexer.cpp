@@ -21,29 +21,34 @@ inline bool FastLexer::keyWordEnd(unsigned long position) {
 
 inline bool FastLexer::isKeyword() {
   const char first = getCharAt(position);
-  if (first == 'a'
-  && getCharAt(position + 1) == 'u'
-  && getCharAt(position + 2) == 't'
-  && getCharAt(position + 3) == 'o'
-  && keyWordEnd(position + 4)
-  ) {
-    token_list.emplace_back(Token(TokenType::AUTO, line, column, ""));
-    position += 4;
-    column += 4;
-    return true;
-  }
-
-  if (first == 'b'
-      && getCharAt(position + 1) == 'r'
-      && getCharAt(position + 2) == 'e'
-      && getCharAt(position + 3) == 'a'
-      && getCharAt(position + 4) == 'k'
-      && keyWordEnd(position + 5)
-      ) {
-    token_list.emplace_back(Token(TokenType::BREAK, line, column, ""));
-    position += 5;
-    column += 5;
-    return true;
+  switch (first) {
+  case 'a':
+    if (getCharAt(position + 1) == 'u'
+        && getCharAt(position + 2) == 't'
+        && getCharAt(position + 3) == 'o'
+        && keyWordEnd(position + 4)
+        ) {
+      token_list.emplace_back(Token(TokenType::AUTO, line, column, ""));
+      position += 4;
+      column += 4;
+      return true;
+    }
+    break;
+  case 'b':
+    if (getCharAt(position + 1) == 'r'
+        && getCharAt(position + 2) == 'e'
+        && getCharAt(position + 3) == 'a'
+        && getCharAt(position + 4) == 'k'
+        && keyWordEnd(position + 5)
+        ) {
+      token_list.emplace_back(Token(TokenType::BREAK, line, column, ""));
+      position += 5;
+      column += 5;
+      return true;
+    }
+    break;
+  default:
+    break;
   }
   /*
    * Fallthrough, no keyword matched!
