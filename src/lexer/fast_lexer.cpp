@@ -421,6 +421,165 @@ inline bool FastLexer::isKeyword() {
       return true;
     }
     break;
+  case '_':
+    switch (getCharAt(position + 1)) {
+    case 'A':
+      if (getCharAt(position + 2) == 'l'
+          && getCharAt(position + 3) == 'i'
+          && getCharAt(position + 4) == 'g'
+          && getCharAt(position + 5) == 'n'
+          ) {
+        if (getCharAt(position + 6) == 'a'
+            && getCharAt(position + 7) == 's'
+            && keyWordEnd(position + 8)
+            ) {
+          token_list.emplace_back(Token(TokenType::ALIGN_AS, line, column, ""));
+          position += 8;
+          column += 8;
+          return true;
+        }
+        if (getCharAt(position + 6) == 'o'
+            && getCharAt(position + 7) == 'f'
+            && keyWordEnd(position + 8)
+            ) {
+          token_list.emplace_back(Token(TokenType::ALIGN_OF, line, column, ""));
+          position += 8;
+          column += 8;
+          return true;
+        }
+      }
+      if (getCharAt(position + 2) == 't'
+          && getCharAt(position + 3) == 'o'
+          && getCharAt(position + 4) == 'm'
+          && getCharAt(position + 5) == 'i'
+          && getCharAt(position + 6) == 'c'
+          && keyWordEnd(position + 7)
+          ) {
+        token_list.emplace_back(Token(TokenType::ATOMIC, line, column, ""));
+        position += 7;
+        column += 7;
+        return true;
+      }
+      break;
+    case 'B':
+      if (getCharAt(position + 2) == 'o'
+          && getCharAt(position + 3) == 'o'
+          && getCharAt(position + 4) == 'l'
+          && keyWordEnd(position + 5)
+          ) {
+        token_list.emplace_back(Token(TokenType::BOOL, line, column, ""));
+        position += 5;
+        column += 5;
+        return true;
+      }
+      break;
+    case 'C':
+      if (getCharAt(position + 2) == 'o'
+          && getCharAt(position + 3) == 'm'
+          && getCharAt(position + 4) == 'p'
+          && getCharAt(position + 5) == 'l'
+          && getCharAt(position + 6) == 'e'
+          && getCharAt(position + 7) == 'x'
+          && keyWordEnd(position + 8)
+          ) {
+        token_list.emplace_back(Token(TokenType::COMPLEX, line, column, ""));
+        position += 8;
+        column += 8;
+        return true;
+      }
+      break;
+    case 'G':
+      if (getCharAt(position + 2) == 'e'
+          && getCharAt(position + 3) == 'n'
+          && getCharAt(position + 4) == 'e'
+          && getCharAt(position + 5) == 'r'
+          && getCharAt(position + 6) == 'i'
+          && getCharAt(position + 7) == 'c'
+          && keyWordEnd(position + 8)
+          ) {
+        token_list.emplace_back(Token(TokenType::GENERIC, line, column, ""));
+        position += 8;
+        column += 8;
+        return true;
+      }
+      break;
+    case 'I':
+      if (getCharAt(position + 2) == 'm'
+          && getCharAt(position + 3) == 'a'
+          && getCharAt(position + 4) == 'g'
+          && getCharAt(position + 5) == 'i'
+          && getCharAt(position + 6) == 'n'
+          && getCharAt(position + 7) == 'a'
+          && getCharAt(position + 8) == 'r'
+          && getCharAt(position + 9) == 'y'
+          && keyWordEnd(position + 10)
+          ) {
+        token_list.emplace_back(Token(TokenType::IMAGINARY, line, column, ""));
+        position += 10;
+        column += 10;
+        return true;
+      }
+      break;
+    case 'N':
+      if (getCharAt(position + 2) == 'o'
+          && getCharAt(position + 3) == 'r'
+          && getCharAt(position + 4) == 'e'
+          && getCharAt(position + 5) == 't'
+          && getCharAt(position + 6) == 'u'
+          && getCharAt(position + 7) == 'r'
+          && getCharAt(position + 8) == 'n'
+          && keyWordEnd(position + 9)
+          ) {
+        token_list.emplace_back(Token(TokenType::NO_RETURN, line, column, ""));
+        position += 9;
+        column += 9;
+        return true;
+      }
+      break;
+    case 'S':
+      if (getCharAt(position + 2) == 't'
+          && getCharAt(position + 3) == 'a'
+          && getCharAt(position + 4) == 't'
+          && getCharAt(position + 5) == 'i'
+          && getCharAt(position + 6) == 'c'
+          && getCharAt(position + 7) == '_'
+          && getCharAt(position + 8) == 'a'
+          && getCharAt(position + 9) == 's'
+          && getCharAt(position + 10) == 's'
+          && getCharAt(position + 11) == 'e'
+          && getCharAt(position + 12) == 'r'
+          && getCharAt(position + 13) == 't'
+          && keyWordEnd(position + 14)
+          ) {
+        token_list.emplace_back(Token(TokenType::STATIC_ASSERT, line, column, ""));
+        position += 14;
+        column += 14;
+        return true;
+      }
+      break;
+    case 'T':
+      if (getCharAt(position + 2) == 'h'
+          && getCharAt(position + 3) == 'r'
+          && getCharAt(position + 4) == 'e'
+          && getCharAt(position + 5) == 'a'
+          && getCharAt(position + 6) == 'd'
+          && getCharAt(position + 7) == '_'
+          && getCharAt(position + 8) == 'l'
+          && getCharAt(position + 9) == 'o'
+          && getCharAt(position + 10) == 'c'
+          && getCharAt(position + 11) == 'a'
+          && getCharAt(position + 12) == 'l'
+          && keyWordEnd(position + 13)
+          ) {
+        token_list.emplace_back(Token(TokenType::THREAD_LOCAL, line, column, ""));
+        position += 13;
+        column += 13;
+        return true;
+      }
+      break;
+    default:break;
+    }
+    break;
   default:break;
   }
   /*
