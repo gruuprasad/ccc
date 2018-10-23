@@ -746,10 +746,11 @@ bool FastLexer::munch() {
    */
   if (first == '\'') {
     first = getCharAt(++position);
-    if (first != '\'' && first != '\\' && first != '\n') {
+    if (first != '\'' && first != '\\' && first != '\n' && getCharAt(position + 1) == '\'') {
       tokenStream << first;
       token_list.emplace_back(Token(TokenType::CHAR, line, column, tokenStream.str()));
-      column += position - oldPosition;
+      column += 3;
+      position += 2;
       return true;
     }
     throw LexerException(Token{TokenType::CHAR, line, column, &first});
