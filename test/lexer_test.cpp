@@ -15,8 +15,12 @@ std::vector<std::string> split_lines(const std::string &str) {
   std::stringstream ss(str);
   std::string tmp;
   std::vector<std::string> split;
-  while (std::getline(ss, tmp, '\n'))
+  while (std::getline(ss, tmp, '\n')) {
+    while (tmp[tmp.length() - 1] == '\r' || tmp[tmp.length() - 1] == '\n') {
+      tmp.pop_back();
+    }
     split.push_back(tmp);
+  }
   return split;
 }
 
@@ -25,23 +29,29 @@ bool lexing_of(const std::string &filename, const std::string &expected) {
   EntryPointHandler().tokenize(std::ifstream("../examples/" + filename), filename, buffer);
   const auto content = buffer.str();
   if (content != expected) {
-    std::cerr << std::endl << "content of " << filename << " did not match.";
-
     std::vector<std::string> content_lines = split_lines(content);
     std::vector<std::string> expected_lines = split_lines(expected);
-
-    for (int i = 0; i < std::max(content_lines.size(), expected_lines.size()); i++) {
-      if (i >= expected_lines.size())
-        std::cerr << std::endl << "expected nothing but got \"" << content_lines[i] << "\".";
-      else if (i >= content_lines.size())
-        std::cerr << std::endl << "expected \"" << expected_lines[i] << "\" but got nothing.";
-      else if (content_lines[i] != expected_lines[i])
-        std::cerr << std::endl << "expected \"" << expected_lines[i] << "\" but got \"" << content_lines[i] << "\".";
+    unsigned int counter = 0;
+    for (unsigned long i = 0; i < std::max(content_lines.size(), expected_lines.size()); i++) {
+      if (content_lines[i] == expected_lines[i]) {
+        continue;
+      }
+      if (i >= expected_lines.size()) {
+        std::cerr << filename << ": expected nothing but got \"" << content_lines[i] << "\"." << std::endl;
+      } else if (i >= content_lines.size()) {
+        std::cerr << filename << ": expected \"" << expected_lines[i] << "\" but got nothing." << std::endl;
+      } else if (content_lines[i] != expected_lines[i]) {
+        std::cerr << filename << ": expected \"" << expected_lines[i] << "\" but got \"" << content_lines[i] << "\"."
+                  << std::endl;
+      }
+      counter += 1;
+      if (counter > 5) {
+        std::cerr << std::endl << "Output truncated after 5 lines...";
+        return false;
+      }
     }
 
-    std::cerr << std::endl << ">>>" << std::endl << content << std::endl << "---" << std::endl << expected << ">>>";
-
-    return false;
+    return counter == 0;
   }
   return true;
 }
