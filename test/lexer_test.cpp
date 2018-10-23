@@ -5,6 +5,7 @@
 #include "../src/lexer/lexer.hpp"
 #include "../src/lexer/fast_lexer.hpp"
 #include "../src/entry/entry_point_handler.hpp"
+#include "../src/lexer/lexer_exception.hpp"
 #include <iterator>
 
 #define COMPARE(name) \
@@ -164,4 +165,8 @@ TEST_CASE("Fast Lexer character constant test.") {
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
   REQUIRE(firstToken.getExtra() == "a");
+}
+
+TEST_CASE("Fast Lexer invalid character literal test.") {
+  REQUIRE_THROWS_AS(FastLexer("''").lex(), LexerException);
 }
