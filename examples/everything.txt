@@ -457,7 +457,7 @@ everything.c:19:34: identifier Token
 everything.c:19:39: punctuator (
 everything.c:19:40: identifier TokenType
 everything.c:19:49: punctuator ::
-everything.c:19:51: identifier RESTRICTED
+everything.c:19:51: identifier RESTRICT
 everything.c:19:61: punctuator ,
 everything.c:19:63: identifier lineno
 everything.c:19:69: punctuator (

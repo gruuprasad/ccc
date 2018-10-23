@@ -8,7 +8,7 @@
 #include <iterator>
 
 #define COMPARE(name) \
-TEST_CASE("Compare "#name" .c to "#name".txt") { \
+TEST_CASE("Compare "#name".c to "#name".txt") { \
   REQUIRE(lexing_of(#name".c", to_match(#name".txt"))); \
 }
 
@@ -64,6 +64,9 @@ std::string to_match(const std::string &filename) {
   return buffer.str();
 }
 
+/*
+ * Disable old lexer for now...
+ *
 COMPARE(test)
 COMPARE(hello_world)
 COMPARE(error)
@@ -73,6 +76,7 @@ COMPARE(lorem_ipsum)
 COMPARE(extra)
 COMPARE(transpose)
 COMPARE(lots_of_real_code)
+ */
 
 TEST_CASE("Lexer Smoke test.") {
   auto token_list = Lexer().lex("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee");
@@ -166,5 +170,9 @@ KEYWORD_TESTS(goto, TokenType::GOTO)
 KEYWORD_TESTS(if, TokenType::IF)
 KEYWORD_TESTS(inline, TokenType::INLINE)
 KEYWORD_TESTS(int, TokenType::INT)
+KEYWORD_TESTS(long, TokenType::LONG)
+KEYWORD_TESTS(register, TokenType::REGISTER)
+KEYWORD_TESTS(restrict, TokenType::RESTRICT)
+KEYWORD_TESTS(return, TokenType::RETURN)
 
 

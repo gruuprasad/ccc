@@ -57,7 +57,7 @@ STRING		L?\"(\\.|\\\r?\n|[^\\\n"])*\"
 "int"	token_list.emplace_back(Token(TokenType::INT, lineno(), columno(), str()));
 "long"	token_list.emplace_back(Token(TokenType::LONG, lineno(), columno(), str()));
 "register"	token_list.emplace_back(Token(TokenType::REGISTER, lineno(), columno(), str()));
-"restrict"	token_list.emplace_back(Token(TokenType::RESTRICTED, lineno(), columno(), str()));
+"restrict"	token_list.emplace_back(Token(TokenType::RESTRICT, lineno(), columno(), str()));
 "return"	token_list.emplace_back(Token(TokenType::RETURN, lineno(), columno(), str()));
 "short"	token_list.emplace_back(Token(TokenType::SHORT, lineno(), columno(), str()));
 "signed"	token_list.emplace_back(Token(TokenType::SIGNED, lineno(), columno(), str()));
