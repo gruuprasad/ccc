@@ -4,20 +4,43 @@
 #include "catch.hpp"
 #include "../src/lexer/lexer.hpp"
 #include "../src/entry/entry_point_handler.hpp"
+#include <iterator>
 
 #define COMPARE(name) \
 TEST_CASE("Compare "#name" .c to "#name".txt") { \
   REQUIRE(lexing_of(#name".c", to_match(#name".txt"))); \
 }
 
+std::vector<std::string> split_lines(const std::string &str) {
+  std::stringstream ss(str);
+  std::string tmp;
+  std::vector<std::string> split;
+  while (std::getline(ss, tmp, '\n'))
+    split.push_back(tmp);
+  return split;
+}
 
-bool lexing_of(const std::string &filename, const std::string &result) {
+bool lexing_of(const std::string &filename, const std::string &expected) {
   std::stringstream buffer;
   EntryPointHandler().tokenize(std::ifstream("../examples/" + filename), filename, buffer);
   const auto content = buffer.str();
-  if (content != result) {
-    std::cerr << std::endl << "content of " << filename << " did not match expected, got:" << std::endl << ">>>"
-              << std::endl << content << std::endl << "---" << std::endl << result << ">>>" << std::endl;
+  if (content != expected) {
+    std::cerr << std::endl << "content of " << filename << " did not match.";
+
+    std::vector<std::string> content_lines = split_lines(content);
+    std::vector<std::string> expected_lines = split_lines(expected);
+
+    for (int i = 0; i < std::max(content_lines.size(), expected_lines.size()); i++) {
+      if (i >= expected_lines.size())
+        std::cerr << std::endl << "expected nothing but got \"" << content_lines[i] << "\".";
+      else if (i >= content_lines.size())
+        std::cerr << std::endl << "expected \"" << expected_lines[i] << "\" but got nothing.";
+      else if (content_lines[i] != expected_lines[i])
+        std::cerr << std::endl << "expected \"" << expected_lines[i] << "\" but got \"" << content_lines[i] << "\".";
+    }
+
+    std::cerr << std::endl << ">>>" << std::endl << content << std::endl << "---" << std::endl << expected << ">>>";
+
     return false;
   }
   return true;
