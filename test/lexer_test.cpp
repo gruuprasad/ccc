@@ -156,3 +156,12 @@ KEYWORD_TESTS(case, TokenType::CASE)
 KEYWORD_TESTS(char, TokenType::CHAR)
 KEYWORD_TESTS(const, TokenType::CONST)
 KEYWORD_TESTS(continue, TokenType::CONTINUE)
+
+TEST_CASE("Fast Lexer character constant test.") {
+  auto tokenList = FastLexer("'a'").lex();
+  auto & firstToken = tokenList.front();
+  REQUIRE(firstToken.getType() == TokenType::CHAR);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+  REQUIRE(firstToken.getExtra() == "a");
+}
