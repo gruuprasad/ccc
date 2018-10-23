@@ -181,5 +181,9 @@ KEYWORD_TESTS(static, TokenType::STATIC)
 KEYWORD_TESTS(struct, TokenType::STRUCT)
 KEYWORD_TESTS(switch, TokenType::SWITCH)
 KEYWORD_TESTS(union, TokenType::UNION)
+KEYWORD_TESTS(unsigned, TokenType::UNSIGNED)
+KEYWORD_TESTS(void, TokenType::VOID)
+KEYWORD_TESTS(volatile, TokenType::VOLATILE)
+KEYWORD_TESTS(while, TokenType::WHILE)
 
 

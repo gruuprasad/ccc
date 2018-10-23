@@ -356,13 +356,66 @@ inline bool FastLexer::isKeyword() {
     }
     break;
   case 'u':
-    if (getCharAt(position + 1) == 'n'
+    if (getCharAt(position + 1) == 'n') {
+      if (getCharAt(position + 2) == 'i'
+          && getCharAt(position + 3) == 'o'
+          && getCharAt(position + 4) == 'n'
+          && keyWordEnd(position + 5)
+          ) {
+        token_list.emplace_back(Token(TokenType::UNION, line, column, ""));
+        position += 5;
+        column += 5;
+        return true;
+      }
+      if (getCharAt(position + 2) == 's'
+          && getCharAt(position + 3) == 'i'
+          && getCharAt(position + 4) == 'g'
+          && getCharAt(position + 5) == 'n'
+          && getCharAt(position + 6) == 'e'
+          && getCharAt(position + 7) == 'd'
+          && keyWordEnd(position + 8)
+          ) {
+        token_list.emplace_back(Token(TokenType::UNSIGNED, line, column, ""));
+        position += 8;
+        column += 8;
+        return true;
+      }
+    }
+    break;
+  case 'v':
+    if (getCharAt(position + 1) == 'o') {
+      if (getCharAt(position + 2) == 'i'
+          && getCharAt(position + 3) == 'd'
+          && keyWordEnd(position + 4)
+          ) {
+        token_list.emplace_back(Token(TokenType::VOID, line, column, ""));
+        position += 4;
+        column += 4;
+        return true;
+      }
+      if (getCharAt(position + 2) == 'l'
+          && getCharAt(position + 3) == 'a'
+          && getCharAt(position + 4) == 't'
+          && getCharAt(position + 5) == 'i'
+          && getCharAt(position + 6) == 'l'
+          && getCharAt(position + 7) == 'e'
+          && keyWordEnd(position + 8)
+          ) {
+        token_list.emplace_back(Token(TokenType::VOLATILE, line, column, ""));
+        position += 8;
+        column += 8;
+        return true;
+      }
+    }
+    break;
+  case 'w':
+    if (getCharAt(position + 1) == 'h'
         && getCharAt(position + 2) == 'i'
-        && getCharAt(position + 3) == 'o'
-        && getCharAt(position + 4) == 'n'
+        && getCharAt(position + 3) == 'l'
+        && getCharAt(position + 4) == 'e'
         && keyWordEnd(position + 5)
         ) {
-      token_list.emplace_back(Token(TokenType::UNION, line, column, ""));
+      token_list.emplace_back(Token(TokenType::WHILE, line, column, ""));
       position += 5;
       column += 5;
       return true;
