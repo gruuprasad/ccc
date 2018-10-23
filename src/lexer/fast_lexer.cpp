@@ -11,6 +11,15 @@ inline char FastLexer::getCharAt(unsigned long position) {
   return content[position];
 }
 
+inline bool FastLexer::isKeyword() {
+  char first = getCharAt(position);
+
+  /*
+   * Fallthrough, no keyword matched!
+   */
+  return false;
+}
+
 bool FastLexer::munch() {
   char first = getCharAt(position);
   /*
@@ -49,6 +58,15 @@ bool FastLexer::munch() {
   if (('a' <= first && first <= 'z')
       || ('A' <= first && first <= 'Z')
       || first == '_') {
+    if (isKeyword()) {
+      /*
+       * We found a keyword already munched, return
+       */
+      return true;
+    }
+    /*
+     * No keyword, check for identifier
+     */
     do {
       tokenStream << first;
       first = getCharAt(++position);

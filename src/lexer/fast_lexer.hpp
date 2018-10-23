@@ -11,6 +11,7 @@ class FastLexer {
   unsigned long column;
   inline bool munch();
   inline char getCharAt(unsigned long position);
+  inline bool isKeyword();
 public:
   FastLexer(const std::string &content);
   std::list<Token, std::allocator<Token>> lex();
