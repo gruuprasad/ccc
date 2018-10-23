@@ -14,7 +14,7 @@ unsigned long Token::getLine() const {
   return line;
 }
 unsigned long Token::getColumn() const {
-  return column;
+  return column + 1;
 }
 const std::string &Token::getExtra() const {
   return extra;
@@ -223,6 +223,6 @@ const std::string Token::token_type() const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
-  os << token.line << ':' << token.column << ": " << token.token_type() << " " << token.extra;
+  os << token.line << ':' << token.getColumn() << ": " << token.token_type() << " " << token.extra;
   return os;
 }
