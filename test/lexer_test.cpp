@@ -198,6 +198,15 @@ KEYWORD_TESTS(_Noreturn, TokenType::NO_RETURN)
 KEYWORD_TESTS(_Static_assert, TokenType::STATIC_ASSERT)
 KEYWORD_TESTS(_Thread_local, TokenType::THREAD_LOCAL)
 
+TEST_CASE("Fast Lexer character constant test.") {
+  auto tokenList = FastLexer("'a'").lex();
+  auto & firstToken = tokenList.front();
+  REQUIRE(firstToken.getType() == TokenType::CHAR);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+  REQUIRE(firstToken.getExtra() == "a");
+}
+
 
 TEST_CASE("Fast Lexer line comment test.") {
   auto token_list = FastLexer("  aaa//blah\ntest//hehe\r\nmore//test\rtesting").lex();
