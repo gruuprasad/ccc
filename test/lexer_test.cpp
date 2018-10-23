@@ -3,6 +3,7 @@
 #include <sstream>
 #include "catch.hpp"
 #include "../src/lexer/lexer.hpp"
+#include "../src/lexer/fast_lexer.hpp"
 #include "../src/entry/entry_point_handler.hpp"
 #include <iterator>
 
@@ -95,3 +96,19 @@ TEST_CASE("Lexer keyword prio test.") {
   REQUIRE(Lexer().lex("auto").front().getType() == TokenType::AUTO);
 }
 
+TEST_CASE("Fast Lexer number test.") {
+  auto firstToken = FastLexer("123").lex().front();
+  REQUIRE(firstToken.getType() == TokenType::NUMBER);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+  REQUIRE(firstToken.getExtra() == "123");
+}
+
+TEST_CASE("Fast Lexer number with extra test.") {
+  auto token_list = FastLexer("123a").lex();
+  auto firstToken = token_list.front();
+  REQUIRE(firstToken.getType() == TokenType::NUMBER);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+  REQUIRE(firstToken.getExtra() == "123");
+}

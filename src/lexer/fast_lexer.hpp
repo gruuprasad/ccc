@@ -1,0 +1,19 @@
+#ifndef C4_FASTLEXER_H
+#define C4_FASTLEXER_H
+
+#include <list>
+#include "token.hpp"
+class FastLexer {
+  std::list<Token, std::allocator<Token>> token_list;
+  const std::string content;
+  unsigned long position;
+  unsigned long line;
+  unsigned long column;
+  inline bool munch();
+  inline char getCharAt(unsigned long position);
+public:
+  FastLexer(const std::string &content);
+  std::list<Token, std::allocator<Token>> lex();
+};
+
+#endif //C4_FASTLEXER_H
