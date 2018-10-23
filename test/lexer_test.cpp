@@ -8,7 +8,7 @@
 #include <iterator>
 
 #define COMPARE(name) \
-TEST_CASE("Compare "#name" .c to "#name".txt") { \
+TEST_CASE("Compare "#name".c to "#name".txt") { \
   REQUIRE(lexing_of(#name".c", to_match(#name".txt"))); \
 }
 
@@ -64,6 +64,9 @@ std::string to_match(const std::string &filename) {
   return buffer.str();
 }
 
+/*
+ * Disable old lexer for now...
+ *
 COMPARE(test)
 COMPARE(hello_world)
 COMPARE(error)
@@ -73,6 +76,7 @@ COMPARE(lorem_ipsum)
 COMPARE(extra)
 COMPARE(transpose)
 COMPARE(lots_of_real_code)
+ */
 
 TEST_CASE("Lexer Smoke test.") {
   auto token_list = Lexer().lex("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee");
@@ -156,3 +160,40 @@ KEYWORD_TESTS(case, TokenType::CASE)
 KEYWORD_TESTS(char, TokenType::CHAR)
 KEYWORD_TESTS(const, TokenType::CONST)
 KEYWORD_TESTS(continue, TokenType::CONTINUE)
+KEYWORD_TESTS(default, TokenType::DEFAULT)
+KEYWORD_TESTS(do, TokenType::DO)
+KEYWORD_TESTS(else, TokenType::ELSE)
+KEYWORD_TESTS(enum, TokenType::ENUM)
+KEYWORD_TESTS(extern, TokenType::EXTERN)
+KEYWORD_TESTS(for, TokenType::FOR)
+KEYWORD_TESTS(goto, TokenType::GOTO)
+KEYWORD_TESTS(if, TokenType::IF)
+KEYWORD_TESTS(inline, TokenType::INLINE)
+KEYWORD_TESTS(int, TokenType::INT)
+KEYWORD_TESTS(long, TokenType::LONG)
+KEYWORD_TESTS(register, TokenType::REGISTER)
+KEYWORD_TESTS(restrict, TokenType::RESTRICT)
+KEYWORD_TESTS(return, TokenType::RETURN)
+KEYWORD_TESTS(short, TokenType::SHORT)
+KEYWORD_TESTS(signed, TokenType::SIGNED)
+KEYWORD_TESTS(sizeof, TokenType::SIZEOF)
+KEYWORD_TESTS(static, TokenType::STATIC)
+KEYWORD_TESTS(struct, TokenType::STRUCT)
+KEYWORD_TESTS(switch, TokenType::SWITCH)
+KEYWORD_TESTS(union, TokenType::UNION)
+KEYWORD_TESTS(unsigned, TokenType::UNSIGNED)
+KEYWORD_TESTS(void, TokenType::VOID)
+KEYWORD_TESTS(volatile, TokenType::VOLATILE)
+KEYWORD_TESTS(while, TokenType::WHILE)
+KEYWORD_TESTS(_Alignas, TokenType::ALIGN_AS)
+KEYWORD_TESTS(_Alignof, TokenType::ALIGN_OF)
+KEYWORD_TESTS(_Atomic, TokenType::ATOMIC)
+KEYWORD_TESTS(_Bool, TokenType::BOOL)
+KEYWORD_TESTS(_Complex, TokenType::COMPLEX)
+KEYWORD_TESTS(_Generic, TokenType::GENERIC)
+KEYWORD_TESTS(_Imaginary, TokenType::IMAGINARY)
+KEYWORD_TESTS(_Noreturn, TokenType::NO_RETURN)
+KEYWORD_TESTS(_Static_assert, TokenType::STATIC_ASSERT)
+KEYWORD_TESTS(_Thread_local, TokenType::THREAD_LOCAL)
+
+
