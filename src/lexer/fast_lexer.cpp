@@ -277,6 +277,97 @@ inline bool FastLexer::isKeyword() {
       }
     }
     break;
+  case 's':
+    switch (getCharAt(position + 1)) {
+    case 'h':
+      if (getCharAt(position + 2) == 'o'
+          && getCharAt(position + 3) == 'r'
+          && getCharAt(position + 4) == 't'
+          && keyWordEnd(position + 5)
+          ) {
+        token_list.emplace_back(Token(TokenType::SHORT, line, column, ""));
+        position += 5;
+        column += 5;
+        return true;
+      }
+      break;
+    case 'i':
+      if (getCharAt(position + 2) == 'g'
+          && getCharAt(position + 3) == 'n'
+          && getCharAt(position + 4) == 'e'
+          && getCharAt(position + 5) == 'd'
+          && keyWordEnd(position + 6)
+          ) {
+        token_list.emplace_back(Token(TokenType::SIGNED, line, column, ""));
+        position += 6;
+        column += 6;
+        return true;
+      }
+      if (getCharAt(position + 2) == 'z'
+          && getCharAt(position + 3) == 'e'
+          && getCharAt(position + 4) == 'o'
+          && getCharAt(position + 5) == 'f'
+          && keyWordEnd(position + 6)
+          ) {
+        token_list.emplace_back(Token(TokenType::SIZEOF, line, column, ""));
+        position += 6;
+        column += 6;
+        return true;
+      }
+      break;
+    case 't':
+      if (getCharAt(position + 2) == 'a'
+          && getCharAt(position + 3) == 't'
+          && getCharAt(position + 4) == 'i'
+          && getCharAt(position + 5) == 'c'
+          && keyWordEnd(position + 6)
+          ) {
+        token_list.emplace_back(Token(TokenType::STATIC, line, column, ""));
+        position += 6;
+        column += 6;
+        return true;
+      }
+      if (getCharAt(position + 2) == 'r'
+          && getCharAt(position + 3) == 'u'
+          && getCharAt(position + 4) == 'c'
+          && getCharAt(position + 5) == 't'
+          && keyWordEnd(position + 6)
+          ) {
+        token_list.emplace_back(Token(TokenType::STRUCT, line, column, ""));
+        position += 6;
+        column += 6;
+        return true;
+      }
+      break;
+    case 'w':
+      if (getCharAt(position + 2) == 'i'
+          && getCharAt(position + 3) == 't'
+          && getCharAt(position + 4) == 'c'
+          && getCharAt(position + 5) == 'h'
+          && keyWordEnd(position + 6)
+          ) {
+        token_list.emplace_back(Token(TokenType::SWITCH, line, column, ""));
+        position += 6;
+        column += 6;
+        return true;
+      }
+      break;
+    default:break;
+    }
+    break;
+  case 'u':
+    if (getCharAt(position + 1) == 'n'
+        && getCharAt(position + 2) == 'i'
+        && getCharAt(position + 3) == 'o'
+        && getCharAt(position + 4) == 'n'
+        && keyWordEnd(position + 5)
+        ) {
+      token_list.emplace_back(Token(TokenType::UNION, line, column, ""));
+      position += 5;
+      column += 5;
+      return true;
+    }
+    break;
   default:break;
   }
   /*

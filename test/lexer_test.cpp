@@ -174,5 +174,12 @@ KEYWORD_TESTS(long, TokenType::LONG)
 KEYWORD_TESTS(register, TokenType::REGISTER)
 KEYWORD_TESTS(restrict, TokenType::RESTRICT)
 KEYWORD_TESTS(return, TokenType::RETURN)
+KEYWORD_TESTS(short, TokenType::SHORT)
+KEYWORD_TESTS(signed, TokenType::SIGNED)
+KEYWORD_TESTS(sizeof, TokenType::SIZEOF)
+KEYWORD_TESTS(static, TokenType::STATIC)
+KEYWORD_TESTS(struct, TokenType::STRUCT)
+KEYWORD_TESTS(switch, TokenType::SWITCH)
+KEYWORD_TESTS(union, TokenType::UNION)
 
 
