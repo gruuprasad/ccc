@@ -13,11 +13,27 @@ inline char FastLexer::getCharAt(unsigned long position) {
 
 bool FastLexer::munch() {
   char first = getCharAt(position);
-  if(first == 0){
+  /*
+   * At end of file, return
+   */
+  if (first == 0) {
     return false;
+  }
+  /*
+   * Munch away all whitespace
+   */
+  while (first == ' '
+      || first == '\t'
+      || first == '\n'
+      || first == '\r'
+      ) {
+    first = getCharAt(++position);
   }
   unsigned long oldPosition = position;
   std::stringstream tokenStream;
+  /*
+   * Check if we have a number at hand
+   */
   if ('0' <= first && first <= '9') {
     do {
       tokenStream << first;
@@ -27,11 +43,32 @@ bool FastLexer::munch() {
     column += position - oldPosition;
     return true;
   }
+  /*
+   * Check if we have an identifier or a keyword at hand
+   */
+  if (('a' <= first && first <= 'z')
+      || ('A' <= first && first <= 'Z')
+      || first == '_') {
+    do {
+      tokenStream << first;
+      first = getCharAt(++position);
+    } while (('0' <= first && first <= '9')
+        || ('a' <= first && first <= 'z')
+        || ('A' <= first && first <= 'Z')
+        || first == '_');
+    token_list.emplace_back(Token(TokenType::IDENTIFIER, line, column, tokenStream.str()));
+    column += position - oldPosition;
+    return true;
+  }
+  /*
+   * We matched nothing, we should fail the lexing!
+   */
   return false;
 }
 
 std::list<Token, std::allocator<Token>> FastLexer::lex() {
-  while(munch()){}
+  while (munch()) {
+  }
   return token_list;
 }
 
