@@ -1,5 +1,6 @@
 #include <sstream>
 #include "fast_lexer.hpp"
+#include "lexer_exception.hpp"
 FastLexer::FastLexer(const std::string &content) : content(content) {
   token_list = std::list<Token, std::allocator<Token>>();
   position = 0;
@@ -654,6 +655,37 @@ bool FastLexer::munch() {
     return true;
   }
 
+  /*
+   * Munch away block comments
+   */
+  if (first == '/' && getCharAt(position + 1) == '*') {
+    unsigned long previousLine = line;
+    unsigned long previousColumn = column;
+    position += 2;
+    column += 2;
+    first = getCharAt(position);
+    while (first != '*' || getCharAt(position + 1) != '/') {
+      switch (first) {
+      case 0:
+        throw LexerException(Token(TokenType::QUESTION, previousLine, previousColumn, "Unterminated Comment!"));
+      case '\r':
+        if (getCharAt(position + 1) == '\n') {
+          ++position;
+        }
+        //fall-through
+      case '\n':
+        column = 0;
+        ++line;
+        break;
+      default:++column;
+        break;
+      }
+      first = getCharAt(++position);
+    }
+    position += 2;
+    column += 2;
+    return true;
+  }
 
   /*
    * Check if we have a number at hand

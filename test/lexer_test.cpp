@@ -206,3 +206,24 @@ TEST_CASE("Fast Lexer line comment test.") {
   REQUIRE(lastToken.getExtra() == "testing");
 }
 
+TEST_CASE("Fast Lexer block comment test.") {
+  auto token_list = FastLexer(" /**/x").lex();
+  auto lastToken = token_list.back();
+  REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);
+  REQUIRE(lastToken.getLine() == 1);
+  REQUIRE(lastToken.getColumn() == 6);
+  REQUIRE(lastToken.getExtra() == "x");
+}
+
+TEST_CASE("Fast Lexer block comment multiline test.") {
+  auto token_list = FastLexer(" /*\nee*/x").lex();
+  auto lastToken = token_list.back();
+  REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);
+  REQUIRE(lastToken.getLine() == 2);
+  REQUIRE(lastToken.getColumn() == 5);
+  REQUIRE(lastToken.getExtra() == "x");
+}
+
+TEST_CASE("Fast Lexer block comment multiline unterminated.") {
+  REQUIRE_THROWS_WITH(FastLexer(" /*\nee/x").lex(), "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
+}
