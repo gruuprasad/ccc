@@ -66,8 +66,9 @@ std::string to_match(const std::string &filename) {
 
 /*
  * Disable old lexer for now...
- *
-COMPARE(test)
+ */
+//COMPARE(test)
+/*
 COMPARE(hello_world)
 COMPARE(error)
 COMPARE(everything)
@@ -76,7 +77,7 @@ COMPARE(lorem_ipsum)
 COMPARE(extra)
 COMPARE(transpose)
 COMPARE(lots_of_real_code)
- */
+*/
 
 TEST_CASE("Lexer Smoke test.") {
   auto token_list = Lexer().lex("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee");
@@ -180,6 +181,7 @@ KEYWORD_TESTS(sizeof, TokenType::SIZEOF)
 KEYWORD_TESTS(static, TokenType::STATIC)
 KEYWORD_TESTS(struct, TokenType::STRUCT)
 KEYWORD_TESTS(switch, TokenType::SWITCH)
+KEYWORD_TESTS(typedef, TokenType::TYPEDEF)
 KEYWORD_TESTS(union, TokenType::UNION)
 KEYWORD_TESTS(unsigned, TokenType::UNSIGNED)
 KEYWORD_TESTS(void, TokenType::VOID)

@@ -3,6 +3,8 @@
 
 #include <list>
 #include "token.hpp"
+#include "lexer_exception.hpp"
+
 class FastLexer {
   std::list<Token, std::allocator<Token>> token_list;
   const std::string content;
