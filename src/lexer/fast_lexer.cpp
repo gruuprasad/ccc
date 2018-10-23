@@ -3,7 +3,7 @@
 #include "fast_lexer.hpp"
 
 FastLexer::FastLexer(const std::string &content) : content(content) {
-  token_list = std::list<Token, std::allocator<Token>>();
+  token_list = std::vector<Token, std::allocator<Token>>();
   position = 0;
   line = 1;
   column = 0;
@@ -788,7 +788,7 @@ bool FastLexer::munch() {
   return false;
 }
 
-std::list<Token, std::allocator<Token>> FastLexer::lex() {
+std::vector<Token, std::allocator<Token>> FastLexer::lex() {
   while (munch()) {
   }
   return token_list;

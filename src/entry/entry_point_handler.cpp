@@ -9,7 +9,7 @@
 EntryPointHandler::EntryPointHandler() = default;
 
 int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename, std::ostream& output) {
-  std::list<Token, std::allocator<Token>> token_list;
+  std::vector<Token, std::allocator<Token>> token_list;
   std::stringstream buffer;
   buffer << file.rdbuf();
   try {
