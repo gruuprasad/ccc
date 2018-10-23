@@ -11,7 +11,7 @@ int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename,
   try {
     token_list = Lexer().lex(file);
   } catch (LexerException &exception){
-    output << "Standard exception: " << exception.what() << std::endl;
+    std::cerr << filename << ":" << exception.what() << std::endl;
     return 1;
   }
   for (const auto &token : token_list) {
