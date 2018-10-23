@@ -98,6 +98,69 @@ inline bool FastLexer::isKeyword() {
       break;
     default:break;
     }
+  case 'd':
+    if (getCharAt(position + 1) == 'o'
+        && keyWordEnd(position + 2)
+        ) {
+      token_list.emplace_back(Token(TokenType::DO, line, column, ""));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    if (getCharAt(position + 1) == 'e'
+        && getCharAt(position + 2) == 'f'
+        && getCharAt(position + 3) == 'a'
+        && getCharAt(position + 4) == 'u'
+        && getCharAt(position + 5) == 'l'
+        && getCharAt(position + 6) == 't'
+        && keyWordEnd(position + 7)
+        ) {
+      token_list.emplace_back(Token(TokenType::DEFAULT, line, column, ""));
+      position += 7;
+      column += 7;
+      return true;
+    }
+    break;
+  case 'e':
+    switch (getCharAt(position + 1)){
+    case 'l':
+      if (getCharAt(position + 2) == 's'
+          && getCharAt(position + 3) == 'e'
+          && keyWordEnd(position + 4)
+          ) {
+        token_list.emplace_back(Token(TokenType::ELSE, line, column, ""));
+        position += 4;
+        column += 4;
+        return true;
+      }
+      break;
+    case 'n':
+      if (getCharAt(position + 2) == 'u'
+          && getCharAt(position + 3) == 'm'
+          && keyWordEnd(position + 4)
+          ) {
+        token_list.emplace_back(Token(TokenType::ENUM, line, column, ""));
+        position += 4;
+        column += 4;
+        return true;
+      }
+      break;
+    case 'x':
+      if (getCharAt(position + 2) == 't'
+          && getCharAt(position + 3) == 'e'
+          && getCharAt(position + 4) == 'r'
+          && getCharAt(position + 5) == 'n'
+          && keyWordEnd(position + 6)
+          ) {
+        token_list.emplace_back(Token(TokenType::EXTERN, line, column, ""));
+        position += 6;
+        column += 6;
+        return true;
+      }
+      break;
+    default:break;
+    }
+    break;
   default:break;
   }
   /*

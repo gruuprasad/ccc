@@ -156,3 +156,10 @@ KEYWORD_TESTS(case, TokenType::CASE)
 KEYWORD_TESTS(char, TokenType::CHAR)
 KEYWORD_TESTS(const, TokenType::CONST)
 KEYWORD_TESTS(continue, TokenType::CONTINUE)
+KEYWORD_TESTS(default, TokenType::DEFAULT)
+KEYWORD_TESTS(do, TokenType::DO)
+KEYWORD_TESTS(else, TokenType::ELSE)
+KEYWORD_TESTS(enum, TokenType::ENUM)
+KEYWORD_TESTS(extern, TokenType::EXTERN)
+
+
