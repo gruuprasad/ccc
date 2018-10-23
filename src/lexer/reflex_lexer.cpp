@@ -172,7 +172,7 @@ int ReflexLexer::lex()
       token_list.emplace_back(Token(TokenType::REGISTER, lineno(), columno(), str()));
       break;
     case 22: // rule at line 60: (?:\Qrestrict\E)
-      token_list.emplace_back(Token(TokenType::RESTRICTED, lineno(), columno(), str()));
+      token_list.emplace_back(Token(TokenType::RESTRICT, lineno(), columno(), str()));
       break;
     case 23: // rule at line 61: (?:\Qreturn\E)
       token_list.emplace_back(Token(TokenType::RETURN, lineno(), columno(), str()));

@@ -48,7 +48,7 @@ const std::string Token::name() const {
   case TokenType::INT:return "int";
   case TokenType::LONG:return "long";
   case TokenType::REGISTER:return "register";
-  case TokenType::RESTRICTED:return "restricted";
+  case TokenType::RESTRICT:return "restricted";
   case TokenType::RETURN:return "return";
   case TokenType::SHORT:return "short";
   case TokenType::SIGNED:return "signed";
@@ -149,7 +149,7 @@ const std::string Token::token_type() const {
   case TokenType::INT:return "keyword";
   case TokenType::LONG:return "keyword";
   case TokenType::REGISTER:return "keyword";
-  case TokenType::RESTRICTED:return "keyword";
+  case TokenType::RESTRICT:return "keyword";
   case TokenType::RETURN:return "keyword";
   case TokenType::SHORT:return "keyword";
   case TokenType::SIGNED:return "keyword";

@@ -21,7 +21,7 @@ enum class TokenType {
   INT,
   LONG,
   REGISTER,
-  RESTRICTED,
+  RESTRICT,
   RETURN,
   SHORT,
   SIGNED,

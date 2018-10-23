@@ -2,7 +2,7 @@
 #include "lexer_exception.hpp"
 
 LexerException::LexerException(const Token &token) : token(token) {
-  problem = "Lexer error at " + std::to_string(token.getLine()) + ":" + std::to_string(token.getColumn()) + " at token: '"
+  problem = std::to_string(token.getLine()) + ":" + std::to_string(token.getColumn()) + ": error: '"
       + token.getExtra() + "'. Lexing Stopped!";
 }
 

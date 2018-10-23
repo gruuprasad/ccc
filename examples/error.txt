@@ -1,1 +1,1 @@
-Standard exception: Lexer error at 2:2 at token: '#'. Lexing Stopped!
+error.c:1:1: error: 'Unterminated Comment!'. Lexing Stopped!
