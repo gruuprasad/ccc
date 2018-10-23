@@ -197,3 +197,12 @@ KEYWORD_TESTS(_Static_assert, TokenType::STATIC_ASSERT)
 KEYWORD_TESTS(_Thread_local, TokenType::THREAD_LOCAL)
 
 
+TEST_CASE("Fast Lexer line comment test.") {
+  auto token_list = FastLexer("  aaa//blah\ntest//hehe\r\nmore//test\rtesting").lex();
+  auto lastToken = token_list.back();
+  REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);
+  REQUIRE(lastToken.getLine() == 4);
+  REQUIRE(lastToken.getColumn() == 1);
+  REQUIRE(lastToken.getExtra() == "testing");
+}
+

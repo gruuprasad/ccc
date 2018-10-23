@@ -611,7 +611,9 @@ bool FastLexer::munch() {
       if (getCharAt(position + 1) == '\n') {
         ++position;
       }
-    case '\n':column = 0;
+      //fall-through
+    case '\n':
+      column = 0;
       ++line;
       break;
     default:++column;
@@ -621,6 +623,37 @@ bool FastLexer::munch() {
   }
   unsigned long oldPosition = position;
   std::stringstream tokenStream;
+
+  if (first == 0) {
+    return false;
+  }
+
+  /*
+   * Munch away line comments
+   */
+  if (first == '/' && getCharAt(position + 1) == '/') {
+    while (first != '\n' && first != '\r') {
+      first = getCharAt(++position);
+      if (first == 0) {
+        return false;
+      }
+    }
+    switch (first) {
+    case '\r':
+      if (getCharAt(position + 1) == '\n') {
+        ++position;
+      }
+      //fall-through
+    case '\n':
+      column = 0;
+      ++line;
+      break;
+    default:break;
+    }
+    ++position;
+    return true;
+  }
+
 
   /*
    * Check if we have a number at hand
