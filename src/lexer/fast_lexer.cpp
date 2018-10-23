@@ -47,8 +47,58 @@ inline bool FastLexer::isKeyword() {
       return true;
     }
     break;
-  default:
-    break;
+  case 'c':
+    switch (getCharAt(position + 1)) {
+    case 'a':
+      if (getCharAt(position + 2) == 's'
+          && getCharAt(position + 3) == 'e'
+          && keyWordEnd(position + 4)
+          ) {
+        token_list.emplace_back(Token(TokenType::CASE, line, column, ""));
+        position += 4;
+        column += 4;
+        return true;
+      }
+      break;
+    case 'h':
+      if (getCharAt(position + 2) == 'a'
+          && getCharAt(position + 3) == 'r'
+          && keyWordEnd(position + 4)
+          ) {
+        token_list.emplace_back(Token(TokenType::CHAR, line, column, ""));
+        position += 4;
+        column += 4;
+        return true;
+      }
+      break;
+    case 'o':
+      if (getCharAt(position + 2) == 'n') {
+        if (getCharAt(position + 3) == 's'
+            && getCharAt(position + 4) == 't'
+            && keyWordEnd(position + 5)
+            ) {
+          token_list.emplace_back(Token(TokenType::CONST, line, column, ""));
+          position += 5;
+          column += 5;
+          return true;
+        }
+        if (getCharAt(position + 3) == 't'
+            && getCharAt(position + 4) == 'i'
+            && getCharAt(position + 5) == 'n'
+            && getCharAt(position + 6) == 'u'
+            && getCharAt(position + 7) == 'e'
+            && keyWordEnd(position + 8)
+            ) {
+          token_list.emplace_back(Token(TokenType::CONTINUE, line, column, ""));
+          position += 8;
+          column += 8;
+          return true;
+        }
+      }
+      break;
+    default:break;
+    }
+  default:break;
   }
   /*
    * Fallthrough, no keyword matched!
@@ -72,6 +122,17 @@ bool FastLexer::munch() {
       || first == '\n'
       || first == '\r'
       ) {
+    switch (first) {
+    case '\r':
+      if (getCharAt(position + 1) == '\n') {
+        ++position;
+      }
+    case '\n':column = 0;
+      ++line;
+      break;
+    default:++column;
+      break;
+    }
     first = getCharAt(++position);
   }
   unsigned long oldPosition = position;

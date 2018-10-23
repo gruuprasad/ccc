@@ -118,45 +118,41 @@ TEST_CASE("Fast Lexer number with extra test.") {
   REQUIRE(secondToken.getExtra() == "afg");
 }
 
-TEST_CASE("Fast Lexer keyword auto positive.") {
-  auto firstToken = FastLexer("auto").lex().front();
-  REQUIRE(firstToken.getType() == TokenType::AUTO);
-  REQUIRE(firstToken.getLine() == 1);
-  REQUIRE(firstToken.getColumn() == 1);
-}
+#define KEYWORD_TESTS(keyword, token) \
+TEST_CASE("Fast Lexer keyword "#keyword" positive.") { \
+  auto firstToken = FastLexer(#keyword).lex().front(); \
+  REQUIRE(firstToken.getType() == token); \
+  REQUIRE(firstToken.getLine() == 1); \
+  REQUIRE(firstToken.getColumn() == 1); \
+} \
+TEST_CASE("Fast Lexer keyword "#keyword" positive prev.") { \
+  auto firstToken = FastLexer("  "#keyword).lex().front(); \
+  REQUIRE(firstToken.getType() == token); \
+  REQUIRE(firstToken.getLine() == 1); \
+  REQUIRE(firstToken.getColumn() == 3); \
+} \
+TEST_CASE("Fast Lexer keyword "#keyword" negative prev.") { \
+  auto firstToken = FastLexer("n"#keyword).lex().front(); \
+  REQUIRE(firstToken.getType() == TokenType::IDENTIFIER); \
+  REQUIRE(firstToken.getLine() == 1); \
+  REQUIRE(firstToken.getColumn() == 1); \
+} \
+TEST_CASE("Fast Lexer keyword "#keyword" positive cont.") { \
+  auto firstToken = FastLexer(#keyword"+").lex().front(); \
+  REQUIRE(firstToken.getType() == token); \
+  REQUIRE(firstToken.getLine() == 1); \
+  REQUIRE(firstToken.getColumn() == 1); \
+} \
+TEST_CASE("Fast Lexer keyword "#keyword" negative cont.") { \
+  auto firstToken = FastLexer(#keyword"n").lex().front(); \
+  REQUIRE(firstToken.getType() == TokenType::IDENTIFIER); \
+  REQUIRE(firstToken.getLine() == 1); \
+  REQUIRE(firstToken.getColumn() == 1); \
+} \
 
-TEST_CASE("Fast Lexer keyword auto positive cont.") {
-  auto firstToken = FastLexer("auto+").lex().front();
-  REQUIRE(firstToken.getType() == TokenType::AUTO);
-  REQUIRE(firstToken.getLine() == 1);
-  REQUIRE(firstToken.getColumn() == 1);
-}
-
-TEST_CASE("Fast Lexer keyword auto negative cont.") {
-  auto firstToken = FastLexer("auton").lex().front();
-  REQUIRE(firstToken.getType() == TokenType::IDENTIFIER);
-  REQUIRE(firstToken.getLine() == 1);
-  REQUIRE(firstToken.getColumn() == 1);
-}
-
-TEST_CASE("Fast Lexer keyword break positive.") {
-  auto firstToken = FastLexer("break").lex().front();
-  REQUIRE(firstToken.getType() == TokenType::BREAK);
-  REQUIRE(firstToken.getLine() == 1);
-  REQUIRE(firstToken.getColumn() == 1);
-}
-
-TEST_CASE("Fast Lexer keyword break positive cont.") {
-  auto firstToken = FastLexer("break+").lex().front();
-  REQUIRE(firstToken.getType() == TokenType::BREAK);
-  REQUIRE(firstToken.getLine() == 1);
-  REQUIRE(firstToken.getColumn() == 1);
-}
-
-TEST_CASE("Fast Lexer keyword break negative cont.") {
-  auto firstToken = FastLexer("breakn").lex().front();
-  REQUIRE(firstToken.getType() == TokenType::IDENTIFIER);
-  REQUIRE(firstToken.getLine() == 1);
-  REQUIRE(firstToken.getColumn() == 1);
-}
-
+KEYWORD_TESTS(auto, TokenType::AUTO)
+KEYWORD_TESTS(break, TokenType::BREAK)
+KEYWORD_TESTS(case, TokenType::CASE)
+KEYWORD_TESTS(char, TokenType::CHAR)
+KEYWORD_TESTS(const, TokenType::CONST)
+KEYWORD_TESTS(continue, TokenType::CONTINUE)
