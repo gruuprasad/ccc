@@ -2,11 +2,12 @@
 #define C4_FASTLEXER_H
 
 #include <list>
+#include <vector>
 #include "token.hpp"
 #include "lexer_exception.hpp"
 
 class FastLexer {
-  std::list<Token, std::allocator<Token>> token_list;
+  std::vector<Token, std::allocator<Token>> token_list;
   const std::string content;
   unsigned long position;
   unsigned long line;
@@ -15,9 +16,10 @@ class FastLexer {
   inline char getCharAt(unsigned long position);
   inline bool keyWordEnd(unsigned long position);
   inline bool isKeyword();
+  inline bool isPunctuator();
 public:
-  FastLexer(const std::string &content);
-  std::list<Token, std::allocator<Token>> lex();
+  explicit FastLexer(const std::string &content);
+  std::vector<Token, std::allocator<Token>> lex();
 };
 
 #endif //C4_FASTLEXER_H
