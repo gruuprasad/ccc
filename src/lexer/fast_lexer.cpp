@@ -1017,12 +1017,12 @@ inline bool FastLexer::munch() {
     first = getCharAt(++position);
     if (first != '\'' && first != '\\' && first != '\n' && getCharAt(position + 1) == '\'') {
       tokenStream << first;
-      token_list.emplace_back(Token(TokenType::CHAR, line, column, tokenStream.str()));
+      token_list.emplace_back(Token(TokenType::CHARACTER, line, column, tokenStream.str()));
       column += 3;
       position += 2;
       return true;
     }
-    throw LexerException(Token{TokenType::CHAR, line, column, &first});
+    throw LexerException(Token{TokenType::CHARACTER, line, column, &first});
   }
 
   /*
