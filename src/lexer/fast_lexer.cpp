@@ -1,4 +1,5 @@
 #include <sstream>
+#include <iostream>
 #include "lexer_exception.hpp"
 #include "fast_lexer.hpp"
 
@@ -1065,6 +1066,7 @@ inline bool FastLexer::munch() {
       ++column;
     }
     token_list.emplace_back(Token(TokenType::STRING, line, initColumn, tokenStream.str()));
+    ++position;
     ++column;
     return true;
   }

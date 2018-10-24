@@ -50,6 +50,9 @@ set(TEST_FILES
         test/test_main.cpp
         test/first_test.cpp
         test/lexer_test.cpp
+        test/lexer_keyword_test.cpp
+        test/lexer_punctuation_test.cpp
+        test/lexer_big_test.cpp
         )
 
 add_executable(tests ${TEST_SOURCE_FILES} ${REFLEX} ${TEST_FILES})
