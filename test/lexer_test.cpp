@@ -2,32 +2,31 @@
 #include <fstream>
 #include <sstream>
 #include "catch.hpp"
-#include "../src/lexer/lexer.hpp"
 #include "../src/lexer/fast_lexer.hpp"
 #include "../src/entry/entry_point_handler.hpp"
 #include "../src/lexer/lexer_exception.hpp"
 #include <iterator>
 
 TEST_CASE("Lexer Smoke test.") {
-  auto token_list = Lexer().lex("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee");
+  auto token_list = FastLexer("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee").lex();
 }
 
 TEST_CASE("Lexer Simple Operator tests.") {
-  REQUIRE(Lexer().lex("+").front().getType() == TokenType::PLUS);
-  REQUIRE(Lexer().lex("-").front().getType() == TokenType::MINUS);
-  REQUIRE(Lexer().lex("++").front().getType() == TokenType::PLUSPLUS);
-  REQUIRE(Lexer().lex("--").front().getType() == TokenType::MINUSMINUS);
+  REQUIRE(FastLexer("+").lex().front().getType() == TokenType::PLUS);
+  REQUIRE(FastLexer("-").lex().front().getType() == TokenType::MINUS);
+  REQUIRE(FastLexer("++").lex().front().getType() == TokenType::PLUSPLUS);
+  REQUIRE(FastLexer("--").lex().front().getType() == TokenType::MINUSMINUS);
 }
 
 TEST_CASE("Lexer keyword max munch test.") {
-  auto token_list = Lexer().lex("automa");
+  auto token_list = FastLexer("automa").lex();
   Token &token = token_list.front();
   REQUIRE(token.getType() == TokenType::IDENTIFIER);
   REQUIRE(token.getExtra() == "automa");
 }
 
 TEST_CASE("Lexer keyword prio test.") {
-  REQUIRE(Lexer().lex("auto").front().getType() == TokenType::AUTO);
+  REQUIRE(FastLexer("auto").lex().front().getType() == TokenType::AUTO);
 }
 
 TEST_CASE("Fast Lexer number test.") {
