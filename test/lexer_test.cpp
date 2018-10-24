@@ -74,7 +74,9 @@ COMPARE(hello_world)
 COMPARE(error)
 COMPARE(everything)
 COMPARE(comments)
+*/
 COMPARE(lorem_ipsum)
+/*
 COMPARE(extra)
 COMPARE(transpose)
 COMPARE(lots_of_real_code)
@@ -271,7 +273,7 @@ PUNCTUATOR_TESTS("?", TokenType::QUESTION)
 
 TEST_CASE("Fast Lexer character constant test.") {
   auto tokenList = FastLexer("'a'").lex();
-  auto & firstToken = tokenList.front();
+  auto &firstToken = tokenList.front();
   REQUIRE(firstToken.getType() == TokenType::CHAR);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
@@ -281,7 +283,6 @@ TEST_CASE("Fast Lexer character constant test.") {
 TEST_CASE("Fast Lexer invalid character literal test.") {
   REQUIRE_THROWS_AS(FastLexer("''").lex(), LexerException);
 }
-
 
 TEST_CASE("Fast Lexer line comment test.") {
   auto token_list = FastLexer("  aaa//blah\ntest//hehe\r\nmore//test\rtesting").lex();
