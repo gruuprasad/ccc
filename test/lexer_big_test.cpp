@@ -69,15 +69,17 @@ std::string to_match(const std::string &filename) {
  * Disable old lexer for now...
  */
 //COMPARE(test)
-/*
+
 COMPARE(hello_world)
-COMPARE(error)
-COMPARE(everything)
-COMPARE(comments)
-*/
-COMPARE(lorem_ipsum)
 /*
-COMPARE(extra)
+COMPARE(everything)
+
 COMPARE(transpose)
 COMPARE(lots_of_real_code)
 */
+COMPARE(everything)
+COMPARE(comments)
+COMPARE(lorem_ipsum)
+COMPARE(extra)
+
+

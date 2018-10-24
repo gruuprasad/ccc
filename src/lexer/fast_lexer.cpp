@@ -93,6 +93,7 @@ inline bool FastLexer::isPunctuator() {
       ++column;
       return true;
     }
+    break;
   case '=':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(Token(TokenType::EQUAL, line, column, ""));
@@ -371,6 +372,7 @@ inline bool FastLexer::isKeyword() {
       break;
     default:break;
     }
+    break;
   case 'd':
     if (getCharAt(position + 1) == 'o'
         && keyWordEnd(position + 2)
@@ -548,6 +550,7 @@ inline bool FastLexer::isKeyword() {
         break;
       default:break;
       }
+      break;
     }
     break;
   case 's':

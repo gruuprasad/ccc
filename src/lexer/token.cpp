@@ -48,7 +48,7 @@ const std::string Token::name() const {
   case TokenType::INT:return "int";
   case TokenType::LONG:return "long";
   case TokenType::REGISTER:return "register";
-  case TokenType::RESTRICT:return "restricted";
+  case TokenType::RESTRICT:return "restrict";
   case TokenType::RETURN:return "return";
   case TokenType::SHORT:return "short";
   case TokenType::SIGNED:return "signed";
