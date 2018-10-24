@@ -68,7 +68,7 @@ inline bool FastLexer::isPunctuator() {
     return true;
   case '-':
     switch (getCharAt(position + 1)) {
-    case '-':token_list.emplace_back(Token(TokenType::PLUSPLUS, line, column, "--"));
+    case '-':token_list.emplace_back(Token(TokenType::MINUSMINUS, line, column, "--"));
       position += 2;
       column += 2;
       return true;
@@ -103,17 +103,187 @@ inline bool FastLexer::isPunctuator() {
     ++position;
     ++column;
     return true;
-  default:std::string error = "Unknown token " + std::string(1, first);
-    if (getCharAt(position + 1) != 0) {
-      error += std::string(1, getCharAt(position + 1));
-      if (getCharAt(position + 2) != 0) {
-        error += std::string(1, getCharAt(position + 2));
-        if (getCharAt(position + 3) != 0) {
-          error += std::string(1, getCharAt(position + 2)) + " [truncated]";
-        }
-      }
+  case '<':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::LESS_EQUAL, line, column, "<="));
+      position += 2;
+      column += 2;
+      return true;
     }
-    throw LexerException(Token(TokenType::QUESTION, line, column, error));
+    if (getCharAt(position + 1) == '<') {
+      if (getCharAt(position + 2) == '=') {
+        token_list.emplace_back(Token(TokenType::LEFT_SHIFT_ASSIGN, line, column, "<<="));
+        position += 3;
+        column += 3;
+        return true;
+      }
+      token_list.emplace_back(Token(TokenType::LEFT_SHIFT, line, column, "<<"));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::LEFT, line, column, "<"));
+    ++position;
+    ++column;
+    return true;
+  case '>':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::GREATER_EQUAL, line, column, ">="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    if (getCharAt(position + 1) == '>') {
+      if (getCharAt(position + 2) == '=') {
+        token_list.emplace_back(Token(TokenType::RIGHT_SHIFT_ASSIGN, line, column, ">>="));
+        position += 3;
+        column += 3;
+        return true;
+      }
+      token_list.emplace_back(Token(TokenType::RIGHT_SHIFT, line, column, ">>"));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::RIGHT, line, column, ">"));
+    ++position;
+    ++column;
+    return true;
+  case '!':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::NOT_EQUAL, line, column, "!="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::NOT, line, column, "!"));
+    ++position;
+    ++column;
+    return true;
+  case ',':token_list.emplace_back(Token(TokenType::COMMA, line, column, ","));
+    ++position;
+    ++column;
+    return true;
+  case ';':token_list.emplace_back(Token(TokenType::SEMICOLON, line, column, ";"));
+    ++position;
+    ++column;
+    return true;
+  case '.':
+    if (getCharAt(position + 1) == '.'
+        && getCharAt(position + 2) == '.') {
+      token_list.emplace_back(Token(TokenType::TRI_DOTS, line, column, "..."));
+      position += 3;
+      column += 3;
+      return true;
+    }
+    if (getCharAt(position + 1) == '*') {
+      token_list.emplace_back(Token(TokenType::DOT_STAR, line, column, ".*"));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::DOT, line, column, "."));
+    ++position;
+    ++column;
+    return true;
+  case '^':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::CARET_ASSIGN, line, column, "^="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::CARET, line, column, "^"));
+    ++position;
+    ++column;
+    return true;
+  case '~':token_list.emplace_back(Token(TokenType::TILDE, line, column, "~"));
+    ++position;
+    ++column;
+    return true;
+  case '*':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::STAR_ASSIGN, line, column, "*="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::STAR, line, column, "*"));
+    ++position;
+    ++column;
+    return true;
+  case '/':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::DIV_ASSIGN, line, column, "/="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::DIV, line, column, "/"));
+    ++position;
+    ++column;
+    return true;
+  case '%':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::MOD_ASSIGN, line, column, "%="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::MOD, line, column, "%"));
+    ++position;
+    ++column;
+    return true;
+  case '&':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::AMPERSAND_ASSIGN, line, column, "&="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    if (getCharAt(position + 1) == '&') {
+      token_list.emplace_back(Token(TokenType::AND, line, column, "&&"));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::AMPERSAND, line, column, "&"));
+    ++position;
+    ++column;
+    return true;
+  case '|':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::PIPE_ASSIGN, line, column, "|="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    if (getCharAt(position + 1) == '|') {
+      token_list.emplace_back(Token(TokenType::OR, line, column, "||"));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::PIPE, line, column, "|"));
+    ++position;
+    ++column;
+    return true;
+  case ':':
+    if (getCharAt(position + 1) == ':') {
+      token_list.emplace_back(Token(TokenType::COLON_COLON, line, column, "::"));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::COLON, line, column, ":"));
+    ++position;
+    ++column;
+    return true;
+  case '?':token_list.emplace_back(Token(TokenType::QUESTION, line, column, "?"));
+    ++position;
+    ++column;
+    return true;
+  default: break;
   }
   /*
    * Fallthrough, no punctuator matched!
@@ -840,13 +1010,6 @@ inline bool FastLexer::munch() {
     return true;
   }
 
-  if (isPunctuator()) {
-    /*
-     * We found a punctuator already munched, return
-     */
-    return true;
-  }
-
   /*
    * Check if we have a character constant
    */
@@ -869,12 +1032,27 @@ inline bool FastLexer::munch() {
 
   }
 
+  if (isPunctuator()) {
+    /*
+     * We found a punctuator already munched, return
+     */
+    return true;
+  }
+
   /*
    * We matched nothing, we should fail the lexing!
    */
-  ++position;
-  ++column;
-  return true;
+  std::string error = "Unknown token " + std::string(1, first);
+  if (getCharAt(position + 1) != 0) {
+    error += std::string(1, getCharAt(position + 1));
+    if (getCharAt(position + 2) != 0) {
+      error += std::string(1, getCharAt(position + 2));
+      if (getCharAt(position + 3) != 0) {
+        error += std::string(1, getCharAt(position + 2)) + " [truncated]";
+      }
+    }
+  }
+  throw LexerException(Token(TokenType::QUESTION, line, column, error));
 }
 
 std::vector<Token, std::allocator<Token>> FastLexer::lex() {
