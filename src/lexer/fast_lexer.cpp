@@ -769,15 +769,30 @@ inline bool FastLexer::munch() {
    * Check if we have a character constant
    */
   if (first == '\'') {
-    tokenStream << first;
     first = getCharAt(++position);
+    tokenStream << first;
     if (first != '\'' && first != '\\' && first != '\n' && getCharAt(position + 1) == '\'') {
-      tokenStream << first;
-      tokenStream << getCharAt(position + 1);
       token_list.emplace_back(Token(TokenType::CHAR, line, column, tokenStream.str()));
       column += 3;
       position += 2;
       return true;
+    } else if (first == '\\') {
+        first = getCharAt(++position);
+        tokenStream << first;
+        switch (first) {
+          case '\'':
+          case '"':
+          case '?':
+          case '\\':
+          case 'a':
+          case 'b': case 'f': case 'n':  case 'r': case 't': case 'v':
+            token_list.emplace_back(Token(TokenType::CHAR, line, column, tokenStream.str()));
+            column += 4;
+            position += 3;
+            return true;
+          default:
+            throw LexerException(Token(TokenType::STRING, line, column, tokenStream.str()));
+        }
     }
     throw LexerException(Token{TokenType::CHAR, line, column, &first});
   }
