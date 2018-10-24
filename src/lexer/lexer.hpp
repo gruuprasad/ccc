@@ -3,12 +3,13 @@
 
 #include <string>
 #include <list>
+#include <vector>
 #include "token.hpp"
 #include "../reflex/input.h"
 class Lexer {
 public:
   Lexer();
-  std::list<Token, std::allocator<Token>> lex(const reflex::Input& input);
+  std::vector<Token, std::allocator<Token>> lex(const reflex::Input& input);
 };
 
 #endif //C4_LEXER_HPP

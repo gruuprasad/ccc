@@ -54,9 +54,9 @@ using namespace std;
 
 class ReflexLexer : public reflex::AbstractLexer<reflex::Matcher> {
 
-  std::list<Token, std::allocator<Token>> token_list;
+  std::vector<Token, std::allocator<Token>> token_list;
 public:
-  std::list<Token, std::allocator<Token>> results() {
+  std::vector<Token, std::allocator<Token>> results() {
     return token_list;
   }
 
@@ -69,7 +69,7 @@ public:
       AbstractBaseLexer(input, os)
   {
 
-    token_list = std::list<Token>();
+    token_list = std::vector<Token>();
 
   }
   static const int INITIAL = 0;

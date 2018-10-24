@@ -32,7 +32,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
   if (argCount == 3 && std::string(ppArgs[1]) == "--tokenize-old") {
     auto filename = ppArgs[2];
     auto file = std::ifstream(filename);
-    std::list<Token, std::allocator<Token>> token_list;
+    std::vector<Token, std::allocator<Token>> token_list;
     try {
       token_list = Lexer().lex(file);
     } catch (LexerException &exception){
