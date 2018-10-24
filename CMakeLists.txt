@@ -4,7 +4,7 @@ project(c4)
 set(CMAKE_CXX_STANDARD 11)
 
 if (ENABLE_COVERAGE_TESTING)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -pthread -g -O0 -fprofile-arcs -ftest-coverage")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -pthread -g -pg -O0 -fprofile-arcs -ftest-coverage")
 endif ()
 
 set(SOURCE_FILES
