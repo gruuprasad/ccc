@@ -617,7 +617,7 @@ inline bool FastLexer::isKeyword() {
   return false;
 }
 
-bool FastLexer::munch() {
+inline bool FastLexer::munch() {
   char first = getCharAt(position);
 
   /*

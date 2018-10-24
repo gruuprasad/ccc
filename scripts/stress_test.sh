@@ -15,4 +15,6 @@ echo "------------------------------------"
 sleep 0.1
 /usr/bin/time -f "${FORMAT}" ../scripts/time_all_lexer.sh --tokenize-old
 sleep 0.1
+
+
 #/usr/bin/time --verbose ../scripts/time_all_lexer.sh
