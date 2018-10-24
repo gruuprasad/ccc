@@ -784,7 +784,10 @@ inline bool FastLexer::munch() {
    * Check if we have a string literal
    */
   if (first == '"') {
-
+    do {
+      tokenStream << first;
+      first = getCharAt(++position);
+    } while (first != '"');
   }
 
   /*
