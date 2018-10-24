@@ -55,7 +55,7 @@ TEST_CASE("Fast Lexer character constant test.") {
   {
     auto tokenList = FastLexer("'a'").lex();
     auto & firstToken = tokenList.front();
-    REQUIRE(firstToken.getType() == TokenType::CHAR);
+    REQUIRE(firstToken.getType() == TokenType::CHARACTER);
     REQUIRE(firstToken.getLine() == 1);
     REQUIRE(firstToken.getColumn() == 1);
     REQUIRE(firstToken.getExtra() == "a");
@@ -63,7 +63,7 @@ TEST_CASE("Fast Lexer character constant test.") {
   {
     auto tokenList = FastLexer("'\\r'").lex();
     auto & firstToken = tokenList.front();
-    REQUIRE(firstToken.getType() == TokenType::CHAR);
+    REQUIRE(firstToken.getType() == TokenType::CHARACTER);
     REQUIRE(firstToken.getLine() == 1);
     REQUIRE(firstToken.getColumn() == 1);
     REQUIRE(firstToken.getExtra() == "\\r");
