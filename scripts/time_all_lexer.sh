@@ -22,7 +22,7 @@ FORMAT="%E\t|%S\t|%U\t|%P \t|%M\t|%F\t\t\t|%R\t\t|%W\t\t|%c\t\t|%w\t %C"
 /usr/bin/time -f "${FORMAT}" ./release/c4 $1 ../examples/100k.c > /dev/null
 /usr/bin/time -f "${FORMAT}" ./release/c4 $1 ../examples/1000k.c > /dev/null
 /usr/bin/time -f "${FORMAT}" ./release/c4 $1 ../examples/1000kv2.c > /dev/null
-./release/c4 $1 ../examples/10m.c > /dev/null && echo -n '.'
-./release/c4 $1 ../examples/100m.c > /dev/null && echo -n '.'
+/usr/bin/time -f "${FORMAT}" ./release/c4 $1 ../examples/10m.c > /dev/null
+/usr/bin/time -f "${FORMAT}" ./release/c4 $1 ../examples/100m.c > /dev/null
 sleep 0.001
 true
