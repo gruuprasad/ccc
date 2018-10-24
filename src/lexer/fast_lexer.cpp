@@ -25,13 +25,95 @@ inline bool FastLexer::keyWordEnd(unsigned long position) {
 inline bool FastLexer::isPunctuator() {
   const char first = getCharAt(position);
   switch (first) {
-  case '{':
-    token_list.emplace_back(Token(TokenType::BRACE_OPEN, line, column, AUTO));
+  case '{':token_list.emplace_back(Token(TokenType::BRACE_OPEN, line, column, "{"));
     ++position;
     ++column;
     return true;
-    break;
-  default:break;
+  case '}':token_list.emplace_back(Token(TokenType::BRACE_CLOSE, line, column, "}"));
+    ++position;
+    ++column;
+    return true;
+  case '[':token_list.emplace_back(Token(TokenType::BRACKET_OPEN, line, column, "["));
+    ++position;
+    ++column;
+    return true;
+  case ']':token_list.emplace_back(Token(TokenType::BRACKET_CLOSE, line, column, "]"));
+    ++position;
+    ++column;
+    return true;
+  case '(':token_list.emplace_back(Token(TokenType::PARENTHESIS_OPEN, line, column, "("));
+    ++position;
+    ++column;
+    return true;
+  case ')':token_list.emplace_back(Token(TokenType::PARENTHESIS_CLOSE, line, column, ")"));
+    ++position;
+    ++column;
+    return true;
+  case '+':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::PLUS_ASSIGN, line, column, "+="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    if (getCharAt(position + 1) == '+') {
+      token_list.emplace_back(Token(TokenType::PLUSPLUS, line, column, "++"));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::PLUS, line, column, "+"));
+    ++position;
+    ++column;
+    return true;
+  case '-':
+    switch (getCharAt(position + 1)) {
+    case '-':token_list.emplace_back(Token(TokenType::PLUSPLUS, line, column, "--"));
+      position += 2;
+      column += 2;
+      return true;
+    case '=':token_list.emplace_back(Token(TokenType::MINUS_ASSIGN, line, column, "-="));
+      position += 2;
+      column += 2;
+      return true;
+    case '>':
+      if (getCharAt(position + 2) == '*') {
+        token_list.emplace_back(Token(TokenType::ARROW_STAR, line, column, "->*"));
+        position += 3;
+        column += 3;
+        return true;
+      }
+      token_list.emplace_back(Token(TokenType::ARROW, line, column, "->"));
+      position += 2;
+      column += 2;
+      return true;
+    default:token_list.emplace_back(Token(TokenType::MINUS, line, column, "-"));
+      ++position;
+      ++column;
+      return true;
+    }
+  case '=':
+    if (getCharAt(position + 1) == '=') {
+      token_list.emplace_back(Token(TokenType::EQUAL, line, column, "+="));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::ASSIGN, line, column, "="));
+    ++position;
+    ++column;
+    return true;
+  default:std::string error = "Unknown token " + std::string(1, first);
+    if (getCharAt(position + 1) != 0) {
+      error += std::string(1, getCharAt(position + 1));
+      if (getCharAt(position + 2) != 0) {
+        error += std::string(1, getCharAt(position + 2));
+        if (getCharAt(position + 3) != 0) {
+          error += std::string(1, getCharAt(position + 2)) + " [truncated]";
+        }
+      }
+    }
+    throw LexerException(Token(TokenType::QUESTION, line, column, error));
   }
   /*
    * Fallthrough, no punctuator matched!
