@@ -24,7 +24,12 @@ inline bool FastLexer::keyWordEnd(unsigned long position) {
 inline bool FastLexer::isPunctuator() {
   const char first = getCharAt(position);
   switch (first) {
-  case '{':break;
+  case '{':
+    token_list.emplace_back(Token(TokenType::BRACE_OPEN, line, column, AUTO));
+    ++position;
+    ++column;
+    return true;
+    break;
   default:break;
   }
   /*

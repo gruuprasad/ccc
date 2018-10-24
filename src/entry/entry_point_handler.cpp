@@ -9,13 +9,11 @@
 EntryPointHandler::EntryPointHandler() = default;
 
 int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename, std::ostream& output) {
-  std::list<Token, std::allocator<Token>> token_list;
-  //std::vector<Token, std::allocator<Token>> token_list;
-  //std::stringstream buffer;
-  //buffer << file.rdbuf();
+  std::vector<Token, std::allocator<Token>> token_list;
+  std::stringstream buffer;
+  buffer << file.rdbuf();
   try {
-    //token_list = FastLexer(buffer.str()).lex();
-    token_list = Lexer().lex(file);
+    token_list = FastLexer(buffer.str()).lex();
   } catch (LexerException &exception){
     std::cerr << filename << ":" << exception.what() << std::endl;
     return 1;
