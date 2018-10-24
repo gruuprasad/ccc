@@ -274,7 +274,7 @@ PUNCTUATOR_TESTS("?", TokenType::QUESTION)
 TEST_CASE("Fast Lexer character constant test.") {
   auto tokenList = FastLexer("'a'").lex();
   auto &firstToken = tokenList.front();
-  REQUIRE(firstToken.getType() == TokenType::CHAR);
+  REQUIRE(firstToken.getType() == TokenType::CHARACTER);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
   REQUIRE(firstToken.getExtra() == "a");
@@ -316,24 +316,23 @@ TEST_CASE("Fast Lexer block comment multiline unterminated.") {
 }
 
 TEST_CASE("Fast Lexer string literals test.") {
-  {
-    auto tokenList = FastLexer("\"strings are slow\"").lex();
-    auto & firstToken = tokenList.front();
-    std::cout << firstToken.getExtra();
-    REQUIRE(firstToken.getType() == TokenType::STRING);
-    REQUIRE(firstToken.getLine() == 1);
-    REQUIRE(firstToken.getColumn() == 1);
-    REQUIRE(firstToken.getExtra() == "strings are slow");
-  }
-  {
-    auto tokenList = FastLexer("\"strings \\n are slow\"").lex();
-    auto & firstToken = tokenList.front();
-    std::cout << firstToken.getExtra();
-    REQUIRE(firstToken.getType() == TokenType::STRING);
-    REQUIRE(firstToken.getLine() == 1);
-    REQUIRE(firstToken.getColumn() == 1);
-    REQUIRE(firstToken.getExtra() == "strings \\n are slow");
-  }
+  std::string input = "\"strings are slow\"";
+  std::cout << input;
+  auto tokenList = FastLexer(input).lex();
+  auto &firstToken = tokenList.front();
+  REQUIRE(firstToken.getType() == TokenType::STRING);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+  REQUIRE(firstToken.getExtra() == "strings are slow");
+}
+
+TEST_CASE("Fast Lexer string escape sequence test.") {
+  auto tokenList = FastLexer("\"strings \\n are slow\"").lex();
+  auto &firstToken = tokenList.front();
+  REQUIRE(firstToken.getType() == TokenType::STRING);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+  REQUIRE(firstToken.getExtra() == "strings \\n are slow");
 }
 
 TEST_CASE("Fast Lexer invalid string literal test.") {
