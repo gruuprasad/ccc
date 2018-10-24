@@ -314,3 +314,28 @@ TEST_CASE("Fast Lexer block comment multiline test.") {
 TEST_CASE("Fast Lexer block comment multiline unterminated.") {
   REQUIRE_THROWS_WITH(FastLexer(" /*\nee/x").lex(), "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
 }
+
+TEST_CASE("Fast Lexer string literals test.") {
+  {
+    auto tokenList = FastLexer("\"strings are slow\"").lex();
+    auto & firstToken = tokenList.front();
+    std::cout << firstToken.getExtra();
+    REQUIRE(firstToken.getType() == TokenType::STRING);
+    REQUIRE(firstToken.getLine() == 1);
+    REQUIRE(firstToken.getColumn() == 1);
+    REQUIRE(firstToken.getExtra() == "strings are slow");
+  }
+  {
+    auto tokenList = FastLexer("\"strings \\n are slow\"").lex();
+    auto & firstToken = tokenList.front();
+    std::cout << firstToken.getExtra();
+    REQUIRE(firstToken.getType() == TokenType::STRING);
+    REQUIRE(firstToken.getLine() == 1);
+    REQUIRE(firstToken.getColumn() == 1);
+    REQUIRE(firstToken.getExtra() == "strings \\n are slow");
+  }
+}
+
+TEST_CASE("Fast Lexer invalid string literal test.") {
+  REQUIRE_THROWS_AS(FastLexer("\"this has invalid escape \\z\"").lex(), LexerException);
+}

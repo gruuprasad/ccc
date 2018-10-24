@@ -14,6 +14,8 @@ inline char FastLexer::getCharAt(unsigned long position) {
   return content[position];
 }
 
+
+
 inline bool FastLexer::keyWordEnd(unsigned long position) {
   const char first = getCharAt(position);
   return !(('0' <= first && first <= '9')
@@ -1029,7 +1031,29 @@ inline bool FastLexer::munch() {
    * Check if we have a string literal
    */
   if (first == '"') {
-
+    first = getCharAt(++position);
+    do {
+      tokenStream << first;
+      if (first == '\\') {
+        first = getCharAt(++position);
+        tokenStream << first;
+        switch (first) {
+          case '\'':
+          case '"':
+          case '?':
+          case '\\':
+          case 'a':
+          case 'b': case 'f': case 'n':  case 'r': case 't': case 'v':
+            break;
+          default:
+            throw LexerException(Token(TokenType::STRING, line, column, tokenStream.str()));
+        }
+      }
+      first = getCharAt(++position);
+    } while (first != '"' && first != '\n' && first != 0);
+    if (first == '\n' || first == 0)
+      throw LexerException(Token(TokenType::STRING, line, column, tokenStream.str()));
+    token_list.emplace_back(Token(TokenType::STRING, line, column, tokenStream.str()));
   }
 
   if (isPunctuator()) {
@@ -1060,5 +1084,3 @@ std::vector<Token, std::allocator<Token>> FastLexer::lex() {
   }
   return token_list;
 }
-
-
