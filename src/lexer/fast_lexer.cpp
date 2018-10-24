@@ -1019,12 +1019,29 @@ inline bool FastLexer::munch() {
    */
   if (first == '\'') {
     first = getCharAt(++position);
+    tokenStream << first;
     if (first != '\'' && first != '\\' && first != '\n' && getCharAt(position + 1) == '\'') {
-      tokenStream << first;
-      token_list.emplace_back(Token(TokenType::CHARACTER, line, column, tokenStream.str()));
+      token_list.emplace_back(Token(TokenType::CHAR, line, column, tokenStream.str()));
       column += 3;
       position += 2;
       return true;
+    } else if (first == '\\') {
+        first = getCharAt(++position);
+        tokenStream << first;
+        switch (first) {
+          case '\'':
+          case '"':
+          case '?':
+          case '\\':
+          case 'a':
+          case 'b': case 'f': case 'n':  case 'r': case 't': case 'v':
+            token_list.emplace_back(Token(TokenType::CHAR, line, column, tokenStream.str()));
+            column += 4;
+            position += 3;
+            return true;
+          default:
+            throw LexerException(Token(TokenType::STRING, line, column, tokenStream.str()));
+        }
     }
     throw LexerException(Token{TokenType::CHARACTER, line, column, &first});
   }
