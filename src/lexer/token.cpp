@@ -116,6 +116,7 @@ const std::string Token::name() const {
   case TokenType::OR:return "||";
   case TokenType::LEFT_SHIFT_ASSIGN:return "<<=";
   case TokenType::RIGHT_SHIFT_ASSIGN:return ">>=";
+  case TokenType::CHARACTER:return "CONSTANT";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
@@ -217,16 +218,24 @@ const std::string Token::token_type() const {
   case TokenType::OR:return "punctuator";
   case TokenType::LEFT_SHIFT_ASSIGN:return "punctuator";
   case TokenType::RIGHT_SHIFT_ASSIGN:return "punctuator";
+  case TokenType::CHARACTER:return "constant";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
-  if(token.extra.empty()){
+  if (token.extra.empty()) {
     os << token.line << ':' << token.getColumn() << ": " << token.token_type() << " " << token.name();
-  }else {
-    os << token.line << ':' << token.getColumn() << ": " << token.token_type() << " " << token.extra;
+  } else {
+    os << token.line << ':' << token.getColumn() << ": " << token.token_type() << " ";
+    if (token.getType() == TokenType::CHARACTER) {
+      os << "'" << token.extra << "'";
+    } else if (token.getType() == TokenType::STRING) {
+      os << "\"" << token.extra << "\"";
+    } else {
+      os << token.extra;
+    }
   }
   return os;
 }

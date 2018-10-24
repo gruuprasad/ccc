@@ -6,6 +6,7 @@ enum class TokenType {
   AUTO,
   BREAK,
   CHAR,
+  CHARACTER,
   CASE,
   CONST,
   CONTINUE,
