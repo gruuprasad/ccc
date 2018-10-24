@@ -205,7 +205,7 @@ TEST_CASE("Fast Lexer character constant test.") {
   REQUIRE(firstToken.getType() == TokenType::CHAR);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
-  REQUIRE(firstToken.getExtra() == "a");
+  REQUIRE(firstToken.getExtra() == "'a'");
 }
 
 TEST_CASE("Fast Lexer invalid character literal test.") {
