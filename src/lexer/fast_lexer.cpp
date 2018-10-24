@@ -769,9 +769,11 @@ inline bool FastLexer::munch() {
    * Check if we have a character constant
    */
   if (first == '\'') {
+    tokenStream << first;
     first = getCharAt(++position);
     if (first != '\'' && first != '\\' && first != '\n' && getCharAt(position + 1) == '\'') {
       tokenStream << first;
+      tokenStream << getCharAt(position + 1);
       token_list.emplace_back(Token(TokenType::CHAR, line, column, tokenStream.str()));
       column += 3;
       position += 2;
