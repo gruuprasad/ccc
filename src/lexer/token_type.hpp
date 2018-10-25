@@ -106,6 +106,8 @@ enum class TokenType {
   HASHHASH,
   HASH_ALT,
   HASHHASH_ALT,
+  FLOAT,
+  DOUBLE
 };
 
 #endif //C4_TOKEN_TYPE_HPP

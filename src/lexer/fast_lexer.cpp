@@ -247,7 +247,7 @@ inline bool FastLexer::isPunctuator() {
         column += 4;
         return true;
       }
-      token_list.emplace_back(Token(TokenType::HASH, line, column, ""));
+      token_list.emplace_back(Token(TokenType::HASH_ALT, line, column, ""));
       position += 2;
       column += 2;
       return true;
@@ -415,13 +415,25 @@ inline bool FastLexer::isKeyword() {
     }
     break;
   case 'd':
-    if (getCharAt(position + 1) == 'o'
-        && keyWordEnd(position + 2)
-        ) {
-      token_list.emplace_back(Token(TokenType::DO, line, column, ""));
-      position += 2;
-      column += 2;
-      return true;
+    if (getCharAt(position + 1) == 'o'){
+      if (getCharAt(position + 2) == 'u'
+          && getCharAt(position + 3) == 'b'
+          && getCharAt(position + 4) == 'l'
+          && getCharAt(position + 5) == 'e'
+          && keyWordEnd(position + 6)
+          ) {
+        token_list.emplace_back(Token(TokenType::DOUBLE, line, column, ""));
+        position += 6;
+        column += 6;
+        return true;
+      }
+        if(keyWordEnd(position + 2)) {
+          token_list.emplace_back(Token(TokenType::DO, line, column, ""));
+          position += 2;
+          column += 2;
+          return true;
+        }
+        break;
     }
     if (getCharAt(position + 1) == 'e'
         && getCharAt(position + 2) == 'f'
@@ -483,6 +495,17 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 3)
         ) {
       token_list.emplace_back(Token(TokenType::FOR, line, column, ""));
+      position += 3;
+      column += 3;
+      return true;
+    }
+    if (getCharAt(position + 1) == 'l'
+        && getCharAt(position + 2) == 'o'
+        && getCharAt(position + 3) == 'a'
+        && getCharAt(position + 4) == 't'
+        && keyWordEnd(position + 5)
+        ) {
+      token_list.emplace_back(Token(TokenType::FLOAT, line, column, ""));
       position += 3;
       column += 3;
       return true;
