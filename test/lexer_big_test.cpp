@@ -80,5 +80,6 @@ COMPARE(everything)
 COMPARE(comments)
 COMPARE(lorem_ipsum)
 COMPARE(extra)
+COMPARE(backslashes)
 
 

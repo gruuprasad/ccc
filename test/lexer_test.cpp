@@ -105,6 +105,21 @@ TEST_CASE("Fast Lexer block comment multiline unterminated.") {
   REQUIRE_THROWS_WITH(FastLexer(" /*\nee/x").lex(), "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
 }
 
+TEST_CASE("Fast Lexer string empty test.") {
+  std::string input = "";
+  auto tokenList = FastLexer(input).lex();
+}
+
+TEST_CASE("Fast Lexer string empty string test.") {
+  std::string input = "\"\"";
+  auto tokenList = FastLexer(input).lex();
+  auto &firstToken = tokenList.front();
+  REQUIRE(firstToken.getType() == TokenType::STRING);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+  REQUIRE(firstToken.getExtra() == "");
+}
+
 TEST_CASE("Fast Lexer string literals test.") {
   std::string input = "\"strings are slow\"";
   auto tokenList = FastLexer(input).lex();
