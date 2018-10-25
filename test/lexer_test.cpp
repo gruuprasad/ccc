@@ -116,12 +116,12 @@ TEST_CASE("Fast Lexer string literals test.") {
 }
 
 TEST_CASE("Fast Lexer string escape sequence test.") {
-  auto tokenList = FastLexer("\"strings \\n are slow\"").lex();
+  auto tokenList = FastLexer("\"strings\\\\ \\n are slow\"").lex();
   auto &firstToken = tokenList.front();
   REQUIRE(firstToken.getType() == TokenType::STRING);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
-  REQUIRE(firstToken.getExtra() == "strings \\n are slow");
+  REQUIRE(firstToken.getExtra() == "strings\\\\ \\n are slow");
 }
 
 TEST_CASE("Fast Lexer invalid string literal test.") {

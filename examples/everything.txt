@@ -1158,8 +1158,7 @@ everything.c:47:86: punctuator )
 everything.c:47:87: punctuator ;
 everything.c:49:1: punctuator {
 everything.c:49:2: punctuator |
-everything.c:49:3: punctuator <
-everything.c:49:4: punctuator %
+everything.c:49:3: punctuator <%
 everything.c:49:6: identifier token_list
 everything.c:49:16: punctuator .
 everything.c:49:17: identifier emplace_back
@@ -1186,8 +1185,7 @@ everything.c:49:86: punctuator )
 everything.c:49:87: punctuator ;
 everything.c:50:1: punctuator }
 everything.c:50:2: punctuator |
-everything.c:50:3: punctuator %
-everything.c:50:4: punctuator >
+everything.c:50:3: punctuator %>
 everything.c:50:6: identifier token_list
 everything.c:50:16: punctuator .
 everything.c:50:17: identifier emplace_back
@@ -1214,8 +1212,7 @@ everything.c:50:87: punctuator )
 everything.c:50:88: punctuator ;
 everything.c:51:1: punctuator [
 everything.c:51:2: punctuator |
-everything.c:51:3: punctuator <
-everything.c:51:4: punctuator :
+everything.c:51:3: punctuator <:
 everything.c:51:6: identifier token_list
 everything.c:51:16: punctuator .
 everything.c:51:17: identifier emplace_back
@@ -1242,8 +1239,7 @@ everything.c:51:88: punctuator )
 everything.c:51:89: punctuator ;
 everything.c:52:1: punctuator ]
 everything.c:52:2: punctuator |
-everything.c:52:3: punctuator :
-everything.c:52:4: punctuator >
+everything.c:52:3: punctuator :>
 everything.c:52:6: identifier token_list
 everything.c:52:16: punctuator .
 everything.c:52:17: identifier emplace_back
