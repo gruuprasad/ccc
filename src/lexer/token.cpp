@@ -117,6 +117,14 @@ const std::string Token::name() const {
   case TokenType::LEFT_SHIFT_ASSIGN:return "<<=";
   case TokenType::RIGHT_SHIFT_ASSIGN:return ">>=";
   case TokenType::CHARACTER:return "CONSTANT";
+  case TokenType::BRACE_OPEN_ALT:return "<%";
+  case TokenType::BRACE_CLOSE_ALT:return "%>";
+  case TokenType::BRACKET_OPEN_ALT:return "<:";
+  case TokenType::BRACKET_CLOSE_ALT:return ":>";
+  case TokenType::HASH:return "#";
+  case TokenType::HASHHASH:return "#";
+  case TokenType::HASH_ALT:return "%:";
+  case TokenType::HASHHASH_ALT:return "%:%:";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
@@ -219,6 +227,14 @@ const std::string Token::token_type() const {
   case TokenType::LEFT_SHIFT_ASSIGN:return "punctuator";
   case TokenType::RIGHT_SHIFT_ASSIGN:return "punctuator";
   case TokenType::CHARACTER:return "constant";
+  case TokenType::BRACE_OPEN_ALT:return "punctuator";
+  case TokenType::BRACE_CLOSE_ALT:return "punctuator";
+  case TokenType::BRACKET_OPEN_ALT:return "punctuator";
+  case TokenType::BRACKET_CLOSE_ALT:return "punctuator";
+  case TokenType::HASH:return "punctuator";
+  case TokenType::HASHHASH:return "punctuator";
+  case TokenType::HASH_ALT:return "punctuator";
+  case TokenType::HASHHASH_ALT:return "punctuator";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";

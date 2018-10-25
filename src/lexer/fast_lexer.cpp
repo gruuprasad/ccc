@@ -106,13 +106,20 @@ inline bool FastLexer::isPunctuator() {
     ++column;
     return true;
   case '<':
-    if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(Token(TokenType::LESS_EQUAL, line, column, ""));
+    switch (getCharAt(position + 1)) {
+    case ':':token_list.emplace_back(Token(TokenType::BRACKET_OPEN_ALT, line, column, ""));
       position += 2;
       column += 2;
       return true;
-    }
-    if (getCharAt(position + 1) == '<') {
+    case '%':token_list.emplace_back(Token(TokenType::BRACE_OPEN_ALT, line, column, ""));
+      position += 2;
+      column += 2;
+      return true;
+    case '=':token_list.emplace_back(Token(TokenType::LESS_EQUAL, line, column, ""));
+      position += 2;
+      column += 2;
+      return true;
+    case '<':
       if (getCharAt(position + 2) == '=') {
         token_list.emplace_back(Token(TokenType::LEFT_SHIFT_ASSIGN, line, column, ""));
         position += 3;
@@ -123,11 +130,12 @@ inline bool FastLexer::isPunctuator() {
       position += 2;
       column += 2;
       return true;
+    default:token_list.emplace_back(Token(TokenType::LEFT, line, column, ""));
+      ++position;
+      ++column;
+      return true;
     }
-    token_list.emplace_back(Token(TokenType::LEFT, line, column, ""));
-    ++position;
-    ++column;
-    return true;
+    break;
   case '>':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(Token(TokenType::GREATER_EQUAL, line, column, ""));
@@ -226,16 +234,32 @@ inline bool FastLexer::isPunctuator() {
     ++column;
     return true;
   case '%':
-    if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(Token(TokenType::MOD_ASSIGN, line, column, ""));
+    switch (getCharAt(position + 1)) {
+    case '=':token_list.emplace_back(Token(TokenType::MOD_ASSIGN, line, column, ""));
       position += 2;
       column += 2;
       return true;
+    case ':':
+      if(getCharAt(position + 2) == '%'
+      && getCharAt(position + 3) == ':'){
+        token_list.emplace_back(Token(TokenType::HASHHASH_ALT, line, column, ""));
+        position += 4;
+        column += 4;
+        return true;
+      }
+      token_list.emplace_back(Token(TokenType::HASH, line, column, ""));
+      position += 2;
+      column += 2;
+      return true;
+    case '>':token_list.emplace_back(Token(TokenType::BRACE_CLOSE_ALT, line, column, ""));
+      position += 2;
+      column += 2;
+      return true;
+    default:token_list.emplace_back(Token(TokenType::MOD, line, column, ""));
+      ++position;
+      ++column;
+      return true;
     }
-    token_list.emplace_back(Token(TokenType::MOD, line, column, ""));
-    ++position;
-    ++column;
-    return true;
   case '&':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(Token(TokenType::AMPERSAND_ASSIGN, line, column, ""));
@@ -277,7 +301,24 @@ inline bool FastLexer::isPunctuator() {
       column += 2;
       return true;
     }
+    if (getCharAt(position + 1) == '>') {
+      token_list.emplace_back(Token(TokenType::BRACKET_CLOSE_ALT, line, column, ""));
+      position += 2;
+      column += 2;
+      return true;
+    }
     token_list.emplace_back(Token(TokenType::COLON, line, column, ""));
+    ++position;
+    ++column;
+    return true;
+  case '#':
+    if (getCharAt(position + 1) == '#') {
+      token_list.emplace_back(Token(TokenType::HASHHASH, line, column, ""));
+      position += 2;
+      column += 2;
+      return true;
+    }
+    token_list.emplace_back(Token(TokenType::HASH, line, column, ""));
     ++position;
     ++column;
     return true;
