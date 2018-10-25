@@ -245,7 +245,7 @@ const std::string Token::token_type() const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
-  if (token.extra.empty()) {
+  if (token.extra.empty() && token.getType() != TokenType::STRING) {
     os << token.line << ':' << token.getColumn() << ": " << token.token_type() << " " << token.name();
   } else {
     os << token.line << ':' << token.getColumn() << ": " << token.token_type() << " ";
