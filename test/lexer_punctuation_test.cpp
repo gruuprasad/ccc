@@ -26,6 +26,12 @@ TEST_CASE("Fast Lexer keyword "#keyword" positive cont.") { \
   REQUIRE(firstToken.getLine() == 1); \
   REQUIRE(firstToken.getColumn() == 1); \
 } \
+TEST_CASE("Fast Lexer keyword "#keyword" length") { \
+  auto lastToken = FastLexer(#keyword" n").lex().back(); \
+  REQUIRE(lastToken.getType() == TokenType::IDENTIFIER); \
+  REQUIRE(lastToken.getLine() == 1); \
+  REQUIRE(lastToken.getColumn() == sizeof(#keyword) + 1); \
+} \
 
 PUNCTUATOR_TESTS("{", TokenType::BRACE_OPEN)
 PUNCTUATOR_TESTS("}", TokenType::BRACE_CLOSE)

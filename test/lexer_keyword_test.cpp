@@ -39,6 +39,12 @@ TEST_CASE("Fast Lexer keyword "#keyword" negative cont.") { \
   REQUIRE(firstToken.getLine() == 1); \
   REQUIRE(firstToken.getColumn() == 1); \
 } \
+TEST_CASE("Fast Lexer keyword "#keyword" length") { \
+  auto lastToken = FastLexer(#keyword" n").lex().back(); \
+  REQUIRE(lastToken.getType() == TokenType::IDENTIFIER); \
+  REQUIRE(lastToken.getLine() == 1); \
+  REQUIRE(lastToken.getColumn() == sizeof(#keyword) + 1); \
+} \
 
 KEYWORD_TESTS(auto, TokenType::AUTO)
 KEYWORD_TESTS(break, TokenType::BREAK)
