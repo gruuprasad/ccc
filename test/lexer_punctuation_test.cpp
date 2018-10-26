@@ -32,6 +32,13 @@ TEST_CASE("Fast Lexer keyword "#keyword" length") { \
   REQUIRE(lastToken.getLine() == 1); \
   REQUIRE(lastToken.getColumn() == sizeof(#keyword) + 1); \
 } \
+TEST_CASE("Fast Lexer keyword "#keyword" stringify.") { \
+  auto firstToken = FastLexer(keyword).lex().front(); \
+  std::stringstream buffer; \
+  buffer << firstToken; \
+  std::string result = buffer.str(); \
+  REQUIRE("1:1: punctuator "#keyword); \
+} \
 
 PUNCTUATOR_TESTS("{", TokenType::BRACE_OPEN)
 PUNCTUATOR_TESTS("}", TokenType::BRACE_CLOSE)
