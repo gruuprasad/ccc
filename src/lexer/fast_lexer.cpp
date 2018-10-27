@@ -1,11 +1,10 @@
-#include <sstream>
 #include <iostream>
 #include "lexer_exception.hpp"
 #include "fast_lexer.hpp"
 
 FastLexer::FastLexer(const std::string &content) : content(content) {
   token_list = std::vector<Token, std::allocator<Token>>();
-  token_list.reserve(content.size());
+  token_list.reserve(content.size() >> 1);
   position = 0;
   line = 1;
   column = 0;
