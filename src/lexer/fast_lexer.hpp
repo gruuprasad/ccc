@@ -1,14 +1,13 @@
 #ifndef C4_FASTLEXER_H
 #define C4_FASTLEXER_H
 
-#include <list>
 #include <vector>
 #include "token.hpp"
 #include "lexer_exception.hpp"
 
 class FastLexer {
   std::vector<Token, std::allocator<Token>> token_list;
-  const std::string content;
+  const std::string & content;
   unsigned long position;
   unsigned long line;
   unsigned long column;
