@@ -122,7 +122,7 @@ const std::string Token::name() const {
   case TokenType::BRACKET_OPEN_ALT:return "<:";
   case TokenType::BRACKET_CLOSE_ALT:return ":>";
   case TokenType::HASH:return "#";
-  case TokenType::HASHHASH:return "#";
+  case TokenType::HASHHASH:return "##";
   case TokenType::HASH_ALT:return "%:";
   case TokenType::HASHHASH_ALT:return "%:%:";
   case TokenType::FLOAT:return "float";
