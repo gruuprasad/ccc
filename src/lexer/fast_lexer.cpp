@@ -4,7 +4,7 @@
 
 FastLexer::FastLexer(const std::string &content) : content(content) {
   token_list = std::vector<Token, std::allocator<Token>>();
-  token_list.reserve(content.size() >> 1);
+  token_list.reserve(content.size());
   position = 0;
   line = 1;
   column = 0;
