@@ -975,7 +975,6 @@ inline bool FastLexer::munch() {
     first = getCharAt(++position);
   }
   unsigned long oldPosition = position;
-  std::stringstream tokenStream;
 
   if (first == 0) {
     return false;
@@ -1041,10 +1040,9 @@ inline bool FastLexer::munch() {
    */
   if ('0' <= first && first <= '9') {
     do {
-      tokenStream << first;
       first = getCharAt(++position);
     } while ('0' <= first && first <= '9');
-    token_list.emplace_back(Token(TokenType::NUMBER, line, column, tokenStream.str()));
+    token_list.emplace_back(Token(TokenType::NUMBER, line, column, std::string(&content[oldPosition], position - oldPosition)));
     column += position - oldPosition;
     return true;
   }
@@ -1066,13 +1064,12 @@ inline bool FastLexer::munch() {
      * No keyword, check for identifier
      */
     do {
-      tokenStream << first;
       first = getCharAt(++position);
     } while (('0' <= first && first <= '9')
         || ('a' <= first && first <= 'z')
         || ('A' <= first && first <= 'Z')
         || first == '_');
-    token_list.emplace_back(Token(TokenType::IDENTIFIER, line, column, tokenStream.str()));
+    token_list.emplace_back(Token(TokenType::IDENTIFIER, line, column, std::string(&content[oldPosition], position - oldPosition)));
     column += position - oldPosition;
     return true;
   }
@@ -1082,20 +1079,18 @@ inline bool FastLexer::munch() {
    */
   if (first == '\'') {
     first = getCharAt(++position);
-    tokenStream << first;
     if (first != '\''
         && first != '\\'
         && first != '\n'
         && first != '\r'
         && getCharAt(position + 1) == '\'') {
-      token_list.emplace_back(Token(TokenType::CHARACTER, line, column, tokenStream.str()));
+      token_list.emplace_back(Token(TokenType::CHARACTER, line, column, std::string(1, first)));
       column += 3;
       position += 2;
       return true;
     }
     if (first == '\\') {
       first = getCharAt(++position);
-      tokenStream << first;
       switch (first) {
       case '\'':
       case '"':
@@ -1107,13 +1102,13 @@ inline bool FastLexer::munch() {
       case 'n':
       case 'r':
       case 't':
-      case 'v':token_list.emplace_back(Token(TokenType::CHARACTER, line, column, tokenStream.str()));
+      case 'v':token_list.emplace_back(Token(TokenType::CHARACTER, line, column, std::string(&content[position - 1], 2)));
         column += 4;
         position += 2;
         return true;
       default:
         throw LexerException(Token{TokenType::CHARACTER, line, column,
-                                   "Invalid character: '" + tokenStream.str() + "'"});
+                                   "Invalid character: '" + std::string(&content[position - 1], 2) + "'"});
       }
     }
     throw LexerException(Token{TokenType::CHARACTER, line, column,
@@ -1132,13 +1127,11 @@ inline bool FastLexer::munch() {
           || first == '\r'
           || first == 0) {
         throw LexerException(Token(TokenType::STRING, line, column,
-                                   "Line break in string at " + tokenStream.str()));
+                                   "Line break in string at " + std::string(&content[oldPosition + 1], position - oldPosition)));
       }
-      tokenStream << first;
       if (first == '\\') {
         first = getCharAt(++position);
         ++column;
-        tokenStream << first;
         switch (first) {
         case '\'':
         case '"':
@@ -1153,13 +1146,13 @@ inline bool FastLexer::munch() {
         case 'v':break;
         default:
           throw LexerException(Token(TokenType::STRING, line, column,
-                                     "Invalid escape at " + tokenStream.str()));
+                                     "Invalid escape at " + std::string(&content[oldPosition + 1], position - oldPosition)));
         }
       }
       first = getCharAt(++position);
       ++column;
     }
-    token_list.emplace_back(Token(TokenType::STRING, line, initColumn, tokenStream.str()));
+    token_list.emplace_back(Token(TokenType::STRING, line, initColumn, std::string(&content[oldPosition + 1], position - oldPosition - 1)));
     ++position;
     ++column;
     return true;
