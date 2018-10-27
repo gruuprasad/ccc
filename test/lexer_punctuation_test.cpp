@@ -10,18 +10,21 @@
 #define PUNCTUATOR_TESTS(keyword, token) \
 TEST_CASE("Fast Lexer keyword "#keyword" positive.") { \
   auto firstToken = FastLexer(keyword).lex().front(); \
+  REQUIRE(firstToken.name() == keyword); \
   REQUIRE(firstToken.getType() == token); \
   REQUIRE(firstToken.getLine() == 1); \
   REQUIRE(firstToken.getColumn() == 1); \
 } \
 TEST_CASE("Fast Lexer keyword "#keyword" positive prev.") { \
   auto firstToken = FastLexer("  " keyword).lex().front(); \
+  REQUIRE(firstToken.name() == keyword); \
   REQUIRE(firstToken.getType() == token); \
   REQUIRE(firstToken.getLine() == 1); \
   REQUIRE(firstToken.getColumn() == 3); \
 } \
 TEST_CASE("Fast Lexer keyword "#keyword" positive cont.") { \
   auto firstToken = FastLexer(keyword"d").lex().front(); \
+  REQUIRE(firstToken.name() == keyword); \
   REQUIRE(firstToken.getType() == token); \
   REQUIRE(firstToken.getLine() == 1); \
   REQUIRE(firstToken.getColumn() == 1); \
