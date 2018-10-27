@@ -7,7 +7,7 @@
 
 class FastLexer {
   std::vector<Token, std::allocator<Token>> token_list;
-  const std::string content;
+  const std::string & content;
   unsigned long position;
   unsigned long line;
   unsigned long column;
