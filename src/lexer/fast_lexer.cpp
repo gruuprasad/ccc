@@ -505,8 +505,8 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 5)
         ) {
       token_list.emplace_back(Token(TokenType::FLOAT, line, column));
-      position += 3;
-      column += 3;
+      position += 5;
+      column += 5;
       return true;
     }
     break;
