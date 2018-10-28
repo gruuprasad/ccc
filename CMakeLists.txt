@@ -13,7 +13,9 @@ set(SOURCE_FILES
         src/lexer/token_type.cpp src/lexer/token_type.hpp
         src/lexer/token.cpp src/lexer/token.hpp
         src/lexer/lexer_exception.cpp src/lexer/lexer_exception.hpp
-        src/lexer/fast_lexer.cpp src/lexer/fast_lexer.hpp)
+        src/lexer/fast_lexer.cpp src/lexer/fast_lexer.hpp
+        src/parser/statements.cpp src/parser/statements.hpp
+        )
 
 add_library(Catch INTERFACE)
 target_include_directories(Catch INTERFACE ${test/catch.hpp})
@@ -23,12 +25,12 @@ list(SUBLIST SOURCE_FILES 1 -1 TEST_SOURCE_FILES)
 set(TEST_FILES
         test/test_main.cpp
         test/first_test.cpp
-        test/lexer_test.cpp
-        test/lexer_keyword_test.cpp
-        test/lexer_punctuation_test.cpp
-        test/lexer_big_test.cpp
+#        test/lexer_test.cpp
+#        test/lexer_keyword_test.cpp
+#        test/lexer_punctuation_test.cpp
+#        test/lexer_big_test.cpp
         )
 
-add_executable(tests ${TEST_SOURCE_FILES} ${TEST_FILES})
+add_executable(tests ${TEST_SOURCE_FILES} ${TEST_FILES} src/parser/statements.cpp src/parser/statements.hpp)
 target_link_libraries(tests Catch)
 add_test(NAME tests COMMAND tests)
