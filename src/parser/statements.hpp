@@ -5,48 +5,97 @@
 #include <iosfwd>
 #include <iostream>
 
-class Statement {
-protected:
-  int id = -1;
-  std::vector<Statement *> children;
-  std::string name;
-  std::string toGraphRec();
+#include "expressions.hpp"
+#include "ASTNode.hpp"
 
-public:
-  Statement(int id, std::string name);
-  void print();
-  std::string toGraph();
-  void addChild(Statement *child);
+class Declaration : public ASTNode {
 };
 
-class LabeledStatement : public Statement {
-public:
-  explicit LabeledStatement(int id);
+class LabelStatement : public ASTNode {
 };
 
-class CompoundStatement : public Statement {
-public:
-  explicit CompoundStatement(int id);
+class CaseStatement : public ASTNode {
 };
 
-class ExpressionStatement : public Statement {
-public:
-  explicit ExpressionStatement(int id);
+class DefaultStatement : public ASTNode {
 };
 
-class SelectionStatement : public Statement {
+class CompoundStatement : public ASTNode {
+private:
+  std::vector<ASTNode *> items;
+  std::string toGraphRec() override;
 public:
-  explicit SelectionStatement(int id);
+  CompoundStatement(int id, std::vector<ASTNode *> items);
 };
 
-class IterationStatement : public Statement {
+class ExpressionStatement : public ASTNode {
+private:
+  ASTNode *expression;
+  std::string toGraphRec() override;
 public:
-  explicit IterationStatement(int id);
+  ExpressionStatement(int id, ASTNode *expression);
 };
 
-class JumpStatement : public Statement {
+class IfStatement : public ASTNode {
+private:
+  ASTNode *condition;
+  ASTNode *if_branch;
+  ASTNode *else_branch;
+  std::string toGraphRec() override;
 public:
-  explicit JumpStatement(int id);
+  IfStatement(int id, ASTNode *condition,
+              ASTNode *if_branch,
+              ASTNode *else_branch);
+  IfStatement(int id, ASTNode *condition,
+              ASTNode *if_branch);
+};
+
+class SwitchStatement : public ASTNode {
+private:
+  ASTNode *expression;
+  ASTNode *statement;
+  std::string toGraphRec() override;
+public:
+  SwitchStatement(int id, ASTNode *expression,
+                  ASTNode *statement);
+};
+
+class WhileStatement : public ASTNode {
+private:
+  ASTNode *condition;
+  ASTNode *body;
+  std::string toGraphRec() override;
+public:
+  WhileStatement(int id, ASTNode *condition,
+                 ASTNode *body);
+};
+
+class DoStatement : public ASTNode {
+};
+
+class ForStatement : public ASTNode {
+};
+
+class GotoStatement : public ASTNode {
+private:
+  ASTNode *target;
+  std::string toGraphRec() override;
+public:
+  GotoStatement(int id, ASTNode *target);
+};
+
+class ContinueStatement : public ASTNode {
+};
+
+class BreakStatement : public ASTNode {
+};
+
+class ReturnStatement : public ASTNode {
+private:
+  ASTNode *expression;
+  std::string toGraphRec() override;
+public:
+  ReturnStatement(int id, ASTNode *expression);
 };
 
 #endif // C4_STATEMENT_HPP

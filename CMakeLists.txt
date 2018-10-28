@@ -16,6 +16,7 @@ set(SOURCE_FILES
         src/lexer/fast_lexer.cpp src/lexer/fast_lexer.hpp
         src/parser/statements.cpp src/parser/statements.hpp
         src/parser/expressions.cpp src/parser/expressions.hpp
+        src/parser/ASTNode.cpp src/parser/ASTNode.hpp
         )
 
 add_library(Catch INTERFACE)

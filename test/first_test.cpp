@@ -29,23 +29,29 @@
 
 TEST_CASE("statement run") {
   int count = 0;
-  Statement *root = new CompoundStatement(count++);
+  std::vector<ASTNode *> scope;
+  ASTNode *root = new CompoundStatement(count++, scope);
 
-  Statement *i = new SelectionStatement(count++);
-  i->addChild(new ExpressionStatement(count++));
-  root->addChild(i);
-
-  Statement *w = new IterationStatement(count++);
-  w->addChild(new ExpressionStatement(count++));
-  Statement *wi = new SelectionStatement(count++);
-  wi->addChild(new JumpStatement(count++));
-  wi->addChild(new LabeledStatement(count++));
-  w->addChild(wi);
-  root->addChild(w);
-
-  Statement *e = new ExpressionStatement(count++);
-  e->addChild(new PrimaryExpression(count));
-  root->addChild(e);
+  root->addChild(new IfStatement(count++,
+                                 new ExpressionStatement(count++, new Identifier(count++)),
+                                 new ExpressionStatement(count++,
+                                                         new AdditiveExpression(count++,
+                                                                                new Identifier(count++),
+                                                                                new Identifier(count++)))));
+  root->addChild(new WhileStatement(count++,
+                                    new ExpressionStatement(count++, new Identifier(count++)),
+                                    new ExpressionStatement(count++, new Identifier(count++))));
+  root->addChild(new IfStatement(count++,
+                                 new ExpressionStatement(count++, new Identifier(count++)),
+                                 new IfStatement(count++,
+                                                 new ExpressionStatement(count++,
+                                                                         new Identifier(count++)),
+                                                 new ExpressionStatement(count++,
+                                                                         new Identifier(count++)),
+                                                 new ExpressionStatement(count++,
+                                                                         new Identifier(count++))),
+                                 new ExpressionStatement(count++, new Identifier(count++))));
+  root->addChild(new ReturnStatement(count++, new Identifier(count)));
 
   std::ofstream file;
   file.open("ex.dot");

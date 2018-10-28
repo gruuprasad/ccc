@@ -4,17 +4,20 @@
 #include <vector>
 #include <iosfwd>
 #include <iostream>
+#include "ASTNode.hpp"
 
-#include "statements.hpp"
-
-class Expression : public ExpressionStatement {
+class Identifier : public ASTNode {
 public:
-  explicit Expression(int id);
+  Identifier(int id);
+  std::string toGraphRec() override;
 };
 
-class PrimaryExpression : public Expression {
+class AdditiveExpression: public ASTNode {
+private:
+  ASTNode* left;
+  ASTNode* right;
 public:
-  explicit PrimaryExpression(int id);
+  AdditiveExpression(int id, ASTNode* left, ASTNode* right);
+  std::string toGraphRec() override;
 };
-
 #endif // C4_EXPRESSIONS_HPP
