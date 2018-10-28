@@ -5,7 +5,7 @@
 #include "token.hpp"
 
 Token::Token(const TokenType type, const unsigned long line, const unsigned long column, const std::string extra) :
-    type(type), line(line), column(column), extra(extra) {}
+    type(type), line(line), column(column), extra(std::move(extra)) {}
 
 TokenType Token::getType() const {
   return type;
@@ -122,7 +122,7 @@ const std::string Token::name() const {
   case TokenType::BRACKET_OPEN_ALT:return "<:";
   case TokenType::BRACKET_CLOSE_ALT:return ":>";
   case TokenType::HASH:return "#";
-  case TokenType::HASHHASH:return "#";
+  case TokenType::HASHHASH:return "##";
   case TokenType::HASH_ALT:return "%:";
   case TokenType::HASHHASH_ALT:return "%:%:";
   case TokenType::FLOAT:return "float";

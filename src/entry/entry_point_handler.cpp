@@ -18,7 +18,7 @@ int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename,
     return 1;
   }
   for (const auto &token : token_list) {
-    output << filename << ":" << token << std::endl;
+    output << filename << ":" << token << '\n';
   }
   return 0;
 }
