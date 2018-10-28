@@ -15,33 +15,18 @@ protected:
 public:
   Statement(int id, std::string name);
   void print();
-  void toGraph();
+  std::string toGraph();
   void addChild(Statement *child);
 };
 
-class BlockStatement : public Statement {
+class LabeledStatement : public Statement {
 public:
-  explicit BlockStatement(int id);
+  explicit LabeledStatement(int id);
 };
 
-class EmptyStatement : public Statement {
+class CompoundStatement : public Statement {
 public:
-  explicit EmptyStatement(int id);
-};
-
-class DeclarationStatement : public Statement {
-public:
-  explicit DeclarationStatement(int id);
-};
-
-class IfStatement : public Statement {
-public:
-  explicit IfStatement(int id);
-};
-
-class BreakStatement : public Statement {
-public:
-  explicit BreakStatement(int id);
+  explicit CompoundStatement(int id);
 };
 
 class ExpressionStatement : public Statement {
@@ -49,24 +34,19 @@ public:
   explicit ExpressionStatement(int id);
 };
 
-class ContinueStatement : public Statement {
+class SelectionStatement : public Statement {
 public:
-  explicit ContinueStatement(int id);
+  explicit SelectionStatement(int id);
 };
 
-class WhileStatement : public Statement {
+class IterationStatement : public Statement {
 public:
-  explicit WhileStatement(int id);
+  explicit IterationStatement(int id);
 };
 
-class ReturnStatement : public Statement {
+class JumpStatement : public Statement {
 public:
-  explicit ReturnStatement(int id);
-};
-
-class ErrorStatement : public Statement {
-public:
-  explicit ErrorStatement(int id);
+  explicit JumpStatement(int id);
 };
 
 #endif // C4_STATEMENT_HPP

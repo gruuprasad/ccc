@@ -22,9 +22,9 @@ void Statement::print() {
   std::cout << "]";
 }
 
-void Statement::toGraph() {
+std::string Statement::toGraph() {
 
-  std::cout << "graph ast {\n" << Statement::toGraphRec() << "}\n";
+  return "graph ast {\n" + Statement::toGraphRec() + "}\n";
 }
 
 std::string Statement::toGraphRec() {
@@ -53,42 +53,26 @@ void Statement::addChild(Statement *child) {
   Statement::children.emplace_back(child);
 }
 
-BlockStatement::BlockStatement(int id) : Statement(id, "BlockStatement") {
+LabeledStatement::LabeledStatement(int id) : Statement(id, "labeled-statement") {
 
 }
 
-EmptyStatement::EmptyStatement(int id) : Statement(id, "EmptyStatement") {
+CompoundStatement::CompoundStatement(int id) : Statement(id, "compound-statement") {
 
 }
 
-DeclarationStatement::DeclarationStatement(int id) : Statement(id, "DeclarationStatement") {
+ExpressionStatement::ExpressionStatement(int id) : Statement(id, "expression-statement") {
 
 }
 
-IfStatement::IfStatement(int id) : Statement(id, "IfStatement") {
+SelectionStatement::SelectionStatement(int id) : Statement(id, "selection-statement") {
 
 }
 
-BreakStatement::BreakStatement(int id) : Statement(id, "BreakStatement") {
+IterationStatement::IterationStatement(int id) : Statement(id, "iteration-statement") {
 
 }
 
-ExpressionStatement::ExpressionStatement(int id) : Statement(id, "ExpressionStatement") {
-
-}
-
-ContinueStatement::ContinueStatement(int id) : Statement(id, "ContinueStatement") {
-
-}
-
-WhileStatement::WhileStatement(int id) : Statement(id, "WhileStatement") {
-
-}
-
-ReturnStatement::ReturnStatement(int id) : Statement(id, "ReturnStatement") {
-
-}
-
-ErrorStatement::ErrorStatement(int id) : Statement(id, "ErrorStatement") {
+JumpStatement::JumpStatement(int id) : Statement(id, "jump-statement") {
 
 }

@@ -15,6 +15,7 @@ set(SOURCE_FILES
         src/lexer/lexer_exception.cpp src/lexer/lexer_exception.hpp
         src/lexer/fast_lexer.cpp src/lexer/fast_lexer.hpp
         src/parser/statements.cpp src/parser/statements.hpp
+        src/parser/expressions.cpp src/parser/expressions.hpp
         )
 
 add_library(Catch INTERFACE)
