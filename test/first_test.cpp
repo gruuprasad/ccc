@@ -30,18 +30,17 @@
 TEST_CASE("statement run") {
   int count = 0;
   std::vector<ASTNode *> scope;
-  ASTNode *root = new CompoundStatement(count++, scope);
 
-  root->addChild(new IfStatement(count++,
+  scope.emplace_back(new IfStatement(count++,
                                  new ExpressionStatement(count++, new Identifier(count++)),
                                  new ExpressionStatement(count++,
                                                          new AdditiveExpression(count++,
                                                                                 new Identifier(count++),
                                                                                 new Identifier(count++)))));
-  root->addChild(new WhileStatement(count++,
+  scope.emplace_back(new WhileStatement(count++,
                                     new ExpressionStatement(count++, new Identifier(count++)),
                                     new ExpressionStatement(count++, new Identifier(count++))));
-  root->addChild(new IfStatement(count++,
+  scope.emplace_back(new IfStatement(count++,
                                  new ExpressionStatement(count++, new Identifier(count++)),
                                  new IfStatement(count++,
                                                  new ExpressionStatement(count++,
@@ -51,7 +50,9 @@ TEST_CASE("statement run") {
                                                  new ExpressionStatement(count++,
                                                                          new Identifier(count++))),
                                  new ExpressionStatement(count++, new Identifier(count++))));
-  root->addChild(new ReturnStatement(count++, new Identifier(count)));
+  scope.emplace_back(new ReturnStatement(count++, new Identifier(count++)));
+
+  ASTNode *root = new CompoundStatement(count, scope);
 
   std::ofstream file;
   file.open("ex.dot");

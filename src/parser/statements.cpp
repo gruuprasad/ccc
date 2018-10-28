@@ -27,7 +27,7 @@ CompoundStatement::CompoundStatement(int id, std::vector<ASTNode *> items) : AST
 std::string CompoundStatement::toGraphRec() {
   std::stringstream ss;
   ss << this->id << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
-  for (ASTNode *c : this->children) {
+  for (ASTNode *c : this->items) {
     ss << "subgraph cluster_" << c->id << "{\nlabel=\"\"\n" << c->toGraphRec() << "}\n";
     ss << this->id << " -- " << c->id << ";\n";
   }
