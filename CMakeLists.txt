@@ -31,6 +31,6 @@ set(TEST_FILES
 #        test/lexer_big_test.cpp
         )
 
-add_executable(tests ${TEST_SOURCE_FILES} ${TEST_FILES} src/parser/statements.cpp src/parser/statements.hpp)
+add_executable(tests ${TEST_SOURCE_FILES} ${TEST_FILES})
 target_link_libraries(tests Catch)
 add_test(NAME tests COMMAND tests)

@@ -28,9 +28,21 @@
 
 TEST_CASE("statement run") {
   int count = 0;
-  Statement* s = new BlockStatement(count++);
-  s->addChild(new IfStatement(count++));
-  s->addChild(new ReturnStatement(count++));
-  s->toGraph();
+  Statement* root = new BlockStatement(count++);
+
+  Statement* i = new IfStatement(count++);
+  i->addChild(new ExpressionStatement(count++));
+  root->addChild(i);
+
+  Statement* w = new WhileStatement(count++);
+  w->addChild(new ExpressionStatement(count++));
+  Statement* wi = new IfStatement(count++);
+  wi->addChild(new ContinueStatement(count++));
+  wi->addChild(new BreakStatement(count++));
+  w->addChild(wi);
+  root->addChild(w);
+
+  root->addChild(new ReturnStatement(count++));
+  root->toGraph();
 }
 
