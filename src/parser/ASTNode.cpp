@@ -17,3 +17,6 @@ std::string ASTNode::toGraph() {
 std::string ASTNode::toGraphRec() {
   throw std::bad_function_call();
 }
+int ASTNode::getId() const {
+  return id;
+}

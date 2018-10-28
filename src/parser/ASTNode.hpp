@@ -5,11 +5,13 @@
 #include <vector>
 
 class ASTNode {
-public:
+protected:
   int id;
   std::string name;
-  virtual std::string toGraphRec();
+public:
+  int getId() const;
   ASTNode(int id, std::string name);
+  virtual std::string toGraphRec();
   std::string toGraph();
 };
 

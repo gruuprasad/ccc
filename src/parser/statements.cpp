@@ -14,9 +14,9 @@ ExpressionStatement::ExpressionStatement(int id, ASTNode *expression) : ASTNode(
 
 std::string ExpressionStatement::toGraphRec() {
   std::stringstream ss;
-  ss << this->id << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
-  ss << "subgraph cluster_" << this->expression->id << "{\nlabel = \"\"\n" << this->expression->toGraphRec() << "}\n";
-  ss << this->id << " -- {" << this->expression->id << "};\n";
+  ss << this->getId() << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
+  ss << "subgraph cluster_" << this->expression->getId() << "{\nlabel = \"\"\n" << this->expression->toGraphRec() << "}\n";
+  ss << this->getId() << " -- {" << this->expression->getId() << "};\n";
   return ss.str();
 }
 
@@ -26,10 +26,10 @@ CompoundStatement::CompoundStatement(int id, std::vector<ASTNode *> items) : AST
 
 std::string CompoundStatement::toGraphRec() {
   std::stringstream ss;
-  ss << this->id << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
+  ss << this->getId() << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
   for (ASTNode *c : this->items) {
-    ss << "subgraph cluster_" << c->id << "{\nlabel=\"\"\n" << c->toGraphRec() << "}\n";
-    ss << this->id << " -- " << c->id << ";\n";
+    ss << "subgraph cluster_" << c->getId() << "{\nlabel=\"\"\n" << c->toGraphRec() << "}\n";
+    ss << this->getId() << " -- " << c->getId() << ";\n";
   }
   return ss.str();
 }
@@ -50,15 +50,15 @@ IfStatement::IfStatement(int id, ASTNode *condition, ASTNode *if_branch) : ASTNo
 
 std::string IfStatement::toGraphRec() {
   std::stringstream ss;
-  ss << this->id << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
-  ss << "subgraph cluster_" << this->condition->id << "{\nlabel = \"if\"\n" << this->condition->toGraphRec() << "}\n";
-  ss << this->id << " -- " << this->condition->id << ";\n";
-  ss << "subgraph cluster_" << this->if_branch->id << "{\nlabel = \"then\"\n" << this->if_branch->toGraphRec() << "}\n";
-  ss << this->id << " -- " << this->if_branch->id << ";\n";
+  ss << this->getId() << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
+  ss << "subgraph cluster_" << this->condition->getId() << "{\nlabel = \"if\"\n" << this->condition->toGraphRec() << "}\n";
+  ss << this->getId() << " -- " << this->condition->getId() << ";\n";
+  ss << "subgraph cluster_" << this->if_branch->getId() << "{\nlabel = \"then\"\n" << this->if_branch->toGraphRec() << "}\n";
+  ss << this->getId() << " -- " << this->if_branch->getId() << ";\n";
   if (this->else_branch) {
-    ss << "subgraph cluster_" << this->else_branch->id << "{\nlabel = \"else\"\n" << this->else_branch->toGraphRec()
+    ss << "subgraph cluster_" << this->else_branch->getId() << "{\nlabel = \"else\"\n" << this->else_branch->toGraphRec()
        << "}\n";
-    ss << this->id << " -- " << this->else_branch->id << ";\n";
+    ss << this->getId() << " -- " << this->else_branch->getId() << ";\n";
   }
   return ss.str();
 }
@@ -70,12 +70,12 @@ WhileStatement::WhileStatement(int id, ASTNode *condition, ASTNode *body) : ASTN
 
 std::string WhileStatement::toGraphRec() {
   std::stringstream ss;
-  ss << this->id << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
-  ss << "subgraph cluster_" << this->condition->id << "{\nlabel = \"while\"\n" << this->condition->toGraphRec()
+  ss << this->getId() << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
+  ss << "subgraph cluster_" << this->condition->getId() << "{\nlabel = \"while\"\n" << this->condition->toGraphRec()
      << "}\n";
-  ss << this->id << " -- " << this->condition->id << ";\n";
-  ss << "subgraph cluster_" << this->body->id << "{\nlabel = \"do\"\n" << this->body->toGraphRec() << "}\n";
-  ss << this->id << " -- " << this->body->id << ";\n";
+  ss << this->getId() << " -- " << this->condition->getId() << ";\n";
+  ss << "subgraph cluster_" << this->body->getId() << "{\nlabel = \"do\"\n" << this->body->toGraphRec() << "}\n";
+  ss << this->getId() << " -- " << this->body->getId() << ";\n";
   return ss.str();
 }
 
@@ -101,8 +101,8 @@ ReturnStatement::ReturnStatement(int id, ASTNode *expression) : ASTNode(id, "jum
 
 std::string ReturnStatement::toGraphRec() {
   std::stringstream ss;
-  ss << this->id << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
-  ss << "subgraph cluster_" << this->expression->id << "{\nlabel = \"\"\n" << this->expression->toGraphRec() << "}\n";
-  ss << this->id << " -- {" << this->expression->id << "};\n";
+  ss << this->getId() << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
+  ss << "subgraph cluster_" << this->expression->getId() << "{\nlabel = \"\"\n" << this->expression->toGraphRec() << "}\n";
+  ss << this->getId() << " -- {" << this->expression->getId() << "};\n";
   return ss.str();
 }
