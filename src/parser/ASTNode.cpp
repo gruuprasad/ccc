@@ -14,13 +14,14 @@ ASTNode::ASTNode(int id, std::string name) {
 }
 
 ASTNode::~ASTNode() {
-  delete &this->children;
+  for (ASTNode *c : this->children) {
+    delete c;
+  }
 }
 
 std::string ASTNode::toGraph() {
-  return
-      "graph ast {\nratio=\"compress\"\nforcelabels=true;\nsplines=line;\nstyle=dotted;\nsubgraph cluster {\n"
-          + this->toGraphRec() + "}\n}\n";
+  return "graph ast {\nratio=\"compress\"\nforcelabels=true;\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n"
+      + this->toGraphRec() + "}\n}\n";
 }
 
 std::string ASTNode::toGraphRec() {

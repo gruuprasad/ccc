@@ -3,14 +3,6 @@
 #include <sstream>
 #include "expressions.hpp"
 
-Identifier::Identifier(int id) : Expression(id, "identifier") {
-}
-
-AdditiveExpression::AdditiveExpression(int id, ASTNode *left, ASTNode *right) : Expression(id, "additive-expression") {
-  this->children.emplace_back(left);
-  this->children.emplace_back(right);
-}
-
 Expression::Expression(int id, const std::string &name) : ASTNode(id, name) {
 }
 
@@ -22,4 +14,12 @@ std::string Expression::toGraphRec() {
     ss << this->getId() << " -- " << c->getId() << ";\n";
   }
   return ss.str();
+}
+
+Identifier::Identifier(int id) : Expression(id, "identifier") {
+}
+
+AdditiveExpression::AdditiveExpression(int id, ASTNode *left, ASTNode *right) : Expression(id, "additive-expression") {
+  this->children.emplace_back(left);
+  this->children.emplace_back(right);
 }
