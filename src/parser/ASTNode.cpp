@@ -13,9 +13,13 @@ ASTNode::ASTNode(int id, std::string name) {
   this->token = nullptr;
 }
 
+ASTNode::~ASTNode() {
+  delete &this->children;
+}
+
 std::string ASTNode::toGraph() {
   return
-      "graph ast {\nratio=\"compress\"\nforcelabels=true;\nsplines=line;\nstyle=dotted;\nsubgraph cluster {\nlabel=\"root\"\n"
+      "graph ast {\nratio=\"compress\"\nforcelabels=true;\nsplines=line;\nstyle=dotted;\nsubgraph cluster {\n"
           + this->toGraphRec() + "}\n}\n";
 }
 
@@ -26,3 +30,8 @@ std::string ASTNode::toGraphRec() {
 int ASTNode::getId() const {
   return id;
 }
+
+ASTNode *ASTNode::getChild(int pos) {
+  return this->children[pos];
+}
+

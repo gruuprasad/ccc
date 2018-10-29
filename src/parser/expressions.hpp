@@ -6,19 +6,22 @@
 #include <iostream>
 #include "ASTNode.hpp"
 
-class Identifier : public ASTNode {
-public:
-  Identifier(int id);
+
+class Expression : public  ASTNode {
+private:
   std::string toGraphRec() override;
+public:
+  Expression(int id, const std::string &name);
 };
 
-class AdditiveExpression : public ASTNode {
-private:
-  ASTNode *left;
-  ASTNode *right;
+class Identifier : public Expression {
+public:
+  explicit Identifier(int id);
+};
+
+class AdditiveExpression : public Expression {
 public:
   AdditiveExpression(int id, ASTNode *left, ASTNode *right);
-  std::string toGraphRec() override;
 };
 
 #endif // C4_EXPRESSIONS_HPP

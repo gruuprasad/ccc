@@ -11,12 +11,15 @@ protected:
   Token *token;
   int id;
   std::string name;
+  std::vector<ASTNode*> children;
 public:
   int getId() const;
+  ASTNode* getChild(int pos);
   ASTNode(int id, std::string name, Token *token);
   ASTNode(int id, std::string name);
   virtual std::string toGraphRec();
   std::string toGraph();
+  virtual ~ASTNode();
 };
 
 #endif //C4_ASTNODE_HPP
