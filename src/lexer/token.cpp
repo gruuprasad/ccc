@@ -103,7 +103,6 @@ const std::string Token::name() const {
   case TokenType::NOT_EQUAL:return "!=";
   case TokenType::NOT:return "!";
   case TokenType::ARROW:return "->";
-  case TokenType::ARROW_STAR:return "->*";
   case TokenType::COMMA:return ",";
   case TokenType::COLON:return ":";
   case TokenType::COLON_COLON:return "::";
@@ -215,7 +214,6 @@ const std::string Token::token_type() const {
   case TokenType::NOT_EQUAL:return "punctuator";
   case TokenType::NOT:return "punctuator";
   case TokenType::ARROW:return "punctuator";
-  case TokenType::ARROW_STAR:return "punctuator";
   case TokenType::COMMA:return "punctuator";
   case TokenType::COLON:return "punctuator";
   case TokenType::COLON_COLON:return "punctuator";

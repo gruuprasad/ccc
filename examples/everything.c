@@ -57,7 +57,7 @@ _Thread_local	token_list.emplace_back(Token(TokenType::THREAD_LOCAL, lineno(), c
 +		    token_list.emplace_back(Token(TokenType::PLUS, lineno(), columno(), str()));
 -=		token_list.emplace_back(Token(TokenType::MINUS_ASSIGN, lineno(), columno(), str()));
 --		token_list.emplace_back(Token(TokenType::MINUSMINUS, lineno(), columno(), str()));
-->*		token_list.emplace_back(Token(TokenType::ARROW_STAR, lineno(), columno(), str()));
+->  	token_list.emplace_back(Token(TokenType::ARROW     , lineno(), columno(), str()));
 ->		token_list.emplace_back(Token(TokenType::ARROW, lineno(), columno(), str()));
 -		    token_list.emplace_back(Token(TokenType::MINUS, lineno(), columno(), str()));
 ==		token_list.emplace_back(Token(TokenType::EQUAL, lineno(), columno(), str()));
