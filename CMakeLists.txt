@@ -14,9 +14,11 @@ set(SOURCE_FILES
         src/lexer/token.cpp src/lexer/token.hpp
         src/lexer/lexer_exception.cpp src/lexer/lexer_exception.hpp
         src/lexer/fast_lexer.cpp src/lexer/fast_lexer.hpp
-        src/parser/statements.cpp src/parser/statements.hpp
-        src/parser/expressions.cpp src/parser/expressions.hpp
-        src/parser/ASTNode.cpp src/parser/ASTNode.hpp
+        src/parser/statement.cpp src/parser/statement.hpp
+        src/parser/expression.cpp src/parser/expression.hpp
+        src/parser/ast_node.cpp src/parser/ast_node.hpp
+        src/parser/declaration.cpp src/parser/declaration.hpp
+        src/parser/constant.cpp src/parser/constant.hpp
         )
 
 add_library(Catch INTERFACE)

@@ -5,19 +5,17 @@
 #include <iosfwd>
 #include <iostream>
 
-#include "expressions.hpp"
+#include "expression.hpp"
 #include "../lexer/token.hpp"
 
 class Statement : public ASTNode {
 private:
 public:
+  Statement(int id, const std::string &name, unsigned long size);
   Statement(int id, const std::string &name);
-  Statement(int id, const std::string &name, Token *token);
+  Statement(int id, const std::string &name, Token *token, unsigned long size);
 private:
-  std::string toGraphRec() override;
-};
-
-class Declaration : public Statement {
+  std::string toGraphWalker() override;
 };
 
 class LabelStatement : public Statement {
@@ -58,16 +56,18 @@ public:
 };
 
 class WhileStatement : public Statement {
-private:
-  bool post_test_loop;
 public:
   WhileStatement(int id, ASTNode *expression, ASTNode *statement);
-  WhileStatement(int id, ASTNode *expression, ASTNode *statement, bool post_test_loop);
+};
+
+class DoStatement : public Statement {
+public:
+  DoStatement(int id, ASTNode *expression, ASTNode *statement);
 };
 
 class ForStatement : public Statement {
 public:
-  ForStatement(int id, ASTNode* clause_1, ASTNode* expression_2, ASTNode* expression_3, ASTNode *statement);
+  ForStatement(int id, ASTNode *clause_1, ASTNode *expression_2, ASTNode *expression_3, ASTNode *statement);
 };
 
 class GotoStatement : public Statement {
