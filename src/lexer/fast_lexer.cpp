@@ -76,14 +76,7 @@ inline bool FastLexer::isPunctuator() {
       position += 2;
       column += 2;
       return true;
-    case '>':
-      if (getCharAt(position + 2) == '*') {
-        token_list.emplace_back(Token(TokenType::ARROW_STAR, line, column));
-        position += 3;
-        column += 3;
-        return true;
-      }
-      token_list.emplace_back(Token(TokenType::ARROW, line, column));
+    case '>':token_list.emplace_back(Token(TokenType::ARROW, line, column));
       position += 2;
       column += 2;
       return true;
