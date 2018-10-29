@@ -20,4 +20,5 @@ public:
   AdditiveExpression(int id, ASTNode *left, ASTNode *right);
   std::string toGraphRec() override;
 };
+
 #endif // C4_EXPRESSIONS_HPP

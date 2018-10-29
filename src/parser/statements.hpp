@@ -36,7 +36,7 @@ private:
   std::string toGraphRec() override;
 public:
   ExpressionStatement(int id, ASTNode *expression);
-  ExpressionStatement(int id, Token* token, ASTNode *expression);
+  ExpressionStatement(int id, Token *token, ASTNode *expression);
   virtual ~ExpressionStatement();
 };
 
@@ -47,11 +47,8 @@ private:
   ASTNode *else_branch;
   std::string toGraphRec() override;
 public:
-  IfStatement(int id, ASTNode *condition,
-              ASTNode *if_branch,
-              ASTNode *else_branch);
-  IfStatement(int id, ASTNode *condition,
-              ASTNode *if_branch);
+  IfStatement(int id, ASTNode *condition, ASTNode *if_branch, ASTNode *else_branch);
+  IfStatement(int id, ASTNode *condition, ASTNode *if_branch);
   virtual ~IfStatement();
 };
 
@@ -61,8 +58,7 @@ private:
   ASTNode *statement;
   std::string toGraphRec() override;
 public:
-  SwitchStatement(int id, ASTNode *expression,
-                  ASTNode *statement);
+  SwitchStatement(int id, ASTNode *expression, ASTNode *statement);
 };
 
 class WhileStatement : public ASTNode {
@@ -72,10 +68,8 @@ private:
   std::string toGraphRec() override;
   bool post_test_loop;
 public:
-  WhileStatement(int id, ASTNode *condition,
-                 ASTNode *body);
-  WhileStatement(int id, ASTNode *condition,
-                 ASTNode *body, bool post_test_loop);
+  WhileStatement(int id, ASTNode *condition, ASTNode *body);
+  WhileStatement(int id, ASTNode *condition, ASTNode *body, bool post_test_loop);
   virtual ~WhileStatement();
 };
 

@@ -1,7 +1,4 @@
-#include <utility>
-
 #include <sstream>
-
 #include "statements.hpp"
 
 ExpressionStatement::ExpressionStatement(int id, ASTNode *expression) : ASTNode(id, "expression-statement") {
@@ -16,15 +13,15 @@ std::string ExpressionStatement::toGraphRec() {
   ss << this->getId() << " -- {" << this->expression->getId() << "};\n";
   return ss.str();
 }
+
 ExpressionStatement::~ExpressionStatement() {
   delete &this->expression;
 }
 
 ExpressionStatement::ExpressionStatement(int id, Token *token, ASTNode *expression) : ASTNode(id,
-                                                                                              "expression-statement",
-                                                                                              token) {
-  this->
-      expression = expression;
+    "expression-statement",
+    token) {
+  this->expression = expression;
 }
 
 CompoundStatement::CompoundStatement(int id, std::vector<ASTNode *> items) : ASTNode(id, "compound-statement") {
@@ -40,20 +37,19 @@ std::string CompoundStatement::toGraphRec() {
   }
   return ss.str();
 }
+
 CompoundStatement::~CompoundStatement() {
   delete &this->items;
 }
 
-IfStatement::IfStatement(int id, ASTNode *condition, ASTNode *if_branch, ASTNode *else_branch) : ASTNode(
-    id,
+IfStatement::IfStatement(int id, ASTNode *condition, ASTNode *if_branch, ASTNode *else_branch) : ASTNode(id,
     "selection-statement") {
   this->condition = condition;
   this->if_branch = if_branch;
   this->else_branch = else_branch;
 }
 
-IfStatement::IfStatement(int id, ASTNode *condition, ASTNode *if_branch) : ASTNode(id,
-                                                                                   "selection-statement") {
+IfStatement::IfStatement(int id, ASTNode *condition, ASTNode *if_branch) : ASTNode(id, "selection-statement") {
   this->condition = condition;
   this->if_branch = if_branch;
   this->else_branch = nullptr;
@@ -70,12 +66,12 @@ std::string IfStatement::toGraphRec() {
   ss << this->getId() << " -- " << this->if_branch->getId() << ";\n";
   if (this->else_branch) {
     ss << "subgraph cluster_" << this->else_branch->getId() << "{\nlabel = \"else\"\n"
-       << this->else_branch->toGraphRec()
-       << "}\n";
+       << this->else_branch->toGraphRec() << "}\n";
     ss << this->getId() << " -- " << this->else_branch->getId() << ";\n";
   }
   return ss.str();
 }
+
 IfStatement::~IfStatement() {
   delete &this->condition;
   delete &this->if_branch;
@@ -98,12 +94,14 @@ std::string WhileStatement::toGraphRec() {
   ss << this->getId() << " -- " << this->body->getId() << ";\n";
   return ss.str();
 }
+
 WhileStatement::~WhileStatement() {
   delete &this->condition;
   delete &this->body;
 }
+
 WhileStatement::WhileStatement(int id, ASTNode *condition, ASTNode *body, bool post_test_loop) : ASTNode(id,
-                                                                                                         "iteration-statement") {
+    "iteration-statement") {
   this->condition = condition;
   this->body = body;
   this->post_test_loop = post_test_loop;
@@ -125,6 +123,7 @@ SwitchStatement::SwitchStatement(int id, ASTNode *expression, ASTNode *statement
   this->expression = expression;
   this->statement = statement;
 }
+
 ReturnStatement::ReturnStatement(int id, ASTNode *expression) : ASTNode(id, "jump-statement") {
   this->expression = expression;
 }
@@ -137,6 +136,7 @@ std::string ReturnStatement::toGraphRec() {
   ss << this->getId() << " -- {" << this->expression->getId() << "};\n";
   return ss.str();
 }
+
 ReturnStatement::~ReturnStatement() {
   delete &this->expression;
 }
