@@ -1439,7 +1439,7 @@ everything.c:59:83: punctuator )
 everything.c:59:84: punctuator )
 everything.c:59:85: punctuator )
 everything.c:59:86: punctuator ;
-everything.c:60:1: punctuator ->*
+everything.c:60:1: punctuator ->
 everything.c:60:6: identifier token_list
 everything.c:60:16: punctuator .
 everything.c:60:17: identifier emplace_back
@@ -1448,7 +1448,7 @@ everything.c:60:30: identifier Token
 everything.c:60:35: punctuator (
 everything.c:60:36: identifier TokenType
 everything.c:60:45: punctuator ::
-everything.c:60:47: identifier ARROW_STAR
+everything.c:60:47: identifier ARROW
 everything.c:60:57: punctuator ,
 everything.c:60:59: identifier lineno
 everything.c:60:65: punctuator (
