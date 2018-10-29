@@ -3,13 +3,16 @@
 
 #include <string>
 #include <vector>
+#include "../lexer/token.hpp"
 
 class ASTNode {
 protected:
+  Token* token;
   int id;
   std::string name;
 public:
   int getId() const;
+  ASTNode(int id, std::string name, Token* token);
   ASTNode(int id, std::string name);
   virtual std::string toGraphRec();
   std::string toGraph();

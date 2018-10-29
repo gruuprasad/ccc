@@ -12,12 +12,12 @@ public:
   std::string toGraphRec() override;
 };
 
-class AdditiveExpression: public ASTNode {
+class AdditiveExpression : public ASTNode {
 private:
-  ASTNode* left;
-  ASTNode* right;
+  ASTNode *left;
+  ASTNode *right;
 public:
-  AdditiveExpression(int id, ASTNode* left, ASTNode* right);
+  AdditiveExpression(int id, ASTNode *left, ASTNode *right);
   std::string toGraphRec() override;
 };
 #endif // C4_EXPRESSIONS_HPP

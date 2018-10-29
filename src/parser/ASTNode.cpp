@@ -1,11 +1,17 @@
 #include <iostream>
-#include <sstream>
 #include <functional>
 #include "ASTNode.hpp"
+
+ASTNode::ASTNode(int id, std::string name, Token *token) {
+  this->id = id;
+  this->name = std::move(name);
+  this->token = token;
+}
 
 ASTNode::ASTNode(int id, std::string name) {
   this->id = id;
   this->name = std::move(name);
+  this->token = nullptr;
 }
 
 std::string ASTNode::toGraph() {
