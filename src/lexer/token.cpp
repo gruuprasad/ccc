@@ -1,11 +1,12 @@
 #include <utility>
+#include <cassert>
 
 #include <string>
 #include <iostream>
 #include "token.hpp"
 
-Token::Token(const TokenType type, const unsigned long line, const unsigned long column, const std::string extra) :
-    type(type), line(line), column(column), extra(std::move(extra)) {}
+Token::Token(const TokenType type, const unsigned long line, const unsigned long column, const TokenView extra) :
+    type(type), line(line), column(column), extra(extra) {}
 
 TokenType Token::getType() const {
   return type;
@@ -16,8 +17,8 @@ unsigned long Token::getLine() const {
 unsigned long Token::getColumn() const {
   return column + 1;
 }
-const std::string &Token::getExtra() const {
-  return extra;
+const std::string Token::getExtra() const {
+  return std::string(extra.first, extra.length);
 }
 
 const std::string Token::name() const {
@@ -243,7 +244,7 @@ const std::string Token::token_type() const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
-  if (token.extra.empty() && token.getType() != TokenType::STRING) {
+  if (token.empty() && token.getType() != TokenType::STRING) {
     os << token.line << ':' << token.getColumn() << ": " << token.token_type() << " " << token.name();
   } else {
     os << token.line << ':' << token.getColumn() << ": " << token.token_type() << " ";

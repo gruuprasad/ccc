@@ -19,15 +19,19 @@ struct TokenView {
 
 class Token {
 public:
+  Token(TokenType type, unsigned long line, unsigned long column,  TokenView extra = {});
+  bool empty() const { return extra.empty(); }
   TokenType getType() const;
   unsigned long getLine() const;
   unsigned long getColumn() const;
+  const std::string getExtra() const;
   const std::string name() const;
   const std::string token_type() const;
 private:
   const TokenType type;
   const unsigned long line;
   const unsigned long column;
+  const TokenView extra;
 public:
   friend std::ostream &operator<<(std::ostream &os, const Token &token);
 };
