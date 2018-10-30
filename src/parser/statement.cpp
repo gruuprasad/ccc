@@ -10,7 +10,7 @@ Statement::Statement(int id, const std::string &name, Token *token, const unsign
 
 std::string Statement::toGraphWalker() {
   std::stringstream ss;
-  ss << this->id << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=mediumaquamarine];\n";
+  ss << this->id << "[label=<" << this->name << "<br/><font point-size='10'>" << this->name << "</font>> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
   for (ASTNode *child : this->children) {
     ss << "subgraph cluster_" << child->getId() << "{\n" << child->toGraphWalker() << "}\n";
     ss << this->id << "--" << child->getId() << ";\n";

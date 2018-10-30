@@ -28,7 +28,7 @@ ASTNode::~ASTNode() {
 }
 
 std::string ASTNode::toGraph() {
-  return "graph ast {\nratio=\"compress\"\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n"
+  return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n"
       + this->toGraphWalker() + "}\n}\n";
 }
 

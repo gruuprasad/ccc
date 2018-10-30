@@ -8,10 +8,10 @@ Expression::Expression(int id, const std::string &name, const unsigned long size
 
 std::string Expression::toGraphWalker() {
   std::stringstream ss;
-  ss << this->id << "[label=\"" << this->name << "\" shape=ellipse style=filled fillcolor=lightskyblue];\n";
+  ss << this->id << "[label=<" << this->name << "<br/><font point-size='10'>" << this->name << "</font>> shape=oval style=filled fillcolor=lightskyblue];\n";
   for (ASTNode *child : this->children) {
     ss << child->toGraphWalker();
-    ss << this->id << " -- " << child->getId() << ";\n";
+    ss << this->id << " -- " << child->getId() << "[taillabel=\"?\" labeldistance=0 labelangle=0 labelfontcolor=red];\n";
   }
   return ss.str();
 }

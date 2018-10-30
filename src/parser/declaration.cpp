@@ -6,6 +6,6 @@ Declaration::Declaration(int id) : ASTNode(id, "declaration") {
 
 std::string Declaration::toGraphWalker() {
   std::stringstream ss;
-  ss << this->id << "[label=\"" << this->name << "\" shape=house style=filled fillcolor=lightsalmon];\n";
+  ss << this->id << "[label=\"" << this->name << "\" shape=box style=filled fillcolor=lightsalmon];\n";
   return ss.str();
 }

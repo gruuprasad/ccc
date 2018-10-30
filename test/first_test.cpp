@@ -57,7 +57,7 @@ TEST_CASE("statement run") {
 
   ASTNode *root = new CompoundStatement(count, scope);
   std::ofstream file;
-  file.open("ex.dot");
+  file.open("ast.gv");
   file << root->toGraph();
   file.close();
 
