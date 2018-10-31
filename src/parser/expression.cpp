@@ -19,7 +19,7 @@ std::string Expression::toGraphWalker() {
 Identifier::Identifier(int id) : Expression(id, "identifier", 0) {
 }
 
-AdditiveExpression::AdditiveExpression(int id, ASTNode *expression_1, ASTNode *expression_2) : Expression(id,
+AdditiveExpression::AdditiveExpression(int id, Expression *expression_1, Expression *expression_2) : Expression(id,
     "additive-expression",
     2) {
   this->children.push_back(expression_1);
@@ -54,15 +54,38 @@ ConditionalExpression::ConditionalExpression(int id,
   this->children.push_back(expression_3);
 }
 
-RelationalExpression::RelationalExpression(int id, ASTNode *expression_1, ASTNode *expression_2) : Expression(id,
-    "conditional-expression",
+RelationalExpression::RelationalExpression(int id, Expression *expression_1, Expression *expression_2) : Expression(id,
+    "relational-expression",
     2) {
   this->children.push_back(expression_1);
   this->children.push_back(expression_2);
 }
 
-MultiplicativeExpression::MultiplicativeExpression(int id, ASTNode *expression_1, ASTNode *expression_2)
+MultiplicativeExpression::MultiplicativeExpression(int id, Expression *expression_1, Expression *expression_2)
     : Expression(id, "multiplicative-expression", 2) {
   this->children.push_back(expression_1);
   this->children.push_back(expression_2);
+}
+
+LogicalAndExpression::LogicalAndExpression(int id, ASTNode *expression_1, ASTNode *expression_2) : Expression(id, "logical-And-expression", 2) {
+  this->children.push_back(expression_1);
+  this->children.push_back(expression_2);
+}
+
+LogicalOrExpression::LogicalOrExpression(int id, ASTNode *expression_1, ASTNode *expression_2) : Expression(id, "logical-And-expression", 2) {
+  this->children.push_back(expression_1);
+  this->children.push_back(expression_2);
+}
+
+ShiftExpression::ShiftExpression(int id, ASTNode *expression_1, ASTNode *expression_2, ASTNode *expression_3) : Expression(id, "logical-And-expression", 2) {
+  this->children.push_back(expression_1);
+  this->children.push_back(expression_2);
+}
+
+ConstantExpression::ConstantExpression(int id, Constant *constant) : Expression(id, "constant-expression", 1) {
+  this->children.push_back(constant);
+}
+
+AssignmentExpression::AssignmentExpression(int id, ASTNode *assignment) : Expression(id, "assignment-expression", 1) {
+  this->children.push_back(assignment);
 }

@@ -1,12 +1,9 @@
+#include <utility>
+
 #include <sstream>
 #include "statement.hpp"
 
 Statement::Statement(int id, const std::string &name, const unsigned long size) : ASTNode(id, name, size) {}
-
-Statement::Statement(int id, const std::string &name, Token *token, const unsigned long size) : ASTNode(id,
-    name,
-    token,
-    size) {}
 
 std::string Statement::toGraphWalker() {
   std::stringstream ss;
@@ -37,30 +34,24 @@ DefaultStatement::DefaultStatement(int id, ASTNode *statement) : Statement(id, "
   this->children.push_back(statement);
 }
 
-CompoundStatement::CompoundStatement(int id, std::vector<ASTNode *> items) : Statement(id, "compound-statement", 1) {
-  this->children = std::move(items);
+CompoundStatement::CompoundStatement(int id, std::vector<Statement *> items) : Statement(id, "compound-statement", 1) {
+  for (Statement* i : items)
+    this->children.push_back(i);
 }
 
-ExpressionStatement::ExpressionStatement(int id, ASTNode *expression) : Statement(id, "expression-statement", 1) {
+ExpressionStatement::ExpressionStatement(int id, Expression *expression) : Statement(id, "expression-statement", 1) {
   this->children.push_back(expression);
 }
 
-ExpressionStatement::ExpressionStatement(int id, Token *token, ASTNode *expression) : Statement(id,
-    "expression-statement",
-    token,
-    1) {
-  this->children.push_back(expression);
-}
-
-IfStatement::IfStatement(int id, ASTNode *expression, ASTNode *statement_1, ASTNode *statement_2) : Statement(id,
-    "selection-statement",
+IfStatement::IfStatement(int id, Expression *expression, Statement *statement_1, Statement *statement_2) : Statement(id,
+    "if-statement",
     3) {
   this->children.push_back(expression);
   this->children.push_back((statement_1));
   this->children.push_back(statement_2);
 }
 
-IfStatement::IfStatement(int id, ASTNode *expression, ASTNode *statement_1) : Statement(id, "selection-statement", 2) {
+IfStatement::IfStatement(int id, Expression *expression, Statement *statement_1) : Statement(id, "if-statement", 2) {
   this->children.push_back(expression);
   this->children.push_back(statement_1);
 }
@@ -73,7 +64,7 @@ SwitchStatement::SwitchStatement(int id, ASTNode *expression, ASTNode *statement
 }
 
 WhileStatement::WhileStatement(int id, ASTNode *expression, ASTNode *statement) : Statement(id,
-    "iteration-statement",
+    "while-statement",
     2) {
   this->children.push_back(expression);
   this->children.push_back((statement));
@@ -102,6 +93,6 @@ BreakStatement::BreakStatement(int id) : Statement(id, "jump-statement") {
 ContinueStatement::ContinueStatement(int id) : Statement(id, "jump-statement") {
 }
 
-ReturnStatement::ReturnStatement(int id, ASTNode *expression) : Statement(id, "jump-statement", 1) {
+ReturnStatement::ReturnStatement(int id, ASTNode *expression) : Statement(id, "return-statement", 1) {
   this->children.push_back(expression);
 }

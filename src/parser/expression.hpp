@@ -5,6 +5,7 @@
 #include <iosfwd>
 #include <iostream>
 #include "ast_node.hpp"
+#include "constant.hpp"
 
 class Expression : public ASTNode {
 private:
@@ -44,21 +45,23 @@ class CastExpression : public Expression {
 
 class MultiplicativeExpression : public Expression {
 public:
-  MultiplicativeExpression(int id, ASTNode *expression_1, ASTNode *expression_2);
+  MultiplicativeExpression(int id, Expression *expression_1, Expression *expression_2);
 };
 
 class AdditiveExpression : public Expression {
 public:
 //  AdditiveExpression(int id, ASTNode *expression_1);
-  AdditiveExpression(int id, ASTNode *expression_1, ASTNode *expression_2);
+  AdditiveExpression(int id, Expression *expression_1, Expression *expression_2);
 };
 
 class ShiftExpression : public Expression {
+public:
+  ShiftExpression(int id, ASTNode *expression_1, ASTNode *expression_2, ASTNode *expression_3);
 };
 
 class RelationalExpression : public Expression {
 public:
-  RelationalExpression(int id, ASTNode *expression_1, ASTNode *expression_2);
+  RelationalExpression(int id, Expression *expression_1, Expression *expression_2);
 };
 
 class EqualityExpression : public Expression {
@@ -77,9 +80,13 @@ public:
 };
 
 class LogicalAndExpression : public Expression {
+public:
+  LogicalAndExpression(int id, ASTNode *expression_1, ASTNode *expression_2);
 };
 
 class LogicalOrExpression : public Expression {
+public:
+  LogicalOrExpression(int id, ASTNode *expression_1, ASTNode *expression_2);
 };
 
 class ConditionalExpression : public Expression {
@@ -88,9 +95,13 @@ public:
 };
 
 class AssignmentExpression : public Expression {
+public:
+  AssignmentExpression(int id, ASTNode* assignment);
 };
 
 class ConstantExpression : public Expression {
+public:
+  ConstantExpression(int id, Constant* constant);
 };
 
 #endif // C4_EXPRESSIONS_HPP

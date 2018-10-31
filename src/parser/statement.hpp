@@ -13,7 +13,6 @@ private:
 public:
   Statement(int id, const std::string &name, unsigned long size);
   Statement(int id, const std::string &name);
-  Statement(int id, const std::string &name, Token *token, unsigned long size);
 private:
   std::string toGraphWalker() override;
 };
@@ -35,19 +34,18 @@ public:
 
 class CompoundStatement : public Statement {
 public:
-  CompoundStatement(int id, std::vector<ASTNode *> items);
+  CompoundStatement(int id, std::vector<Statement *> items);
 };
 
 class ExpressionStatement : public Statement {
 public:
-  ExpressionStatement(int id, ASTNode *expression);
-  ExpressionStatement(int id, Token *token, ASTNode *expression);
+  ExpressionStatement(int id, Expression *expression);
 };
 
 class IfStatement : public Statement {
 public:
-  IfStatement(int id, ASTNode *expression, ASTNode *statement_1, ASTNode *statement_2);
-  IfStatement(int id, ASTNode *expression, ASTNode *statement_1);
+  IfStatement(int id, Expression *expression, Statement *statement_1, Statement *statement_2);
+  IfStatement(int id, Expression *expression, Statement *statement_1);
 };
 
 class SwitchStatement : public Statement {
