@@ -1,7 +1,7 @@
 #include "catch.hpp"
 #include "../src/entry/entry_point_handler.hpp"
-#include "../src/parser/statement.hpp"
-#include "../src/parser/declaration.hpp"
+#include "../src/parser/ast/statement.hpp"
+#include "../src/parser/ast/declaration.hpp"
 
 //TEST_CASE("Our compiler should fail for now.") {
 //  REQUIRE(1 == EntryPointHandler().handle(0, nullptr));

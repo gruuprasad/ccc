@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "expression.hpp"
-#include "../lexer/token.hpp"
+#include "../../lexer/token.hpp"
 
 class Statement : public ASTNode {
 private:
