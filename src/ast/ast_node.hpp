@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include "../../lexer/token.hpp"
+#include "../lexer/token.hpp"
 
 class ASTNode {
 protected:
