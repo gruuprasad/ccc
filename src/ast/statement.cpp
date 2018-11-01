@@ -22,8 +22,8 @@ Statement::Statement(int id, const std::string &name) : ASTNode(id, name) {
 }
 
 LabelStatement::LabelStatement(int id, Expression *identifier, Statement *statement) : Statement(id,
-    "labeled-statement",
-    2) {
+                                                                                                 "labeled-statement",
+                                                                                                 2) {
   this->children.push_back(identifier);
   this->children.push_back(statement);
 }
@@ -40,8 +40,8 @@ ExpressionStatement::ExpressionStatement(int id) : Statement(id, "expression-sta
 }
 
 IfStatement::IfStatement(int id, Expression *expression, Statement *statement_1) : Statement(id,
-    "selection-statement",
-    2) {
+                                                                                             "selection-statement",
+                                                                                             2) {
   this->children.push_back(expression);
   this->children.push_back(statement_1);
 }
@@ -55,8 +55,8 @@ IfElseStatement::IfElseStatement(int id, Expression *expression, Statement *stat
 }
 
 WhileStatement::WhileStatement(int id, Expression *expression, Statement *statement) : Statement(id,
-    "iteration-statement",
-    2) {
+                                                                                                 "iteration-statement",
+                                                                                                 2) {
   this->children.push_back(expression);
   this->children.push_back((statement));
 }

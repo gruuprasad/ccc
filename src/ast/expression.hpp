@@ -78,7 +78,7 @@ public:
 
 class ConstantExpression : public Expression {
 public:
-  ConstantExpression(int, Constant*);
+  ConstantExpression(int, Constant *);
 };
 
 #endif // C4_EXPRESSIONS_HPP
