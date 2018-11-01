@@ -34,6 +34,7 @@ set(TEST_FILES
         test/lexer_keyword_test.cpp
         test/lexer_punctuation_test.cpp
         test/lexer_big_test.cpp
+        test/parser_simple.cpp
         )
 
 add_executable(tests ${TEST_SOURCE_FILES} ${TEST_FILES})
