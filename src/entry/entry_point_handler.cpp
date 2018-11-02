@@ -28,7 +28,6 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     const std::string flagName = std::string(ppArgs[1]);
     auto filename = ppArgs[2];
     std::ifstream file = std::ifstream(filename);
-    std::ios_base::sync_with_stdio(false);
     std::vector<Token, std::allocator<Token>> token_list;
     std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     try {
