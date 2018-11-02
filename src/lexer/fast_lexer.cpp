@@ -382,12 +382,6 @@ inline bool FastLexer::isPunctuator() {
       column += 3;
       return true;
     }
-    if (getCharAt(position + 1) == '*') {
-      token_list.emplace_back(Token(TokenType::DOT_STAR, line, column));
-      position += 2;
-      column += 2;
-      return true;
-    }
     token_list.emplace_back(Token(TokenType::DOT, line, column));
     ++position;
     ++column;
