@@ -143,9 +143,9 @@ TEST_CASE("Fast Lexer invalid string literal test.") {
   REQUIRE_THROWS_AS(FastLexer("\"this has invalid escape \\z\"").lex(), LexerException);
 }
 
-TEST_CASE("Fast Lexer token pair test.") {
-  auto tokenList = FastLexer("::+=").lex();
-  REQUIRE(tokenList.size() >= 2);
+TEST_CASE("::") {
+  auto tokenList = FastLexer(":::").lex();
+  REQUIRE(tokenList.size() == 3);
 
   auto & firstToken = tokenList.front();
   REQUIRE(firstToken.getType() == TokenType::COLON);
@@ -156,15 +156,29 @@ TEST_CASE("Fast Lexer token pair test.") {
   REQUIRE(secondToken.getType() == TokenType::COLON);
   REQUIRE(secondToken.getLine() == 1);
   REQUIRE(secondToken.getColumn() == 2);
+
+  auto & thirdToken = tokenList[2];
+  REQUIRE(thirdToken.getType() == TokenType::COLON);
+  REQUIRE(thirdToken.getLine() == 1);
+  REQUIRE(thirdToken.getColumn() == 3);
 }
 
 TEST_CASE(".*") {
-  auto tokenList = FastLexer(".*").lex();
-  REQUIRE(tokenList.size() == 2);
+  auto tokenList = FastLexer(".*.").lex();
+  REQUIRE(tokenList.size() == 3);
 
   auto & firstToken = tokenList.front();
   REQUIRE(firstToken.getType() == TokenType::DOT);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
 
   auto & secondToken = tokenList[1];
   REQUIRE(secondToken.getType() == TokenType::STAR);
+  REQUIRE(secondToken.getLine() == 1);
+  REQUIRE(secondToken.getColumn() == 2);
+
+  auto & thirdToken = tokenList[2];
+  REQUIRE(thirdToken.getType() == TokenType::DOT);
+  REQUIRE(thirdToken.getLine() == 1);
+  REQUIRE(thirdToken.getColumn() == 3);
 }
