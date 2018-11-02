@@ -22,6 +22,210 @@ inline bool FastLexer::keyWordEnd(unsigned long position) {
       || first == '_');
 }
 
+inline bool FastLexer::failParsing() {
+  std::string error = "Unknown token " + std::string(1, getCharAt(position));
+  if (getCharAt(position + 1) != 0) {
+    error += std::string(1, getCharAt(position + 1));
+    if (getCharAt(position + 2) != 0) {
+      error += std::string(1, getCharAt(position + 2));
+      if (getCharAt(position + 3) != 0) {
+        error += std::string(1, getCharAt(position + 2)) + " [truncated]";
+      }
+    }
+  }
+  throw LexerException(Token(TokenType::QUESTION, line, column, error));
+}
+
+inline bool FastLexer::munchWhitespace() {
+  char first = getCharAt(position);
+  while (first == ' '
+      || first == '\t'
+      || first == '\n'
+      || first == '\r'
+      ) {
+    switch (first) {
+    case '\r':
+      if (getCharAt(position + 1) == '\n') {
+        ++position;
+      }
+      //fall-through
+    case '\n':column = 0;
+      ++line;
+      break;
+    default:++column;
+      break;
+    }
+    first = getCharAt(++position);
+  }
+  return first != 0;
+}
+
+inline bool FastLexer::munchLineComment() {
+  char first = getCharAt(position);
+  while (first != '\n' && first != '\r') {
+    first = getCharAt(++position);
+    if (first == 0) {
+      return false;
+    }
+  }
+  switch (first) {
+  case '\r':
+    if (getCharAt(position + 1) == '\n') {
+      ++position;
+    }
+    //fall-through
+  case '\n':column = 0;
+    ++line;
+    break;
+  default:break;
+  }
+  ++position;
+  return true;
+}
+
+inline bool FastLexer::munchBlockComment() {
+  char first = getCharAt(position);
+  unsigned long previousLine = line;
+  unsigned long previousColumn = column;
+  column += 2;
+  while (first != '*' || getCharAt(position + 1) != '/') {
+    switch (first) {
+    case 0:throw LexerException(Token(TokenType::QUESTION, previousLine, previousColumn, "Unterminated Comment!"));
+    case '\r':
+      if (getCharAt(position + 1) == '\n') {
+        ++position;
+      }
+      //fall-through
+    case '\n':column = 0;
+      ++line;
+      break;
+    default:++column;
+      break;
+    }
+    first = getCharAt(++position);
+  }
+  position += 2;
+  column += 2;
+  return true;
+}
+
+inline bool FastLexer::munchNumber() {
+  unsigned long oldPosition = position;
+  char first;
+  do {
+    first = getCharAt(++position);
+  } while ('0' <= first && first <= '9');
+  token_list.emplace_back(Token(TokenType::NUMBER, line, column,
+                                std::string(&content[oldPosition], position - oldPosition)));
+  column += position - oldPosition;
+  return true;
+}
+
+inline bool FastLexer::munchIdentifier() {
+  unsigned long oldPosition = position;
+  char first;
+  do {
+    first = getCharAt(++position);
+  } while (('0' <= first && first <= '9')
+      || ('a' <= first && first <= 'z')
+      || ('A' <= first && first <= 'Z')
+      || first == '_');
+  token_list.emplace_back(Token(TokenType::IDENTIFIER,
+                                line,
+                                column,
+                                std::string(&content[oldPosition], position - oldPosition)));
+  column += position - oldPosition;
+  return true;
+}
+
+inline bool FastLexer::munchCharacter() {
+  char first = getCharAt(++position);
+  if (first != '\''
+      && first != '\\'
+      && first != '\n'
+      && first != '\r'
+      && getCharAt(position + 1) == '\'') {
+    token_list.emplace_back(Token(TokenType::CHARACTER, line, column, std::string(1, first)));
+    column += 3;
+    position += 2;
+    return true;
+  }
+  if (first == '\\') {
+    first = getCharAt(++position);
+    switch (first) {
+    case '\'':
+    case '"':
+    case '?':
+    case '\\':
+    case 'a':
+    case 'b':
+    case 'f':
+    case 'n':
+    case 'r':
+    case 't':
+    case 'v':
+      token_list.emplace_back(Token(TokenType::CHARACTER,
+                                    line,
+                                    column,
+                                    std::string(&content[position - 1], 2)));
+      column += 4;
+      position += 2;
+      return true;
+    default:
+      throw LexerException(Token{TokenType::CHARACTER, line, column,
+                                 "Invalid character: '" + std::string(&content[position - 1], 2) + "'"});
+    }
+  }
+  throw LexerException(Token{TokenType::CHARACTER, line, column,
+                             "Invalid character: '" + std::string(1, first) + "'"});
+}
+
+inline bool FastLexer::munchString() {
+  unsigned long oldPosition = position;
+  unsigned long initColumn = column;
+  char first = getCharAt(++position);
+  ++column;
+  while (first != '"') {
+    if (first == '\n'
+        || first == '\r'
+        || first == 0) {
+      throw LexerException(Token(TokenType::STRING, line, column,
+                                 "Line break in string at "
+                                     + std::string(&content[oldPosition + 1], position - oldPosition)));
+    }
+    if (first == '\\') {
+      first = getCharAt(++position);
+      ++column;
+      switch (first) {
+      case '\'':
+      case '"':
+      case '?':
+      case '\\':
+      case 'a':
+      case 'b':
+      case 'f':
+      case 'n':
+      case 'r':
+      case 't':
+      case 'v':break;
+      default:
+        throw LexerException(Token(TokenType::STRING, line, column,
+                                   "Invalid escape at "
+                                       + std::string(&content[oldPosition + 1], position - oldPosition)));
+      }
+    }
+    first = getCharAt(++position);
+    ++column;
+  }
+  token_list.emplace_back(Token(TokenType::STRING,
+                                line,
+                                initColumn,
+                                std::string(&content[oldPosition + 1], position - oldPosition - 1)));
+  ++position;
+  ++column;
+  return true;
+}
+
 inline bool FastLexer::isPunctuator() {
   const char first = getCharAt(position);
   switch (first) {
@@ -76,14 +280,7 @@ inline bool FastLexer::isPunctuator() {
       position += 2;
       column += 2;
       return true;
-    case '>':
-      if (getCharAt(position + 2) == '*') {
-        token_list.emplace_back(Token(TokenType::ARROW_STAR, line, column));
-        position += 3;
-        column += 3;
-        return true;
-      }
-      token_list.emplace_back(Token(TokenType::ARROW, line, column));
+    case '>':token_list.emplace_back(Token(TokenType::ARROW, line, column));
       position += 2;
       column += 2;
       return true;
@@ -239,8 +436,8 @@ inline bool FastLexer::isPunctuator() {
       column += 2;
       return true;
     case ':':
-      if(getCharAt(position + 2) == '%'
-      && getCharAt(position + 3) == ':'){
+      if (getCharAt(position + 2) == '%'
+          && getCharAt(position + 3) == ':') {
         token_list.emplace_back(Token(TokenType::HASHHASH_ALT, line, column));
         position += 4;
         column += 4;
@@ -414,7 +611,7 @@ inline bool FastLexer::isKeyword() {
     }
     break;
   case 'd':
-    if (getCharAt(position + 1) == 'o'){
+    if (getCharAt(position + 1) == 'o') {
       if (getCharAt(position + 2) == 'u'
           && getCharAt(position + 3) == 'b'
           && getCharAt(position + 4) == 'l'
@@ -426,13 +623,13 @@ inline bool FastLexer::isKeyword() {
         column += 6;
         return true;
       }
-        if(keyWordEnd(position + 2)) {
-          token_list.emplace_back(Token(TokenType::DO, line, column));
-          position += 2;
-          column += 2;
-          return true;
-        }
-        break;
+      if (keyWordEnd(position + 2)) {
+        token_list.emplace_back(Token(TokenType::DO, line, column));
+        position += 2;
+        column += 2;
+        return true;
+      }
+      break;
     }
     if (getCharAt(position + 1) == 'e'
         && getCharAt(position + 2) == 'f'
@@ -505,8 +702,8 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 5)
         ) {
       token_list.emplace_back(Token(TokenType::FLOAT, line, column));
-      position += 3;
-      column += 3;
+      position += 5;
+      column += 5;
       return true;
     }
     break;
@@ -943,242 +1140,121 @@ inline bool FastLexer::isKeyword() {
 }
 
 inline bool FastLexer::munch() {
-  char first = getCharAt(position);
-
-  /*
-   * At end of file, return
-   */
-  if (first == 0) {
-    return false;
-  }
-
-  /*
-   * Munch away all whitespace
-   */
-  while (first == ' '
-      || first == '\t'
-      || first == '\n'
-      || first == '\r'
-      ) {
-    switch (first) {
-    case '\r':
-      if (getCharAt(position + 1) == '\n') {
-        ++position;
-      }
-      //fall-through
-    case '\n':column = 0;
-      ++line;
-      break;
-    default:++column;
-      break;
-    }
-    first = getCharAt(++position);
-  }
-  unsigned long oldPosition = position;
-
-  if (first == 0) {
-    return false;
-  }
-
-  /*
-   * Munch away line comments
-   */
-  if (first == '/' && getCharAt(position + 1) == '/') {
-    while (first != '\n' && first != '\r') {
-      first = getCharAt(++position);
-      if (first == 0) {
-        return false;
-      }
-    }
-    switch (first) {
-    case '\r':
-      if (getCharAt(position + 1) == '\n') {
-        ++position;
-      }
-      //fall-through
-    case '\n':column = 0;
-      ++line;
-      break;
-    default:break;
-    }
-    ++position;
-    return true;
-  }
-
-  /*
-   * Munch away block comments
-   */
-  if (first == '/' && getCharAt(position + 1) == '*') {
-    unsigned long previousLine = line;
-    unsigned long previousColumn = column;
-    position += 2;
-    column += 2;
-    first = getCharAt(position);
-    while (first != '*' || getCharAt(position + 1) != '/') {
-      switch (first) {
-      case 0:throw LexerException(Token(TokenType::QUESTION, previousLine, previousColumn, "Unterminated Comment!"));
-      case '\r':
-        if (getCharAt(position + 1) == '\n') {
-          ++position;
-        }
-        //fall-through
-      case '\n':column = 0;
-        ++line;
-        break;
-      default:++column;
-        break;
-      }
-      first = getCharAt(++position);
-    }
-    position += 2;
-    column += 2;
-    return true;
-  }
-
-  /*
-   * Check if we have a number at hand
-   */
-  if ('0' <= first && first <= '9') {
-    do {
-      first = getCharAt(++position);
-    } while ('0' <= first && first <= '9');
-    token_list.emplace_back(Token(TokenType::NUMBER, line, column, std::string(&content[oldPosition], position - oldPosition)));
-    column += position - oldPosition;
-    return true;
-  }
-
-  /*
-   * Check if we have an identifier or a keyword at hand
-   */
-  if (('a' <= first && first <= 'z')
-      || ('A' <= first && first <= 'Z')
-      || first == '_') {
-    if (isKeyword()) {
-      /*
-       * We found a keyword already munched, return
-       */
-      return true;
-    }
-
-    /*
-     * No keyword, check for identifier
-     */
-    do {
-      first = getCharAt(++position);
-    } while (('0' <= first && first <= '9')
-        || ('a' <= first && first <= 'z')
-        || ('A' <= first && first <= 'Z')
-        || first == '_');
-    token_list.emplace_back(Token(TokenType::IDENTIFIER, line, column, std::string(&content[oldPosition], position - oldPosition)));
-    column += position - oldPosition;
-    return true;
-  }
-
-  /*
-   * Check if we have a character constant
-   */
-  if (first == '\'') {
-    first = getCharAt(++position);
-    if (first != '\''
-        && first != '\\'
-        && first != '\n'
-        && first != '\r'
-        && getCharAt(position + 1) == '\'') {
-      token_list.emplace_back(Token(TokenType::CHARACTER, line, column, std::string(1, first)));
-      column += 3;
+  switch (getCharAt(position)) {
+  case 0: return false;
+  case ' ':
+  case '\t':
+  case '\n':
+  case '\r':return munchWhitespace();
+  case '/':
+    if (getCharAt(position + 1) == '/') {
       position += 2;
+      return munchLineComment();
+    }
+    if (getCharAt(position + 1) == '*') {
+      position += 2;
+      return munchBlockComment();
+    }
+    //fall-through
+  case '{':
+  case '}':
+  case '[':
+  case ']':
+  case '(':
+  case ')':
+  case '+':
+  case '-':
+  case '=':
+  case '<':
+  case '>':
+  case '!':
+  case ',':
+  case ';':
+  case '.':
+  case '^':
+  case '~':
+  case '*':
+  case '%':
+  case '&':
+  case '|':
+  case ':':
+  case '#':
+  case '?':
+    if (isPunctuator()) {
       return true;
     }
-    if (first == '\\') {
-      first = getCharAt(++position);
-      switch (first) {
-      case '\'':
-      case '"':
-      case '?':
-      case '\\':
-      case 'a':
-      case 'b':
-      case 'f':
-      case 'n':
-      case 'r':
-      case 't':
-      case 'v':token_list.emplace_back(Token(TokenType::CHARACTER, line, column, std::string(&content[position - 1], 2)));
-        column += 4;
-        position += 2;
-        return true;
-      default:
-        throw LexerException(Token{TokenType::CHARACTER, line, column,
-                                   "Invalid character: '" + std::string(&content[position - 1], 2) + "'"});
-      }
+    return failParsing();
+  case '0':
+  case '1':
+  case '2':
+  case '3':
+  case '4':
+  case '5':
+  case '6':
+  case '7':
+  case '8':
+  case '9':return munchNumber();
+  case 'a':
+  case 'b':
+  case 'c':
+  case 'd':
+  case 'e':
+  case 'f':
+  case 'g':
+  case 'i':
+  case 'l':
+  case 'r':
+  case 's':
+  case 't':
+  case 'u':
+  case 'v':
+  case 'w':
+  case '_':
+    if (isKeyword()) {
+      return true;
     }
-    throw LexerException(Token{TokenType::CHARACTER, line, column,
-                               "Invalid character: '" + std::string(1, first) + "'"});
+    //fall-through
+  case 'h':
+  case 'j':
+  case 'k':
+  case 'm':
+  case 'n':
+  case 'o':
+  case 'p':
+  case 'q':
+  case 'x':
+  case 'y':
+  case 'z':
+  case 'A':
+  case 'B':
+  case 'C':
+  case 'D':
+  case 'E':
+  case 'F':
+  case 'G':
+  case 'H':
+  case 'I':
+  case 'J':
+  case 'K':
+  case 'L':
+  case 'M':
+  case 'N':
+  case 'O':
+  case 'P':
+  case 'Q':
+  case 'R':
+  case 'S':
+  case 'T':
+  case 'U':
+  case 'V':
+  case 'W':
+  case 'X':
+  case 'Y':
+  case 'Z':return munchIdentifier();
+  case '\'':return munchCharacter();
+  case '"':return munchString();
+  default:return failParsing();
   }
-
-  /*
-   * Check if we have a string literal
-   */
-  if (first == '"') {
-    unsigned long initColumn = column;
-    first = getCharAt(++position);
-    ++column;
-    while (first != '"') {
-      if (first == '\n'
-          || first == '\r'
-          || first == 0) {
-        throw LexerException(Token(TokenType::STRING, line, column,
-                                   "Line break in string at " + std::string(&content[oldPosition + 1], position - oldPosition)));
-      }
-      if (first == '\\') {
-        first = getCharAt(++position);
-        ++column;
-        switch (first) {
-        case '\'':
-        case '"':
-        case '?':
-        case '\\':
-        case 'a':
-        case 'b':
-        case 'f':
-        case 'n':
-        case 'r':
-        case 't':
-        case 'v':break;
-        default:
-          throw LexerException(Token(TokenType::STRING, line, column,
-                                     "Invalid escape at " + std::string(&content[oldPosition + 1], position - oldPosition)));
-        }
-      }
-      first = getCharAt(++position);
-      ++column;
-    }
-    token_list.emplace_back(Token(TokenType::STRING, line, initColumn, std::string(&content[oldPosition + 1], position - oldPosition - 1)));
-    ++position;
-    ++column;
-    return true;
-  }
-
-  if (isPunctuator()) {
-    /*
-     * We found a punctuator already munched, return
-     */
-    return true;
-  }
-
-  /*
-   * We matched nothing, we should fail the lexing!
-   */
-  std::string error = "Unknown token " + std::string(1, first);
-  if (getCharAt(position + 1) != 0) {
-    error += std::string(1, getCharAt(position + 1));
-    if (getCharAt(position + 2) != 0) {
-      error += std::string(1, getCharAt(position + 2));
-      if (getCharAt(position + 3) != 0) {
-        error += std::string(1, getCharAt(position + 2)) + " [truncated]";
-      }
-    }
-  }
-  throw LexerException(Token(TokenType::QUESTION, line, column, error));
 }
 
 std::vector<Token, std::allocator<Token>> FastLexer::lex() {

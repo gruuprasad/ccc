@@ -1,6 +1,6 @@
-# CC CCC CCCC
+# CCCC CCC CC
 
-## Compiler Construction – Chaos Compiler Club – Compiler Construction C Compiler
+## Compiler Construction Core Course – Chaos Compiler Club – C Compiler
 
 ## Master Branch Health
 [![pipeline status](https://cc.cdl.uni-saarland.de/ccc/c4/badges/master/pipeline.svg)](https://cc.cdl.uni-saarland.de/ccc/c4/commits/master)

@@ -64,7 +64,6 @@ enum class TokenType {
   PLUS,
   MINUS_ASSIGN,
   MINUSMINUS,
-  ARROW_STAR,
   ARROW,
   MINUS,
   EQUAL,

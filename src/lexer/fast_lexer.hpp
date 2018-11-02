@@ -14,6 +14,14 @@ class FastLexer {
   inline bool munch();
   inline char getCharAt(unsigned long position);
   inline bool keyWordEnd(unsigned long position);
+  inline bool failParsing();
+  inline bool munchWhitespace();
+  inline bool munchLineComment();
+  inline bool munchBlockComment();
+  inline bool munchNumber();
+  inline bool munchIdentifier();
+  inline bool munchCharacter();
+  inline bool munchString();
   inline bool isKeyword();
   inline bool isPunctuator();
 public:
