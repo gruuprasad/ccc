@@ -1155,6 +1155,7 @@ inline bool FastLexer::munch() {
       position += 2;
       return munchBlockComment();
     }
+    //fall-through
   case '{':
   case '}':
   case '[':
@@ -1212,6 +1213,7 @@ inline bool FastLexer::munch() {
     if (isKeyword()) {
       return true;
     }
+    //fall-through
   case 'h':
   case 'j':
   case 'k':
