@@ -157,3 +157,14 @@ TEST_CASE("Fast Lexer token pair test.") {
   REQUIRE(secondToken.getLine() == 1);
   REQUIRE(secondToken.getColumn() == 2);
 }
+
+TEST_CASE(".*") {
+  auto tokenList = FastLexer(".*").lex();
+  REQUIRE(tokenList.size() == 2);
+
+  auto & firstToken = tokenList.front();
+  REQUIRE(firstToken.getType() == TokenType::DOT);
+
+  auto & secondToken = tokenList[1];
+  REQUIRE(secondToken.getType() == TokenType::STAR);
+}
