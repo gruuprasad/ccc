@@ -491,12 +491,6 @@ inline bool FastLexer::isPunctuator() {
     ++column;
     return true;
   case ':':
-    if (getCharAt(position + 1) == ':') {
-      token_list.emplace_back(Token(TokenType::COLON_COLON, line, column));
-      position += 2;
-      column += 2;
-      return true;
-    }
     if (getCharAt(position + 1) == '>') {
       token_list.emplace_back(Token(TokenType::BRACKET_CLOSE_ALT, line, column));
       position += 2;

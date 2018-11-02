@@ -98,7 +98,6 @@ enum class TokenType {
   PIPE_ASSIGN,
   OR,
   PIPE,
-  COLON_COLON,
   COLON,
   QUESTION,
   HASH,
