@@ -360,7 +360,8 @@ lots_of_real_code.c:81:13: punctuator !=
 lots_of_real_code.c:81:16: constant 2
 lots_of_real_code.c:81:17: punctuator *
 lots_of_real_code.c:81:18: identifier i
-lots_of_real_code.c:81:19: constant -1
+lots_of_real_code.c:81:19: punctuator -
+lots_of_real_code.c:81:20: constant 1
 lots_of_real_code.c:81:21: punctuator )
 lots_of_real_code.c:82:5: punctuator {
 lots_of_real_code.c:83:7: identifier printf
@@ -465,7 +466,8 @@ lots_of_real_code.c:108:13: punctuator !=
 lots_of_real_code.c:108:16: constant 2
 lots_of_real_code.c:108:17: punctuator *
 lots_of_real_code.c:108:18: identifier i
-lots_of_real_code.c:108:19: constant -1
+lots_of_real_code.c:108:19: punctuator -
+lots_of_real_code.c:108:20: constant 1
 lots_of_real_code.c:108:21: punctuator )
 lots_of_real_code.c:109:5: punctuator {
 lots_of_real_code.c:110:7: keyword if
@@ -473,7 +475,8 @@ lots_of_real_code.c:110:10: punctuator (
 lots_of_real_code.c:110:11: identifier count
 lots_of_real_code.c:110:17: punctuator <=
 lots_of_real_code.c:110:20: identifier rows
-lots_of_real_code.c:110:24: constant -1
+lots_of_real_code.c:110:24: punctuator -
+lots_of_real_code.c:110:25: constant 1
 lots_of_real_code.c:110:26: punctuator )
 lots_of_real_code.c:111:7: punctuator {
 lots_of_real_code.c:112:9: identifier printf
@@ -502,7 +505,8 @@ lots_of_real_code.c:118:23: punctuator (
 lots_of_real_code.c:118:24: identifier i
 lots_of_real_code.c:118:25: punctuator +
 lots_of_real_code.c:118:26: identifier k
-lots_of_real_code.c:118:27: constant -2
+lots_of_real_code.c:118:27: punctuator -
+lots_of_real_code.c:118:28: constant 2
 lots_of_real_code.c:118:29: punctuator *
 lots_of_real_code.c:118:30: identifier count1
 lots_of_real_code.c:118:36: punctuator )

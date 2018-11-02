@@ -64,19 +64,10 @@ std::string to_match(const std::string &filename) {
   return buffer.str();
 }
 
-/*
- * Disable old lexer for now...
- */
-//COMPARE(test)
-
+COMPARE(test)
 COMPARE(hello_world)
-/*
-//COMPARE(everything)
-//
 COMPARE(transpose)
 COMPARE(lots_of_real_code)
-*/
-COMPARE(everything)
 COMPARE(comments)
 COMPARE(lorem_ipsum)
 COMPARE(extra)
