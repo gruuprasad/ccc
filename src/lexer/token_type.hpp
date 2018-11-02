@@ -6,6 +6,7 @@ enum class TokenType {
   AUTO,
   BREAK,
   CHAR,
+  CHARACTER,
   CASE,
   CONST,
   CONTINUE,
@@ -21,7 +22,7 @@ enum class TokenType {
   INT,
   LONG,
   REGISTER,
-  RESTRICTED,
+  RESTRICT,
   RETURN,
   SHORT,
   SIGNED,
@@ -52,6 +53,10 @@ enum class TokenType {
   BRACE_CLOSE,
   BRACKET_OPEN,
   BRACKET_CLOSE,
+  BRACE_OPEN_ALT,
+  BRACE_CLOSE_ALT,
+  BRACKET_OPEN_ALT,
+  BRACKET_CLOSE_ALT,
   PARENTHESIS_OPEN,
   PARENTHESIS_CLOSE,
   PLUS_ASSIGN,
@@ -59,7 +64,6 @@ enum class TokenType {
   PLUS,
   MINUS_ASSIGN,
   MINUSMINUS,
-  ARROW_STAR,
   ARROW,
   MINUS,
   EQUAL,
@@ -97,6 +101,12 @@ enum class TokenType {
   COLON_COLON,
   COLON,
   QUESTION,
+  HASH,
+  HASHHASH,
+  HASH_ALT,
+  HASHHASH_ALT,
+  FLOAT,
+  DOUBLE
 };
 
 #endif //C4_TOKEN_TYPE_HPP

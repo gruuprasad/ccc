@@ -16,7 +16,7 @@ inline	token_list.emplace_back(Token(TokenType::INLINE, lineno(), columno(), str
 int	token_list.emplace_back(Token(TokenType::INT, lineno(), columno(), str()));
 long	token_list.emplace_back(Token(TokenType::LONG, lineno(), columno(), str()));
 register	token_list.emplace_back(Token(TokenType::REGISTER, lineno(), columno(), str()));
-restrict	token_list.emplace_back(Token(TokenType::RESTRICTED, lineno(), columno(), str()));
+restrict	token_list.emplace_back(Token(TokenType::RESTRICT, lineno(), columno(), str()));
 return	token_list.emplace_back(Token(TokenType::RETURN, lineno(), columno(), str()));
 short	token_list.emplace_back(Token(TokenType::SHORT, lineno(), columno(), str()));
 signed	token_list.emplace_back(Token(TokenType::SIGNED, lineno(), columno(), str()));
@@ -57,7 +57,7 @@ _Thread_local	token_list.emplace_back(Token(TokenType::THREAD_LOCAL, lineno(), c
 +		    token_list.emplace_back(Token(TokenType::PLUS, lineno(), columno(), str()));
 -=		token_list.emplace_back(Token(TokenType::MINUS_ASSIGN, lineno(), columno(), str()));
 --		token_list.emplace_back(Token(TokenType::MINUSMINUS, lineno(), columno(), str()));
-->*		token_list.emplace_back(Token(TokenType::ARROW_STAR, lineno(), columno(), str()));
+->  	token_list.emplace_back(Token(TokenType::ARROW     , lineno(), columno(), str()));
 ->		token_list.emplace_back(Token(TokenType::ARROW, lineno(), columno(), str()));
 -		    token_list.emplace_back(Token(TokenType::MINUS, lineno(), columno(), str()));
 ==		token_list.emplace_back(Token(TokenType::EQUAL, lineno(), columno(), str()));

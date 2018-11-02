@@ -1,0 +1,25 @@
+#ifndef C4_ASTNODE_HPP
+#define C4_ASTNODE_HPP
+
+#include <string>
+#include <vector>
+#include <functional>
+#include "../lexer/token.hpp"
+
+class ASTNode {
+protected:
+  ASTNode(int id, std::string name, Token *token, unsigned long size);
+  ASTNode(int id, std::string name, unsigned long size);
+  ASTNode(int id, std::string name);
+  Token *token;
+  int id;
+  std::string name;
+  std::vector<ASTNode *> children;
+public:
+  int getId() const;
+  virtual std::string toGraphWalker() = 0;
+  std::string toGraph();
+  virtual ~ASTNode();
+};
+
+#endif //C4_ASTNODE_HPP

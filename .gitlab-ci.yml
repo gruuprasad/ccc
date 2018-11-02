@@ -5,6 +5,7 @@ build:
   stage: build
   script:
   - mkdir -p build
+  - make clean
   - make
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
