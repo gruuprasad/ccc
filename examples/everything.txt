@@ -6,7 +6,8 @@ everything.c:1:29: punctuator (
 everything.c:1:30: identifier Token
 everything.c:1:35: punctuator (
 everything.c:1:36: identifier TokenType
-everything.c:1:45: punctuator ::
+everything.c:1:45: punctuator :
+everything.c:1:46: punctuator :
 everything.c:1:47: identifier AUTO
 everything.c:1:51: punctuator ,
 everything.c:1:53: identifier lineno
@@ -31,7 +32,8 @@ everything.c:2:30: punctuator (
 everything.c:2:31: identifier Token
 everything.c:2:36: punctuator (
 everything.c:2:37: identifier TokenType
-everything.c:2:46: punctuator ::
+everything.c:2:46: punctuator :
+everything.c:2:47: punctuator :
 everything.c:2:48: identifier BREAK
 everything.c:2:53: punctuator ,
 everything.c:2:55: identifier lineno
@@ -56,7 +58,8 @@ everything.c:3:29: punctuator (
 everything.c:3:30: identifier Token
 everything.c:3:35: punctuator (
 everything.c:3:36: identifier TokenType
-everything.c:3:45: punctuator ::
+everything.c:3:45: punctuator :
+everything.c:3:46: punctuator :
 everything.c:3:47: identifier CASE
 everything.c:3:51: punctuator ,
 everything.c:3:53: identifier lineno
@@ -81,7 +84,8 @@ everything.c:4:29: punctuator (
 everything.c:4:30: identifier Token
 everything.c:4:35: punctuator (
 everything.c:4:36: identifier TokenType
-everything.c:4:45: punctuator ::
+everything.c:4:45: punctuator :
+everything.c:4:46: punctuator :
 everything.c:4:47: identifier CHAR
 everything.c:4:51: punctuator ,
 everything.c:4:53: identifier lineno
@@ -106,7 +110,8 @@ everything.c:5:30: punctuator (
 everything.c:5:31: identifier Token
 everything.c:5:36: punctuator (
 everything.c:5:37: identifier TokenType
-everything.c:5:46: punctuator ::
+everything.c:5:46: punctuator :
+everything.c:5:47: punctuator :
 everything.c:5:48: identifier CONST
 everything.c:5:53: punctuator ,
 everything.c:5:55: identifier lineno
@@ -131,7 +136,8 @@ everything.c:6:33: punctuator (
 everything.c:6:34: identifier Token
 everything.c:6:39: punctuator (
 everything.c:6:40: identifier TokenType
-everything.c:6:49: punctuator ::
+everything.c:6:49: punctuator :
+everything.c:6:50: punctuator :
 everything.c:6:51: identifier CONTINUE
 everything.c:6:59: punctuator ,
 everything.c:6:61: identifier lineno
@@ -156,7 +162,8 @@ everything.c:7:32: punctuator (
 everything.c:7:33: identifier Token
 everything.c:7:38: punctuator (
 everything.c:7:39: identifier TokenType
-everything.c:7:48: punctuator ::
+everything.c:7:48: punctuator :
+everything.c:7:49: punctuator :
 everything.c:7:50: identifier DEFAULT
 everything.c:7:57: punctuator ,
 everything.c:7:59: identifier lineno
@@ -181,7 +188,8 @@ everything.c:8:27: punctuator (
 everything.c:8:28: identifier Token
 everything.c:8:33: punctuator (
 everything.c:8:34: identifier TokenType
-everything.c:8:43: punctuator ::
+everything.c:8:43: punctuator :
+everything.c:8:44: punctuator :
 everything.c:8:45: identifier DO
 everything.c:8:47: punctuator ,
 everything.c:8:49: identifier lineno
@@ -206,7 +214,8 @@ everything.c:9:29: punctuator (
 everything.c:9:30: identifier Token
 everything.c:9:35: punctuator (
 everything.c:9:36: identifier TokenType
-everything.c:9:45: punctuator ::
+everything.c:9:45: punctuator :
+everything.c:9:46: punctuator :
 everything.c:9:47: identifier ELSE
 everything.c:9:51: punctuator ,
 everything.c:9:53: identifier lineno
@@ -231,7 +240,8 @@ everything.c:10:29: punctuator (
 everything.c:10:30: identifier Token
 everything.c:10:35: punctuator (
 everything.c:10:36: identifier TokenType
-everything.c:10:45: punctuator ::
+everything.c:10:45: punctuator :
+everything.c:10:46: punctuator :
 everything.c:10:47: identifier ENUM
 everything.c:10:51: punctuator ,
 everything.c:10:53: identifier lineno
@@ -256,7 +266,8 @@ everything.c:11:31: punctuator (
 everything.c:11:32: identifier Token
 everything.c:11:37: punctuator (
 everything.c:11:38: identifier TokenType
-everything.c:11:47: punctuator ::
+everything.c:11:47: punctuator :
+everything.c:11:48: punctuator :
 everything.c:11:49: identifier EXTERN
 everything.c:11:55: punctuator ,
 everything.c:11:57: identifier lineno
@@ -281,7 +292,8 @@ everything.c:12:28: punctuator (
 everything.c:12:29: identifier Token
 everything.c:12:34: punctuator (
 everything.c:12:35: identifier TokenType
-everything.c:12:44: punctuator ::
+everything.c:12:44: punctuator :
+everything.c:12:45: punctuator :
 everything.c:12:46: identifier FOR
 everything.c:12:49: punctuator ,
 everything.c:12:51: identifier lineno
@@ -306,7 +318,8 @@ everything.c:13:29: punctuator (
 everything.c:13:30: identifier Token
 everything.c:13:35: punctuator (
 everything.c:13:36: identifier TokenType
-everything.c:13:45: punctuator ::
+everything.c:13:45: punctuator :
+everything.c:13:46: punctuator :
 everything.c:13:47: identifier GOTO
 everything.c:13:51: punctuator ,
 everything.c:13:53: identifier lineno
@@ -331,7 +344,8 @@ everything.c:14:27: punctuator (
 everything.c:14:28: identifier Token
 everything.c:14:33: punctuator (
 everything.c:14:34: identifier TokenType
-everything.c:14:43: punctuator ::
+everything.c:14:43: punctuator :
+everything.c:14:44: punctuator :
 everything.c:14:45: identifier IF
 everything.c:14:47: punctuator ,
 everything.c:14:49: identifier lineno
@@ -356,7 +370,8 @@ everything.c:15:31: punctuator (
 everything.c:15:32: identifier Token
 everything.c:15:37: punctuator (
 everything.c:15:38: identifier TokenType
-everything.c:15:47: punctuator ::
+everything.c:15:47: punctuator :
+everything.c:15:48: punctuator :
 everything.c:15:49: identifier INLINE
 everything.c:15:55: punctuator ,
 everything.c:15:57: identifier lineno
@@ -381,7 +396,8 @@ everything.c:16:28: punctuator (
 everything.c:16:29: identifier Token
 everything.c:16:34: punctuator (
 everything.c:16:35: identifier TokenType
-everything.c:16:44: punctuator ::
+everything.c:16:44: punctuator :
+everything.c:16:45: punctuator :
 everything.c:16:46: identifier INT
 everything.c:16:49: punctuator ,
 everything.c:16:51: identifier lineno
@@ -406,7 +422,8 @@ everything.c:17:29: punctuator (
 everything.c:17:30: identifier Token
 everything.c:17:35: punctuator (
 everything.c:17:36: identifier TokenType
-everything.c:17:45: punctuator ::
+everything.c:17:45: punctuator :
+everything.c:17:46: punctuator :
 everything.c:17:47: identifier LONG
 everything.c:17:51: punctuator ,
 everything.c:17:53: identifier lineno
@@ -431,7 +448,8 @@ everything.c:18:33: punctuator (
 everything.c:18:34: identifier Token
 everything.c:18:39: punctuator (
 everything.c:18:40: identifier TokenType
-everything.c:18:49: punctuator ::
+everything.c:18:49: punctuator :
+everything.c:18:50: punctuator :
 everything.c:18:51: identifier REGISTER
 everything.c:18:59: punctuator ,
 everything.c:18:61: identifier lineno
@@ -456,7 +474,8 @@ everything.c:19:33: punctuator (
 everything.c:19:34: identifier Token
 everything.c:19:39: punctuator (
 everything.c:19:40: identifier TokenType
-everything.c:19:49: punctuator ::
+everything.c:19:49: punctuator :
+everything.c:19:50: punctuator :
 everything.c:19:51: identifier RESTRICT
 everything.c:19:59: punctuator ,
 everything.c:19:61: identifier lineno
@@ -481,7 +500,8 @@ everything.c:20:31: punctuator (
 everything.c:20:32: identifier Token
 everything.c:20:37: punctuator (
 everything.c:20:38: identifier TokenType
-everything.c:20:47: punctuator ::
+everything.c:20:47: punctuator :
+everything.c:20:48: punctuator :
 everything.c:20:49: identifier RETURN
 everything.c:20:55: punctuator ,
 everything.c:20:57: identifier lineno
@@ -506,7 +526,8 @@ everything.c:21:30: punctuator (
 everything.c:21:31: identifier Token
 everything.c:21:36: punctuator (
 everything.c:21:37: identifier TokenType
-everything.c:21:46: punctuator ::
+everything.c:21:46: punctuator :
+everything.c:21:47: punctuator :
 everything.c:21:48: identifier SHORT
 everything.c:21:53: punctuator ,
 everything.c:21:55: identifier lineno
@@ -531,7 +552,8 @@ everything.c:22:31: punctuator (
 everything.c:22:32: identifier Token
 everything.c:22:37: punctuator (
 everything.c:22:38: identifier TokenType
-everything.c:22:47: punctuator ::
+everything.c:22:47: punctuator :
+everything.c:22:48: punctuator :
 everything.c:22:49: identifier SIGNED
 everything.c:22:55: punctuator ,
 everything.c:22:57: identifier lineno
@@ -556,7 +578,8 @@ everything.c:23:31: punctuator (
 everything.c:23:32: identifier Token
 everything.c:23:37: punctuator (
 everything.c:23:38: identifier TokenType
-everything.c:23:47: punctuator ::
+everything.c:23:47: punctuator :
+everything.c:23:48: punctuator :
 everything.c:23:49: identifier SIZEOF
 everything.c:23:55: punctuator ,
 everything.c:23:57: identifier lineno
@@ -581,7 +604,8 @@ everything.c:24:31: punctuator (
 everything.c:24:32: identifier Token
 everything.c:24:37: punctuator (
 everything.c:24:38: identifier TokenType
-everything.c:24:47: punctuator ::
+everything.c:24:47: punctuator :
+everything.c:24:48: punctuator :
 everything.c:24:49: identifier STATIC
 everything.c:24:55: punctuator ,
 everything.c:24:57: identifier lineno
@@ -606,7 +630,8 @@ everything.c:25:31: punctuator (
 everything.c:25:32: identifier Token
 everything.c:25:37: punctuator (
 everything.c:25:38: identifier TokenType
-everything.c:25:47: punctuator ::
+everything.c:25:47: punctuator :
+everything.c:25:48: punctuator :
 everything.c:25:49: identifier STRUCT
 everything.c:25:55: punctuator ,
 everything.c:25:57: identifier lineno
@@ -631,7 +656,8 @@ everything.c:26:31: punctuator (
 everything.c:26:32: identifier Token
 everything.c:26:37: punctuator (
 everything.c:26:38: identifier TokenType
-everything.c:26:47: punctuator ::
+everything.c:26:47: punctuator :
+everything.c:26:48: punctuator :
 everything.c:26:49: identifier SWITCH
 everything.c:26:55: punctuator ,
 everything.c:26:57: identifier lineno
@@ -656,7 +682,8 @@ everything.c:27:32: punctuator (
 everything.c:27:33: identifier Token
 everything.c:27:38: punctuator (
 everything.c:27:39: identifier TokenType
-everything.c:27:48: punctuator ::
+everything.c:27:48: punctuator :
+everything.c:27:49: punctuator :
 everything.c:27:50: identifier TYPEDEF
 everything.c:27:57: punctuator ,
 everything.c:27:59: identifier lineno
@@ -681,7 +708,8 @@ everything.c:28:30: punctuator (
 everything.c:28:31: identifier Token
 everything.c:28:36: punctuator (
 everything.c:28:37: identifier TokenType
-everything.c:28:46: punctuator ::
+everything.c:28:46: punctuator :
+everything.c:28:47: punctuator :
 everything.c:28:48: identifier UNION
 everything.c:28:53: punctuator ,
 everything.c:28:55: identifier lineno
@@ -706,7 +734,8 @@ everything.c:29:33: punctuator (
 everything.c:29:34: identifier Token
 everything.c:29:39: punctuator (
 everything.c:29:40: identifier TokenType
-everything.c:29:49: punctuator ::
+everything.c:29:49: punctuator :
+everything.c:29:50: punctuator :
 everything.c:29:51: identifier UNSIGNED
 everything.c:29:59: punctuator ,
 everything.c:29:61: identifier lineno
@@ -731,7 +760,8 @@ everything.c:30:29: punctuator (
 everything.c:30:30: identifier Token
 everything.c:30:35: punctuator (
 everything.c:30:36: identifier TokenType
-everything.c:30:45: punctuator ::
+everything.c:30:45: punctuator :
+everything.c:30:46: punctuator :
 everything.c:30:47: identifier VOID
 everything.c:30:51: punctuator ,
 everything.c:30:53: identifier lineno
@@ -756,7 +786,8 @@ everything.c:31:33: punctuator (
 everything.c:31:34: identifier Token
 everything.c:31:39: punctuator (
 everything.c:31:40: identifier TokenType
-everything.c:31:49: punctuator ::
+everything.c:31:49: punctuator :
+everything.c:31:50: punctuator :
 everything.c:31:51: identifier VOLATILE
 everything.c:31:59: punctuator ,
 everything.c:31:61: identifier lineno
@@ -781,7 +812,8 @@ everything.c:32:30: punctuator (
 everything.c:32:31: identifier Token
 everything.c:32:36: punctuator (
 everything.c:32:37: identifier TokenType
-everything.c:32:46: punctuator ::
+everything.c:32:46: punctuator :
+everything.c:32:47: punctuator :
 everything.c:32:48: identifier WHILE
 everything.c:32:53: punctuator ,
 everything.c:32:55: identifier lineno
@@ -806,7 +838,8 @@ everything.c:33:33: punctuator (
 everything.c:33:34: identifier Token
 everything.c:33:39: punctuator (
 everything.c:33:40: identifier TokenType
-everything.c:33:49: punctuator ::
+everything.c:33:49: punctuator :
+everything.c:33:50: punctuator :
 everything.c:33:51: identifier ALIGN_AS
 everything.c:33:59: punctuator ,
 everything.c:33:61: identifier lineno
@@ -831,7 +864,8 @@ everything.c:34:33: punctuator (
 everything.c:34:34: identifier Token
 everything.c:34:39: punctuator (
 everything.c:34:40: identifier TokenType
-everything.c:34:49: punctuator ::
+everything.c:34:49: punctuator :
+everything.c:34:50: punctuator :
 everything.c:34:51: identifier ALIGN_OF
 everything.c:34:59: punctuator ,
 everything.c:34:61: identifier lineno
@@ -856,7 +890,8 @@ everything.c:35:32: punctuator (
 everything.c:35:33: identifier Token
 everything.c:35:38: punctuator (
 everything.c:35:39: identifier TokenType
-everything.c:35:48: punctuator ::
+everything.c:35:48: punctuator :
+everything.c:35:49: punctuator :
 everything.c:35:50: identifier ATOMIC
 everything.c:35:56: punctuator ,
 everything.c:35:58: identifier lineno
@@ -881,7 +916,8 @@ everything.c:36:30: punctuator (
 everything.c:36:31: identifier Token
 everything.c:36:36: punctuator (
 everything.c:36:37: identifier TokenType
-everything.c:36:46: punctuator ::
+everything.c:36:46: punctuator :
+everything.c:36:47: punctuator :
 everything.c:36:48: identifier BOOL
 everything.c:36:52: punctuator ,
 everything.c:36:54: identifier lineno
@@ -906,7 +942,8 @@ everything.c:37:33: punctuator (
 everything.c:37:34: identifier Token
 everything.c:37:39: punctuator (
 everything.c:37:40: identifier TokenType
-everything.c:37:49: punctuator ::
+everything.c:37:49: punctuator :
+everything.c:37:50: punctuator :
 everything.c:37:51: identifier COMPLEX
 everything.c:37:58: punctuator ,
 everything.c:37:60: identifier lineno
@@ -931,7 +968,8 @@ everything.c:38:33: punctuator (
 everything.c:38:34: identifier Token
 everything.c:38:39: punctuator (
 everything.c:38:40: identifier TokenType
-everything.c:38:49: punctuator ::
+everything.c:38:49: punctuator :
+everything.c:38:50: punctuator :
 everything.c:38:51: identifier GENERIC
 everything.c:38:58: punctuator ,
 everything.c:38:60: identifier lineno
@@ -956,7 +994,8 @@ everything.c:39:35: punctuator (
 everything.c:39:36: identifier Token
 everything.c:39:41: punctuator (
 everything.c:39:42: identifier TokenType
-everything.c:39:51: punctuator ::
+everything.c:39:51: punctuator :
+everything.c:39:52: punctuator :
 everything.c:39:53: identifier IMAGINARY
 everything.c:39:62: punctuator ,
 everything.c:39:64: identifier lineno
@@ -981,7 +1020,8 @@ everything.c:40:34: punctuator (
 everything.c:40:35: identifier Token
 everything.c:40:40: punctuator (
 everything.c:40:41: identifier TokenType
-everything.c:40:50: punctuator ::
+everything.c:40:50: punctuator :
+everything.c:40:51: punctuator :
 everything.c:40:52: identifier NO_RETURN
 everything.c:40:61: punctuator ,
 everything.c:40:63: identifier lineno
@@ -1006,7 +1046,8 @@ everything.c:41:39: punctuator (
 everything.c:41:40: identifier Token
 everything.c:41:45: punctuator (
 everything.c:41:46: identifier TokenType
-everything.c:41:55: punctuator ::
+everything.c:41:55: punctuator :
+everything.c:41:56: punctuator :
 everything.c:41:57: identifier STATIC_ASSERT
 everything.c:41:70: punctuator ,
 everything.c:41:72: identifier lineno
@@ -1031,7 +1072,8 @@ everything.c:42:38: punctuator (
 everything.c:42:39: identifier Token
 everything.c:42:44: punctuator (
 everything.c:42:45: identifier TokenType
-everything.c:42:54: punctuator ::
+everything.c:42:54: punctuator :
+everything.c:42:55: punctuator :
 everything.c:42:56: identifier THREAD_LOCAL
 everything.c:42:68: punctuator ,
 everything.c:42:70: identifier lineno
@@ -1058,7 +1100,8 @@ everything.c:44:32: punctuator (
 everything.c:44:33: identifier Token
 everything.c:44:38: punctuator (
 everything.c:44:39: identifier TokenType
-everything.c:44:48: punctuator ::
+everything.c:44:48: punctuator :
+everything.c:44:49: punctuator :
 everything.c:44:50: identifier IDENTIFIER
 everything.c:44:60: punctuator ,
 everything.c:44:62: identifier lineno
@@ -1085,7 +1128,8 @@ everything.c:45:31: punctuator (
 everything.c:45:32: identifier Token
 everything.c:45:37: punctuator (
 everything.c:45:38: identifier TokenType
-everything.c:45:47: punctuator ::
+everything.c:45:47: punctuator :
+everything.c:45:48: punctuator :
 everything.c:45:49: identifier NUMBER
 everything.c:45:55: punctuator ,
 everything.c:45:57: identifier lineno
@@ -1112,7 +1156,8 @@ everything.c:46:32: punctuator (
 everything.c:46:33: identifier Token
 everything.c:46:38: punctuator (
 everything.c:46:39: identifier TokenType
-everything.c:46:48: punctuator ::
+everything.c:46:48: punctuator :
+everything.c:46:49: punctuator :
 everything.c:46:50: identifier CHAR
 everything.c:46:54: punctuator ,
 everything.c:46:56: identifier lineno
@@ -1139,7 +1184,8 @@ everything.c:47:33: punctuator (
 everything.c:47:34: identifier Token
 everything.c:47:39: punctuator (
 everything.c:47:40: identifier TokenType
-everything.c:47:49: punctuator ::
+everything.c:47:49: punctuator :
+everything.c:47:50: punctuator :
 everything.c:47:51: identifier STRING
 everything.c:47:57: punctuator ,
 everything.c:47:59: identifier lineno
@@ -1166,7 +1212,8 @@ everything.c:49:29: punctuator (
 everything.c:49:30: identifier Token
 everything.c:49:35: punctuator (
 everything.c:49:36: identifier TokenType
-everything.c:49:45: punctuator ::
+everything.c:49:45: punctuator :
+everything.c:49:46: punctuator :
 everything.c:49:47: identifier BRACE_OPEN
 everything.c:49:57: punctuator ,
 everything.c:49:59: identifier lineno
@@ -1193,7 +1240,8 @@ everything.c:50:29: punctuator (
 everything.c:50:30: identifier Token
 everything.c:50:35: punctuator (
 everything.c:50:36: identifier TokenType
-everything.c:50:45: punctuator ::
+everything.c:50:45: punctuator :
+everything.c:50:46: punctuator :
 everything.c:50:47: identifier BRACE_CLOSE
 everything.c:50:58: punctuator ,
 everything.c:50:60: identifier lineno
@@ -1220,7 +1268,8 @@ everything.c:51:29: punctuator (
 everything.c:51:30: identifier Token
 everything.c:51:35: punctuator (
 everything.c:51:36: identifier TokenType
-everything.c:51:45: punctuator ::
+everything.c:51:45: punctuator :
+everything.c:51:46: punctuator :
 everything.c:51:47: identifier BRACKET_OPEN
 everything.c:51:59: punctuator ,
 everything.c:51:61: identifier lineno
@@ -1247,7 +1296,8 @@ everything.c:52:29: punctuator (
 everything.c:52:30: identifier Token
 everything.c:52:35: punctuator (
 everything.c:52:36: identifier TokenType
-everything.c:52:45: punctuator ::
+everything.c:52:45: punctuator :
+everything.c:52:46: punctuator :
 everything.c:52:47: identifier BRACKET_CLOSE
 everything.c:52:60: punctuator ,
 everything.c:52:62: identifier lineno
@@ -1272,7 +1322,8 @@ everything.c:53:31: punctuator (
 everything.c:53:32: identifier Token
 everything.c:53:37: punctuator (
 everything.c:53:38: identifier TokenType
-everything.c:53:47: punctuator ::
+everything.c:53:47: punctuator :
+everything.c:53:48: punctuator :
 everything.c:53:49: identifier PARENTHESIS_OPEN
 everything.c:53:65: punctuator ,
 everything.c:53:67: identifier lineno
@@ -1297,7 +1348,8 @@ everything.c:54:31: punctuator (
 everything.c:54:32: identifier Token
 everything.c:54:37: punctuator (
 everything.c:54:38: identifier TokenType
-everything.c:54:47: punctuator ::
+everything.c:54:47: punctuator :
+everything.c:54:48: punctuator :
 everything.c:54:49: identifier PARENTHESIS_CLOSE
 everything.c:54:66: punctuator ,
 everything.c:54:68: identifier lineno
@@ -1322,7 +1374,8 @@ everything.c:55:28: punctuator (
 everything.c:55:29: identifier Token
 everything.c:55:34: punctuator (
 everything.c:55:35: identifier TokenType
-everything.c:55:44: punctuator ::
+everything.c:55:44: punctuator :
+everything.c:55:45: punctuator :
 everything.c:55:46: identifier PLUS_ASSIGN
 everything.c:55:57: punctuator ,
 everything.c:55:59: identifier lineno
@@ -1347,7 +1400,8 @@ everything.c:56:28: punctuator (
 everything.c:56:29: identifier Token
 everything.c:56:34: punctuator (
 everything.c:56:35: identifier TokenType
-everything.c:56:44: punctuator ::
+everything.c:56:44: punctuator :
+everything.c:56:45: punctuator :
 everything.c:56:46: identifier PLUSPLUS
 everything.c:56:54: punctuator ,
 everything.c:56:56: identifier lineno
@@ -1372,7 +1426,8 @@ everything.c:57:31: punctuator (
 everything.c:57:32: identifier Token
 everything.c:57:37: punctuator (
 everything.c:57:38: identifier TokenType
-everything.c:57:47: punctuator ::
+everything.c:57:47: punctuator :
+everything.c:57:48: punctuator :
 everything.c:57:49: identifier PLUS
 everything.c:57:53: punctuator ,
 everything.c:57:55: identifier lineno
@@ -1397,7 +1452,8 @@ everything.c:58:28: punctuator (
 everything.c:58:29: identifier Token
 everything.c:58:34: punctuator (
 everything.c:58:35: identifier TokenType
-everything.c:58:44: punctuator ::
+everything.c:58:44: punctuator :
+everything.c:58:45: punctuator :
 everything.c:58:46: identifier MINUS_ASSIGN
 everything.c:58:58: punctuator ,
 everything.c:58:60: identifier lineno
@@ -1422,7 +1478,8 @@ everything.c:59:28: punctuator (
 everything.c:59:29: identifier Token
 everything.c:59:34: punctuator (
 everything.c:59:35: identifier TokenType
-everything.c:59:44: punctuator ::
+everything.c:59:44: punctuator :
+everything.c:59:45: punctuator :
 everything.c:59:46: identifier MINUSMINUS
 everything.c:59:56: punctuator ,
 everything.c:59:58: identifier lineno
@@ -1447,7 +1504,8 @@ everything.c:60:29: punctuator (
 everything.c:60:30: identifier Token
 everything.c:60:35: punctuator (
 everything.c:60:36: identifier TokenType
-everything.c:60:45: punctuator ::
+everything.c:60:45: punctuator :
+everything.c:60:46: punctuator :
 everything.c:60:47: identifier ARROW
 everything.c:60:57: punctuator ,
 everything.c:60:59: identifier lineno
@@ -1472,7 +1530,8 @@ everything.c:61:28: punctuator (
 everything.c:61:29: identifier Token
 everything.c:61:34: punctuator (
 everything.c:61:35: identifier TokenType
-everything.c:61:44: punctuator ::
+everything.c:61:44: punctuator :
+everything.c:61:45: punctuator :
 everything.c:61:46: identifier ARROW
 everything.c:61:51: punctuator ,
 everything.c:61:53: identifier lineno
@@ -1497,7 +1556,8 @@ everything.c:62:31: punctuator (
 everything.c:62:32: identifier Token
 everything.c:62:37: punctuator (
 everything.c:62:38: identifier TokenType
-everything.c:62:47: punctuator ::
+everything.c:62:47: punctuator :
+everything.c:62:48: punctuator :
 everything.c:62:49: identifier MINUS
 everything.c:62:54: punctuator ,
 everything.c:62:56: identifier lineno
@@ -1522,7 +1582,8 @@ everything.c:63:28: punctuator (
 everything.c:63:29: identifier Token
 everything.c:63:34: punctuator (
 everything.c:63:35: identifier TokenType
-everything.c:63:44: punctuator ::
+everything.c:63:44: punctuator :
+everything.c:63:45: punctuator :
 everything.c:63:46: identifier EQUAL
 everything.c:63:51: punctuator ,
 everything.c:63:53: identifier lineno
@@ -1547,7 +1608,8 @@ everything.c:64:31: punctuator (
 everything.c:64:32: identifier Token
 everything.c:64:37: punctuator (
 everything.c:64:38: identifier TokenType
-everything.c:64:47: punctuator ::
+everything.c:64:47: punctuator :
+everything.c:64:48: punctuator :
 everything.c:64:49: identifier ASSIGN
 everything.c:64:55: punctuator ,
 everything.c:64:57: identifier lineno
@@ -1572,7 +1634,8 @@ everything.c:65:28: punctuator (
 everything.c:65:29: identifier Token
 everything.c:65:34: punctuator (
 everything.c:65:35: identifier TokenType
-everything.c:65:44: punctuator ::
+everything.c:65:44: punctuator :
+everything.c:65:45: punctuator :
 everything.c:65:46: identifier LESS_EQUAL
 everything.c:65:56: punctuator ,
 everything.c:65:58: identifier lineno
@@ -1597,7 +1660,8 @@ everything.c:66:29: punctuator (
 everything.c:66:30: identifier Token
 everything.c:66:35: punctuator (
 everything.c:66:36: identifier TokenType
-everything.c:66:45: punctuator ::
+everything.c:66:45: punctuator :
+everything.c:66:46: punctuator :
 everything.c:66:47: identifier LEFT_SHIFT_ASSIGN
 everything.c:66:64: punctuator ,
 everything.c:66:66: identifier lineno
@@ -1622,7 +1686,8 @@ everything.c:67:28: punctuator (
 everything.c:67:29: identifier Token
 everything.c:67:34: punctuator (
 everything.c:67:35: identifier TokenType
-everything.c:67:44: punctuator ::
+everything.c:67:44: punctuator :
+everything.c:67:45: punctuator :
 everything.c:67:46: identifier LEFT_SHIFT
 everything.c:67:56: punctuator ,
 everything.c:67:58: identifier lineno
@@ -1647,7 +1712,8 @@ everything.c:68:31: punctuator (
 everything.c:68:32: identifier Token
 everything.c:68:37: punctuator (
 everything.c:68:38: identifier TokenType
-everything.c:68:47: punctuator ::
+everything.c:68:47: punctuator :
+everything.c:68:48: punctuator :
 everything.c:68:49: identifier LEFT
 everything.c:68:53: punctuator ,
 everything.c:68:55: identifier lineno
@@ -1672,7 +1738,8 @@ everything.c:69:28: punctuator (
 everything.c:69:29: identifier Token
 everything.c:69:34: punctuator (
 everything.c:69:35: identifier TokenType
-everything.c:69:44: punctuator ::
+everything.c:69:44: punctuator :
+everything.c:69:45: punctuator :
 everything.c:69:46: identifier GREATER_EQUAL
 everything.c:69:59: punctuator ,
 everything.c:69:61: identifier lineno
@@ -1697,7 +1764,8 @@ everything.c:70:29: punctuator (
 everything.c:70:30: identifier Token
 everything.c:70:35: punctuator (
 everything.c:70:36: identifier TokenType
-everything.c:70:45: punctuator ::
+everything.c:70:45: punctuator :
+everything.c:70:46: punctuator :
 everything.c:70:47: identifier RIGHT_SHIFT_ASSIGN
 everything.c:70:65: punctuator ,
 everything.c:70:67: identifier lineno
@@ -1722,7 +1790,8 @@ everything.c:71:28: punctuator (
 everything.c:71:29: identifier Token
 everything.c:71:34: punctuator (
 everything.c:71:35: identifier TokenType
-everything.c:71:44: punctuator ::
+everything.c:71:44: punctuator :
+everything.c:71:45: punctuator :
 everything.c:71:46: identifier RIGHT_SHIFT
 everything.c:71:57: punctuator ,
 everything.c:71:59: identifier lineno
@@ -1747,7 +1816,8 @@ everything.c:72:31: punctuator (
 everything.c:72:32: identifier Token
 everything.c:72:37: punctuator (
 everything.c:72:38: identifier TokenType
-everything.c:72:47: punctuator ::
+everything.c:72:47: punctuator :
+everything.c:72:48: punctuator :
 everything.c:72:49: identifier RIGHT
 everything.c:72:54: punctuator ,
 everything.c:72:56: identifier lineno
@@ -1772,7 +1842,8 @@ everything.c:73:28: punctuator (
 everything.c:73:29: identifier Token
 everything.c:73:34: punctuator (
 everything.c:73:35: identifier TokenType
-everything.c:73:44: punctuator ::
+everything.c:73:44: punctuator :
+everything.c:73:45: punctuator :
 everything.c:73:46: identifier NOT_EQUAL
 everything.c:73:55: punctuator ,
 everything.c:73:57: identifier lineno
@@ -1797,7 +1868,8 @@ everything.c:74:31: punctuator (
 everything.c:74:32: identifier Token
 everything.c:74:37: punctuator (
 everything.c:74:38: identifier TokenType
-everything.c:74:47: punctuator ::
+everything.c:74:47: punctuator :
+everything.c:74:48: punctuator :
 everything.c:74:49: identifier NOT
 everything.c:74:52: punctuator ,
 everything.c:74:54: identifier lineno
@@ -1822,7 +1894,8 @@ everything.c:75:31: punctuator (
 everything.c:75:32: identifier Token
 everything.c:75:37: punctuator (
 everything.c:75:38: identifier TokenType
-everything.c:75:47: punctuator ::
+everything.c:75:47: punctuator :
+everything.c:75:48: punctuator :
 everything.c:75:49: identifier COMMA
 everything.c:75:54: punctuator ,
 everything.c:75:56: identifier lineno
@@ -1847,7 +1920,8 @@ everything.c:76:31: punctuator (
 everything.c:76:32: identifier Token
 everything.c:76:37: punctuator (
 everything.c:76:38: identifier TokenType
-everything.c:76:47: punctuator ::
+everything.c:76:47: punctuator :
+everything.c:76:48: punctuator :
 everything.c:76:49: identifier SEMICOLON
 everything.c:76:58: punctuator ,
 everything.c:76:60: identifier lineno
@@ -1872,7 +1946,8 @@ everything.c:77:29: punctuator (
 everything.c:77:30: identifier Token
 everything.c:77:35: punctuator (
 everything.c:77:36: identifier TokenType
-everything.c:77:45: punctuator ::
+everything.c:77:45: punctuator :
+everything.c:77:46: punctuator :
 everything.c:77:47: identifier TRI_DOTS
 everything.c:77:55: punctuator ,
 everything.c:77:57: identifier lineno
@@ -1889,7 +1964,8 @@ everything.c:77:82: punctuator )
 everything.c:77:83: punctuator )
 everything.c:77:84: punctuator )
 everything.c:77:85: punctuator ;
-everything.c:78:1: punctuator .*
+everything.c:78:1: punctuator .
+everything.c:78:2: punctuator *
 everything.c:78:5: identifier token_list
 everything.c:78:15: punctuator .
 everything.c:78:16: identifier emplace_back
@@ -1897,7 +1973,8 @@ everything.c:78:28: punctuator (
 everything.c:78:29: identifier Token
 everything.c:78:34: punctuator (
 everything.c:78:35: identifier TokenType
-everything.c:78:44: punctuator ::
+everything.c:78:44: punctuator :
+everything.c:78:45: punctuator :
 everything.c:78:46: identifier DOT_STAR
 everything.c:78:54: punctuator ,
 everything.c:78:56: identifier lineno
@@ -1922,7 +1999,8 @@ everything.c:79:31: punctuator (
 everything.c:79:32: identifier Token
 everything.c:79:37: punctuator (
 everything.c:79:38: identifier TokenType
-everything.c:79:47: punctuator ::
+everything.c:79:47: punctuator :
+everything.c:79:48: punctuator :
 everything.c:79:49: identifier DOT
 everything.c:79:52: punctuator ,
 everything.c:79:54: identifier lineno
@@ -1947,7 +2025,8 @@ everything.c:80:28: punctuator (
 everything.c:80:29: identifier Token
 everything.c:80:34: punctuator (
 everything.c:80:35: identifier TokenType
-everything.c:80:44: punctuator ::
+everything.c:80:44: punctuator :
+everything.c:80:45: punctuator :
 everything.c:80:46: identifier CARET_ASSIGN
 everything.c:80:58: punctuator ,
 everything.c:80:60: identifier lineno
@@ -1972,7 +2051,8 @@ everything.c:81:31: punctuator (
 everything.c:81:32: identifier Token
 everything.c:81:37: punctuator (
 everything.c:81:38: identifier TokenType
-everything.c:81:47: punctuator ::
+everything.c:81:47: punctuator :
+everything.c:81:48: punctuator :
 everything.c:81:49: identifier CARET
 everything.c:81:54: punctuator ,
 everything.c:81:56: identifier lineno
@@ -1997,7 +2077,8 @@ everything.c:82:31: punctuator (
 everything.c:82:32: identifier Token
 everything.c:82:37: punctuator (
 everything.c:82:38: identifier TokenType
-everything.c:82:47: punctuator ::
+everything.c:82:47: punctuator :
+everything.c:82:48: punctuator :
 everything.c:82:49: identifier TILDE
 everything.c:82:54: punctuator ,
 everything.c:82:56: identifier lineno
@@ -2022,7 +2103,8 @@ everything.c:83:28: punctuator (
 everything.c:83:29: identifier Token
 everything.c:83:34: punctuator (
 everything.c:83:35: identifier TokenType
-everything.c:83:44: punctuator ::
+everything.c:83:44: punctuator :
+everything.c:83:45: punctuator :
 everything.c:83:46: identifier STAR_ASSIGN
 everything.c:83:57: punctuator ,
 everything.c:83:59: identifier lineno
@@ -2047,7 +2129,8 @@ everything.c:84:31: punctuator (
 everything.c:84:32: identifier Token
 everything.c:84:37: punctuator (
 everything.c:84:38: identifier TokenType
-everything.c:84:47: punctuator ::
+everything.c:84:47: punctuator :
+everything.c:84:48: punctuator :
 everything.c:84:49: identifier STAR
 everything.c:84:53: punctuator ,
 everything.c:84:55: identifier lineno
@@ -2072,7 +2155,8 @@ everything.c:85:28: punctuator (
 everything.c:85:29: identifier Token
 everything.c:85:34: punctuator (
 everything.c:85:35: identifier TokenType
-everything.c:85:44: punctuator ::
+everything.c:85:44: punctuator :
+everything.c:85:45: punctuator :
 everything.c:85:46: identifier DIV_ASSIGN
 everything.c:85:56: punctuator ,
 everything.c:85:58: identifier lineno
@@ -2097,7 +2181,8 @@ everything.c:86:31: punctuator (
 everything.c:86:32: identifier Token
 everything.c:86:37: punctuator (
 everything.c:86:38: identifier TokenType
-everything.c:86:47: punctuator ::
+everything.c:86:47: punctuator :
+everything.c:86:48: punctuator :
 everything.c:86:49: identifier DIV
 everything.c:86:52: punctuator ,
 everything.c:86:54: identifier lineno
@@ -2122,7 +2207,8 @@ everything.c:87:28: punctuator (
 everything.c:87:29: identifier Token
 everything.c:87:34: punctuator (
 everything.c:87:35: identifier TokenType
-everything.c:87:44: punctuator ::
+everything.c:87:44: punctuator :
+everything.c:87:45: punctuator :
 everything.c:87:46: identifier MOD_ASSIGN
 everything.c:87:56: punctuator ,
 everything.c:87:58: identifier lineno
@@ -2147,7 +2233,8 @@ everything.c:88:31: punctuator (
 everything.c:88:32: identifier Token
 everything.c:88:37: punctuator (
 everything.c:88:38: identifier TokenType
-everything.c:88:47: punctuator ::
+everything.c:88:47: punctuator :
+everything.c:88:48: punctuator :
 everything.c:88:49: identifier MOD
 everything.c:88:52: punctuator ,
 everything.c:88:54: identifier lineno
@@ -2172,7 +2259,8 @@ everything.c:89:28: punctuator (
 everything.c:89:29: identifier Token
 everything.c:89:34: punctuator (
 everything.c:89:35: identifier TokenType
-everything.c:89:44: punctuator ::
+everything.c:89:44: punctuator :
+everything.c:89:45: punctuator :
 everything.c:89:46: identifier AMPERSAND_ASSIGN
 everything.c:89:62: punctuator ,
 everything.c:89:64: identifier lineno
@@ -2197,7 +2285,8 @@ everything.c:90:28: punctuator (
 everything.c:90:29: identifier Token
 everything.c:90:34: punctuator (
 everything.c:90:35: identifier TokenType
-everything.c:90:44: punctuator ::
+everything.c:90:44: punctuator :
+everything.c:90:45: punctuator :
 everything.c:90:46: identifier AND
 everything.c:90:49: punctuator ,
 everything.c:90:51: identifier lineno
@@ -2222,7 +2311,8 @@ everything.c:91:31: punctuator (
 everything.c:91:32: identifier Token
 everything.c:91:37: punctuator (
 everything.c:91:38: identifier TokenType
-everything.c:91:47: punctuator ::
+everything.c:91:47: punctuator :
+everything.c:91:48: punctuator :
 everything.c:91:49: identifier AMPERSAND
 everything.c:91:58: punctuator ,
 everything.c:91:60: identifier lineno
@@ -2247,7 +2337,8 @@ everything.c:92:28: punctuator (
 everything.c:92:29: identifier Token
 everything.c:92:34: punctuator (
 everything.c:92:35: identifier TokenType
-everything.c:92:44: punctuator ::
+everything.c:92:44: punctuator :
+everything.c:92:45: punctuator :
 everything.c:92:46: identifier PIPE_ASSIGN
 everything.c:92:57: punctuator ,
 everything.c:92:59: identifier lineno
@@ -2272,7 +2363,8 @@ everything.c:93:28: punctuator (
 everything.c:93:29: identifier Token
 everything.c:93:34: punctuator (
 everything.c:93:35: identifier TokenType
-everything.c:93:44: punctuator ::
+everything.c:93:44: punctuator :
+everything.c:93:45: punctuator :
 everything.c:93:46: identifier OR
 everything.c:93:48: punctuator ,
 everything.c:93:50: identifier lineno
@@ -2297,7 +2389,8 @@ everything.c:94:31: punctuator (
 everything.c:94:32: identifier Token
 everything.c:94:37: punctuator (
 everything.c:94:38: identifier TokenType
-everything.c:94:47: punctuator ::
+everything.c:94:47: punctuator :
+everything.c:94:48: punctuator :
 everything.c:94:49: identifier PIPE
 everything.c:94:53: punctuator ,
 everything.c:94:55: identifier lineno
@@ -2314,7 +2407,8 @@ everything.c:94:80: punctuator )
 everything.c:94:81: punctuator )
 everything.c:94:82: punctuator )
 everything.c:94:83: punctuator ;
-everything.c:95:1: punctuator ::
+everything.c:95:1: punctuator :
+everything.c:95:2: punctuator :
 everything.c:95:5: identifier token_list
 everything.c:95:15: punctuator .
 everything.c:95:16: identifier emplace_back
@@ -2322,7 +2416,8 @@ everything.c:95:28: punctuator (
 everything.c:95:29: identifier Token
 everything.c:95:34: punctuator (
 everything.c:95:35: identifier TokenType
-everything.c:95:44: punctuator ::
+everything.c:95:44: punctuator :
+everything.c:95:45: punctuator :
 everything.c:95:46: identifier COLON_COLON
 everything.c:95:57: punctuator ,
 everything.c:95:59: identifier lineno
@@ -2347,7 +2442,8 @@ everything.c:96:31: punctuator (
 everything.c:96:32: identifier Token
 everything.c:96:37: punctuator (
 everything.c:96:38: identifier TokenType
-everything.c:96:47: punctuator ::
+everything.c:96:47: punctuator :
+everything.c:96:48: punctuator :
 everything.c:96:49: identifier COLON
 everything.c:96:54: punctuator ,
 everything.c:96:56: identifier lineno
@@ -2372,7 +2468,8 @@ everything.c:97:31: punctuator (
 everything.c:97:32: identifier Token
 everything.c:97:37: punctuator (
 everything.c:97:38: identifier TokenType
-everything.c:97:47: punctuator ::
+everything.c:97:47: punctuator :
+everything.c:97:48: punctuator :
 everything.c:97:49: identifier QUESTION
 everything.c:97:57: punctuator ,
 everything.c:97:59: identifier lineno

@@ -71,12 +71,12 @@ std::string to_match(const std::string &filename) {
 
 COMPARE(hello_world)
 /*
-COMPARE(everything)
-
+//COMPARE(everything)
+//
 COMPARE(transpose)
 COMPARE(lots_of_real_code)
 */
-//COMPARE(everything)
+COMPARE(everything)
 COMPARE(comments)
 COMPARE(lorem_ipsum)
 COMPARE(extra)
