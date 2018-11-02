@@ -81,7 +81,6 @@ enum class TokenType {
   COMMA,
   SEMICOLON,
   TRI_DOTS,
-  DOT_STAR,
   DOT,
   CARET_ASSIGN,
   CARET,
