@@ -142,3 +142,18 @@ TEST_CASE("Fast Lexer string escape sequence test.") {
 TEST_CASE("Fast Lexer invalid string literal test.") {
   REQUIRE_THROWS_AS(FastLexer("\"this has invalid escape \\z\"").lex(), LexerException);
 }
+
+TEST_CASE("Fast Lexer token pair test.") {
+  auto tokenList = FastLexer("::+=").lex();
+  REQUIRE(tokenList.size() >= 2);
+
+  auto & firstToken = tokenList.front();
+  REQUIRE(firstToken.getType() == TokenType::COLON);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+
+  auto & secondToken = tokenList[1];
+  REQUIRE(secondToken.getType() == TokenType::COLON);
+  REQUIRE(secondToken.getLine() == 1);
+  REQUIRE(secondToken.getColumn() == 2);
+}

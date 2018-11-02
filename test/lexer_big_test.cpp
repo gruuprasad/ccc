@@ -76,7 +76,7 @@ COMPARE(everything)
 COMPARE(transpose)
 COMPARE(lots_of_real_code)
 */
-COMPARE(everything)
+//COMPARE(everything)
 COMPARE(comments)
 COMPARE(lorem_ipsum)
 COMPARE(extra)
