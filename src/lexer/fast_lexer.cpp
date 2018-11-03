@@ -382,12 +382,6 @@ inline bool FastLexer::isPunctuator() {
       column += 3;
       return true;
     }
-    if (getCharAt(position + 1) == '*') {
-      token_list.emplace_back(Token(TokenType::DOT_STAR, line, column));
-      position += 2;
-      column += 2;
-      return true;
-    }
     token_list.emplace_back(Token(TokenType::DOT, line, column));
     ++position;
     ++column;
@@ -491,12 +485,6 @@ inline bool FastLexer::isPunctuator() {
     ++column;
     return true;
   case ':':
-    if (getCharAt(position + 1) == ':') {
-      token_list.emplace_back(Token(TokenType::COLON_COLON, line, column));
-      position += 2;
-      column += 2;
-      return true;
-    }
     if (getCharAt(position + 1) == '>') {
       token_list.emplace_back(Token(TokenType::BRACKET_CLOSE_ALT, line, column));
       position += 2;
@@ -1155,6 +1143,7 @@ inline bool FastLexer::munch() {
       position += 2;
       return munchBlockComment();
     }
+    //fall-through
   case '{':
   case '}':
   case '[':
@@ -1212,6 +1201,7 @@ inline bool FastLexer::munch() {
     if (isKeyword()) {
       return true;
     }
+    //fall-through
   case 'h':
   case 'j':
   case 'k':

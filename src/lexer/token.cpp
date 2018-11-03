@@ -106,11 +106,9 @@ const std::string Token::name() const {
   case TokenType::ARROW:return "->";
   case TokenType::COMMA:return ",";
   case TokenType::COLON:return ":";
-  case TokenType::COLON_COLON:return "::";
   case TokenType::QUESTION:return "?";
   case TokenType::SEMICOLON:return ";";
   case TokenType::TRI_DOTS:return "...";
-  case TokenType::DOT_STAR:return ".*";
   case TokenType::DOT:return ".";
   case TokenType::AND:return "&&";
   case TokenType::OR:return "||";
@@ -217,11 +215,9 @@ const std::string Token::token_type() const {
   case TokenType::ARROW:return "punctuator";
   case TokenType::COMMA:return "punctuator";
   case TokenType::COLON:return "punctuator";
-  case TokenType::COLON_COLON:return "punctuator";
   case TokenType::QUESTION:return "punctuator";
   case TokenType::SEMICOLON:return "punctuator";
   case TokenType::TRI_DOTS:return "punctuator";
-  case TokenType::DOT_STAR:return "punctuator";
   case TokenType::DOT:return "punctuator";
   case TokenType::AND:return "punctuator";
   case TokenType::OR:return "punctuator";
