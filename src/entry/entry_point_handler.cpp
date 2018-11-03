@@ -9,7 +9,6 @@
 EntryPointHandler::EntryPointHandler() = default;
 
 int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename, std::ostream& output) {
-  std::ios_base::sync_with_stdio(false);
   std::vector<Token, std::allocator<Token>> token_list;
   std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
   try {
