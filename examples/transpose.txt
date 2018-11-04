@@ -154,7 +154,8 @@ transpose.c:22:10: punctuator (
 transpose.c:22:11: identifier j
 transpose.c:22:13: punctuator ==
 transpose.c:22:16: identifier c
-transpose.c:22:17: constant -1
+transpose.c:22:17: punctuator -
+transpose.c:22:18: constant 1
 transpose.c:22:19: punctuator )
 transpose.c:23:9: identifier printf
 transpose.c:23:15: punctuator (
@@ -256,7 +257,8 @@ transpose.c:39:9: punctuator (
 transpose.c:39:10: identifier j
 transpose.c:39:11: punctuator ==
 transpose.c:39:13: identifier r
-transpose.c:39:14: constant -1
+transpose.c:39:14: punctuator -
+transpose.c:39:15: constant 1
 transpose.c:39:16: punctuator )
 transpose.c:40:9: identifier printf
 transpose.c:40:15: punctuator (
