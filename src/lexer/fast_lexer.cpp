@@ -33,7 +33,7 @@ inline bool FastLexer::failParsing() {
       }
     }
   }
-  throw LexerException(Token(TokenType::QUESTION, line, column, error));
+  throw LexerException(Token(TokenType::QUESTION, line, column), error);
 }
 
 inline bool FastLexer::munchWhitespace() {
@@ -90,7 +90,7 @@ inline bool FastLexer::munchBlockComment() {
   column += 2;
   while (first != '*' || getCharAt(position + 1) != '/') {
     switch (first) {
-    case 0:throw LexerException(Token(TokenType::QUESTION, previousLine, previousColumn, "Unterminated Comment!"));
+    case 0:throw LexerException(Token(TokenType::QUESTION, previousLine, previousColumn), "Unterminated Comment!");
     case '\r':
       if (getCharAt(position + 1) == '\n') {
         ++position;
@@ -116,7 +116,7 @@ inline bool FastLexer::munchNumber() {
     first = getCharAt(++position);
   } while ('0' <= first && first <= '9');
   token_list.emplace_back(Token(TokenType::NUMBER, line, column,
-                                std::string(&content[oldPosition], position - oldPosition)));
+                                TokenView(&content[oldPosition], position - oldPosition)));
   column += position - oldPosition;
   return true;
 }
@@ -133,7 +133,7 @@ inline bool FastLexer::munchIdentifier() {
   token_list.emplace_back(Token(TokenType::IDENTIFIER,
                                 line,
                                 column,
-                                std::string(&content[oldPosition], position - oldPosition)));
+                                TokenView(&content[oldPosition], position - oldPosition)));
   column += position - oldPosition;
   return true;
 }
@@ -145,7 +145,7 @@ inline bool FastLexer::munchCharacter() {
       && first != '\n'
       && first != '\r'
       && getCharAt(position + 1) == '\'') {
-    token_list.emplace_back(Token(TokenType::CHARACTER, line, column, std::string(1, first)));
+    token_list.emplace_back(Token(TokenType::CHARACTER, line, column, TokenView(&content[position], 1)));
     column += 3;
     position += 2;
     return true;
@@ -167,17 +167,17 @@ inline bool FastLexer::munchCharacter() {
       token_list.emplace_back(Token(TokenType::CHARACTER,
                                     line,
                                     column,
-                                    std::string(&content[position - 1], 2)));
+                                    TokenView(&content[position - 1], 2)));
       column += 4;
       position += 2;
       return true;
     default:
-      throw LexerException(Token{TokenType::CHARACTER, line, column,
-                                 "Invalid character: '" + std::string(&content[position - 1], 2) + "'"});
+      throw LexerException(Token{TokenType::CHARACTER, line, column},
+                                 "Invalid character: '" + std::string(&content[position - 1], 2) + "'");
     }
   }
-  throw LexerException(Token{TokenType::CHARACTER, line, column,
-                             "Invalid character: '" + std::string(1, first) + "'"});
+  throw LexerException(Token{TokenType::CHARACTER, line, column},
+                             "Invalid character: '" + std::string(1, first) + "'");
 }
 
 inline bool FastLexer::munchString() {
@@ -189,9 +189,9 @@ inline bool FastLexer::munchString() {
     if (first == '\n'
         || first == '\r'
         || first == 0) {
-      throw LexerException(Token(TokenType::STRING, line, column,
+      throw LexerException(Token(TokenType::STRING, line, column),
                                  "Line break in string at "
-                                     + std::string(&content[oldPosition + 1], position - oldPosition)));
+                                     + std::string(&content[oldPosition + 1], position - oldPosition));
     }
     if (first == '\\') {
       first = getCharAt(++position);
@@ -209,9 +209,9 @@ inline bool FastLexer::munchString() {
       case 't':
       case 'v':break;
       default:
-        throw LexerException(Token(TokenType::STRING, line, column,
+        throw LexerException(Token(TokenType::STRING, line, column),
                                    "Invalid escape at "
-                                       + std::string(&content[oldPosition + 1], position - oldPosition)));
+                                       + std::string(&content[oldPosition + 1], position - oldPosition));
       }
     }
     first = getCharAt(++position);
@@ -220,7 +220,7 @@ inline bool FastLexer::munchString() {
   token_list.emplace_back(Token(TokenType::STRING,
                                 line,
                                 initColumn,
-                                std::string(&content[oldPosition + 1], position - oldPosition - 1)));
+                                TokenView(&content[oldPosition + 1], position - oldPosition - 1)));
   ++position;
   ++column;
   return true;
