@@ -64,6 +64,7 @@ std::string to_match(const std::string &filename) {
   return buffer.str();
 }
 
+COMPARE(everything)
 COMPARE(test)
 COMPARE(hello_world)
 COMPARE(transpose)
