@@ -1,9 +1,9 @@
 #include <iostream>
 #include "lexer_exception.hpp"
 
-LexerException::LexerException(const Token &token, std::string msg) : token(token), msg(msg) {
+LexerException::LexerException(const Token &token) : token(token) {
   problem = std::to_string(token.getLine()) + ":" + std::to_string(token.getColumn()) + ": error: '"
-      + msg + "'. Lexing Stopped!";
+      + token.getExtra() + "'. Lexing Stopped!";
 }
 
 const char *LexerException::what() const noexcept {

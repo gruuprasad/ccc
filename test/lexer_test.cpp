@@ -11,7 +11,6 @@ TEST_CASE("Lexer Smoke test.") {
   auto token_list = FastLexer("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee").lex();
 }
 
-/*
 TEST_CASE("Lexer Simple Operator tests.") {
   REQUIRE(FastLexer("+").lex().front().getType() == TokenType::PLUS);
   REQUIRE(FastLexer("-").lex().front().getType() == TokenType::MINUS);
@@ -83,7 +82,7 @@ TEST_CASE("Fast Lexer line comment test.") {
   REQUIRE(lastToken.getColumn() == 1);
   REQUIRE(lastToken.getExtra() == "testing");
 }
-*/
+
 TEST_CASE("Fast Lexer block comment test.") {
   auto token_list = FastLexer(" /**/x").lex();
   auto lastToken = token_list.back();
@@ -110,7 +109,6 @@ TEST_CASE("Fast Lexer string empty test.") {
   std::string input = "";
   auto tokenList = FastLexer(input).lex();
 }
-/*
 
 TEST_CASE("Fast Lexer string empty string test.") {
   std::string input = "\"\"";
@@ -184,4 +182,3 @@ TEST_CASE(".*") {
   REQUIRE(thirdToken.getLine() == 1);
   REQUIRE(thirdToken.getColumn() == 3);
 }
-*/
