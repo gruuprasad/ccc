@@ -27,6 +27,8 @@ class FastLexer {
 public:
   explicit FastLexer(const std::string &content);
   std::vector<Token, std::allocator<Token>> lex();
+  bool fail() const { return !error.empty(); }
+  const std::string & getError() const { return error; }
 };
 
 #endif //C4_FASTLEXER_H
