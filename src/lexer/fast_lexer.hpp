@@ -11,6 +11,7 @@ class FastLexer {
   unsigned long position;
   unsigned long line;
   unsigned long column;
+  std::string error;
   inline bool munch();
   inline char getCharAt(unsigned long position);
   inline bool keyWordEnd(unsigned long position);
