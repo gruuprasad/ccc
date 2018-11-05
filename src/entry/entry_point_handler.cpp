@@ -1,7 +1,6 @@
-#include <ios>
 #include <iostream>
 #include <fstream>
-#include <streambuf>
+#include <sstream>
 #include "entry_point_handler.hpp"
 #include "../lexer/lexer_exception.hpp"
 #include "../lexer/fast_lexer.hpp"
@@ -10,10 +9,11 @@ EntryPointHandler::EntryPointHandler() = default;
 
 int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename, std::ostream &output) {
   std::vector<Token, std::allocator<Token>> token_list;
-  std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+  std::stringstream buffer;
+  buffer << file.rdbuf();
   try {
-    token_list = FastLexer(buffer).lex();
-  } catch (LexerException &exception){
+    token_list = FastLexer(buffer.str()).lex();
+  } catch (LexerException &exception) {
     std::cerr << filename << ":" << exception.what() << std::endl;
     return 1;
   }
