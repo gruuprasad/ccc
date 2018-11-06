@@ -8,9 +8,9 @@
 class FastLexer {
   std::vector<Token, std::allocator<Token>> token_list;
   const std::string & content;
-  unsigned long position;
-  unsigned long line;
-  unsigned long column;
+  unsigned long position = 0;
+  unsigned long line = 1;
+  unsigned long column = 0;
   inline bool munch();
   inline char getCharAt(unsigned long position);
   inline bool keyWordEnd(unsigned long position);
