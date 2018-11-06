@@ -2,6 +2,8 @@
 #include "lexer_exception.hpp"
 #include "fast_lexer.hpp"
 
+#define ERROR_STR(line, column, msg) std::to_string(line) + ":" + std::to_string(column) + ": error: '" +  msg  +  "'. Lexing Stopped!" 
+
 FastLexer::FastLexer(const std::string &content) : content(content) {
   token_list.reserve(content.size());
 }
@@ -19,17 +21,18 @@ inline bool FastLexer::keyWordEnd(unsigned long position) {
 }
 
 inline bool FastLexer::failParsing() {
-  std::string error = "Unknown token " + std::string(1, getCharAt(position));
+  std::string msg = "Unknown token " + std::string(1, getCharAt(position));
   if (getCharAt(position + 1) != 0) {
-    error += std::string(1, getCharAt(position + 1));
+    msg += std::string(1, getCharAt(position + 1));
     if (getCharAt(position + 2) != 0) {
-      error += std::string(1, getCharAt(position + 2));
+      msg += std::string(1, getCharAt(position + 2));
       if (getCharAt(position + 3) != 0) {
-        error += std::string(1, getCharAt(position + 2)) + " [truncated]";
+        msg += std::string(1, getCharAt(position + 2)) + " [truncated]";
       }
     }
   }
-  throw LexerException(Token(TokenType::QUESTION, line, column, error));
+  error = ERROR_STR(line, column, msg);
+  return false;
 }
 
 inline bool FastLexer::munchWhitespace() {
@@ -86,7 +89,9 @@ inline bool FastLexer::munchBlockComment() {
   column += 2;
   while (first != '*' || getCharAt(position + 1) != '/') {
     switch (first) {
-    case 0:throw LexerException(Token(TokenType::QUESTION, previousLine, previousColumn, "Unterminated Comment!"));
+    case 0:
+      error = ERROR_STR(previousLine, previousColumn, "Unterminated Comment!");
+      return false;
     case '\r':
       if (getCharAt(position + 1) == '\n') {
         ++position;
@@ -168,12 +173,12 @@ inline bool FastLexer::munchCharacter() {
       position += 2;
       return true;
     default:
-      throw LexerException(Token{TokenType::CHARACTER, line, column,
-                                 "Invalid character: '" + std::string(&content[position - 1], 2) + "'"});
+      error = ERROR_STR(line, column, "Invalid character: '" + std::string(&content[position - 1], 2) + "'");
+      return false;
     }
   }
-  throw LexerException(Token{TokenType::CHARACTER, line, column,
-                             "Invalid character: '" + std::string(1, first) + "'"});
+  error = ERROR_STR(line, column, "Invalid character: '" + std::string(1, first) + "'");
+  return false;
 }
 
 inline bool FastLexer::munchString() {
@@ -185,9 +190,8 @@ inline bool FastLexer::munchString() {
     if (first == '\n'
         || first == '\r'
         || first == 0) {
-      throw LexerException(Token(TokenType::STRING, line, column,
-                                 "Line break in string at "
-                                     + std::string(&content[oldPosition + 1], position - oldPosition)));
+      error = ERROR_STR(line, column, "Line break in string at " + std::string(&content[oldPosition + 1], position - oldPosition));
+      return false;
     }
     if (first == '\\') {
       first = getCharAt(++position);
@@ -205,9 +209,8 @@ inline bool FastLexer::munchString() {
       case 't':
       case 'v':break;
       default:
-        throw LexerException(Token(TokenType::STRING, line, column,
-                                   "Invalid escape at "
-                                       + std::string(&content[oldPosition + 1], position - oldPosition)));
+        error = ERROR_STR(line, column, "Invalid escape at " + std::string(&content[oldPosition + 1], position - oldPosition));
+        return false;
       }
     }
     first = getCharAt(++position);

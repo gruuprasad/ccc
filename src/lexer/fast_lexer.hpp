@@ -8,6 +8,7 @@
 class FastLexer {
   std::vector<Token, std::allocator<Token>> token_list;
   const std::string & content;
+  std::string error;
   unsigned long position = 0;
   unsigned long line = 1;
   unsigned long column = 0;
@@ -27,6 +28,8 @@ class FastLexer {
 public:
   explicit FastLexer(const std::string &content);
   std::vector<Token, std::allocator<Token>> lex();
+  bool fail() const { return !error.empty(); }
+  const std::string & getError() const { return error; }
 };
 
 #endif //C4_FASTLEXER_H
