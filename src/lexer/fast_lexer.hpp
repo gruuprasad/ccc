@@ -5,8 +5,10 @@
 #include "token.hpp"
 #include "lexer_exception.hpp"
 
+namespace ccc {
+
 class FastLexer {
-  std::vector<Token, std::allocator<Token>> token_list;
+  std::vector<ccc::Token, std::allocator<ccc::Token>> token_list;
   const std::string & content;
   std::string error;
   unsigned long position = 0;
@@ -27,9 +29,11 @@ class FastLexer {
   inline bool isPunctuator();
 public:
   explicit FastLexer(const std::string &content);
-  std::vector<Token, std::allocator<Token>> lex();
+  std::vector<ccc::Token, std::allocator<ccc::Token>> lex();
   bool fail() const { return !error.empty(); }
   const std::string & getError() const { return error; }
 };
+
+} // namespace ccc
 
 #endif //C4_FASTLEXER_H

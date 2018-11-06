@@ -4,12 +4,15 @@
 #include <exception>
 #include "token.hpp"
 
+namespace ccc {
+
 class LexerException : public std::exception {
-  const Token token;
+  const ccc::Token token;
   std::basic_string<char, std::char_traits<char>, std::allocator<char>> problem;
 public:
-  explicit LexerException(const Token &token);
+  explicit LexerException(const ccc::Token &token);
   const char *what() const noexcept override;
 };
-
+ 
+} // namespace ccc
 #endif //C4_LEXER_EXCEPTION_HPP

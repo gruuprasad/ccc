@@ -2,6 +2,9 @@
 #define C4_TOKEN_TYPE_HPP
 
 #include <string>
+
+namespace ccc {
+
 enum class TokenType {
   AUTO,
   BREAK,
@@ -105,6 +108,8 @@ enum class TokenType {
   HASHHASH_ALT,
   FLOAT,
   DOUBLE
-};
+}; 
+
+} // namespace ccc
 
 #endif //C4_TOKEN_TYPE_HPP

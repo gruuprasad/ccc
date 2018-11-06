@@ -1,6 +1,8 @@
 #include <iostream>
 #include "lexer_exception.hpp"
 
+namespace ccc {
+
 LexerException::LexerException(const Token &token) : token(token) {
   problem = std::to_string(token.getLine()) + ":" + std::to_string(token.getColumn()) + ": error: '"
       + token.getExtra() + "'. Lexing Stopped!";
@@ -9,3 +11,5 @@ LexerException::LexerException(const Token &token) : token(token) {
 const char *LexerException::what() const noexcept {
   return problem.c_str();
 }
+
+} // namespace ccc

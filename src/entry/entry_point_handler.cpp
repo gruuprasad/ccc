@@ -4,6 +4,8 @@
 #include "entry_point_handler.hpp"
 #include "../lexer/fast_lexer.hpp"
 
+using namespace ccc;
+
 EntryPointHandler::EntryPointHandler() = default;
 
 int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename, std::ostream &output) {

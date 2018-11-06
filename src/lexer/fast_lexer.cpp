@@ -4,6 +4,8 @@
 
 #define ERROR_STR(line, column, msg) std::to_string(line) + ":" + std::to_string(column) + ": error: '" +  msg  +  "'. Lexing Stopped!" 
 
+namespace ccc {
+
 FastLexer::FastLexer(const std::string &content) : content(content) {
   token_list.reserve(content.size());
 }
@@ -1249,3 +1251,5 @@ std::vector<Token, std::allocator<Token>> FastLexer::lex() {
   }
   return token_list;
 }
+
+} // namespace ccc
