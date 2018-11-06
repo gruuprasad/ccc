@@ -7,6 +7,8 @@
 #include "../src/lexer/lexer_exception.hpp"
 #include <iterator>
 
+using namespace ccc;
+
 #define PUNCTUATOR_TESTS(keyword, token) \
 TEST_CASE("Fast Lexer keyword "#keyword" positive.") { \
   auto firstToken = FastLexer(keyword).lex().front(); \

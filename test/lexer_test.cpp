@@ -7,6 +7,8 @@
 #include "../src/lexer/lexer_exception.hpp"
 #include <iterator>
 
+using namespace ccc;
+
 TEST_CASE("Lexer Smoke test.") {
   auto token_list = FastLexer("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee").lex();
 }

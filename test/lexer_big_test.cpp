@@ -7,6 +7,8 @@
 #include "../src/lexer/lexer_exception.hpp"
 #include <iterator>
 
+using namespace ccc;
+
 #define COMPARE(name) \
 TEST_CASE("Compare "#name".c to "#name".txt") { \
   REQUIRE(lexing_of(#name".c", to_match(#name".txt"))); \

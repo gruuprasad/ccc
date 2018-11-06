@@ -4,6 +4,8 @@
 #include <iostream>
 #include "token.hpp"
 
+namespace ccc {
+
 Token::Token(const TokenType type, const unsigned long line, const unsigned long column, const std::string extra) :
     type(type), line(line), column(column), extra(std::move(extra)) {}
 
@@ -253,3 +255,5 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
   }
   return os;
 }
+
+} // namespace ccc
