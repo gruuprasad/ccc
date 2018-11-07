@@ -16,6 +16,8 @@ public:
   const std::string &getExtra() const;
   const std::string name() const;
   const std::string token_type() const;
+  bool is(TokenType expected) const { return type == expected; }
+
 private:
   const ccc::TokenType type;
   const unsigned long line;
