@@ -2,7 +2,7 @@
 #include "lexer_exception.hpp"
 #include "fast_lexer.hpp"
 
-#define ERROR_STR(line, column, msg) std::to_string(line) + ":" + std::to_string(column) + ": error: '" +  msg  +  "'. Lexing Stopped!" 
+#define ERROR_STR(line, column, msg) std::to_string(line) + ":" + std::to_string(column + 1) + ": error: '" +  msg  +  "'. Lexing Stopped!"
 
 namespace ccc {
 
