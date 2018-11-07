@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
 #include "token.hpp"
 
 namespace ccc {
@@ -254,6 +255,23 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
     }
   }
   return os;
+}
+
+const std::string Token::toString() {
+  std::stringstream ss;
+  if (this->extra.empty() && this->getType() != TokenType::STRING) {
+    ss << this->line << ':' << this->getColumn() << ": " << this->token_type() << " " << this->name();
+  } else {
+    ss << this->line << ':' << this->getColumn() << ": " << this->token_type() << " ";
+    if (this->getType() == TokenType::CHARACTER) {
+      ss << "'" << this->extra << "'";
+    } else if (this->getType() == TokenType::STRING) {
+      ss << "\"" << this->extra << "\"";
+    } else {
+      ss << this->extra;
+    }
+  }
+  return ss.str();
 }
 
 } // namespace ccc
