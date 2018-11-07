@@ -7,6 +7,8 @@ from tqdm import tqdm
 int = []
 val = dict()
 
+ref = []
+
 t = [timer()]
 
 i = 1
@@ -17,7 +19,7 @@ exe = sys.argv[1:]
 
 print("gernating input files...")
 
-for i in tqdm(range(25)):
+for i in tqdm(range(20)):
     size = i * 50000
     if not os.path.exists("./sample"):
         os.makedirs("./sample")
@@ -27,6 +29,7 @@ for i in tqdm(range(25)):
     file.close()
     files += ["./sample/test" + str(size) + ".c"]
     int += [size / 1000]
+    ref += [0.01 + i * 0.006]
 
 for e in exe:
     val[e] = []
@@ -42,6 +45,7 @@ plt.figure(figsize=(15, 5))
 
 for e in exe:
     plt.plot(int, val[e], "-o", label=e)
+plt.plot(int, ref, "-o", label="ref")
 plt.legend()
 plt.xlabel("Input size [kByte]")
 plt.ylabel('Runtime [seconds]')
