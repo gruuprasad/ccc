@@ -4,9 +4,17 @@
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
 #include <vector>
+#include <unordered_map>
 
 namespace ccc {
 
+#define C_TYPES TokenType::VOID, TokenType::CHAR, TokenType::SHORT, \
+              TokenType::INT, TokenType::STRUCT \
+  
+static unordered_map<char, int> BinOpPrecedence { { '+', 10 },
+                                                  { '-', 10 },
+                                                  { '*', 10 },
+                                                  { '<', 10 } };
 class FastParser {
 public:
   FastParser(std::vector<Token> & tokens_) : tokens(tokens_) {}
@@ -26,7 +34,8 @@ private:
   }
 
   bool expect(TokenType tok) {
-    my_assert(tok == peek().getType()) << "Parse Error: Unexpected Token: " << peek().name();
+    my_assert(tok == peek().getType()) << "Parse Error: Unexpected Token: "
+                                       << peek().name();
     return consume();
   }
 
@@ -34,6 +43,13 @@ private:
     // TODO bound check. Append k number of empty tokens at the end of tokens
     // so we don't need to bound check.
     return tokens[curTokenIdx + k]; 
+  }
+
+  template <typename F>
+  void parseList(F word, TokenType delimit) {
+    do {
+      word();
+    } while(peek().is(delimit) && consume());
   }
   
   // Grammar Rules we plan to implement.
@@ -59,10 +75,10 @@ private:
   void parseTypeSpecifiers();         
   void parseDeclarator();            
   void parseDirectDeclarator();       
-  void parseParameterList();          
   void parseStructOrUnionSpecifier(); 
   void parseStructDeclaration();      
-  void parseDeclarators();            
+
+  // Expressions
 
   std::vector<Token> & tokens;
   std::size_t curTokenIdx = 0;

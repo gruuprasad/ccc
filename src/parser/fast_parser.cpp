@@ -16,11 +16,7 @@ void FastParser::parseFuncDefOrDeclaration() {
 }
 
 void FastParser::parseTypeSpecifiers() {
-  while (peek().is_oneof(TokenType::VOID, 
-                           TokenType::CHAR,
-                           TokenType::SHORT, 
-                           TokenType::INT,
-                           TokenType::STRUCT)) {
+  while (peek().is_oneof(C_TYPES)) {
     if (peek().is(TokenType::STRUCT))
       return parseStructOrUnionSpecifier();
     auto token = nextToken();
@@ -28,10 +24,7 @@ void FastParser::parseTypeSpecifiers() {
 }
 
 void FastParser::parseDeclarator() {
-  // Consume Pointer symbols
-  while (peek().is(TokenType::STAR)) {
-    consume();
-  }
+  parseList([&] () {}, TokenType::STAR);
   parseDirectDeclarator();
 }
 
@@ -42,9 +35,8 @@ void FastParser::parseDirectDeclarator() {
       return;
     case TokenType::PARENTHESIS_OPEN:
       consume();
-      if (peek().is_oneof(TokenType::VOID, TokenType::CHAR, TokenType::SHORT, 
-                          TokenType::INT, TokenType::STRUCT)) {
-        parseParameterList();
+      if (peek().is_oneof(C_TYPES)) {
+        parseList([&] () { parseTypeSpecifiers(); parseDeclarator(); }, TokenType::COMMA);
         expect(TokenType::PARENTHESIS_CLOSE);
         return;
       }
@@ -53,16 +45,11 @@ void FastParser::parseDirectDeclarator() {
       return;
     default:
       error = "Parse Error";
-      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() << ", expecting Direct Declarator";
+      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() 
+                   << ", expecting Direct Declarator";
   }
 }
 
-void FastParser::parseParameterList() {
-  do {
-    parseTypeSpecifiers();
-    parseDeclarator();
-  } while (peek().is(TokenType::COMMA) && consume());
-}
 void FastParser::parseStructOrUnionSpecifier() {
   nextToken();
   switch(peek().getType()) {
@@ -79,21 +66,16 @@ void FastParser::parseStructOrUnionSpecifier() {
       return;
     default:
       error = "Parse Error";
-      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() << ", expecting struct-or-union";
+      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() 
+                   << ", expecting struct-or-union";
   }
 }
 
 void FastParser::parseStructDeclaration() {
   parseTypeSpecifiers();
   if (peek().is_not(TokenType::SEMICOLON))
-      parseDeclarators();
+    parseList([&] () { parseDeclarator(); }, TokenType::COMMA);
   expect(TokenType::SEMICOLON);
-}
-
-void FastParser::parseDeclarators() {
-  do {
-    parseDeclarator();
-  } while (peek().is(TokenType::COMMA) && consume());
 }
 
 } // namespace ccc
