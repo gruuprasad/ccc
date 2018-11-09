@@ -257,21 +257,19 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
   return os;
 }
 
-const std::string Token::toString() {
-  std::stringstream ss;
+const void Token::print(std::string filename) {
+  std::printf("%s:%ld:%ld:%s ", filename.c_str(), this->line, this->column, this->token_type().c_str());
   if (this->extra.empty() && this->getType() != TokenType::STRING) {
-    ss << this->line << ':' << this->getColumn() << ": " << this->token_type() << " " << this->name();
+    std::printf("%s\n", this->name().c_str());
   } else {
-    ss << this->line << ':' << this->getColumn() << ": " << this->token_type() << " ";
     if (this->getType() == TokenType::CHARACTER) {
-      ss << "'" << this->extra << "'";
+      std::printf("'%s'\n", this->extra.c_str());
     } else if (this->getType() == TokenType::STRING) {
-      ss << "\"" << this->extra << "\"";
+      std::printf("\"%s\"\n", this->extra.c_str());
     } else {
-      ss << this->extra;
+      std::printf("%s\n", this->extra.c_str());
     }
   }
-  return ss.str();
 }
 
 } // namespace ccc
