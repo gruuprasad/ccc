@@ -1,6 +1,4 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include "entry_point_handler.hpp"
 #include "../lexer/fast_lexer.hpp"
 
@@ -25,7 +23,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
     if (flagName == "--tokenize") {
-      auto lexer = FastLexer(buffer, filename, true);
+      auto lexer = FastLexer(buffer, filename, &std::printf);
       token_list = lexer.lex();
       if (lexer.fail()) {
         std::cerr << filename << ":" << lexer.getError() << std::endl;
@@ -34,7 +32,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       return 0;
     }
     if (flagName == "--parse") {
-      auto lexer = FastLexer(buffer, filename, false);
+      auto lexer = FastLexer(buffer, filename);
       token_list = lexer.lex();
       if (lexer.fail()) {
         std::cerr << filename << ":" << lexer.getError() << std::endl;

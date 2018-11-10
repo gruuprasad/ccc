@@ -30,7 +30,8 @@ class FastLexer {
   inline bool isKeyword();
   inline bool isPunctuator();
 public:
-  explicit FastLexer(const std::string &content, char *filename, bool tokenize);
+  explicit FastLexer(const std::string &content, char *filename, int (*)(const char *, ...));
+  explicit FastLexer(const std::string &content, char *filename);
   explicit FastLexer(const std::string &content);
   std::vector<ccc::Token, std::allocator<ccc::Token>> lex();
   bool fail() const { return !error.empty(); }
