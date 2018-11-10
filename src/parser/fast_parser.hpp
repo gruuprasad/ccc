@@ -11,10 +11,6 @@ namespace ccc {
 #define C_TYPES TokenType::VOID, TokenType::CHAR, TokenType::SHORT, \
               TokenType::INT, TokenType::STRUCT \
   
-static unordered_map<char, int> BinOpPrecedence { { '+', 10 },
-                                                  { '-', 10 },
-                                                  { '*', 10 },
-                                                  { '<', 10 } };
 class FastParser {
 public:
   FastParser(std::vector<Token> & tokens_) : tokens(tokens_) {}

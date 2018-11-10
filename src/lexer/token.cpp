@@ -240,6 +240,46 @@ const std::string Token::token_type() const {
   return "unknown type";
 }
 
+unsigned int getPrecedence() {
+  switch(type) {
+    case TokenType::PLUS:return 10;
+    case TokenType::MINUS:return 10;
+    case TokenType::PLUSPLUS:return 10;
+    case TokenType::STAR:return 10;
+    case TokenType::PIPE:return 10;
+    case TokenType::AMPERSAND:return 10;
+    case TokenType::CARET:return 10;
+    case TokenType::TILDE:return 10;
+    case TokenType::LEFT_SHIFT:return 10;
+    case TokenType::RIGHT_SHIFT:return 10;
+    case TokenType::GREATER_EQUAL:return 10;
+    case TokenType::LESS_EQUAL:return 10;
+    case TokenType::EQUAL:return 10;
+    case TokenType::ASSIGN:return 10;
+    case TokenType::MINUSMINUS:return 10;
+    case TokenType::DIV:return 10;
+    case TokenType::MOD:return 10;
+    case TokenType::PLUS_ASSIGN:return 10;
+    case TokenType::MINUS_ASSIGN:return 10;
+    case TokenType::AMPERSAND_ASSIGN:return 10;
+    case TokenType::PIPE_ASSIGN:return 10;
+    case TokenType::CARET_ASSIGN:return 10;
+    case TokenType::STAR_ASSIGN:return 10;
+    case TokenType::DIV_ASSIGN:return 10;
+    case TokenType::MOD_ASSIGN:return 10;
+    case TokenType::LEFT:return 10;
+    case TokenType::RIGHT:return 10;
+    case TokenType::NOT_EQUAL:return 10;
+    case TokenType::NOT:return 10;
+    case TokenType::DOT:return 10;
+    case TokenType::AND:return 10;
+    case TokenType::OR:return 10;
+    case TokenType::LEFT_SHIFT_ASSIGN:return 10;
+    case TokenType::RIGHT_SHIFT_ASSIGN:return 10;
+    default: return 0;
+  }
+}
+
 std::ostream &operator<<(std::ostream &os, const Token &token) {
   if (token.extra.empty() && token.getType() != TokenType::STRING) {
     os << token.line << ':' << token.getColumn() << ": " << token.token_type() << " " << token.name();

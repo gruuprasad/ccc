@@ -33,6 +33,8 @@ public:
   bool is_oneof(const T& first, const Args&... args) const {
     return (type == first) || is_oneof(args...);
   }
+  
+  unsigned int getPrecedence();
 
 private:
   ccc::TokenType type;
