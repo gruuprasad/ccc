@@ -3,4 +3,4 @@
 cd ..
 NAME=c4 CFG=release make
 
-python3 ./scripts/stats.py ./build/release/c4
+python3 ./scripts/stats.py ./build/release/c4 ./build/release/legacy
