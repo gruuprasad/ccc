@@ -8,8 +8,7 @@
 
 namespace ccc {
 
-int dummy(const char *, ...) {
-}
+int dummy(const char *, ...) {}
 
 FastLexer::FastLexer(const std::string &content) : content(content) {
   token_list.reserve(content.size());
@@ -19,7 +18,6 @@ FastLexer::FastLexer(const std::string &content) : content(content) {
 FastLexer::FastLexer(const std::string &content, char *filename, bool tokenize) : content(content) {
   token_list.reserve(content.size());
   this->filename = filename;
-//  this->tokenize = tokenize;
   if (tokenize) {
     this->print_ptr = &std::printf;
   } else {

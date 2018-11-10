@@ -29,6 +29,7 @@ std::vector<std::string> split_lines(const std::string &str) {
 }
 
 bool lexing_of(const std::string &filename, const std::string &expected) {
+
   fpos_t pos;
   fgetpos(stdout, &pos);
   int fd = dup(fileno(stdout));
@@ -44,6 +45,8 @@ bool lexing_of(const std::string &filename, const std::string &expected) {
   ppArgs[2] = &input[0];
 
   EntryPointHandler().handle(3, ppArgs);
+
+  delete[] ppArgs;
 
   fflush(stdout);
   dup2(fd, fileno(stdout));
