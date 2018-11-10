@@ -2,7 +2,6 @@
 
 #include <string>
 #include <iostream>
-#include <sstream>
 #include "token.hpp"
 
 namespace ccc {

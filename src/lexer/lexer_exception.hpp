@@ -13,6 +13,6 @@ public:
   explicit LexerException(const ccc::Token &token);
   const char *what() const noexcept override;
 };
- 
+
 } // namespace ccc
 #endif //C4_LEXER_EXCEPTION_HPP
