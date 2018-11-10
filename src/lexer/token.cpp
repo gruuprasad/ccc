@@ -100,8 +100,8 @@ const std::string Token::name() const {
   case TokenType::DIV_ASSIGN:return "/=";
   case TokenType::MOD_ASSIGN:return "%=";
   case TokenType::STRING:return "STRING";
-  case TokenType::LEFT:return "<";
-  case TokenType::RIGHT:return ">";
+  case TokenType::LESS:return "<";
+  case TokenType::GREATER:return ">";
   case TokenType::NOT_EQUAL:return "!=";
   case TokenType::NOT:return "!";
   case TokenType::ARROW:return "->";
@@ -209,8 +209,8 @@ const std::string Token::token_type() const {
   case TokenType::DIV_ASSIGN:return "punctuator";
   case TokenType::MOD_ASSIGN:return "punctuator";
   case TokenType::STRING:return "string-literal";
-  case TokenType::LEFT:return "punctuator";
-  case TokenType::RIGHT:return "punctuator";
+  case TokenType::LESS:return "punctuator";
+  case TokenType::GREATER:return "punctuator";
   case TokenType::NOT_EQUAL:return "punctuator";
   case TokenType::NOT:return "punctuator";
   case TokenType::ARROW:return "punctuator";

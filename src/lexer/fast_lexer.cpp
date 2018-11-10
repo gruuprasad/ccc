@@ -327,7 +327,7 @@ inline bool FastLexer::isPunctuator() {
       position += 2;
       column += 2;
       return true;
-    default:token_list.emplace_back(TokenType::LEFT, line, column);
+    default:token_list.emplace_back(TokenType::LESS, line, column);
       ++position;
       ++column;
       return true;
@@ -352,7 +352,7 @@ inline bool FastLexer::isPunctuator() {
       column += 2;
       return true;
     }
-    token_list.emplace_back(TokenType::RIGHT, line, column);
+    token_list.emplace_back(TokenType::GREATER, line, column);
     ++position;
     ++column;
     return true;
