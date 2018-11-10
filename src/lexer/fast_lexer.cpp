@@ -14,9 +14,9 @@ FastLexer::FastLexer(const std::string &content) : content(content) {
   this->tokenize = false;
 }
 
-FastLexer::FastLexer(const std::string &content, std::string filename, bool tokenize) : content(content) {
+FastLexer::FastLexer(const std::string &content, char *filename, bool tokenize) : content(content) {
   token_list.reserve(content.size());
-  this->filename = filename.c_str();
+  this->filename = filename;
   this->tokenize = tokenize;
 }
 

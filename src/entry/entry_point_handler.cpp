@@ -8,29 +8,22 @@ using namespace ccc;
 
 EntryPointHandler::EntryPointHandler() = default;
 
-int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename) {
-  std::vector<Token, std::allocator<Token>> token_list;
-  std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-  auto lexer = FastLexer(buffer, filename, true);
-  token_list = lexer.lex();
-  if (lexer.fail()) {
-    std::cerr << filename << ":" << lexer.getError() << std::endl;
-    return 1;
-  }
-//  for (Token &token : token_list) {
-//    output << filename << ":" << token<< '\n';
-//    token.print(filename);
-//  }
-  return 0;
-}
-
 int EntryPointHandler::handle(int argCount, char **const ppArgs) {
   if (argCount == 3) {
     const std::string flagName = std::string(ppArgs[1]);
-    auto filename = ppArgs[2];
-    std::ifstream file = std::ifstream(filename);
+
+    char *filename = &ppArgs[2][0];
+
+    for (long i = 1; ppArgs[2][i] != '\0'; i++) {
+      if (ppArgs[2][i - 1] == '/') {
+        filename = &ppArgs[2][i];
+      }
+    }
+
+    std::ifstream file = std::ifstream(ppArgs[2]);
     std::vector<Token, std::allocator<Token>> token_list;
     std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
     if (flagName == "--tokenize") {
       auto lexer = FastLexer(buffer, filename, true);
       token_list = lexer.lex();
@@ -50,6 +43,5 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       return 0;
     }
   }
-  std::cerr << "TODO: Implement a compiler." << std::endl;
   return EXIT_FAILURE;
 }

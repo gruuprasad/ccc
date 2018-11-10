@@ -34,7 +34,16 @@ bool lexing_of(const std::string &filename, const std::string &expected) {
   int fd = dup(fileno(stdout));
 
   freopen("stdout.tmp", "w", stdout);
-  EntryPointHandler().tokenize(std::ifstream("../examples/" + filename), filename);
+
+  std::string flag = "--tokenize";
+  std::string input = "../examples/" + filename;
+
+  char ** ppArgs = new char*[3];
+
+  ppArgs[1] = &flag[0];
+  ppArgs[2] = &input[0];
+
+  EntryPointHandler().handle(3, ppArgs);
 
   fflush(stdout);
   dup2(fd, fileno(stdout));
@@ -90,7 +99,7 @@ COMPARE(everything)
 COMPARE(test)
 COMPARE(hello_world)
 COMPARE(transpose)
-//COMPARE(lots_of_real_code) // TODO fix filename
+COMPARE(lots_of_real_code)
 COMPARE(comments)
 COMPARE(lorem_ipsum)
 COMPARE(extra)
