@@ -1,6 +1,7 @@
 import sys
 import matplotlib.pyplot as plt
 import os
+from os import listdir
 from timeit import default_timer as timer
 from tqdm import tqdm
 
@@ -14,8 +15,16 @@ t = [timer()]
 i = 1
 
 files = []
+exe = []
 
-exe = sys.argv[1:]
+for p in sys.argv[1:]:
+    if p.endswith("/c4"):
+        exe += [p]
+    else:
+        for path, subdirs, fil in os.walk(p):
+            for name in fil:
+                if name == "c4":
+                    exe += [os.path.join(path, name)]
 
 print("gernating input files...")
 
