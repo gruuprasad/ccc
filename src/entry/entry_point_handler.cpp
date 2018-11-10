@@ -8,7 +8,7 @@ using namespace ccc;
 
 EntryPointHandler::EntryPointHandler() = default;
 
-int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename, std::ostream &output) {
+int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename) {
   std::vector<Token, std::allocator<Token>> token_list;
   std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
   auto lexer = FastLexer(buffer);
@@ -18,7 +18,7 @@ int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename,
     return 1;
   }
   for (Token &token : token_list) {
-    output << filename << ":" << token<< '\n';
+//    output << filename << ":" << token<< '\n';
     token.print(filename);
   }
   return 0;
@@ -39,8 +39,9 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     }
     if (flagName == "--tokenize") {
       for (Token &token : token_list) {
-        std::cout << filename << ":" << token << '\n';
+//        std::cout << filename << ":" << token << '\n';
 //        fprintf(stdout, "%s:%s\n", filename.c_str(), token.toString().c_str());
+        token.print(filename);
       }
       return 0;
     }
