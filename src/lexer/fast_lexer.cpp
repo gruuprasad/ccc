@@ -8,23 +8,12 @@
 
 namespace ccc {
 
-void print_token_extra(std::string format, char *filename, long line, long column, const std::string &extra) {
-  std::printf(&format[0], filename, line, column + 1, &extra[0]);
-}
-
-void print_token(std::string format, char *filename, long line, long column) {
-  std::printf(&format[0], filename, line, column + 1);
-}
-
-template<typename... Args>
-void dummy(Args... args __attribute__((unused))) {
+int dummy(const char *, ...) {
 }
 
 FastLexer::FastLexer(const std::string &content) : content(content) {
   token_list.reserve(content.size());
-  this->tokenize = false;
   this->print_ptr = &dummy;
-  this->print_extra_ptr = &dummy;
 }
 
 FastLexer::FastLexer(const std::string &content, char *filename, bool tokenize) : content(content) {
@@ -32,11 +21,9 @@ FastLexer::FastLexer(const std::string &content, char *filename, bool tokenize) 
   this->filename = filename;
 //  this->tokenize = tokenize;
   if (tokenize) {
-    this->print_ptr = &print_token;
-    this->print_extra_ptr = &print_token_extra;
+    this->print_ptr = &std::printf;
   } else {
     this->print_ptr = &dummy;
-    this->print_extra_ptr = &dummy;
   }
 }
 
@@ -149,11 +136,11 @@ inline bool FastLexer::munchNumber() {
   } while ('0' <= first && first <= '9');
   token_list.emplace_back(TokenType::NUMBER, line, column,
                           std::string(&content[oldPosition], position - oldPosition));
-  (*this->print_extra_ptr)("%s:%ld:%ld: constant %s\n",
-                           filename,
-                           line,
-                           column,
-                           std::string(&content[oldPosition], position - oldPosition));
+  (*this->print_ptr)("%s:%ld:%ld: constant %s\n",
+                     filename,
+                     line,
+                     column + 1,
+                     std::string(&content[oldPosition], position - oldPosition).c_str());
   column += position - oldPosition;
   return true;
 }
@@ -171,11 +158,11 @@ inline bool FastLexer::munchIdentifier() {
                           line,
                           column,
                           std::string(&content[oldPosition], position - oldPosition));
-  (*this->print_extra_ptr)("%s:%ld:%ld: identifier %s\n",
-                           filename,
-                           line,
-                           column,
-                           std::string(&content[oldPosition], position - oldPosition));
+  (*this->print_ptr)("%s:%ld:%ld: identifier %s\n",
+                     filename,
+                     line,
+                     column + 1,
+                     std::string(&content[oldPosition], position - oldPosition).c_str());
   column += position - oldPosition;
   return true;
 }
@@ -188,11 +175,11 @@ inline bool FastLexer::munchCharacter() {
       && first != '\r'
       && getCharAt(position + 1) == '\'') {
     token_list.emplace_back(TokenType::CHARACTER, line, column, std::string(1, first));
-    (*this->print_extra_ptr)("%s:%ld:%ld: constant '%s'\n",
-                             filename,
-                             line,
-                             column,
-                             std::string(1, first));
+    (*this->print_ptr)("%s:%ld:%ld: constant '%s'\n",
+                       filename,
+                       line,
+                       column + 1,
+                       std::string(1, first).c_str());
     column += 3;
     position += 2;
     return true;
@@ -215,11 +202,11 @@ inline bool FastLexer::munchCharacter() {
                               line,
                               column,
                               std::string(&content[position - 1], 2));
-      (*this->print_extra_ptr)("%s:%ld:%ld: constant '%s'\n",
-                               filename,
-                               line,
-                               column,
-                               std::string(&content[position - 1], 2));
+      (*this->print_ptr)("%s:%ld:%ld: constant '%s'\n",
+                         filename,
+                         line,
+                         column,
+                         std::string(&content[position - 1], 2).c_str());
       column += 4;
       position += 2;
       return true;
@@ -274,11 +261,11 @@ inline bool FastLexer::munchString() {
                           line,
                           initColumn,
                           std::string(&content[oldPosition + 1], position - oldPosition - 1));
-  (*this->print_extra_ptr)("%s:%ld:%ld: string-literal \"%s\"\n",
-                           filename,
-                           line,
-                           initColumn,
-                           std::string(&content[oldPosition + 1], position - oldPosition - 1));
+  (*this->print_ptr)("%s:%ld:%ld: string-literal \"%s\"\n",
+                     filename,
+                     line,
+                     initColumn + 1,
+                     std::string(&content[oldPosition + 1], position - oldPosition - 1).c_str());
   ++position;
   ++column;
   return true;
@@ -288,74 +275,74 @@ inline bool FastLexer::isPunctuator() {
   const char first = getCharAt(position);
   switch (first) {
   case '{':token_list.emplace_back(TokenType::BRACE_OPEN, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator {\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator {\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '}':token_list.emplace_back(TokenType::BRACE_CLOSE, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator }\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator }\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '[':token_list.emplace_back(TokenType::BRACKET_OPEN, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator [\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator [\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case ']':token_list.emplace_back(TokenType::BRACKET_CLOSE, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator ]\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator ]\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '(':token_list.emplace_back(TokenType::PARENTHESIS_OPEN, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator (\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator (\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case ')':token_list.emplace_back(TokenType::PARENTHESIS_CLOSE, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator )\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator )\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '+':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(TokenType::PLUS_ASSIGN, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator +=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator +=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     if (getCharAt(position + 1) == '+') {
       token_list.emplace_back(TokenType::PLUSPLUS, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator ++\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator ++\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::PLUS, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator +\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator +\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '-':
     switch (getCharAt(position + 1)) {
     case '-':token_list.emplace_back(TokenType::MINUSMINUS, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator --\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator --\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     case '=':token_list.emplace_back(TokenType::MINUS_ASSIGN, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator -=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator -=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     case '>':token_list.emplace_back(TokenType::ARROW, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator ->\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator ->\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     default:token_list.emplace_back(TokenType::MINUS, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator -\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator -\n", filename, line, column + 1);
       ++position;
       ++column;
       return true;
@@ -364,48 +351,48 @@ inline bool FastLexer::isPunctuator() {
   case '=':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(TokenType::EQUAL, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator ==\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator ==\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::ASSIGN, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator =\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator =\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '<':
     switch (getCharAt(position + 1)) {
     case ':':token_list.emplace_back(TokenType::BRACKET_OPEN_ALT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator <:\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator <:\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     case '%':token_list.emplace_back(TokenType::BRACE_OPEN_ALT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator <%%\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator <%%\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     case '=':token_list.emplace_back(TokenType::LESS_EQUAL, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator <=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator <=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     case '<':
       if (getCharAt(position + 2) == '=') {
         token_list.emplace_back(TokenType::LEFT_SHIFT_ASSIGN, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: punctuator <<=\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: punctuator <<=\n", filename, line, column + 1);
         position += 3;
         column += 3;
         return true;
       }
       token_list.emplace_back(TokenType::LEFT_SHIFT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator <<\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator <<\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     default:token_list.emplace_back(TokenType::LEFT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator <\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator <\n", filename, line, column + 1);
       ++position;
       ++column;
       return true;
@@ -414,7 +401,7 @@ inline bool FastLexer::isPunctuator() {
   case '>':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(TokenType::GREATER_EQUAL, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator >=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator >=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
@@ -422,42 +409,42 @@ inline bool FastLexer::isPunctuator() {
     if (getCharAt(position + 1) == '>') {
       if (getCharAt(position + 2) == '=') {
         token_list.emplace_back(TokenType::RIGHT_SHIFT_ASSIGN, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: punctuator >>=\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: punctuator >>=\n", filename, line, column + 1);
         position += 3;
         column += 3;
         return true;
       }
       token_list.emplace_back(TokenType::RIGHT_SHIFT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator >>\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator >>\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::RIGHT, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator >\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator >\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '!':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(TokenType::NOT_EQUAL, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator !=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator !=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::NOT, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator !\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator !\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case ',':token_list.emplace_back(TokenType::COMMA, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator ,\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator ,\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case ';':token_list.emplace_back(TokenType::SEMICOLON, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator ;\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator ;\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
@@ -465,64 +452,64 @@ inline bool FastLexer::isPunctuator() {
     if (getCharAt(position + 1) == '.'
         && getCharAt(position + 2) == '.') {
       token_list.emplace_back(TokenType::TRI_DOTS, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator ...\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator ...\n", filename, line, column + 1);
       position += 3;
       column += 3;
       return true;
     }
     token_list.emplace_back(TokenType::DOT, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator .\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator .\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '^':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(TokenType::CARET_ASSIGN, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator ^=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator ^=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::CARET, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator ^\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator ^\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '~':token_list.emplace_back(TokenType::TILDE, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator ~\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator ~\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '*':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(TokenType::STAR_ASSIGN, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator *=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator *=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::STAR, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator *\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator *\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '/':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(TokenType::DIV_ASSIGN, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator /=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator /=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::DIV, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator /\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator /\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '%':
     switch (getCharAt(position + 1)) {
     case '=':token_list.emplace_back(TokenType::MOD_ASSIGN, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator %%=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator %%=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
@@ -530,23 +517,23 @@ inline bool FastLexer::isPunctuator() {
       if (getCharAt(position + 2) == '%'
           && getCharAt(position + 3) == ':') {
         token_list.emplace_back(TokenType::HASHHASH_ALT, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: punctuator %%:%%:\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: punctuator %%:%%:\n", filename, line, column + 1);
         position += 4;
         column += 4;
         return true;
       }
       token_list.emplace_back(TokenType::HASH_ALT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator %%:\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator %%:\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     case '>':token_list.emplace_back(TokenType::BRACE_CLOSE_ALT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator %%>\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator %%>\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     default:token_list.emplace_back(TokenType::MOD, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator %%\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator %%\n", filename, line, column + 1);
       ++position;
       ++column;
       return true;
@@ -554,71 +541,71 @@ inline bool FastLexer::isPunctuator() {
   case '&':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(TokenType::AMPERSAND_ASSIGN, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator &=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator &=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     if (getCharAt(position + 1) == '&') {
       token_list.emplace_back(TokenType::AND, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator &&\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator &&\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::AMPERSAND, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator &\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator &\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '|':
     if (getCharAt(position + 1) == '=') {
       token_list.emplace_back(TokenType::PIPE_ASSIGN, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator |=\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator |=\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     if (getCharAt(position + 1) == '|') {
       token_list.emplace_back(TokenType::OR, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator ||\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator ||\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::PIPE, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator |\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator |\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case ':':
     if (getCharAt(position + 1) == '>') {
       token_list.emplace_back(TokenType::BRACKET_CLOSE_ALT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator :>\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator :>\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::COLON, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator :\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator :\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '#':
     if (getCharAt(position + 1) == '#') {
       token_list.emplace_back(TokenType::HASHHASH, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: punctuator ##\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: punctuator ##\n", filename, line, column + 1);
       position += 2;
       column += 2;
       return true;
     }
     token_list.emplace_back(TokenType::HASH, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator #\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator #\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
   case '?':token_list.emplace_back(TokenType::QUESTION, line, column);
-    (*this->print_ptr)("%s:%ld:%ld: punctuator ?\n", filename, line, column);
+    (*this->print_ptr)("%s:%ld:%ld: punctuator ?\n", filename, line, column + 1);
     ++position;
     ++column;
     return true;
@@ -640,7 +627,7 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 4)
         ) {
       token_list.emplace_back(TokenType::AUTO, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: keyword auto\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: keyword auto\n", filename, line, column + 1);
       position += 4;
       column += 4;
       return true;
@@ -654,7 +641,7 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 5)
         ) {
       token_list.emplace_back(TokenType::BREAK, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: keyword break\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: keyword break\n", filename, line, column + 1);
       position += 5;
       column += 5;
       return true;
@@ -668,7 +655,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 4)
           ) {
         token_list.emplace_back(TokenType::CASE, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword case\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword case\n", filename, line, column + 1);
         position += 4;
         column += 4;
         return true;
@@ -680,7 +667,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 4)
           ) {
         token_list.emplace_back(TokenType::CHAR, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword char\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword char\n", filename, line, column + 1);
         position += 4;
         column += 4;
         return true;
@@ -693,7 +680,7 @@ inline bool FastLexer::isKeyword() {
             && keyWordEnd(position + 5)
             ) {
           token_list.emplace_back(TokenType::CONST, line, column);
-          (*this->print_ptr)("%s:%ld:%ld: keyword const\n", filename, line, column);
+          (*this->print_ptr)("%s:%ld:%ld: keyword const\n", filename, line, column + 1);
           position += 5;
           column += 5;
           return true;
@@ -706,7 +693,7 @@ inline bool FastLexer::isKeyword() {
             && keyWordEnd(position + 8)
             ) {
           token_list.emplace_back(TokenType::CONTINUE, line, column);
-          (*this->print_ptr)("%s:%ld:%ld: keyword continue\n", filename, line, column);
+          (*this->print_ptr)("%s:%ld:%ld: keyword continue\n", filename, line, column + 1);
           position += 8;
           column += 8;
           return true;
@@ -725,14 +712,14 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 6)
           ) {
         token_list.emplace_back(TokenType::DOUBLE, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword double\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword double\n", filename, line, column + 1);
         position += 6;
         column += 6;
         return true;
       }
       if (keyWordEnd(position + 2)) {
         token_list.emplace_back(TokenType::DO, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword do\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword do\n", filename, line, column + 1);
         position += 2;
         column += 2;
         return true;
@@ -748,7 +735,7 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 7)
         ) {
       token_list.emplace_back(TokenType::DEFAULT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: keyword default\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: keyword default\n", filename, line, column + 1);
       position += 7;
       column += 7;
       return true;
@@ -762,7 +749,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 4)
           ) {
         token_list.emplace_back(TokenType::ELSE, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword else\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword else\n", filename, line, column + 1);
         position += 4;
         column += 4;
         return true;
@@ -774,7 +761,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 4)
           ) {
         token_list.emplace_back(TokenType::ENUM, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword enum\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword enum\n", filename, line, column + 1);
         position += 4;
         column += 4;
         return true;
@@ -788,7 +775,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 6)
           ) {
         token_list.emplace_back(TokenType::EXTERN, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword extern\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword extern\n", filename, line, column + 1);
         position += 6;
         column += 6;
         return true;
@@ -803,7 +790,7 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 3)
         ) {
       token_list.emplace_back(TokenType::FOR, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: keyword for\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: keyword for\n", filename, line, column + 1);
       position += 3;
       column += 3;
       return true;
@@ -815,7 +802,7 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 5)
         ) {
       token_list.emplace_back(TokenType::FLOAT, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: keyword float\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: keyword float\n", filename, line, column + 1);
       position += 5;
       column += 5;
       return true;
@@ -828,7 +815,7 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 4)
         ) {
       token_list.emplace_back(TokenType::GOTO, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: keyword goto\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: keyword goto\n", filename, line, column + 1);
       position += 4;
       column += 4;
       return true;
@@ -839,7 +826,7 @@ inline bool FastLexer::isKeyword() {
     case 'f':
       if (keyWordEnd(position + 2)) {
         token_list.emplace_back(TokenType::IF, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword if\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword if\n", filename, line, column + 1);
         position += 2;
         column += 2;
         return true;
@@ -850,7 +837,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 3)
           ) {
         token_list.emplace_back(TokenType::INT, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword int\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword int\n", filename, line, column + 1);
         position += 3;
         column += 3;
         return true;
@@ -862,7 +849,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 6)
           ) {
         token_list.emplace_back(TokenType::INLINE, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword inline\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword inline\n", filename, line, column + 1);
         position += 6;
         column += 6;
         return true;
@@ -878,7 +865,7 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 4)
         ) {
       token_list.emplace_back(TokenType::LONG, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: keyword long\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: keyword long\n", filename, line, column + 1);
       position += 4;
       column += 4;
       return true;
@@ -896,7 +883,7 @@ inline bool FastLexer::isKeyword() {
             && keyWordEnd(position + 8)
             ) {
           token_list.emplace_back(TokenType::REGISTER, line, column);
-          (*this->print_ptr)("%s:%ld:%ld: keyword register\n", filename, line, column);
+          (*this->print_ptr)("%s:%ld:%ld: keyword register\n", filename, line, column + 1);
           position += 8;
           column += 8;
           return true;
@@ -911,7 +898,7 @@ inline bool FastLexer::isKeyword() {
             && keyWordEnd(position + 8)
             ) {
           token_list.emplace_back(TokenType::RESTRICT, line, column);
-          (*this->print_ptr)("%s:%ld:%ld: keyword restrict\n", filename, line, column);
+          (*this->print_ptr)("%s:%ld:%ld: keyword restrict\n", filename, line, column + 1);
           position += 8;
           column += 8;
           return true;
@@ -924,7 +911,7 @@ inline bool FastLexer::isKeyword() {
             && keyWordEnd(position + 6)
             ) {
           token_list.emplace_back(TokenType::RETURN, line, column);
-          (*this->print_ptr)("%s:%ld:%ld: keyword return\n", filename, line, column);
+          (*this->print_ptr)("%s:%ld:%ld: keyword return\n", filename, line, column + 1);
           position += 6;
           column += 6;
           return true;
@@ -944,7 +931,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 5)
           ) {
         token_list.emplace_back(TokenType::SHORT, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword short\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword short\n", filename, line, column + 1);
         position += 5;
         column += 5;
         return true;
@@ -958,7 +945,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 6)
           ) {
         token_list.emplace_back(TokenType::SIGNED, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword signed\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword signed\n", filename, line, column + 1);
         position += 6;
         column += 6;
         return true;
@@ -970,7 +957,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 6)
           ) {
         token_list.emplace_back(TokenType::SIZEOF, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword sizeof\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword sizeof\n", filename, line, column + 1);
         position += 6;
         column += 6;
         return true;
@@ -984,7 +971,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 6)
           ) {
         token_list.emplace_back(TokenType::STATIC, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword static\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword static\n", filename, line, column + 1);
         position += 6;
         column += 6;
         return true;
@@ -996,7 +983,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 6)
           ) {
         token_list.emplace_back(TokenType::STRUCT, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword struct\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword struct\n", filename, line, column + 1);
         position += 6;
         column += 6;
         return true;
@@ -1010,7 +997,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 6)
           ) {
         token_list.emplace_back(TokenType::SWITCH, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword switch\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword switch\n", filename, line, column + 1);
         position += 6;
         column += 6;
         return true;
@@ -1029,7 +1016,7 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 7)
         ) {
       token_list.emplace_back(TokenType::TYPEDEF, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: keyword typedef\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: keyword typedef\n", filename, line, column + 1);
       position += 7;
       column += 7;
       return true;
@@ -1043,7 +1030,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 5)
           ) {
         token_list.emplace_back(TokenType::UNION, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword union\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword union\n", filename, line, column + 1);
         position += 5;
         column += 5;
         return true;
@@ -1057,7 +1044,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 8)
           ) {
         token_list.emplace_back(TokenType::UNSIGNED, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword unsigned\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword unsigned\n", filename, line, column + 1);
         position += 8;
         column += 8;
         return true;
@@ -1071,7 +1058,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 4)
           ) {
         token_list.emplace_back(TokenType::VOID, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword void\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword void\n", filename, line, column + 1);
         position += 4;
         column += 4;
         return true;
@@ -1085,7 +1072,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 8)
           ) {
         token_list.emplace_back(TokenType::VOLATILE, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword volatile\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword volatile\n", filename, line, column + 1);
         position += 8;
         column += 8;
         return true;
@@ -1100,7 +1087,7 @@ inline bool FastLexer::isKeyword() {
         && keyWordEnd(position + 5)
         ) {
       token_list.emplace_back(TokenType::WHILE, line, column);
-      (*this->print_ptr)("%s:%ld:%ld: keyword while\n", filename, line, column);
+      (*this->print_ptr)("%s:%ld:%ld: keyword while\n", filename, line, column + 1);
       position += 5;
       column += 5;
       return true;
@@ -1119,7 +1106,7 @@ inline bool FastLexer::isKeyword() {
             && keyWordEnd(position + 8)
             ) {
           token_list.emplace_back(TokenType::ALIGN_AS, line, column);
-          (*this->print_ptr)("%s:%ld:%ld: keyword _Alignas\n", filename, line, column);
+          (*this->print_ptr)("%s:%ld:%ld: keyword _Alignas\n", filename, line, column + 1);
           position += 8;
           column += 8;
           return true;
@@ -1129,7 +1116,7 @@ inline bool FastLexer::isKeyword() {
             && keyWordEnd(position + 8)
             ) {
           token_list.emplace_back(TokenType::ALIGN_OF, line, column);
-          (*this->print_ptr)("%s:%ld:%ld: keyword _Alignof\n", filename, line, column);
+          (*this->print_ptr)("%s:%ld:%ld: keyword _Alignof\n", filename, line, column + 1);
           position += 8;
           column += 8;
           return true;
@@ -1143,7 +1130,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 7)
           ) {
         token_list.emplace_back(TokenType::ATOMIC, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword _Atomic\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword _Atomic\n", filename, line, column + 1);
         position += 7;
         column += 7;
         return true;
@@ -1156,7 +1143,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 5)
           ) {
         token_list.emplace_back(TokenType::BOOL, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword _Bool\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword _Bool\n", filename, line, column + 1);
         position += 5;
         column += 5;
         return true;
@@ -1172,7 +1159,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 8)
           ) {
         token_list.emplace_back(TokenType::COMPLEX, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword _Complex\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword _Complex\n", filename, line, column + 1);
         position += 8;
         column += 8;
         return true;
@@ -1188,7 +1175,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 8)
           ) {
         token_list.emplace_back(TokenType::GENERIC, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword _Generic\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword _Generic\n", filename, line, column + 1);
         position += 8;
         column += 8;
         return true;
@@ -1206,7 +1193,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 10)
           ) {
         token_list.emplace_back(TokenType::IMAGINARY, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword _Imaginary\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword _Imaginary\n", filename, line, column + 1);
         position += 10;
         column += 10;
         return true;
@@ -1223,7 +1210,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 9)
           ) {
         token_list.emplace_back(TokenType::NO_RETURN, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword _Noreturn\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword _Noreturn\n", filename, line, column + 1);
         position += 9;
         column += 9;
         return true;
@@ -1245,7 +1232,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 14)
           ) {
         token_list.emplace_back(TokenType::STATIC_ASSERT, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword _Static_assert\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword _Static_assert\n", filename, line, column + 1);
         position += 14;
         column += 14;
         return true;
@@ -1266,7 +1253,7 @@ inline bool FastLexer::isKeyword() {
           && keyWordEnd(position + 13)
           ) {
         token_list.emplace_back(TokenType::THREAD_LOCAL, line, column);
-        (*this->print_ptr)("%s:%ld:%ld: keyword _Thread_local\n", filename, line, column);
+        (*this->print_ptr)("%s:%ld:%ld: keyword _Thread_local\n", filename, line, column + 1);
         position += 13;
         column += 13;
         return true;

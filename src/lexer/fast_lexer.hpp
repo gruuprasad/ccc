@@ -8,9 +8,7 @@
 namespace ccc {
 
 class FastLexer {
-  void (*print_ptr)(std::string, char *, long, long);
-  void (*print_extra_ptr)(std::string, char *, long, long, const std::string &);
-  bool tokenize;
+  int (*print_ptr)(const char *, ...);
   char *filename;
   std::vector<ccc::Token, std::allocator<ccc::Token>> token_list;
   const std::string &content;
