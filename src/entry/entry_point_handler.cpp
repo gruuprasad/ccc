@@ -11,16 +11,16 @@ EntryPointHandler::EntryPointHandler() = default;
 int EntryPointHandler::tokenize(std::ifstream file, const std::string &filename) {
   std::vector<Token, std::allocator<Token>> token_list;
   std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-  auto lexer = FastLexer(buffer);
+  auto lexer = FastLexer(buffer, filename, true);
   token_list = lexer.lex();
   if (lexer.fail()) {
     std::cerr << filename << ":" << lexer.getError() << std::endl;
     return 1;
   }
-  for (Token &token : token_list) {
+//  for (Token &token : token_list) {
 //    output << filename << ":" << token<< '\n';
-    token.print(filename);
-  }
+//    token.print(filename);
+//  }
   return 0;
 }
 
@@ -31,21 +31,22 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     std::ifstream file = std::ifstream(filename);
     std::vector<Token, std::allocator<Token>> token_list;
     std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    auto lexer = FastLexer(buffer);
-    token_list = lexer.lex();
-    if (lexer.fail()) {
-    std::cerr << filename << ":" << lexer.getError() << std::endl;
-    return 1;
-    }
     if (flagName == "--tokenize") {
-      for (Token &token : token_list) {
-//        std::cout << filename << ":" << token << '\n';
-//        fprintf(stdout, "%s:%s\n", filename.c_str(), token.toString().c_str());
-        token.print(filename);
+      auto lexer = FastLexer(buffer, filename, true);
+      token_list = lexer.lex();
+      if (lexer.fail()) {
+        std::cerr << filename << ":" << lexer.getError() << std::endl;
+        return 1;
       }
       return 0;
     }
     if (flagName == "--parse") {
+      auto lexer = FastLexer(buffer, filename, false);
+      token_list = lexer.lex();
+      if (lexer.fail()) {
+        std::cerr << filename << ":" << lexer.getError() << std::endl;
+        return 1;
+      }
       return 0;
     }
   }

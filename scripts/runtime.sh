@@ -1,2 +1,6 @@
 #!/usr/bin/env bash
-python3 stats.py ../build/release/c4
+
+cd ..
+NAME=c4 CFG=release make
+
+python3 ./scripts/stats.py ./build/release/c4

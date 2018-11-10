@@ -8,6 +8,8 @@
 namespace ccc {
 
 class FastLexer {
+  bool tokenize;
+  const char* filename;
   std::vector<ccc::Token, std::allocator<ccc::Token>> token_list;
   const std::string & content;
   std::string error;
@@ -28,6 +30,7 @@ class FastLexer {
   inline bool isKeyword();
   inline bool isPunctuator();
 public:
+  explicit FastLexer(const std::string &content, std::string filename, bool tokenize);
   explicit FastLexer(const std::string &content);
   std::vector<ccc::Token, std::allocator<ccc::Token>> lex();
   bool fail() const { return !error.empty(); }
