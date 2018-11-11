@@ -108,7 +108,7 @@ enum class TokenType {
   HASHHASH_ALT,
   FLOAT,
   DOUBLE
-};
+}; 
 
 } // namespace ccc
 
