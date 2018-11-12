@@ -34,6 +34,7 @@ TEST_CASE("Fast Parser:empty declaration test "#type) { \
   PARSE_VALID(type" ** p;")\
   PARSE_VALID(type" ** (p);")\
   PARSE_VALID(type" ***** (p);")\
+  PARSE_VALID(type" a (" + std::string(type) + " a);")\
   PARSE_VALID(type" ;" + std::string(type) + " ;") \
   PARSE_VALID(type" a;" + std::string(type) + " a;")\
   PARSE_VALID(type" (a);"+ std::string(type) + " (a);")\
@@ -42,6 +43,7 @@ TEST_CASE("Fast Parser:empty declaration test "#type) { \
   PARSE_VALID(type" ** (p);" + std::string(type) + " ** (p);")\
   PARSE_VALID(type" ***** (p);" + std::string(type) + " ***** (p);")\
   PARSE_VALID("void a; char b; short c; int d; struct e;")\
+  PARSE_VALID(type" a (" + std::string(type) + " a, void b, char c, short e);")\
 }\
 
 TEST_CASE("Fast Parser: Struct declaration test") {

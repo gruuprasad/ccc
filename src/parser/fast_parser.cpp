@@ -40,7 +40,8 @@ void FastParser::parseDirectDeclarator() {
   switch(peek().getType()) {
     case TokenType::IDENTIFIER:
       nextToken();
-      return;
+      if (peek().getType() != TokenType::PARENTHESIS_OPEN) return;
+    // fall through
     case TokenType::PARENTHESIS_OPEN:
       consume();
       if (peek().is_oneof(C_TYPES)) {
