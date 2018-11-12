@@ -20,10 +20,18 @@ void FastParser::parseFuncDefOrDeclaration() {
 }
 
 void FastParser::parseTypeSpecifiers() {
-  while (peek().is_oneof(C_TYPES)) {
-    if (peek().is(TokenType::STRUCT))
+  switch(peek().getType()) {
+    case TokenType::VOID:
+    case TokenType::CHAR:
+    case TokenType::SHORT:
+    case TokenType::INT:
+      nextToken(); return;
+    case TokenType::STRUCT:
       return parseStructOrUnionSpecifier();
-    auto token = nextToken();
+    default:
+      error = "Parse Error";
+      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() 
+                   << ", expecting type specifier";
   }
 }
 
