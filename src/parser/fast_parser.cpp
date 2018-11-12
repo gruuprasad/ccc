@@ -36,23 +36,26 @@ void FastParser::parseDirectDeclarator() {
   switch(peek().getType()) {
     case TokenType::IDENTIFIER:
       nextToken();
-      if (peek().getType() != TokenType::PARENTHESIS_OPEN) return;
-    // fall through
+      if (peek().is(TokenType::PARENTHESIS_OPEN) && consume())
+        parseParameterList();
+      return;
     case TokenType::PARENTHESIS_OPEN:
       consume();
-      if (peek().is_oneof(C_TYPES)) {
-        parseList([&] () { parseTypeSpecifiers(); parseDeclarator(); }, TokenType::COMMA);
-        expect(TokenType::PARENTHESIS_CLOSE);
-        return;
-      }
       parseDeclarator();
       expect(TokenType::PARENTHESIS_CLOSE);
+      if (peek().is(TokenType::PARENTHESIS_OPEN))
+        parseParameterList();
       return;
     default:
       error = "Parse Error";
       my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() 
                    << ", expecting Direct Declarator";
   }
+}
+
+void FastParser::parseParameterList() {
+  parseList([&] () { parseTypeSpecifiers(); parseDeclarator(); }, TokenType::COMMA);
+  expect(TokenType::PARENTHESIS_CLOSE);
 }
 
 void FastParser::parseStructOrUnionSpecifier() {

@@ -70,6 +70,7 @@ private:
   void parseTypeSpecifiers();         
   void parseDeclarator();            
   void parseDirectDeclarator();       
+  void parseParameterList();
   void parseStructOrUnionSpecifier(); 
   void parseStructDeclaration();      
 
