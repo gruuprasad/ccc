@@ -3,7 +3,6 @@
 #include <sstream>
 #include "entry_point_handler.hpp"
 #include "../lexer/fast_lexer.hpp"
-#include "../parser/fast_parser.hpp"
 
 using namespace ccc;
 
@@ -34,7 +33,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     auto lexer = FastLexer(buffer);
     token_list = lexer.lex();
     if (lexer.fail()) {
-      std::cerr << filename << ":" << lexer.getError() << std::endl;
+    std::cerr << filename << ":" << lexer.getError() << std::endl;
     return 1;
     }
     if (flagName == "--tokenize") {
@@ -44,11 +43,6 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       return 0;
     }
     if (flagName == "--parse") {
-      auto parser = FastParser(token_list);
-      if (parser.fail()) {
-        std::cerr << filename << ":" << parser.getError() << std::endl;
-        return 1;
-      }
       return 0;
     }
   }

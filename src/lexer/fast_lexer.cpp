@@ -2,7 +2,7 @@
 #include "lexer_exception.hpp"
 #include "fast_lexer.hpp"
 
-#define LEXER_ERROR(line, column, msg) std::to_string(line) + ":" + std::to_string(column + 1) + ": error: '" +  msg  +  "'. Lexing Stopped!"
+#define ERROR_STR(line, column, msg) std::to_string(line) + ":" + std::to_string(column + 1) + ": error: '" +  msg  +  "'. Lexing Stopped!"
 
 namespace ccc {
 
@@ -33,7 +33,7 @@ inline bool FastLexer::failParsing() {
       }
     }
   }
-  error = LEXER_ERROR(line, column, msg);
+  error = ERROR_STR(line, column, msg);
   return false;
 }
 
@@ -92,7 +92,7 @@ inline bool FastLexer::munchBlockComment() {
   while (first != '*' || getCharAt(position + 1) != '/') {
     switch (first) {
     case 0:
-      error = LEXER_ERROR(previousLine, previousColumn, "Unterminated Comment!");
+      error = ERROR_STR(previousLine, previousColumn, "Unterminated Comment!");
       return false;
     case '\r':
       if (getCharAt(position + 1) == '\n') {
@@ -175,11 +175,11 @@ inline bool FastLexer::munchCharacter() {
       position += 2;
       return true;
     default:
-      error = LEXER_ERROR(line, column, "Invalid character: '" + std::string(&content[position - 1], 2) + "'");
+      error = ERROR_STR(line, column, "Invalid character: '" + std::string(&content[position - 1], 2) + "'");
       return false;
     }
   }
-  error = LEXER_ERROR(line, column, "Invalid character: '" + std::string(1, first) + "'");
+  error = ERROR_STR(line, column, "Invalid character: '" + std::string(1, first) + "'");
   return false;
 }
 
@@ -192,7 +192,7 @@ inline bool FastLexer::munchString() {
     if (first == '\n'
         || first == '\r'
         || first == 0) {
-      error = LEXER_ERROR(line, column, "Line break in string at " + std::string(&content[oldPosition + 1], position - oldPosition));
+      error = ERROR_STR(line, column, "Line break in string at " + std::string(&content[oldPosition + 1], position - oldPosition));
       return false;
     }
     if (first == '\\') {
@@ -211,7 +211,7 @@ inline bool FastLexer::munchString() {
       case 't':
       case 'v':break;
       default:
-        error = LEXER_ERROR(line, column, "Invalid escape at " + std::string(&content[oldPosition + 1], position - oldPosition));
+        error = ERROR_STR(line, column, "Invalid escape at " + std::string(&content[oldPosition + 1], position - oldPosition));
         return false;
       }
     }
@@ -327,7 +327,7 @@ inline bool FastLexer::isPunctuator() {
       position += 2;
       column += 2;
       return true;
-    default:token_list.emplace_back(TokenType::LESS, line, column);
+    default:token_list.emplace_back(TokenType::LEFT, line, column);
       ++position;
       ++column;
       return true;
@@ -352,7 +352,7 @@ inline bool FastLexer::isPunctuator() {
       column += 2;
       return true;
     }
-    token_list.emplace_back(TokenType::GREATER, line, column);
+    token_list.emplace_back(TokenType::RIGHT, line, column);
     ++position;
     ++column;
     return true;

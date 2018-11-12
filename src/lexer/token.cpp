@@ -100,8 +100,8 @@ const std::string Token::name() const {
   case TokenType::DIV_ASSIGN:return "/=";
   case TokenType::MOD_ASSIGN:return "%=";
   case TokenType::STRING:return "STRING";
-  case TokenType::LESS:return "<";
-  case TokenType::GREATER:return ">";
+  case TokenType::LEFT:return "<";
+  case TokenType::RIGHT:return ">";
   case TokenType::NOT_EQUAL:return "!=";
   case TokenType::NOT:return "!";
   case TokenType::ARROW:return "->";
@@ -209,8 +209,8 @@ const std::string Token::token_type() const {
   case TokenType::DIV_ASSIGN:return "punctuator";
   case TokenType::MOD_ASSIGN:return "punctuator";
   case TokenType::STRING:return "string-literal";
-  case TokenType::LESS:return "punctuator";
-  case TokenType::GREATER:return "punctuator";
+  case TokenType::LEFT:return "punctuator";
+  case TokenType::RIGHT:return "punctuator";
   case TokenType::NOT_EQUAL:return "punctuator";
   case TokenType::NOT:return "punctuator";
   case TokenType::ARROW:return "punctuator";
@@ -238,26 +238,6 @@ const std::string Token::token_type() const {
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
-}
-
-unsigned int Token::getPrecedence() {
-  switch(type) {
-    case TokenType::STAR:return 10;
-    case TokenType::PLUS:return 10;
-    case TokenType::MINUS:return 10;
-    case TokenType::EQUAL:return 10;
-    case TokenType::NOT_EQUAL:return 10;
-    case TokenType::AND:return 10;
-    case TokenType::OR:return 10;
-    case TokenType::ASSIGN:return 10;
-    case TokenType::LESS:return 10;
-    case TokenType::GREATER:return 10;
-    case TokenType::NOT:return 10;
-    case TokenType::DOT:return 10;
-    case TokenType::LEFT_SHIFT_ASSIGN:return 10;
-    case TokenType::RIGHT_SHIFT_ASSIGN:return 10;
-    default: return 0;
-  }
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
