@@ -26,14 +26,8 @@ void print(const T& t) {
 #define DECLARATION_TESTS(type) \
 TEST_CASE("Fast Parser:empty declaration test "#type) { \
   PARSE_VALID(type" ;") \
-} \
-\
-TEST_CASE("Fast Parser: declaration test "#type) { \
   PARSE_VALID(type" a;")\
   PARSE_VALID(type" (a);")\
-}\
-\
-TEST_CASE("Fast Parser: pointer declarator test "#type) { \
   PARSE_VALID(type" * p;")\
   PARSE_VALID(type" ** p;")\
   PARSE_VALID(type" ** (p);")\
@@ -48,6 +42,9 @@ TEST_CASE("Fast Parser: Struct declaration test") {
   PARSE_VALID("struct A { void a; short b; int c; char name;  int * ptr; };")
   PARSE_VALID("struct A { void a; short b; int c; char name;  int * ptr; } list;")
   PARSE_VALID("struct A { void a; short b; int c; char name;  int * ptr; } * list;")
+  PARSE_VALID("struct A { struct B { int; }; } list;")
+  PARSE_VALID("struct A { struct B { int x; int y; struct C; "
+              "struct { struct E { char z; void * p;}; }; }; } list;")
 }
 
 DECLARATION_TESTS("void")
