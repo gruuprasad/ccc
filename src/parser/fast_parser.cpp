@@ -3,6 +3,11 @@
 
 namespace ccc {
 
+void FastParser::parseExternalDeclaration() {
+  while (curTokenIdx != tokens.size())
+    parseFuncDefOrDeclaration();
+}
+
 void FastParser::parseFuncDefOrDeclaration() {
   parseTypeSpecifiers();
   switch(peek().getType()) {

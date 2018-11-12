@@ -2,6 +2,8 @@
 #include "../src/parser/fast_parser.hpp"
 #include "../src/lexer/fast_lexer.hpp"
 
+#include <string>
+
 //#define PRINT
 
 using namespace ccc;
@@ -32,6 +34,14 @@ TEST_CASE("Fast Parser:empty declaration test "#type) { \
   PARSE_VALID(type" ** p;")\
   PARSE_VALID(type" ** (p);")\
   PARSE_VALID(type" ***** (p);")\
+  PARSE_VALID(type" ;" + std::string(type) + " ;") \
+  PARSE_VALID(type" a;" + std::string(type) + " a;")\
+  PARSE_VALID(type" (a);"+ std::string(type) + " (a);")\
+  PARSE_VALID(type" * p;" + std::string(type) + " * p;")\
+  PARSE_VALID(type" ** p;" + std::string(type) + " ** p;")\
+  PARSE_VALID(type" ** (p);" + std::string(type) + " ** (p);")\
+  PARSE_VALID(type" ***** (p);" + std::string(type) + " ***** (p);")\
+  PARSE_VALID("void a; char b; short c; int d; struct e;")\
 }\
 
 TEST_CASE("Fast Parser: Struct declaration test") {
@@ -45,6 +55,7 @@ TEST_CASE("Fast Parser: Struct declaration test") {
   PARSE_VALID("struct A { struct B { int; }; } list;")
   PARSE_VALID("struct A { struct B { int x; int y; struct C; "
               "struct { struct E { char z; void * p;}; }; }; } list;")
+  PARSE_VALID("struct { int; }; struct A { int x; } a;")
 }
 
 DECLARATION_TESTS("void")

@@ -63,7 +63,7 @@ private:
   //                   direct-abstract-declarator :: ( abstract-declarator) | ( parameter-type-list(opt) )+
 
   void parseTranslationUnit() { return parseExternalDeclaration(); }       
-  void parseExternalDeclaration() { return parseFuncDefOrDeclaration(); }
+  void parseExternalDeclaration();
   void parseFuncDefOrDeclaration();     
 
   // declarations
