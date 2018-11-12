@@ -10,6 +10,7 @@ FORMAT="%E\t|%S\t|%U\t|%P \t|%M\t|%F\t\t\t|%R\t\t|%W\t\t|%c\t\t|%w\t %C"
 printf "${HEADER}"
 sleep 0.1
 /usr/bin/time -f "${FORMAT}" ../scripts/time_all_lexer.sh --tokenize
+/usr/bin/time -f "${FORMAT}" ../scripts/time_all_parser.sh --parse
 sleep 0.1
 #echo "------------------------------------"
 #sleep 0.1

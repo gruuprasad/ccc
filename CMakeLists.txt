@@ -13,7 +13,9 @@ set(SOURCE_FILES
         src/lexer/token_type.cpp src/lexer/token_type.hpp
         src/lexer/token.cpp src/lexer/token.hpp
         src/lexer/lexer_exception.cpp src/lexer/lexer_exception.hpp
-        src/lexer/fast_lexer.cpp src/lexer/fast_lexer.hpp)
+        src/lexer/fast_lexer.cpp src/lexer/fast_lexer.hpp
+        src/parser/fast_parser.cpp src/parser/fast_parser.hpp
+        src/utils/assert.hpp)
 
 add_library(Catch INTERFACE)
 target_include_directories(Catch INTERFACE ${test/catch.hpp})
@@ -27,6 +29,7 @@ set(TEST_FILES
         test/lexer_keyword_test.cpp
         test/lexer_punctuation_test.cpp
         test/lexer_big_test.cpp
+        test/parser_test.cpp
         )
 
 add_executable(tests ${TEST_SOURCE_FILES} ${TEST_FILES})
