@@ -5,12 +5,15 @@ namespace ccc {
 
 void FastParser::parseFuncDefOrDeclaration() {
   parseTypeSpecifiers();
-  parseDeclarator();
-  if (peek().is(TokenType::SEMICOLON)) {
-    consume();
+  switch(peek().getType()) {
+    case TokenType::SEMICOLON:
+      consume(); return;
+    default:
+    parseDeclarator();
+    expect(TokenType::SEMICOLON);
     return;
   }
-  error = "Function definition not implemented";
+  my_assert(0) << "TODO: Function definition not implemented";
   //parseDeclarations();
   //parse compound-statement
 }
@@ -53,7 +56,6 @@ void FastParser::parseDirectDeclarator() {
 void FastParser::parseStructOrUnionSpecifier() {
   nextToken();
   switch(peek().getType()) {
-    // FIXME RHS -> struct-union identifier clashes with declarator 
     case TokenType::IDENTIFIER:
       nextToken();
       if (peek().is_not(TokenType::BRACE_OPEN)) return;

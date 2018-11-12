@@ -4,7 +4,6 @@
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
 #include <vector>
-#include <unordered_map>
 
 namespace ccc {
 
@@ -49,16 +48,16 @@ private:
   }
   
   // Grammar Rules we plan to implement.
-  // (6.9) translationUnit :: function-definition | declaration
-  // (6.9.1) function-definition :: type-specifier+ declarator declaration+(opt) compound-statement
-  // (6.7)  declaration :: type-specifier+ (no-delimiter) declarator ;
+  // (6.9) translationUnit :: external-declaration+
+  // (6.9) external-declaration :: function-definition | declaration
+  // (6.9.1) function-definition :: type-specifier declarator declaration+(opt) compound-statement
+  // (6.7)  declaration :: type-specifier declarator(opt) ;
   // (6.7.2) type-specifier :: void | char | short | int | struct-or-union-specifier
-  // (6.7.2.1) struct-or-union-specifier :: struct-or-union identifer(opt) { struct-declaration+ } | struct-or-union identifier
-  // (6.7.2.1) struct-or-union :: struct
-  // (6.7.2.1) struct-declaration :: type-specifier+ (no-delimiter) declarator+ (comma-separated)(opt) ;
+  // (6.7.2.1) struct-or-union-specifier :: struct identifer(opt) { struct-declaration+ } | struct-or-union identifier
+  // (6.7.2.1) struct-declaration :: type-specifier declarator (opt) ;
   // (6.7.6)  declarator :: pointer(opt) direct-declarator
   // (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator ( parameter-list )
-  // (6.7.6)  parameter-list :: (type-specifiers declarator)+ (comma-separated)
+  // (6.7.6)  parameter-list :: (type-specifier declarator)+ (comma-separated)
   // TODO Add rules -> parameter-declaration :: type-specifiers abstract-declarator(opt)
   //                   abstract-declarator :: pointer | pointer(opt) direct-abstract-declarator
   //                   direct-abstract-declarator :: ( abstract-declarator) | ( parameter-type-list(opt) )+
