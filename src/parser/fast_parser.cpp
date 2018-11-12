@@ -10,14 +10,10 @@ void FastParser::parseExternalDeclaration() {
 
 void FastParser::parseFuncDefOrDeclaration() {
   parseTypeSpecifiers();
-  switch(peek().getType()) {
-    case TokenType::SEMICOLON:
-      consume(); return;
-    default:
-    parseDeclarator();
-    expect(TokenType::SEMICOLON);
-    return;
-  }
+  if (peek().is(TokenType::SEMICOLON) && consume()) return;
+  parseDeclarator();
+  expect(TokenType::SEMICOLON);
+  return;
   my_assert(0) << "TODO: Function definition not implemented";
   //parseDeclarations();
   //parse compound-statement
