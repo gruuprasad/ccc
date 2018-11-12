@@ -58,9 +58,19 @@ TEST_CASE("Fast Parser: Struct declaration test") {
   PARSE_VALID("struct A { struct B { int x; int y; struct C; "
               "struct { struct E { char z; void * p;}; }; }; } list;")
   PARSE_VALID("struct { int; }; struct A { int x; } a;")
+  PARSE_VALID("struct A (a) (int a);")
+  PARSE_VALID("struct A (* a) (int a);")
+  PARSE_VALID("struct A (** a) (int a);")
+  PARSE_VALID("struct A (** a) (int a, void * b);")
+  PARSE_VALID("char * callA (int a, void * b);")
+  PARSE_VALID("char ** callA (int a, void * b);")
+  PARSE_VALID("char ** ((callA)) (int a, char * b);")
+  PARSE_VALID("char ** (callA (int x)) (int a, char * b);") //dubious pass
+  PARSE_VALID("char * ((*callA)) (int a, char * b);")
 }
 
-TEST_CASE("current") {
+/*
+TEST_CASE("debug failing test") {
   {
     auto token_list = FastLexer("struct A (a) (int a);").lex();
     auto fp = FastParser(token_list);
@@ -68,6 +78,7 @@ TEST_CASE("current") {
     REQUIRE(fp.fail() == false);
   }
 }
+*/
 
 
 DECLARATION_TESTS("void")
