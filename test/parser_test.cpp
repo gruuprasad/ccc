@@ -60,6 +60,16 @@ TEST_CASE("Fast Parser: Struct declaration test") {
   PARSE_VALID("struct { int; }; struct A { int x; } a;")
 }
 
+TEST_CASE("current") {
+  {
+    auto token_list = FastLexer("struct A (a) (int a);").lex();
+    auto fp = FastParser(token_list);
+    fp.parse();
+    REQUIRE(fp.fail() == false);
+  }
+}
+
+
 DECLARATION_TESTS("void")
 DECLARATION_TESTS("char")
 DECLARATION_TESTS("short")

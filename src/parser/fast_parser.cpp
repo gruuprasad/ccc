@@ -51,7 +51,7 @@ void FastParser::parseDirectDeclarator() {
       consume();
       parseDeclarator();
       expect(TokenType::PARENTHESIS_CLOSE);
-      if (peek().is(TokenType::PARENTHESIS_OPEN))
+      if (peek().is(TokenType::PARENTHESIS_OPEN) && consume())
         parseParameterList();
       return;
     default:
