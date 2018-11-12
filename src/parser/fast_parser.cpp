@@ -3,6 +3,8 @@
 
 namespace ccc {
 
+#define PARSER_ERROR(line, column, msg) std::to_string(line) + ":" + std::to_string(column + 1) + ": error: '" +  msg  +  "'. Parsing Stopped!"
+
 void FastParser::parseExternalDeclaration() {
   while (curTokenIdx != tokens.size())
     parseFuncDefOrDeclaration();
