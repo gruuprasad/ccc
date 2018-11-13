@@ -1,14 +1,14 @@
 BUILDDIR ?= build
-CFG      ?= debug
+CFG      ?= release
 NAME     ?= c4
 SRCDIR   ?= src
+
+# Be verbose about the build.
+Q ?= @
 
 all:
 
 -include config/$(CFG).cfg
-
-# Be verbose about the build.
-Q ?= @
 
 BINDIR := $(BUILDDIR)/$(CFG)
 BIN    := $(BINDIR)/$(NAME)
@@ -33,8 +33,8 @@ else
 	LLVM_LDFLAGS := $(shell $(LLVM_CONFIG) --ldflags --libs --system-libs)
 endif
 
-CFLAGS   := $(LLVM_CFLAGS) -Wall -W $(CFLAGS)
-CXXFLAGS += $(CFLAGS) -std=c++11
+CFLAGS   += $(LLVM_CFLAGS)
+CXXFLAGS += -std=c++11 $(CFLAGS)
 LDFLAGS  += $(LLVM_LDFLAGS)
 
 DUMMY := $(shell mkdir -p $(sort $(dir $(OBJ))))
@@ -50,9 +50,9 @@ clean:
 	$(Q)rm -fr $(BINDIR)
 
 $(BIN): $(OBJ)
-	@echo "===> LD $@"
+	@echo "===> LD $(LDFLAGS) $@"
 	$(Q)$(CXX) -o $(BIN) $(OBJ) $(LDFLAGS)
 
 $(BINDIR)/%.o: $(SRCDIR)/%.cpp
-	@echo "===> CXX $<"
+	@echo "===> CXX $(CXXFLAGS) $<"
 	$(Q)$(CXX) $(CXXFLAGS) -MMD -c -o $@ $<
