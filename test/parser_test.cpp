@@ -25,13 +25,6 @@ void print(const T& t) {
     REQUIRE(fp.fail() == false); \
   }\
 
-#define PARSE_VALID_EXPRESSION(language) \
-  {\
-    auto token_list = FastLexer(language).lex(); \
-    auto fp = FastParser(token_list); \
-    fp.parse(PARSE_TYPE::EXPRESSION); \
-    REQUIRE(fp.fail() == false); \
-  }\
 
 #define DECLARATION_TESTS(type) \
 TEST_CASE("Fast Parser:empty declaration test "#type) { \
@@ -83,13 +76,35 @@ DECLARATION_TESTS("short")
 DECLARATION_TESTS("int")
 DECLARATION_TESTS("struct A")
 
+#define PARSE_VALID_EXPRESSION(language) \
+  {\
+    auto token_list = FastLexer(language).lex(); \
+    auto fp = FastParser(token_list); \
+    fp.parse(PARSE_TYPE::EXPRESSION); \
+    REQUIRE(fp.fail() == false); \
+  }\
+
 // Test simple expressions
 TEST_CASE("Fast Parser:primary expression test") {
-PARSE_VALID_EXPRESSION("a")
-PARSE_VALID_EXPRESSION("100")
-PARSE_VALID_EXPRESSION("\'c\'")
-PARSE_VALID_EXPRESSION("\"string constant\"")
-PARSE_VALID_EXPRESSION("(\"string constant\")")
-PARSE_VALID_EXPRESSION("(((((25000)))))")
-PARSE_VALID_EXPRESSION("(((((variable)))))")
+  PARSE_VALID_EXPRESSION("a")
+  PARSE_VALID_EXPRESSION("100")
+  PARSE_VALID_EXPRESSION("\'c\'")
+  PARSE_VALID_EXPRESSION("\"string constant\"")
+  PARSE_VALID_EXPRESSION("(\"string constant\")")
+  PARSE_VALID_EXPRESSION("(((((25000)))))")
+  PARSE_VALID_EXPRESSION("(((((variable)))))")
+}
+
+#define PARSE_VALID_STATEMENT(language) \
+  {\
+    auto token_list = FastLexer(language).lex(); \
+    auto fp = FastParser(token_list); \
+    fp.parse(PARSE_TYPE::STATEMENT); \
+    REQUIRE(fp.fail() == false); \
+  }\
+
+
+TEST_CASE("Fast Parser: simple statement test") {
+  PARSE_VALID_STATEMENT("{ 1 }")
+  PARSE_VALID_STATEMENT("{ 1;}")
 }

@@ -52,10 +52,10 @@ void FastParser::parseStatement() {
     case TokenType::GOTO: consume(); expect(TokenType::IDENTIFIER); break;
     case TokenType::CONTINUE: consume(); break;
     case TokenType::BREAK: consume(); break;
-    case TokenType::RETURN: // Action done for both return and expression-statement is same, distinguish during AST creation. 
-    default: if (consume() && peek().is_not(TokenType::SEMICOLON)) parseExpression(); break;
-    expect(TokenType::SEMICOLON);
+    case TokenType::RETURN: consume(); if (peek().is_not(TokenType::SEMICOLON)) parseExpression(); break;
+    default: if(peek().is_not(TokenType::SEMICOLON)) parseExpression(); break;
   }
+  expect(TokenType::SEMICOLON);
 }
 
 void FastParser::parseLabeledStatement() {
