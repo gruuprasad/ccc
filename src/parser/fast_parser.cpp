@@ -14,11 +14,29 @@ void FastParser::parseFuncDefOrDeclaration() {
   parseTypeSpecifiers();
   if (peek().is(TokenType::SEMICOLON) && consume()) return;
   parseDeclarator();
-  expect(TokenType::SEMICOLON);
-  return;
-  my_assert(0) << "TODO: Function definition not implemented";
-  //parseDeclarations();
-  //parse compound-statement
+  switch(peek().getType()) {
+    case TokenType::SEMICOLON: 
+      consume(); return;
+    case TokenType::BRACE_OPEN:
+      parseCompoundStatement(); return;
+    default:
+      parseDeclarations();
+      parseCompoundStatement();
+      return;
+  }
+}
+
+void FastParser::parseCompoundStatement() {
+
+}
+
+void FastParser::parseDeclarations() {
+  do {
+    parseTypeSpecifiers();
+    if (peek().is_not(TokenType::SEMICOLON))
+      parseDeclarator();
+    expect(TokenType::SEMICOLON);
+  } while (peek().is_oneof(C_TYPES));
 }
 
 void FastParser::parseTypeSpecifiers() {

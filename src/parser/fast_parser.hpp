@@ -67,6 +67,7 @@ private:
   void parseFuncDefOrDeclaration();     
 
   // declarations
+  void parseDeclarations();
   void parseTypeSpecifiers();         
   void parseDeclarator();            
   void parseDirectDeclarator();       
@@ -75,6 +76,34 @@ private:
   void parseStructDeclaration();      
 
   // Expressions
+  // (6.5.17) expression: assignment+ (comma-separated)
+  // (6.5.16) assignment: conditional | unary assignment-op assignment
+  // (6.5.16) assignment-op: = | *= | /= | %= | += | -= | <<= | >>= | &= | ^= | |=
+  // (6.5.15) conditional: logical-OR | logical-OR ? expression : conditional
+  // (6.5.14) logical-OR: logical-AND | logical-OR || logical-AND
+  // (6.5.13) logical-AND: inclusive-OR | logical-AND && inclusive-OR
+  // (6.5.12) inclusive-OR: exclusive-OR | inclusive-OR | exclusive-OR
+  // (6.5.11) exclusive-OR: AND | exclusive-OR ^ AND
+  // (6.5.10) AND: equality | AND & equality
+  // (6.5.9) equality: relational | equality == relational | equality != relational
+  // (6.5.8) relational: shift | relational < shift | relational > shift | relational <= shift | relational >= shift
+  // (6.5.7) shift: additive | shift << additive | shift >> additive
+  // (6.5.6) additive: multiplicative | additive + multiplicative | additive - multiplicative
+  // (6.5.5) multiplicative: cast | multiplicative * cast | multiplicative / cast | multiplicative % cast
+  // (6.5.4) cast: unary | ( type-name ) cast
+  // (6.5.3) unary: postfix | ++ unary | -- unary | unary-op cast | sizeof unary | sizeof ( type-name )
+  // (6.5.3) unary-op: & | * | + | - | ~ |  !
+  // (6.5.2) postfix: primary | postfix [ expression ] | postfix ( argument-expr-list(opt) ) | postfix . identifier
+  //                  postfix -> identifier | postfix -- | ( type-name ) { initializer-list } | ( type-name ) { initializer-list , }
+  // (6.5.2) argument-expr-list: assignment | argument-expr-list , assignment
+  // (6.5.1) primary: identifer | constant | string-literal | ( expression )
+
+  void parseExpression();
+  void parsePrimary();
+  void parsePrimaryExpression();
+
+  // Statements
+  void parseCompoundStatement();
 
   std::vector<Token> & tokens;
   std::size_t curTokenIdx = 0;
