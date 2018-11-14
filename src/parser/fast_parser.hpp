@@ -121,6 +121,11 @@ private:
 
   // Statements
   void parseCompoundStatement();
+  void parseBlockItemList();
+  void parseStatement();
+  void parseLabeledStatement();
+  void parseSelectionStatement();
+  void parseIterationStatement();
 
   std::vector<Token> & tokens;
   std::size_t curTokenIdx = 0;

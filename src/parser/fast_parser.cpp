@@ -27,7 +27,47 @@ void FastParser::parseFuncDefOrDeclaration() {
 }
 
 void FastParser::parseCompoundStatement() {
+  expect(TokenType::BRACE_OPEN);
+  parseBlockItemList();
+}
 
+void FastParser::parseBlockItemList() {
+}
+
+void FastParser::parseStatement() {
+  switch (peek().getType()) {
+    case TokenType::IDENTIFIER: parseLabeledStatement(); return;
+    case TokenType::BRACE_OPEN: parseCompoundStatement(); return;
+    case TokenType::IF: parseSelectionStatement(); return;
+    case TokenType::WHILE: parseIterationStatement(); return;
+    case TokenType::GOTO: consume(); expect(TokenType::IDENTIFIER); break;
+    case TokenType::CONTINUE: consume(); break;
+    case TokenType::BREAK: consume(); break;
+    case TokenType::RETURN: // Action done for both return and expression-statement is same, distinguish during AST creation. 
+    default: if (consume() && peek().is_not(TokenType::SEMICOLON)) parseExpression(); break;
+    expect(TokenType::SEMICOLON);
+  }
+}
+
+void FastParser::parseLabeledStatement() {
+  expect(TokenType::IDENTIFIER, TokenType::COLON);
+  parseStatement();
+}
+
+void FastParser::parseSelectionStatement() {
+  expect(TokenType::IF, TokenType::IF);
+  parseExpression();
+  expect(TokenType::PARENTHESIS_CLOSE);
+  peek().is(TokenType::IF) ? parseSelectionStatement() : parseStatement();
+  if (peek().is(TokenType::ELSE)) parseStatement();
+  return;
+}
+
+void FastParser::parseIterationStatement() {
+  expect(TokenType::WHILE, TokenType::PARENTHESIS_OPEN);
+  parseExpression();
+  expect(TokenType::PARENTHESIS_CLOSE);
+  parseStatement();
 }
 
 void FastParser::parseDeclarations() {
