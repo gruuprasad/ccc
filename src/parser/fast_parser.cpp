@@ -28,7 +28,16 @@ void FastParser::parseFuncDefOrDeclaration() {
 
 void FastParser::parseCompoundStatement() {
   expect(TokenType::BRACE_OPEN);
-  parseBlockItemList();
+  do {
+    if (peek().is_oneof(C_TYPES)) {
+      parseTypeSpecifiers();
+      parseDeclarator();
+      expect(TokenType::SEMICOLON);
+    } else {
+      parseStatement();
+    }
+  } while(peek().is_not(TokenType::BRACE_CLOSE));
+  consume();
 }
 
 void FastParser::parseBlockItemList() {
