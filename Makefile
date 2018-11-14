@@ -10,8 +10,11 @@ all:
 
 -include config/$(CFG).cfg
 
+HASH   := $(shell git log -1 --pretty=format:%h)
 BINDIR := $(BUILDDIR)/$(CFG)
+LEGACYDIR := $(BUILDDIR)/legacy/$(HASH)/$(CFG)
 BIN    := $(BINDIR)/$(NAME)
+LEGACYBIN := $(LEGACYDIR)/$(NAME)
 SRC    := $(sort $(SRCDIR)/main.cpp $(wildcard $(SRCDIR)/**/*.cpp))
 OBJ    := $(SRC:$(SRCDIR)/%.cpp=$(BINDIR)/%.o)
 DEP    := $(OBJ:%.o=%.d)
@@ -33,8 +36,8 @@ else
 	LLVM_LDFLAGS := $(shell $(LLVM_CONFIG) --ldflags --libs --system-libs)
 endif
 
-CFLAGS   += $(LLVM_CFLAGS)
-CXXFLAGS += -std=c++11 $(CFLAGS)
+CFLAGS   := $(LLVM_CFLAGS) $(CFLAGS)
+CXXFLAGS += $(CFLAGS) -std=c++11
 LDFLAGS  += $(LLVM_LDFLAGS)
 
 DUMMY := $(shell mkdir -p $(sort $(dir $(OBJ))))
@@ -45,8 +48,13 @@ all: $(BIN)
 
 -include $(DEP)
 
+legacy: $(BIN)
+	@echo "===> LEGACY $(LEGACYBIN)"
+	$(Q)mkdir -p $(LEGACYDIR)
+	$(Q)mv $(BIN) $(LEGACYBIN)
+
 clean:
-	@echo "===> CLEAN"
+	@echo "===> CLEAN $(BINDIR)"
 	$(Q)rm -fr $(BINDIR)
 
 $(BIN): $(OBJ)
