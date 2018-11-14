@@ -113,4 +113,33 @@ void FastParser::parseStructDeclaration() {
   expect(TokenType::SEMICOLON);
 }
 
+// Expressions
+void FastParser::parsePrimaryExpression() {
+  switch(peek().getType()) {
+    case TokenType::IDENTIFIER:
+    case TokenType::NUMBER:
+    case TokenType::CHARACTER:
+    case TokenType::STRING:
+      nextToken(); return;
+    case TokenType::PARENTHESIS_OPEN:
+      consume();
+      parseExpression();
+      expect(TokenType::PARENTHESIS_CLOSE);
+      return;
+    default:
+      error = "Parse Error";
+      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() 
+                   << " in primary expression";
+  }
+}
+
+/*
+void Token::parsePostfix() {
+
+}*/
+
+void FastParser::parseExpression() {
+  parsePrimaryExpression();
+}
+
 } // namespace ccc

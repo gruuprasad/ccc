@@ -10,11 +10,23 @@ namespace ccc {
 #define C_TYPES TokenType::VOID, TokenType::CHAR, TokenType::SHORT, \
               TokenType::INT, TokenType::STRUCT \
   
+enum PARSE_TYPE {
+  TRANSLATIONUNIT, EXPRESSION, STATEMENT, DECLARATION };
+
 class FastParser {
 public:
   FastParser(std::vector<Token> & tokens_) : tokens(tokens_) {}
   
-  void parse() { return parseTranslationUnit(); }
+  void parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) { 
+    switch(type) {
+      case PARSE_TYPE::TRANSLATIONUNIT: return parseTranslationUnit();
+      case PARSE_TYPE::EXPRESSION: return parseExpression();
+      case PARSE_TYPE::STATEMENT: return parseStatement();
+      case PARSE_TYPE::DECLARATION: return parseDeclarations();
+      default: error = "Unknown parse type";
+    }
+  }
+
   bool fail() const { return !error.empty(); }
   std::string getError() { return error; }
 
@@ -32,6 +44,11 @@ private:
     my_assert(tok == peek().getType()) << "Parse Error: Unexpected Token: "
                                        << peek().name();
     return consume();
+  }
+
+  template <typename T, typename... Args>
+  bool expect(T first, Args... args) {
+    return expect(first) && expect(args...);
   }
 
   const Token& peek(int k = 0) const { 
