@@ -52,8 +52,14 @@ void FastParser::parseStatement() {
     case TokenType::GOTO: consume(); expect(TokenType::IDENTIFIER); break;
     case TokenType::CONTINUE: consume(); break;
     case TokenType::BREAK: consume(); break;
-    case TokenType::RETURN: consume(); if (peek().is_not(TokenType::SEMICOLON)) parseExpression(); break;
-    default: if(peek().is_not(TokenType::SEMICOLON)) parseExpression(); break;
+    case TokenType::RETURN: consume(); 
+      if (peek().is_not(TokenType::SEMICOLON)) 
+        parseExpression(); 
+      break;
+    default: 
+      if(peek().is_not(TokenType::SEMICOLON)) 
+          parseExpression(); 
+      break;
   }
   expect(TokenType::SEMICOLON);
 }
@@ -64,11 +70,11 @@ void FastParser::parseLabeledStatement() {
 }
 
 void FastParser::parseSelectionStatement() {
-  expect(TokenType::IF, TokenType::IF);
+  expect(TokenType::IF, TokenType::PARENTHESIS_OPEN);
   parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE);
   peek().is(TokenType::IF) ? parseSelectionStatement() : parseStatement();
-  if (peek().is(TokenType::ELSE)) parseStatement();
+  if (peek().is(TokenType::ELSE) && consume()) parseStatement();
   return;
 }
 

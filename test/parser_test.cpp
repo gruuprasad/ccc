@@ -105,6 +105,28 @@ TEST_CASE("Fast Parser:primary expression test") {
 
 
 TEST_CASE("Fast Parser: simple statement test") {
-  PARSE_VALID_STATEMENT("{ 1 }")
-  PARSE_VALID_STATEMENT("{ 1;}")
+  PARSE_VALID_STATEMENT("{ 1;}") //expression-statement
+  PARSE_VALID_STATEMENT("{ a: 1;}") // labeled-statement
+  PARSE_VALID_STATEMENT("{ int a;}") // declaration in compound statement
+}
+
+TEST_CASE("Fast Parser: IF-ELSE statement test") {
+  PARSE_VALID_STATEMENT("if (\"true\") ; ")
+  PARSE_VALID_STATEMENT("if (1) ; else ;")
+  PARSE_VALID_STATEMENT("if (1) { if (2) return; else return; } else return;")
+  PARSE_VALID_STATEMENT("if (1) { if (2) return; else return; }"
+                        " else { if (2) return;}")
+  PARSE_VALID_STATEMENT("if (1) if (2) ; else ;")
+}
+
+TEST_CASE("Fast Parser: Jump statement") {
+  PARSE_VALID_STATEMENT("{ goto a; }")
+  PARSE_VALID_STATEMENT("{ continue; }")
+  PARSE_VALID_STATEMENT("{ break; }")
+  PARSE_VALID_STATEMENT("{ return; }")
+  PARSE_VALID_STATEMENT("{ return 1000; }")
+}
+
+TEST_CASE("Fast Parser: loop statement test") {
+  PARSE_VALID_STATEMENT("{ while (10) { 1000; } }")
 }
