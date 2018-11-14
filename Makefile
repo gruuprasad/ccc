@@ -37,30 +37,37 @@ else
 endif
 
 CFLAGS   := $(LLVM_CFLAGS) $(CFLAGS)
-CXXFLAGS += $(CFLAGS) -std=c++11
+CXXFLAGS += $(CFLAGS) -std=c++11 -MMD
 LDFLAGS  += $(LLVM_LDFLAGS)
 
 DUMMY := $(shell mkdir -p $(sort $(dir $(OBJ))))
 
+#cosmetic
+COLOR ?= \033[33m
+_COLOR := \033[0m
+
+# build rules
 .PHONY: all clean
 
-all: $(BIN)
+all:
+	@$(MAKE) clean --no-print-directory
+	@$(MAKE) $(BIN) --no-print-directory
 
 -include $(DEP)
 
 legacy: $(BIN)
-	@echo "===> LEGACY $(LEGACYBIN)"
+	@echo "$(COLOR)===> LEGACY$(_COLOR) | $(LEGACYBIN)"
 	$(Q)mkdir -p $(LEGACYDIR)
 	$(Q)mv $(BIN) $(LEGACYBIN)
 
 clean:
-	@echo "===> CLEAN $(BINDIR)"
+	@echo "$(COLOR)===> CLEAN$(_COLOR) | $(BINDIR)"
 	$(Q)rm -fr $(BINDIR)
 
 $(BIN): $(OBJ)
-	@echo "===> LD $(LDFLAGS) $@"
+	@echo "$(COLOR)===> LD  [$(shell echo $(CXX) ${LDFLAGS} | sed -e 's/^[ \t]*//')]$(_COLOR) | $@"
 	$(Q)$(CXX) -o $(BIN) $(OBJ) $(LDFLAGS)
 
 $(BINDIR)/%.o: $(SRCDIR)/%.cpp
-	@echo "===> CXX $(CXXFLAGS) $<"
-	$(Q)$(CXX) $(CXXFLAGS) -MMD -c -o $@ $<
+	@echo "$(COLOR)===> CXX [$(shell echo $(CXX) ${CXXFLAGS} | sed -e 's/^[ \t]*//')]$(_COLOR) | $*"
+	$(Q)$(CXX) $(CXXFLAGS) -Ofast -c -o $@ $<
