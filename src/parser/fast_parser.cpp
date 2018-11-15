@@ -1,9 +1,6 @@
 #include "fast_parser.hpp"
-#include "../utils/assert.hpp"
 
 namespace ccc {
-
-#define PARSER_ERROR(line, column, msg) std::to_string(line) + ":" + std::to_string(column + 1) + ": error: '" +  msg  +  "'. Parsing Stopped!"
 
 void FastParser::parseExternalDeclaration() {
   while (curTokenIdx != tokens.size())
@@ -104,9 +101,8 @@ void FastParser::parseTypeSpecifiers() {
     case TokenType::STRUCT:
       return parseStructOrUnionSpecifier();
     default:
-      error = "Parse Error";
-      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() 
-                   << ", expecting type specifier";
+      error = PARSER_ERROR(peek().getLine(), peek().getColumn(), 
+                          "Unexpected Token: \"" + peek().name() + "\", expecting type specifier");
   }
 }
 
@@ -130,9 +126,8 @@ void FastParser::parseDirectDeclarator() {
         parseParameterList();
       return;
     default:
-      error = "Parse Error";
-      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() 
-                   << ", expecting Direct Declarator";
+      error = PARSER_ERROR(peek().getLine(), peek().getColumn(), 
+                          "Unexpected Token: \"" + peek().name() + "\", expecting declarator");
   }
 }
 
@@ -155,9 +150,8 @@ void FastParser::parseStructOrUnionSpecifier() {
       expect(TokenType::BRACE_CLOSE);
       return;
     default:
-      error = "Parse Error";
-      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() 
-                   << ", expecting struct-or-union";
+      error = PARSER_ERROR(peek().getLine(), peek().getColumn(), 
+                          "Unexpected Token: \"" + peek().name() + "\", expecting struct");
   }
 }
 
@@ -182,9 +176,8 @@ void FastParser::parsePrimaryExpression() {
       expect(TokenType::PARENTHESIS_CLOSE);
       return;
     default:
-      error = "Parse Error";
-      my_assert(0) << "Parse Error: Unexpected Token: " << peek().name() 
-                   << " in primary expression";
+      error = PARSER_ERROR(peek().getLine(), peek().getColumn(), 
+                          "Unexpected Token: \"" + peek().name() + "\", in primary expression.");
   }
 }
 

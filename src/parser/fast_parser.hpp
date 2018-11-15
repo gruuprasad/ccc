@@ -3,13 +3,11 @@
 
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
+#include "../utils/macros.hpp"
 #include <vector>
 
 namespace ccc {
 
-#define C_TYPES TokenType::VOID, TokenType::CHAR, TokenType::SHORT, \
-              TokenType::INT, TokenType::STRUCT \
-  
 enum PARSE_TYPE {
   TRANSLATIONUNIT, EXPRESSION, STATEMENT, DECLARATION };
 
@@ -41,9 +39,14 @@ private:
   }
 
   bool expect(TokenType tok) {
-    my_assert(tok == peek().getType()) << "Parse Error: Unexpected Token: "
-                                       << peek().name();
-    return consume();
+    if (peek().is(tok)) {
+      return consume();
+    } else {
+      error = PARSER_ERROR(peek().getLine(), peek().getColumn(), 
+          "Unexpected Token: \"" + peek().name() +  "\", expecting  \"" + "\"");
+      return false;
+    }
+    //FIXME get string version of token?  
   }
 
   template <typename T, typename... Args>

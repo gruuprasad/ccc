@@ -4,6 +4,7 @@
 #include <vector>
 #include "token.hpp"
 #include "lexer_exception.hpp"
+#include "../utils/macros.hpp"
 
 namespace ccc {
 
