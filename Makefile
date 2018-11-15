@@ -70,4 +70,4 @@ $(BIN): $(OBJ)
 
 $(BINDIR)/%.o: $(SRCDIR)/%.cpp
 	@echo "$(COLOR)===> CXX [$(shell echo $(CXX) ${CXXFLAGS} | sed -e 's/^[ \t]*//')]$(_COLOR) | $*"
-	$(Q)$(CXX) $(CXXFLAGS) -Ofast -c -o $@ $<
+	$(Q)$(CXX) $(CXXFLAGS) -c -o $@ $<
