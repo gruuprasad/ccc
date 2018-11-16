@@ -2,6 +2,7 @@ import sys
 import matplotlib.pyplot as plt
 import os
 import datetime
+import numpy as np
 from os import listdir
 from timeit import default_timer as timer
 from tqdm import tqdm
@@ -29,7 +30,7 @@ for p in sys.argv[1:]:
 
 print("gernating input files...")
 
-for i in tqdm(range(20)):
+for i in tqdm(range(21)):
     size = i * 50000
     if not os.path.exists("./sample"):
         os.makedirs("./sample")
@@ -44,19 +45,29 @@ for i in tqdm(range(20)):
 for e in exe:
     val[e] = []
 
-print("lexing...")
-for f in tqdm(files):
-    for e in exe:
+for e in exe:
+  print("benchmark " + e)
+  timeout = 0;
+  for f in tqdm(files):
+      if timeout < 0.15:
         start = timer()
         os.system("./" + e + " --tokenize " + f + " > /dev/null")
-        val[e] += [(timer() - start)]
+        timeout = timer() - start;
+      val[e] += [min(timeout, 0.15)]
 
-plt.figure(figsize=(15, 5))
+plt.figure(figsize=(16, 9))
 
-for e in exe:
-    plt.plot(int, val[e], label=e + " (" + str(datetime.datetime.fromtimestamp(os.path.getctime(e)).date()) + ")")
+plt.plot(int, val[exe[0]], "-o", label=exe[0].replace("./build/", "").replace("/c4", ""))
+
+for e in exe[1:]:
+  try:
+    file = open(e + ".flags", "r")
+    plt.plot(int, val[e], ":", label=e.replace("./build/", "").replace("/c4", "")[:14] + " [" + file.read().strip() + "]")
+  except FileNotFoundError:
+    plt.plot(int, val[e], ":", label=e.replace("./build/", "").replace("/c4", "")[:14])
 #plt.plot(int, ref, "-o", label="ref")
-plt.legend()
+plt.legend(frameon=False)
 plt.xlabel("Input size [kByte]")
+plt.xticks(np.arange(0, 1050, step=50))
 plt.ylabel('Runtime [seconds]')
-plt.savefig("stat.svg", dpi=100)
+plt.savefig("benchmark.svg", dpi=100, bbox_inches="tight")
