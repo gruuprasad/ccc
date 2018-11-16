@@ -10,7 +10,7 @@ all:
 
 -include config/$(CFG).cfg
 
-HASH   := $(shell git log -1 --pretty=format:%h)
+HASH   := $(shell git log -1 --pretty=format:%H)
 BINDIR := $(BUILDDIR)/$(CFG)
 LEGACYDIR := $(BUILDDIR)/legacy/$(HASH)/$(CFG)
 BIN    := $(BINDIR)/$(NAME)
@@ -58,6 +58,7 @@ all:
 legacy: $(BIN)
 	@echo "$(COLOR)===> LEGACY$(_COLOR) | $(LEGACYBIN)"
 	$(Q)mkdir -p $(LEGACYDIR)
+	@echo "$(shell echo ${CXXFLAGS} | sed -e 's/^[ \t]*//')" > $(LEGACYBIN).flags
 	$(Q)mv $(BIN) $(LEGACYBIN)
 
 clean:

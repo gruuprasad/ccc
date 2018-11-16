@@ -2,6 +2,7 @@ build/
 llvm/
 sample/
 *.svg
+*.png
 
 # Created by https://www.gitignore.io/api/c,c++
 
