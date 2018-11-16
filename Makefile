@@ -51,11 +51,12 @@ _COLOR := \033[0m
 
 all:
 	@$(MAKE) clean --no-print-directory
-	@$(MAKE) $(BIN) --no-print-directory
+	@$(MAKE) -j$(nproc) $(BIN) --no-print-directory
 
 -include $(DEP)
 
-legacy: $(BIN)
+legacy:
+	@$(MAKE) -j$(nproc) $(BIN) --no-print-directory
 	@echo "$(COLOR)===> LEGACY$(_COLOR) | $(LEGACYBIN)"
 	$(Q)mkdir -p $(LEGACYDIR)
 	@echo "$(shell echo ${CXXFLAGS} | sed -e 's/^[ \t]*//')" > $(LEGACYBIN).flags
