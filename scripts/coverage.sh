@@ -14,6 +14,6 @@ lcov --list coverage.info \
         | cut -d " " -f 1 \
         | xargs echo "coverage found is $1"
 
-genhtml coverage.info --output-directory ../coverage
+genhtml coverage.info --output-directory ./coverage
 
 true
