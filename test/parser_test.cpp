@@ -103,20 +103,40 @@ TEST_CASE("Fast Parser:primary expression test") {
     REQUIRE(fp.fail() == false); \
   }\
 
+#define PARSE_INVALID_STATEMENT(language) \
+  {\
+    auto token_list = FastLexer(language).lex(); \
+    auto fp = FastParser(token_list); \
+    fp.parse(PARSE_TYPE::STATEMENT); \
+    REQUIRE(fp.fail() == true); \
+  }
 
 TEST_CASE("Fast Parser: simple statement test") {
   PARSE_VALID_STATEMENT("{ 1;}") //expression-statement
   PARSE_VALID_STATEMENT("{ a: 1;}") // labeled-statement
   PARSE_VALID_STATEMENT("{ int a;}") // declaration in compound statement
+  PARSE_VALID_STATEMENT("{}")
+  PARSE_INVALID_STATEMENT("{ 1;") 
+  PARSE_INVALID_STATEMENT("{ a: 1;") 
+  PARSE_INVALID_STATEMENT("{ int a;")
+  PARSE_INVALID_STATEMENT("{ ")  // FIXME: access end of token_list done, fix
+}
+
 }
 
 TEST_CASE("Fast Parser: IF-ELSE statement test") {
   PARSE_VALID_STATEMENT("if (\"true\") ; ")
-  PARSE_VALID_STATEMENT("if (1) ; else ;")
   PARSE_VALID_STATEMENT("if (1) { if (2) return; else return; } else return;")
   PARSE_VALID_STATEMENT("if (1) { if (2) return; else return; }"
                         " else { if (2) return;}")
   PARSE_VALID_STATEMENT("if (1) if (2) ; else ;")
+  PARSE_INVALID_STATEMENT("if (\"true\")  ")
+  PARSE_INVALID_STATEMENT("if (1)  else ;")
+  PARSE_INVALID_STATEMENT("if (1) ; else ")
+  PARSE_INVALID_STATEMENT("if (1) { if (2) return; else return;  else return;")
+  PARSE_INVALID_STATEMENT("if (1 { if (2) return; else return; } else return;")
+  PARSE_INVALID_STATEMENT("if (1 { if (2) return; else return; } if return;")
+  PARSE_INVALID_STATEMENT("if (1 { else return; } else return;")
 }
 
 TEST_CASE("Fast Parser: Jump statement") {
