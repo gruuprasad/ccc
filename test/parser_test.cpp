@@ -95,6 +95,25 @@ TEST_CASE("Fast Parser:primary expression test") {
   PARSE_VALID_EXPRESSION("(((((variable)))))")
 }
 
+TEST_CASE("Fast Parser:unary expression test") {
+  PARSE_VALID_EXPRESSION("&a")
+  PARSE_VALID_EXPRESSION("*a")
+  PARSE_VALID_EXPRESSION("+a")
+  PARSE_VALID_EXPRESSION("-a")
+  PARSE_VALID_EXPRESSION("!a")
+  PARSE_VALID_EXPRESSION("sizeof a")
+  PARSE_VALID_EXPRESSION("sizeof (char)")
+}
+
+TEST_CASE("Fast Parser:postfix expression test") {
+  PARSE_VALID_EXPRESSION("a[100]")
+  PARSE_VALID_EXPRESSION("a()")
+  PARSE_VALID_EXPRESSION("a()")
+  PARSE_VALID_EXPRESSION("a.b")
+  PARSE_VALID_EXPRESSION("a->b")
+
+}
+
 #define PARSE_VALID_STATEMENT(language) \
   {\
     auto token_list = FastLexer(language).lex(); \

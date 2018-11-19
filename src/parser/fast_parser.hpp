@@ -123,6 +123,9 @@ private:
   void parseExpression();
   void parsePrimary();
   void parsePrimaryExpression();
+  void parseUnaryExpression();
+  void parseArgumentExpressionList();
+  void parsePostfixExpression();
 
   // Statements
   void parseCompoundStatement();

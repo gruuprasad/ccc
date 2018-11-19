@@ -182,13 +182,51 @@ void FastParser::parsePrimaryExpression() {
   }
 }
 
-/*
-void Token::parsePostfix() {
-
-}*/
-
 void FastParser::parseExpression() {
+  if (peek().is_oneof(UNARY_OP)) {
+    parseUnaryExpression();
+  } else {
+    parsePostfixExpression();
+  }
+}
+
+void FastParser::parseUnaryExpression() {
+  consume();
+  if (peek().is(TokenType::PARENTHESIS_OPEN) && consume()) {
+    parseTypeSpecifiers();
+    expect(TokenType::PARENTHESIS_CLOSE);
+    return;
+  }
+  parsePostfixExpression();
+}
+
+void FastParser::parsePostfixExpression() {
   parsePrimaryExpression();
+  // optional postfix varients
+  switch (peek().getType()) {
+    case TokenType::BRACKET_OPEN:
+      consume();
+      parseExpression();
+      expect(TokenType::BRACKET_CLOSE);
+      return;
+    case TokenType::PARENTHESIS_OPEN:
+      consume();
+      parseArgumentExpressionList();
+      expect(TokenType::PARENTHESIS_CLOSE);
+      return;
+    case TokenType::DOT:
+      consume();
+      expect(TokenType::IDENTIFIER);
+      return;
+    case TokenType::ARROW:
+      consume();
+      expect(TokenType::IDENTIFIER);
+      return;
+  }
+}
+
+void FastParser::parseArgumentExpressionList() {
+  // TODO implement
 }
 
 } // namespace ccc
