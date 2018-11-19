@@ -25,7 +25,7 @@ void FastParser::parseFuncDefOrDeclaration() {
 
 void FastParser::parseCompoundStatement() {
   expect(TokenType::BRACE_OPEN);
-  do {
+  while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is_oneof(C_TYPES)) {
       parseTypeSpecifiers();
       parseDeclarator();
@@ -33,7 +33,8 @@ void FastParser::parseCompoundStatement() {
     } else {
       parseStatement();
     }
-  } while(peek().is_not(TokenType::BRACE_CLOSE));
+    if (fail()) return;
+  }
   consume();
 }
 
