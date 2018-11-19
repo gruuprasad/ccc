@@ -126,6 +126,7 @@ const std::string Token::name() const {
   case TokenType::HASHHASH_ALT:return "%:%:";
   case TokenType::FLOAT:return "float";
   case TokenType::DOUBLE:return "double";
+  case TokenType::TOKENEND:return "";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
@@ -235,6 +236,7 @@ const std::string Token::token_type() const {
   case TokenType::HASHHASH_ALT:return "punctuator";
   case TokenType::FLOAT:return "keyword";
   case TokenType::DOUBLE:return "keyword";
+  case TokenType::TOKENEND:return "";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";

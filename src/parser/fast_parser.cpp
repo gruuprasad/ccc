@@ -3,7 +3,7 @@
 namespace ccc {
 
 void FastParser::parseExternalDeclaration() {
-  while (curTokenIdx != tokens.size())
+  while (curTokenIdx + 1 != tokens.size())
     parseFuncDefOrDeclaration();
 }
 

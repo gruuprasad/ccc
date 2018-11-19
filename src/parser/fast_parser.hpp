@@ -13,7 +13,9 @@ enum PARSE_TYPE {
 
 class FastParser {
 public:
-  FastParser(std::vector<Token> & tokens_) : tokens(tokens_) {}
+  FastParser(std::vector<Token> & tokens_) : tokens(tokens_) {
+    tokens.emplace_back(TokenType::TOKENEND, 0, 0);
+  }
   
   void parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) { 
     switch(type) {
