@@ -164,40 +164,31 @@ void FastParser::parseStructDeclaration() {
 }
 
 // Expressions
-void FastParser::parsePrimaryExpression() {
-  switch(peek().getType()) {
-    case TokenType::IDENTIFIER:
-    case TokenType::NUMBER:
-    case TokenType::CHARACTER:
-    case TokenType::STRING:
-      nextToken(); return;
-    case TokenType::PARENTHESIS_OPEN:
-      consume();
-      parseExpression();
-      expect(TokenType::PARENTHESIS_CLOSE);
-      return;
-    default:
-      error = PARSER_ERROR(peek().getLine(), peek().getColumn(), 
-                          "Unexpected Token: \"" + peek().name() + "\", in primary expression.");
-  }
-}
-
 void FastParser::parseExpression() {
-  if (peek().is_oneof(UNARY_OP)) {
-    parseUnaryExpression();
-  } else {
-    parsePostfixExpression();
+  parseUnaryExpression();
+  
+  while(true) {
+    // Parse binary op and RHS, if there is.
+    if (peek().is_oneof(BINARY_OP)) {
+      consume();
+      parseUnaryExpression();
+    } else {
+      break;
+    }
   }
 }
 
 void FastParser::parseUnaryExpression() {
-  consume();
-  if (peek().is(TokenType::PARENTHESIS_OPEN) && consume()) {
-    parseTypeSpecifiers();
-    expect(TokenType::PARENTHESIS_CLOSE);
-    return;
+  if (peek().is_oneof(UNARY_OP) && consume()) {
+    if (peek().is(TokenType::PARENTHESIS_OPEN) && consume()) {
+      parseTypeSpecifiers();
+      expect(TokenType::PARENTHESIS_CLOSE);
+      return;
+    }
+    parseUnaryExpression();
+  } else {
+    parsePostfixExpression();
   }
-  parsePostfixExpression();
 }
 
 void FastParser::parsePostfixExpression() {
@@ -222,6 +213,24 @@ void FastParser::parsePostfixExpression() {
       consume();
       expect(TokenType::IDENTIFIER);
       return;
+  }
+}
+
+void FastParser::parsePrimaryExpression() {
+  switch(peek().getType()) {
+    case TokenType::IDENTIFIER:
+    case TokenType::NUMBER:
+    case TokenType::CHARACTER:
+    case TokenType::STRING:
+      nextToken(); return;
+    case TokenType::PARENTHESIS_OPEN:
+      consume();
+      parseExpression();
+      expect(TokenType::PARENTHESIS_CLOSE);
+      return;
+    default:
+      error = PARSER_ERROR(peek().getLine(), peek().getColumn(), 
+                          "Unexpected Token: \"" + peek().name() + "\", in primary expression.");
   }
 }
 

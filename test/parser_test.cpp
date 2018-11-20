@@ -111,7 +111,24 @@ TEST_CASE("Fast Parser:postfix expression test") {
   PARSE_VALID_EXPRESSION("a()")
   PARSE_VALID_EXPRESSION("a.b")
   PARSE_VALID_EXPRESSION("a->b")
+}
 
+TEST_CASE("Fast Parser:binary expression test") {
+  PARSE_VALID_EXPRESSION("a[100] + b[100]")
+  PARSE_VALID_EXPRESSION("a[100] - b[100]")
+  PARSE_VALID_EXPRESSION("a[100] * b[100]")
+  PARSE_VALID_EXPRESSION("a[100] && b[100]")
+  PARSE_VALID_EXPRESSION("a[100] || b[100]")
+  PARSE_VALID_EXPRESSION("a[100] == b[100]")
+  PARSE_VALID_EXPRESSION("a[100] != b[100]")
+  PARSE_VALID_EXPRESSION("a[100] = b[100]")
+  PARSE_VALID_EXPRESSION("a + b + d - c + (e * f)")
+  PARSE_VALID_EXPRESSION("a + (b + d) - c + (e * f)")
+  PARSE_VALID_EXPRESSION("a && (b + d) && c || (e() * -f)")
+  PARSE_VALID_EXPRESSION("a + b * c")
+}
+
+TEST_CASE("debug") {
 }
 
 #define PARSE_VALID_STATEMENT(language) \
@@ -138,9 +155,7 @@ TEST_CASE("Fast Parser: simple statement test") {
   PARSE_INVALID_STATEMENT("{ 1;") 
   PARSE_INVALID_STATEMENT("{ a: 1;") 
   PARSE_INVALID_STATEMENT("{ int a;")
-  PARSE_INVALID_STATEMENT("{ ")  // FIXME: access end of token_list done, fix
-}
-
+  PARSE_INVALID_STATEMENT("{ ")
 }
 
 TEST_CASE("Fast Parser: IF-ELSE statement test") {
