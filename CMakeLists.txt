@@ -40,6 +40,7 @@ set(TEST_FILES_LEXER
 set(TEST_FILES_PARSER
         test/test_main.cpp
         test/parser_test.cpp
+        test/parser_big_test.cpp
         )
 
 add_executable(test_entry ${TEST_SOURCE_FILES} ${TEST_FILES_ENTRY})
