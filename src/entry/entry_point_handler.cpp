@@ -35,7 +35,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     token_list = lexer.lex();
     if (lexer.fail()) {
       std::cerr << filename << ":" << lexer.getError() << std::endl;
-    return 1;
+      return 1;
     }
     if (flagName == "--tokenize") {
       for (const auto &token : token_list) {
