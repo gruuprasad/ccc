@@ -82,13 +82,13 @@ std::string to_match(const std::string &filename) {
 }
 
 COMPARE(everything)
-//COMPARE(test)
-//COMPARE(hello_world)
-//COMPARE(transpose)
-//COMPARE(lots_of_real_code)
-//COMPARE(comments)
-//COMPARE(lorem_ipsum)
-//COMPARE(extra)
-//COMPARE(backslashes)
+COMPARE(test)
+COMPARE(hello_world)
+COMPARE(transpose)
+COMPARE(lots_of_real_code)
+COMPARE(comments)
+COMPARE(lorem_ipsum)
+COMPARE(extra)
+COMPARE(backslashes)
 
 
