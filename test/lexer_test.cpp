@@ -105,11 +105,11 @@ TEST_CASE("Fast Lexer block comment multiline test.") {
   REQUIRE(lastToken.getExtra() == "x");
 }
 
-/*
-TEST_CASE("Fast Lexer block comment multiline unterminated.") {
-  REQUIRE_THROWS_WITH(FastLexer(" /*\nee/x").lex(), "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
-}
-*/
+
+//TEST_CASE("Fast Lexer block comment multiline unterminated.") {
+//  REQUIRE_THROWS_WITH(FastLexer(" /*\nee/x").lex(), "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
+//}
+
 
 TEST_CASE("Fast Lexer string empty test.") {
   std::string input = "";
@@ -123,7 +123,7 @@ TEST_CASE("Fast Lexer string empty string test.") {
   REQUIRE(firstToken.getType() == TokenType::STRING);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
-  REQUIRE(firstToken.getExtra() == "");
+  REQUIRE(firstToken.getExtra().empty());
 }
 
 TEST_CASE("Fast Lexer string literals test.") {
@@ -137,7 +137,7 @@ TEST_CASE("Fast Lexer string literals test.") {
 }
 
 TEST_CASE("Fast Lexer string escape sequence test.") {
-  auto tokenList = FastLexer("\"strings\\\\ \\n are slow\"").lex();
+  auto tokenList = FastLexer(R"("strings\\ \n are slow")").lex();
   auto &firstToken = tokenList.front();
   REQUIRE(firstToken.getType() == TokenType::STRING);
   REQUIRE(firstToken.getLine() == 1);
