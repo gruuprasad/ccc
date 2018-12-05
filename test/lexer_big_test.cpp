@@ -39,7 +39,7 @@ bool lexing_of(const std::string &filename, const std::string &expected) {
   std::string flag = "--tokenize";
   std::string input = "../examples/" + filename;
 
-  char ** ppArgs = new char*[3];
+  char **ppArgs = new char *[3];
 
   ppArgs[1] = &flag[0];
   ppArgs[2] = &input[0];

@@ -21,23 +21,22 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     token_list = lexer.lex();
     if (lexer.fail()) {
       std::cerr << filename << ":" << lexer.getError() << std::endl;
-    return 1;
+      return EXIT_FAILURE;
     }
     if (flagName == "--tokenize") {
       for (const auto &token : token_list) {
         std::cout << filename << ":" << token << '\n';
       }
-      return 0;
+      return EXIT_SUCCESS;
     }
     if (flagName == "--parse") {
       auto parser = FastParser(token_list);
       if (parser.fail()) {
         std::cerr << filename << ":" << parser.getError() << std::endl;
-        return 1;
+        return EXIT_FAILURE;
       }
-      return 0;
+      return EXIT_SUCCESS;
     }
   }
-  std::cerr << "TODO: Implement a compiler." << std::endl;
   return EXIT_FAILURE;
 }
