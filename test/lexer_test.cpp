@@ -72,10 +72,13 @@ TEST_CASE("Fast Lexer character constant test.") {
   }
 }
 
-//TODO
-//TEST_CASE("Fast Lexer invalid character literal test.") {
-//  REQUIRE_THROWS_AS(FastLexer("''").lex(), LexerException);
-//}
+
+TEST_CASE("Fast Lexer invalid character literal test.") {
+  FastLexer lexer("''");
+  lexer.lex();
+  REQUIRE(lexer.fail());
+  REQUIRE(lexer.getError() == "1:1: error: 'Invalid character: ''''. Lexing Stopped!");
+}
 
 TEST_CASE("Fast Lexer line comment test.") {
   auto token_list = FastLexer("  aaa//blah\ntest//hehe\r\nmore//test\rtesting").lex();
@@ -104,11 +107,12 @@ TEST_CASE("Fast Lexer block comment multiline test.") {
   REQUIRE(lastToken.getExtra() == "x");
 }
 
-//TODO
-//TEST_CASE("Fast Lexer block comment multiline unterminated.") {
-//  REQUIRE_THROWS_WITH(FastLexer(" /*\nee/x").lex(), "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
-//}
-
+TEST_CASE("Fast Lexer block comment multiline unterminated.") {
+  FastLexer lexer(" /*\nee/x");
+  lexer.lex();
+  REQUIRE(lexer.fail());
+  REQUIRE(lexer.getError() == "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
+}
 
 TEST_CASE("Fast Lexer string empty test.") {
   std::string input = "";
@@ -146,9 +150,11 @@ TEST_CASE("Fast Lexer string escape sequence test.") {
 
 //TODO
 //TEST_CASE("Fast Lexer invalid string literal test.") {
-//  REQUIRE_THROWS_AS(FastLexer("\"this has invalid escape \\z\"").lex(), LexerException);
+//  FastLexer lexer(R"("this has invalid escape \q")");
+//  lexer.lex();
+//  REQUIRE(lexer.fail());
+//  std::cout << lexer.getError();
 //}
-
 
 TEST_CASE("::") {
   auto tokenList = FastLexer(":::").lex();
