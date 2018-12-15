@@ -5,28 +5,29 @@
 
 class Assert {
 public:
-    Assert(bool cond) : assertion(cond) {}
-    ~Assert() {
-        if (!assertion) {
-            std::cerr << std::endl;
-            abort();
-        }
+  Assert(bool cond) : assertion(cond) {}
+  ~Assert() {
+    if (!assertion) {
+      std::cerr << std::endl;
+      abort();
     }
-    template <class T>
-    inline Assert& operator<<(const T& message) {
-        if (!assertion)
-            std::cerr << message;
-        return *this;
-    }
+  }
+  template <class T> inline Assert &operator<<(const T &message) {
+    if (!assertion)
+      std::cerr << message;
+    return *this;
+  }
+
 private:
-    bool assertion;
+  bool assertion;
 };
 
 class NullAssert {
 public:
-    NullAssert(bool cond) {}
-    template <class T>
-    inline NullAssert& operator<<(const T& message) { return *this; }
+  NullAssert(bool cond) {}
+  template <class T> inline NullAssert &operator<<(const T &message) {
+    return *this;
+  }
 };
 
 #ifndef NDEBUG
