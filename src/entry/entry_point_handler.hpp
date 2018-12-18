@@ -9,4 +9,4 @@ public:
   int handle(int argCount, char **ppArgs);
 };
 
-#endif //C4_ENTRY_POINT_HANDLER_HPP
+#endif // C4_ENTRY_POINT_HANDLER_HPP

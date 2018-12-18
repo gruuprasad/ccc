@@ -109,8 +109,8 @@ enum class TokenType {
   FLOAT,
   DOUBLE,
   TOKENEND
-}; 
+};
 
 } // namespace ccc
 
-#endif //C4_TOKEN_TYPE_HPP
+#endif // C4_TOKEN_TYPE_HPP
