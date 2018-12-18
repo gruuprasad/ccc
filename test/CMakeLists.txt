@@ -19,4 +19,4 @@ add_test(NAME lexer COMMAND test_lexer)
 
 target_link_libraries(test_parser entry lexer parser ast)
 add_dependencies(check test_parser)
-add_test(NAME parser COMMAND test_parsers)
+add_test(NAME parser COMMAND test_parser)
