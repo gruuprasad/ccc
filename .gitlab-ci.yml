@@ -1,19 +1,81 @@
+stages:
+  - build
+  - test
+  - analysis
+  - deploy
+
 variables:
   GIT_SSL_NO_VERIFY: "true"
 
-build:
+build:make:
   stage: build
   script:
-  - mkdir -p build
-  - make clean
-  - make
-  - cd build
-  - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
-  - make -j$(nproc) c4 tests
-  - ./tests
-  - chmod +x ../scripts/coverage.sh
-  - ../scripts/coverage.sh
-  # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
-  cache:
-     paths:
-       - "build/*"
+    - mkdir -p build
+    - make -j$(nproc)
+  artifacts:
+    when: on_success
+    paths: 
+      - ./build/* 
+    expire_in: 5 mins
+
+test:run:
+  stage: test
+  dependencies:
+    - build:make
+  script:
+    - cd ./build
+    - ./release/c4 --tokenize ../example/hello_world.c
+    - ./release/c4 --parse ../example/hello_world.c
+
+build:test:
+  stage: build
+  script:
+    - mkdir -p build
+    - cd ./build
+    - cmake ..
+    - make -j$(nproc)
+    - cd ..
+  artifacts:
+    when: on_success
+    paths: 
+      - ./build/* 
+    expire_in: 5 mins
+
+test:tests:
+  stage: test
+  dependencies:
+    - build:test
+  script:
+    - cd ./build
+    - make test
+
+analysis:coverage:
+  stage: analysis
+  script:
+    - mkdir -p build
+    - cd ./build
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
+    - make -j$(nproc)
+    - make test
+    - cd ..
+    - chmod +x ./scripts/coverage.sh
+    - ./scripts/coverage.sh
+  artifacts:
+    when: on_success
+    paths: 
+      - ./coverage/*
+    expire_in: 5 mins
+
+deploy:benchmark:
+  stage: deploy
+  script:
+    - echo "The cake is a lie."
+  only:
+    refs:
+      - master
+      - develop
+  artifacts:
+    paths: 
+      - ./benchmark.svg
+    expire_in: 1 week
+

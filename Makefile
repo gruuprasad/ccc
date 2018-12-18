@@ -1,17 +1,20 @@
 BUILDDIR ?= build
-CFG      ?= debug
+CFG      ?= release
 NAME     ?= c4
 SRCDIR   ?= src
+
+# Be verbose about the build.
+Q ?= @
 
 all:
 
 -include config/$(CFG).cfg
 
-# Be verbose about the build.
-Q ?= @
-
+HASH   := $(shell git log -1 --pretty=format:%H)
 BINDIR := $(BUILDDIR)/$(CFG)
+LEGACYDIR := $(BUILDDIR)/legacy/$(HASH)/$(CFG)
 BIN    := $(BINDIR)/$(NAME)
+LEGACYBIN := $(LEGACYDIR)/$(NAME)
 SRC    := $(sort $(SRCDIR)/main.cpp $(wildcard $(SRCDIR)/**/*.cpp))
 OBJ    := $(SRC:$(SRCDIR)/%.cpp=$(BINDIR)/%.o)
 DEP    := $(OBJ:%.o=%.d)
@@ -33,26 +36,40 @@ else
 	LLVM_LDFLAGS := $(shell $(LLVM_CONFIG) --ldflags --libs --system-libs)
 endif
 
-CFLAGS   := $(LLVM_CFLAGS) -Wall -W $(CFLAGS)
-CXXFLAGS += $(CFLAGS) -std=c++11
+CFLAGS   := $(LLVM_CFLAGS) $(CFLAGS)
+CXXFLAGS += $(CFLAGS) -std=c++11 -MMD
 LDFLAGS  += $(LLVM_LDFLAGS)
 
 DUMMY := $(shell mkdir -p $(sort $(dir $(OBJ))))
 
+#cosmetic
+COLOR ?= \033[33m
+_COLOR := \033[0m
+
+# build rules
 .PHONY: all clean
 
-all: $(BIN)
+all:
+	@$(MAKE) clean --no-print-directory
+	@$(MAKE) -j$(nproc) $(BIN) --no-print-directory
 
 -include $(DEP)
 
+legacy:
+	@$(MAKE) -j$(nproc) $(BIN) --no-print-directory
+	@echo "$(COLOR)===> LEGACY$(_COLOR) | $(LEGACYBIN)"
+	$(Q)mkdir -p $(LEGACYDIR)
+	@echo "$(shell echo ${CXXFLAGS} | sed -e 's/^[ \t]*//')" > $(LEGACYBIN).flags
+	$(Q)mv $(BIN) $(LEGACYBIN)
+
 clean:
-	@echo "===> CLEAN"
+	@echo "$(COLOR)===> CLEAN$(_COLOR) | $(BINDIR)"
 	$(Q)rm -fr $(BINDIR)
 
 $(BIN): $(OBJ)
-	@echo "===> LD $@"
+	@echo "$(COLOR)===> LD  [$(shell echo $(CXX) ${LDFLAGS} | sed -e 's/^[ \t]*//')]$(_COLOR) | $@"
 	$(Q)$(CXX) -o $(BIN) $(OBJ) $(LDFLAGS)
 
 $(BINDIR)/%.o: $(SRCDIR)/%.cpp
-	@echo "===> CXX $<"
-	$(Q)$(CXX) $(CXXFLAGS) -MMD -c -o $@ $<
+	@echo "$(COLOR)===> CXX [$(shell echo $(CXX) ${CXXFLAGS} | sed -e 's/^[ \t]*//')]$(_COLOR) | $*"
+	$(Q)$(CXX) $(CXXFLAGS) -c -o $@ $<

@@ -1,7 +1,6 @@
 build/
 llvm/
-*.svg
-*.gv
+sample/
 
 # Created by https://www.gitignore.io/api/c,c++
 
@@ -74,3 +73,5 @@ llvm/
 \.idea/
 
 coverage/
+
+coverage\.info

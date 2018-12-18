@@ -9,6 +9,7 @@ private:
   ASTNode *ident;
   TypeSpecifier type;
   std::string toGraphWalker() override;
+
 public:
   Declaration(int, ASTNode *, TypeSpecifier);
 };
@@ -18,4 +19,4 @@ public:
   InitDeclaration(int, ASTNode *, TypeSpecifier);
 };
 
-#endif //C4_DECLARATION_HPP
+#endif // C4_DECLARATION_HPP

@@ -1,9 +1,9 @@
 #ifndef C4_STATEMENT_HPP
 #define C4_STATEMENT_HPP
 
-#include <vector>
 #include <iosfwd>
 #include <iostream>
+#include <vector>
 
 #include "../lexer/token.hpp"
 #include "ast_node.hpp"
@@ -14,6 +14,7 @@ private:
 public:
   Statement(int, const std::string &, unsigned long);
   Statement(int, const std::string &);
+
 private:
   std::string toGraphWalker() override;
 };
