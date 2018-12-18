@@ -8,10 +8,10 @@
 
 class ASTNode {
 protected:
-  ASTNode(int id, std::string name, Token *token, unsigned long size);
+  ASTNode(int id, std::string name, ccc::Token *token, unsigned long size);
   ASTNode(int id, std::string name, unsigned long size);
   ASTNode(int id, std::string name);
-  Token *token;
+  ccc::Token *token;
   int id;
   std::string name;
   std::vector<ASTNode *> children;

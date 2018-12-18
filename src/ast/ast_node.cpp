@@ -1,7 +1,6 @@
 #include "ast_node.hpp"
-#include <iostream>
 
-ASTNode::ASTNode(int id, std::string name, Token *token,
+ASTNode::ASTNode(int id, std::string name, ccc::Token *token,
                  const unsigned long size) {
   this->id = id;
   this->name = std::move(name);
