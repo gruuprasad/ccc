@@ -44,7 +44,7 @@ TEST_CASE("Fast Parser:empty declaration test "#type) { \
   PARSE_VALID(type" ***** (p);" + std::string(type) + " ***** (p);")\
   PARSE_VALID("void a; char b; short c; int d; struct e;")\
   PARSE_VALID(type" a (" + std::string(type) + " a, void b, char c, short e);")\
-}\
+}
 
 TEST_CASE("Fast Parser: Struct declaration test"){
     PARSE_VALID("struct { int; };") PARSE_VALID(
@@ -52,33 +52,40 @@ TEST_CASE("Fast Parser: Struct declaration test"){
                                           "char name; };")
         PARSE_VALID("struct { void a; short b; int c; char name;  int * ptr; "
                     "};") PARSE_VALID("struct A { void a; short b; int c; char "
-                                      "name;  int * ptr; };") PARSE_VALID(
-            "struct A { void a; short b; int c; char name;  int * ptr; } list;")
+                                      "name;  int * ptr; };")
             PARSE_VALID("struct A { void a; short b; int c; char name;  int * "
-                        "ptr; } * list;") PARSE_VALID(
-                "struct A { struct B { int; }; } list;")
+                        "ptr; } list;")
                 PARSE_VALID(
-                    "struct A { struct B { int x; int y; struct C; "
-                    "struct { struct E { char z; void * p;}; }; }; } list;")
-                    PARSE_VALID("struct { int; }; struct A { int x; } a;")
-                        PARSE_VALID("struct A (a) (int a);") PARSE_VALID(
-                            "struct A (* a) (int a);")
-                            PARSE_VALID("struct A (** a) (int a);") PARSE_VALID(
-                                "struct A (** a) (int a, void * b);")
-                                PARSE_VALID("char * callA (int a, void * b);")
-                                    PARSE_VALID("char ** callA (int a, void * "
-                                                "b);") PARSE_VALID(
-                                        "char ** ((callA)) (int a, char * b);")
+                    "struct A { void a; short b; int c; char name;  int * "
+                    "ptr; } * list;") PARSE_VALID("struct A { struct B { int; "
+                                                  "}; } "
+                                                  "list;")
+                    PARSE_VALID(
+                        "struct A { struct B { int x; int y; struct C; "
+                        "struct { struct E { char z; void * p;}; }; }; } list;")
+                        PARSE_VALID("struct { int; }; struct A { int x; } a;")
+                            PARSE_VALID("struct A (a) (int a);") PARSE_VALID(
+                                "struct A (* a) (int a);")
+                                PARSE_VALID("struct A (** a) (int a);")
+                                    PARSE_VALID(
+                                        "struct A (** a) (int a, void * b);")
                                         PARSE_VALID(
-                                            "char ** (callA (int x)) (int a, "
-                                            "char * b);") // dubious pass
+                                            "char * callA (int a, void * b);")
+                                            PARSE_VALID(
+                                                "char ** callA (int a, void * "
+                                                "b);")
+                                                PARSE_VALID(
+                                                    "char ** ((callA)) (int a, "
+                                                    "char * b);")
+                                                    PARSE_VALID(
+                                                        "char ** (callA (int "
+                                                        "x)) (int a, "
+                                                        "char * b);") // dubious
+                                                                      // pass
     PARSE_VALID("char * ((*callA)) (int a, char * b);")}
 
-DECLARATION_TESTS("void")
-DECLARATION_TESTS("char")
-DECLARATION_TESTS("short")
-DECLARATION_TESTS("int")
-DECLARATION_TESTS("struct A")
+DECLARATION_TESTS("void") DECLARATION_TESTS("char") DECLARATION_TESTS("short")
+    DECLARATION_TESTS("int") DECLARATION_TESTS("struct A")
 
 #define PARSE_VALID_EXPRESSION(language) \
   {\
@@ -86,51 +93,40 @@ DECLARATION_TESTS("struct A")
     auto fp = FastParser(token_list); \
     fp.parse(PARSE_TYPE::EXPRESSION); \
     REQUIRE(fp.fail() == false); \
-  }\
+  }
 
-// Test simple expressions
-TEST_CASE("Fast Parser:primary expression test") {
-  PARSE_VALID_EXPRESSION("a")
-  PARSE_VALID_EXPRESSION("100")
-  PARSE_VALID_EXPRESSION("\'c\'")
-  PARSE_VALID_EXPRESSION("\"string constant\"")
-  PARSE_VALID_EXPRESSION("(\"string constant\")")
-  PARSE_VALID_EXPRESSION("(((((25000)))))")
-  PARSE_VALID_EXPRESSION("(((((variable)))))")
-}
+    // Test simple expressions
+    TEST_CASE("Fast Parser:primary expression test"){
+        PARSE_VALID_EXPRESSION("a") PARSE_VALID_EXPRESSION("100")
+            PARSE_VALID_EXPRESSION("\'c\'")
+                PARSE_VALID_EXPRESSION("\"string constant\"")
+                    PARSE_VALID_EXPRESSION("(\"string constant\")")
+                        PARSE_VALID_EXPRESSION("(((((25000)))))")
+                            PARSE_VALID_EXPRESSION("(((((variable)))))")}
 
-TEST_CASE("Fast Parser:unary expression test") {
-  PARSE_VALID_EXPRESSION("&a")
-  PARSE_VALID_EXPRESSION("*a")
-  PARSE_VALID_EXPRESSION("+a")
-  PARSE_VALID_EXPRESSION("-a")
-  PARSE_VALID_EXPRESSION("!a")
-  PARSE_VALID_EXPRESSION("sizeof a")
-  PARSE_VALID_EXPRESSION("sizeof (char)")
-}
+TEST_CASE("Fast Parser:unary expression test"){
+    PARSE_VALID_EXPRESSION("&a") PARSE_VALID_EXPRESSION("*a")
+        PARSE_VALID_EXPRESSION("+a") PARSE_VALID_EXPRESSION("-a")
+            PARSE_VALID_EXPRESSION("!a") PARSE_VALID_EXPRESSION("sizeof a")
+                PARSE_VALID_EXPRESSION("sizeof (char)")}
 
-TEST_CASE("Fast Parser:postfix expression test") {
-  PARSE_VALID_EXPRESSION("a[100]")
-  PARSE_VALID_EXPRESSION("a()")
-  PARSE_VALID_EXPRESSION("a()")
-  PARSE_VALID_EXPRESSION("a.b")
-  PARSE_VALID_EXPRESSION("a->b")
-}
+TEST_CASE("Fast Parser:postfix expression test"){
+    PARSE_VALID_EXPRESSION("a[100]") PARSE_VALID_EXPRESSION("a()")
+        PARSE_VALID_EXPRESSION("a()") PARSE_VALID_EXPRESSION("a.b")
+            PARSE_VALID_EXPRESSION("a->b")}
 
-TEST_CASE("Fast Parser:binary expression test") {
-  PARSE_VALID_EXPRESSION("a[100] + b[100]")
-  PARSE_VALID_EXPRESSION("a[100] - b[100]")
-  PARSE_VALID_EXPRESSION("a[100] * b[100]")
-  PARSE_VALID_EXPRESSION("a[100] && b[100]")
-  PARSE_VALID_EXPRESSION("a[100] || b[100]")
-  PARSE_VALID_EXPRESSION("a[100] == b[100]")
-  PARSE_VALID_EXPRESSION("a[100] != b[100]")
-  PARSE_VALID_EXPRESSION("a[100] = b[100]")
-  PARSE_VALID_EXPRESSION("a + b + d - c + (e * f)")
-  PARSE_VALID_EXPRESSION("a + (b + d) - c + (e * f)")
-  PARSE_VALID_EXPRESSION("a && (b + d) && c || (e() * -f)")
-  PARSE_VALID_EXPRESSION("a + b * c")
-}
+TEST_CASE("Fast Parser:binary expression test"){
+    PARSE_VALID_EXPRESSION("a[100] + b[100]") PARSE_VALID_EXPRESSION(
+        "a[100] - b[100]") PARSE_VALID_EXPRESSION("a[100] * b[100]")
+        PARSE_VALID_EXPRESSION("a[100] && b[100]") PARSE_VALID_EXPRESSION(
+            "a[100] || b[100]") PARSE_VALID_EXPRESSION("a[100] == b[100]")
+            PARSE_VALID_EXPRESSION("a[100] != b[100]")
+                PARSE_VALID_EXPRESSION("a[100] = b[100]")
+                    PARSE_VALID_EXPRESSION("a + b + d - c + (e * f)")
+                        PARSE_VALID_EXPRESSION("a + (b + d) - c + (e * f)")
+                            PARSE_VALID_EXPRESSION(
+                                "a && (b + d) && c || (e() * -f)")
+                                PARSE_VALID_EXPRESSION("a + b * c")}
 
 TEST_CASE("debug") {
 }
