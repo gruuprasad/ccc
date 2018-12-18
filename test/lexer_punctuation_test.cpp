@@ -1,49 +1,49 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include "catch.hpp"
-#include "../src/lexer/fast_lexer.hpp"
 #include "../src/entry/entry_point_handler.hpp"
+#include "../src/lexer/fast_lexer.hpp"
 #include "../src/lexer/lexer_exception.hpp"
+#include "catch.hpp"
+#include <fstream>
+#include <iostream>
 #include <iterator>
+#include <sstream>
 
 using namespace ccc;
 
-#define PUNCTUATOR_TESTS(keyword, token) \
-TEST_CASE("Fast Lexer keyword "#keyword" positive.") { \
-  auto firstToken = FastLexer(keyword).lex().front(); \
-  REQUIRE(firstToken.name() == keyword); \
-  REQUIRE(firstToken.getType() == token); \
-  REQUIRE(firstToken.getLine() == 1); \
-  REQUIRE(firstToken.getColumn() == 1); \
-} \
-TEST_CASE("Fast Lexer keyword "#keyword" positive prev.") { \
-  auto firstToken = FastLexer("  " keyword).lex().front(); \
-  REQUIRE(firstToken.name() == keyword); \
-  REQUIRE(firstToken.getType() == token); \
-  REQUIRE(firstToken.getLine() == 1); \
-  REQUIRE(firstToken.getColumn() == 3); \
-} \
-TEST_CASE("Fast Lexer keyword "#keyword" positive cont.") { \
-  auto firstToken = FastLexer(keyword"d").lex().front(); \
-  REQUIRE(firstToken.name() == keyword); \
-  REQUIRE(firstToken.getType() == token); \
-  REQUIRE(firstToken.getLine() == 1); \
-  REQUIRE(firstToken.getColumn() == 1); \
-} \
-TEST_CASE("Fast Lexer keyword "#keyword" length") { \
-  auto lastToken = FastLexer(#keyword" n").lex().back(); \
-  REQUIRE(lastToken.getType() == TokenType::IDENTIFIER); \
-  REQUIRE(lastToken.getLine() == 1); \
-  REQUIRE(lastToken.getColumn() == sizeof(#keyword) + 1); \
-} \
-TEST_CASE("Fast Lexer keyword "#keyword" stringify.") { \
-  auto firstToken = FastLexer(keyword).lex().front(); \
-  std::stringstream buffer; \
-  buffer << firstToken; \
-  std::string result = buffer.str(); \
-  REQUIRE("1:1: punctuator "#keyword); \
-} \
+#define PUNCTUATOR_TESTS(keyword, token)                                       \
+  TEST_CASE("Fast Lexer keyword " #keyword " positive.") {                     \
+    auto firstToken = FastLexer(keyword).lex().front();                        \
+    REQUIRE(firstToken.name() == keyword);                                     \
+    REQUIRE(firstToken.getType() == token);                                    \
+    REQUIRE(firstToken.getLine() == 1);                                        \
+    REQUIRE(firstToken.getColumn() == 1);                                      \
+  }                                                                            \
+  TEST_CASE("Fast Lexer keyword " #keyword " positive prev.") {                \
+    auto firstToken = FastLexer("  " keyword).lex().front();                   \
+    REQUIRE(firstToken.name() == keyword);                                     \
+    REQUIRE(firstToken.getType() == token);                                    \
+    REQUIRE(firstToken.getLine() == 1);                                        \
+    REQUIRE(firstToken.getColumn() == 3);                                      \
+  }                                                                            \
+  TEST_CASE("Fast Lexer keyword " #keyword " positive cont.") {                \
+    auto firstToken = FastLexer(keyword "d").lex().front();                    \
+    REQUIRE(firstToken.name() == keyword);                                     \
+    REQUIRE(firstToken.getType() == token);                                    \
+    REQUIRE(firstToken.getLine() == 1);                                        \
+    REQUIRE(firstToken.getColumn() == 1);                                      \
+  }                                                                            \
+  TEST_CASE("Fast Lexer keyword " #keyword " length") {                        \
+    auto lastToken = FastLexer(#keyword " n").lex().back();                    \
+    REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);                     \
+    REQUIRE(lastToken.getLine() == 1);                                         \
+    REQUIRE(lastToken.getColumn() == sizeof(#keyword) + 1);                    \
+  }                                                                            \
+  TEST_CASE("Fast Lexer keyword " #keyword " stringify.") {                    \
+    auto firstToken = FastLexer(keyword).lex().front();                        \
+    std::stringstream buffer;                                                  \
+    buffer << firstToken;                                                      \
+    std::string result = buffer.str();                                         \
+    REQUIRE("1:1: punctuator " #keyword);                                      \
+  }
 
 PUNCTUATOR_TESTS("{", TokenType::BRACE_OPEN)
 PUNCTUATOR_TESTS("}", TokenType::BRACE_CLOSE)

@@ -108,8 +108,8 @@ enum class TokenType {
   HASHHASH_ALT,
   FLOAT,
   DOUBLE
-}; 
+};
 
 } // namespace ccc
 
-#endif //C4_TOKEN_TYPE_HPP
+#endif // C4_TOKEN_TYPE_HPP

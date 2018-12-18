@@ -1,19 +1,19 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include "catch.hpp"
-#include "../src/lexer/fast_lexer.hpp"
 #include "../src/entry/entry_point_handler.hpp"
+#include "../src/lexer/fast_lexer.hpp"
 #include "../src/lexer/lexer_exception.hpp"
+#include "catch.hpp"
+#include <fstream>
+#include <iostream>
 #include <iterator>
+#include <sstream>
 #include <zconf.h>
 
 using namespace ccc;
 
-#define COMPARE(name) \
-TEST_CASE("Compare "#name".c to "#name".txt") { \
-  REQUIRE(lexing_of(#name".c", to_match(#name".txt"))); \
-}
+#define COMPARE(name)                                                          \
+  TEST_CASE("Compare " #name ".c to " #name ".txt") {                          \
+    REQUIRE(lexing_of(#name ".c", to_match(#name ".txt")));                    \
+  }
 
 std::vector<std::string> split_lines(const std::string &str) {
   std::stringstream ss(str);
@@ -51,17 +51,20 @@ bool lexing_of(const std::string &filename, const std::string &expected) {
   std::vector<std::string> content_lines = split_lines(ss.str());
 
   unsigned int counter = 0;
-  for (unsigned long i = 0; i < std::max(content_lines.size(), expected_lines.size()); i++) {
+  for (unsigned long i = 0;
+       i < std::max(content_lines.size(), expected_lines.size()); i++) {
     if (content_lines[i] == expected_lines[i]) {
       continue;
     }
     if (i >= expected_lines.size()) {
-      std::cerr << filename << ": expected nothing but got \"" << content_lines[i] << "\"." << std::endl;
+      std::cerr << filename << ": expected nothing but got \""
+                << content_lines[i] << "\"." << std::endl;
     } else if (i >= content_lines.size()) {
-      std::cerr << filename << ": expected \"" << expected_lines[i] << "\" but got nothing." << std::endl;
+      std::cerr << filename << ": expected \"" << expected_lines[i]
+                << "\" but got nothing." << std::endl;
     } else if (content_lines[i] != expected_lines[i]) {
-      std::cerr << filename << ": expected \"" << expected_lines[i] << "\" but got \"" << content_lines[i] << "\"."
-                << std::endl;
+      std::cerr << filename << ": expected \"" << expected_lines[i]
+                << "\" but got \"" << content_lines[i] << "\"." << std::endl;
     }
     counter += 1;
     if (counter > 5) {
@@ -90,5 +93,3 @@ COMPARE(comments)
 COMPARE(lorem_ipsum)
 COMPARE(extra)
 COMPARE(backslashes)
-
-
