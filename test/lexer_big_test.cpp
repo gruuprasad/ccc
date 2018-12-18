@@ -10,10 +10,10 @@
 
 using namespace ccc;
 
-#define COMPARE(name) \
-TEST_CASE("Compare "#name".c to "#name".txt") { \
-  REQUIRE(lexing_of(#name".c", to_match(#name".txt"))); \
-}
+#define COMPARE(name)                                                          \
+  TEST_CASE("Compare " #name ".c to " #name ".txt") {                          \
+    REQUIRE(lexing_of(#name ".c", to_match(#name ".txt")));                    \
+  }
 
 std::vector<std::string> split_lines(const std::string &str) {
   std::stringstream ss(str);
@@ -93,5 +93,3 @@ COMPARE(comments)
 COMPARE(lorem_ipsum)
 COMPARE(extra)
 COMPARE(backslashes)
-
-

@@ -1,16 +1,17 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include "catch.hpp"
-#include "../src/lexer/fast_lexer.hpp"
 #include "../src/entry/entry_point_handler.hpp"
+#include "../src/lexer/fast_lexer.hpp"
 #include "../src/lexer/lexer_exception.hpp"
+#include "catch.hpp"
+#include <fstream>
+#include <iostream>
 #include <iterator>
+#include <sstream>
 
 using namespace ccc;
 
 TEST_CASE("Lexer Smoke test.") {
-  auto token_list = FastLexer("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee").lex();
+  auto token_list =
+      FastLexer("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee").lex();
 }
 
 TEST_CASE("Lexer Simple Operator tests.") {
@@ -81,7 +82,8 @@ TEST_CASE("Fast Lexer invalid character literal test.") {
 }
 
 TEST_CASE("Fast Lexer line comment test.") {
-  auto token_list = FastLexer("  aaa//blah\ntest//hehe\r\nmore//test\rtesting").lex();
+  auto token_list =
+      FastLexer("  aaa//blah\ntest//hehe\r\nmore//test\rtesting").lex();
   auto lastToken = token_list.back();
   REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);
   REQUIRE(lastToken.getLine() == 4);
