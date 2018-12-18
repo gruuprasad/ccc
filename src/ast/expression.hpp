@@ -1,16 +1,17 @@
 #ifndef C4_EXPRESSIONS_HPP
 #define C4_EXPRESSIONS_HPP
 
-#include <vector>
-#include <iosfwd>
-#include <iostream>
 #include "ast_node.hpp"
 #include "constant.hpp"
 #include "declaration.hpp"
+#include <iosfwd>
+#include <iostream>
+#include <vector>
 
 class Expression : public ASTNode {
 private:
   std::string toGraphWalker() override;
+
 public:
   Expression(int, const std::string &, unsigned long);
 };
@@ -20,11 +21,9 @@ public:
   explicit Identifier(int);
 };
 
-class StringLiteral : public Expression {
-};
+class StringLiteral : public Expression {};
 
-class PrimaryExpression : public Expression {
-};
+class PrimaryExpression : public Expression {};
 
 class AssignmentExpression : public Expression {
 public:

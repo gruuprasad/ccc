@@ -1,14 +1,17 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include "catch.hpp"
-#include "../src/lexer/fast_lexer.hpp"
 #include "../src/entry/entry_point_handler.hpp"
+#include "../src/lexer/fast_lexer.hpp"
 #include "../src/lexer/lexer_exception.hpp"
+#include "catch.hpp"
+#include <fstream>
+#include <iostream>
 #include <iterator>
+#include <sstream>
+
+using namespace ccc;
 
 TEST_CASE("Lexer Smoke test.") {
-  auto token_list = FastLexer("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee").lex();
+  auto token_list =
+      FastLexer("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee").lex();
 }
 
 TEST_CASE("Lexer Simple Operator tests.") {
@@ -54,7 +57,7 @@ TEST_CASE("Fast Lexer number with extra test.") {
 TEST_CASE("Fast Lexer character constant test.") {
   {
     auto tokenList = FastLexer("'a'").lex();
-    auto & firstToken = tokenList.front();
+    auto &firstToken = tokenList.front();
     REQUIRE(firstToken.getType() == TokenType::CHARACTER);
     REQUIRE(firstToken.getLine() == 1);
     REQUIRE(firstToken.getColumn() == 1);
@@ -62,7 +65,7 @@ TEST_CASE("Fast Lexer character constant test.") {
   }
   {
     auto tokenList = FastLexer("'\\r'").lex();
-    auto & firstToken = tokenList.front();
+    auto &firstToken = tokenList.front();
     REQUIRE(firstToken.getType() == TokenType::CHARACTER);
     REQUIRE(firstToken.getLine() == 1);
     REQUIRE(firstToken.getColumn() == 1);
@@ -71,11 +74,16 @@ TEST_CASE("Fast Lexer character constant test.") {
 }
 
 TEST_CASE("Fast Lexer invalid character literal test.") {
-  REQUIRE_THROWS_AS(FastLexer("''").lex(), LexerException);
+  FastLexer lexer("''");
+  lexer.lex();
+  REQUIRE(lexer.fail());
+  REQUIRE(lexer.getError() ==
+          "1:1: error: 'Invalid character: ''''. Lexing Stopped!");
 }
 
 TEST_CASE("Fast Lexer line comment test.") {
-  auto token_list = FastLexer("  aaa//blah\ntest//hehe\r\nmore//test\rtesting").lex();
+  auto token_list =
+      FastLexer("  aaa//blah\ntest//hehe\r\nmore//test\rtesting").lex();
   auto lastToken = token_list.back();
   REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);
   REQUIRE(lastToken.getLine() == 4);
@@ -102,7 +110,11 @@ TEST_CASE("Fast Lexer block comment multiline test.") {
 }
 
 TEST_CASE("Fast Lexer block comment multiline unterminated.") {
-  REQUIRE_THROWS_WITH(FastLexer(" /*\nee/x").lex(), "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
+  FastLexer lexer(" /*\nee/x");
+  lexer.lex();
+  REQUIRE(lexer.fail());
+  REQUIRE(lexer.getError() ==
+          "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
 }
 
 TEST_CASE("Fast Lexer string empty test.") {
@@ -117,7 +129,7 @@ TEST_CASE("Fast Lexer string empty string test.") {
   REQUIRE(firstToken.getType() == TokenType::STRING);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
-  REQUIRE(firstToken.getExtra() == "");
+  REQUIRE(firstToken.getExtra().empty());
 }
 
 TEST_CASE("Fast Lexer string literals test.") {
@@ -131,7 +143,7 @@ TEST_CASE("Fast Lexer string literals test.") {
 }
 
 TEST_CASE("Fast Lexer string escape sequence test.") {
-  auto tokenList = FastLexer("\"strings\\\\ \\n are slow\"").lex();
+  auto tokenList = FastLexer(R"("strings\\ \n are slow")").lex();
   auto &firstToken = tokenList.front();
   REQUIRE(firstToken.getType() == TokenType::STRING);
   REQUIRE(firstToken.getLine() == 1);
@@ -139,6 +151,50 @@ TEST_CASE("Fast Lexer string escape sequence test.") {
   REQUIRE(firstToken.getExtra() == "strings\\\\ \\n are slow");
 }
 
-TEST_CASE("Fast Lexer invalid string literal test.") {
-  REQUIRE_THROWS_AS(FastLexer("\"this has invalid escape \\z\"").lex(), LexerException);
+// TODO
+// TEST_CASE("Fast Lexer invalid string literal test.") {
+//  FastLexer lexer(R"("this has invalid escape \q")");
+//  lexer.lex();
+//  REQUIRE(lexer.fail());
+//  std::cout << lexer.getError();
+//}
+
+TEST_CASE("::") {
+  auto tokenList = FastLexer(":::").lex();
+  REQUIRE(tokenList.size() == 3);
+
+  auto &firstToken = tokenList.front();
+  REQUIRE(firstToken.getType() == TokenType::COLON);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+
+  auto &secondToken = tokenList[1];
+  REQUIRE(secondToken.getType() == TokenType::COLON);
+  REQUIRE(secondToken.getLine() == 1);
+  REQUIRE(secondToken.getColumn() == 2);
+
+  auto &thirdToken = tokenList[2];
+  REQUIRE(thirdToken.getType() == TokenType::COLON);
+  REQUIRE(thirdToken.getLine() == 1);
+  REQUIRE(thirdToken.getColumn() == 3);
+}
+
+TEST_CASE(".*") {
+  auto tokenList = FastLexer(".*.").lex();
+  REQUIRE(tokenList.size() == 3);
+
+  auto &firstToken = tokenList.front();
+  REQUIRE(firstToken.getType() == TokenType::DOT);
+  REQUIRE(firstToken.getLine() == 1);
+  REQUIRE(firstToken.getColumn() == 1);
+
+  auto &secondToken = tokenList[1];
+  REQUIRE(secondToken.getType() == TokenType::STAR);
+  REQUIRE(secondToken.getLine() == 1);
+  REQUIRE(secondToken.getColumn() == 2);
+
+  auto &thirdToken = tokenList[2];
+  REQUIRE(thirdToken.getType() == TokenType::DOT);
+  REQUIRE(thirdToken.getLine() == 1);
+  REQUIRE(thirdToken.getColumn() == 3);
 }

@@ -2,6 +2,9 @@
 #define C4_TOKEN_TYPE_HPP
 
 #include <string>
+
+namespace ccc {
+
 enum class TokenType {
   AUTO,
   BREAK,
@@ -71,17 +74,16 @@ enum class TokenType {
   LESS_EQUAL,
   LEFT_SHIFT_ASSIGN,
   LEFT_SHIFT,
-  LEFT,
+  LESS,
   GREATER_EQUAL,
   RIGHT_SHIFT_ASSIGN,
   RIGHT_SHIFT,
-  RIGHT,
+  GREATER,
   NOT_EQUAL,
   NOT,
   COMMA,
   SEMICOLON,
   TRI_DOTS,
-  DOT_STAR,
   DOT,
   CARET_ASSIGN,
   CARET,
@@ -98,7 +100,6 @@ enum class TokenType {
   PIPE_ASSIGN,
   OR,
   PIPE,
-  COLON_COLON,
   COLON,
   QUESTION,
   HASH,
@@ -109,4 +110,6 @@ enum class TokenType {
   DOUBLE
 };
 
-#endif //C4_TOKEN_TYPE_HPP
+} // namespace ccc
+
+#endif // C4_TOKEN_TYPE_HPP

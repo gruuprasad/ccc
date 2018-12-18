@@ -1,7 +1,7 @@
-#include <iostream>
 #include "ast_node.hpp"
 
-ASTNode::ASTNode(int id, std::string name, Token *token, const unsigned long size) {
+ASTNode::ASTNode(int id, std::string name, ccc::Token *token,
+                 const unsigned long size) {
   this->id = id;
   this->name = std::move(name);
   this->token = token;
@@ -28,10 +28,8 @@ ASTNode::~ASTNode() {
 }
 
 std::string ASTNode::toGraph() {
-  return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n"
-      + this->toGraphWalker() + "}\n}\n";
+  return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n" +
+         this->toGraphWalker() + "}\n}\n";
 }
 
-int ASTNode::getId() const {
-  return id;
-}
+int ASTNode::getId() const { return id; }
