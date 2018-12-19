@@ -16,7 +16,8 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     std::ifstream file = std::ifstream(path);
     auto filename = path.substr(path.find_last_of("/\\") + 1);
     std::vector<Token, std::allocator<Token>> token_list;
-    std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    std::string buffer((std::istreambuf_iterator<char>(file)),
+                       std::istreambuf_iterator<char>());
     auto lexer = FastLexer(buffer);
     token_list = lexer.lex();
     if (lexer.fail()) {

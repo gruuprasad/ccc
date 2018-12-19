@@ -1,6 +1,7 @@
 #ifndef C4_FASTLEXER_H
 #define C4_FASTLEXER_H
 
+#include "../utils/macros.hpp"
 #include "lexer_exception.hpp"
 #include "token.hpp"
 #include <vector>

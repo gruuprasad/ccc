@@ -16,9 +16,13 @@
 //}
 //
 /* FIXME Disabling temporarily, passes in debug session, not working well with
-ctest TEST_CASE("Our tokenizer should fail on invalid.") { char *args[] = {(char
-*)"c4", (char *)"--tokenize", (char *)"../examples/error.c", nullptr}; REQUIRE(1
-== EntryPointHandler().handle(3, args));
+ctest TEST_CASE("Our tokenizer should fail on invalid.") { char *args[] = {
+      (char*)"c4",
+      (char*)"--tokenize",
+      (char*)"../examples/error.c",
+      nullptr
+  };
+  REQUIRE(1 == EntryPointHandler().handle(3, args));
 }
 
 TEST_CASE("Our parser should fail on invalid.") {

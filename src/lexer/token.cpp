@@ -221,6 +221,8 @@ const std::string Token::name() const {
     return "float";
   case TokenType::DOUBLE:
     return "double";
+  case TokenType::TOKENEND:
+    return "";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
@@ -432,6 +434,8 @@ const std::string Token::token_type() const {
     return "keyword";
   case TokenType::DOUBLE:
     return "keyword";
+  case TokenType::TOKENEND:
+    return "";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
