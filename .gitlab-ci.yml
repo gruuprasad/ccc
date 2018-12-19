@@ -1,8 +1,8 @@
 stages:
-  - build
-  - test
-  - analysis
-  - deploy
+- build
+- test
+- analysis
+- deploy
 
 variables:
   GIT_SSL_NO_VERIFY: "true"
@@ -10,72 +10,75 @@ variables:
 build:make:
   stage: build
   script:
-    - mkdir -p build
-    - make -j$(nproc)
+  - mkdir -p build
+  - make -j$(nproc)
   artifacts:
     when: on_success
-    paths: 
-      - ./build/* 
+    paths:
+    - ./build/*
     expire_in: 5 mins
 
 test:run:
   stage: test
   dependencies:
-    - build:make
+  - build:make
   script:
-    - cd ./build
-    - ./release/c4 --tokenize ../example/hello_world.c
-    - ./release/c4 --parse ../example/hello_world.c
+  - cd ./build
+  - ./release/c4 --tokenize ../example/hello_world.c
+  - ./release/c4 --parse ../example/hello_world.c
 
 build:test:
   stage: build
   script:
-    - mkdir -p build
-    - cd ./build
-    - cmake ..
-    - make -j$(nproc)
-    - cd ..
+  - mkdir -p build
+  - cd ./build
+  - cmake ..
+  - make -j$(nproc)
+  - cd ..
   artifacts:
     when: on_success
-    paths: 
-      - ./build/* 
+    paths:
+    - ./build/*
     expire_in: 5 mins
 
 test:tests:
   stage: test
   dependencies:
-    - build:test
+  - build:test
   script:
-    - cd ./build
-    - make test
+  - cd ./build
+  - make test
+  allow_failure: true
 
 analysis:coverage:
   stage: analysis
   script:
-    - mkdir -p build
-    - cd ./build
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
-    - make -j$(nproc)
-    - make test
-    - cd ..
-    - chmod +x ./scripts/coverage.sh
-    - ./scripts/coverage.sh
+  - mkdir -p build
+  - cd ./build
+  - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
+  - make -j$(nproc)
+  - make test
+  - cd ..
+  - chmod +x ./scripts/coverage.sh
+  - ./scripts/coverage.sh
   artifacts:
     when: on_success
-    paths: 
-      - ./coverage/*
+    paths:
+    - ./coverage/*
     expire_in: 5 mins
+  allow_failure: true
 
 deploy:benchmark:
   stage: deploy
   script:
-    - echo "The cake is a lie."
+  - echo "The cake is a lie."
   only:
     refs:
-      - master
-      - develop
+    - master
+    - develop
   artifacts:
-    paths: 
-      - ./benchmark.svg
+    paths:
+    - ./benchmark.svg
     expire_in: 1 week
+
 
