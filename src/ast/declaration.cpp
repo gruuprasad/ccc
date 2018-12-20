@@ -1,11 +1,7 @@
 #include "declaration.hpp"
 #include <sstream>
 
-Declaration::Declaration(int id, ASTNode *ident, TypeSpecifier type)
-    : ASTNode(id, "declaration") {
-  this->ident = ident;
-  this->type = type;
-}
+namespace ccc {
 
 std::string Declaration::toGraphWalker() {
   std::stringstream ss;
@@ -14,5 +10,4 @@ std::string Declaration::toGraphWalker() {
   return ss.str();
 }
 
-InitDeclaration::InitDeclaration(int id, ASTNode *ident, TypeSpecifier type)
-    : Declaration(id, ident, type) {}
+} // namespace ccc
