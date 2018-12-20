@@ -1,24 +1,13 @@
 #include "ast_node.hpp"
 
-ASTNode::ASTNode(int id, std::string name, ccc::Token *token,
-                 const unsigned long size) {
-  this->id = id;
-  this->name = std::move(name);
-  this->token = token;
-  this->children.reserve(size);
-}
+#include <utility>
 
-ASTNode::ASTNode(int id, std::string name, const unsigned long size) {
-  this->id = id;
-  this->name = std::move(name);
-  this->token = nullptr;
-  this->children.reserve(size);
-}
+namespace ccc {
 
-ASTNode::ASTNode(int id, std::string name) {
-  this->id = id;
-  this->name = std::move(name);
-  this->token = nullptr;
+ASTNode::ASTNode(int id, std::string name, const unsigned long size,
+                 Token *token)
+    : id(id), name(std::move(name)), token(token) {
+  children.reserve(size);
 }
 
 ASTNode::~ASTNode() {
@@ -33,3 +22,5 @@ std::string ASTNode::toGraph() {
 }
 
 int ASTNode::getId() const { return id; }
+
+} // namespace ccc
