@@ -9,9 +9,8 @@ namespace ccc {
 
 class ASTNode {
 protected:
-  ASTNode(int id, std::string name, unsigned long size = 0,
-          Token *token = nullptr,
-          std::vector<ASTNode *> children_ = std::vector<ASTNode *>())
+  ASTNode(int id, std::string name, Token *token = nullptr,
+      std::vector<ASTNode *> children_ = std::vector<ASTNode *>())
       : id(id), name(std::move(name)), token(token),
         children(std::move(children_)) {}
   Token *token;
@@ -22,8 +21,14 @@ protected:
 public:
   int getId() const { return id; }
   virtual std::string toGraphWalker() = 0;
-  std::string toGraph();
-  virtual ~ASTNode();
+  std::string toGraph() {
+    return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n" +
+      this->toGraphWalker() + "}\n}\n";
+  }
+  virtual ~ASTNode() {
+    for (auto &child : this->children) {
+      delete child;
+  }
 };
 
 } // namespace ccc
