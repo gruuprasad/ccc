@@ -1,7 +1,7 @@
-#include "../src/entry/entry_point_handler.hpp"
-#include "../src/lexer/fast_lexer.hpp"
-#include "../src/lexer/lexer_exception.hpp"
-#include "catch.hpp"
+#include "../catch.hpp"
+#include "entry/entry_point_handler.hpp"
+#include "lexer/fast_lexer.hpp"
+#include "lexer/lexer_exception.hpp"
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -41,7 +41,7 @@ bool lexing_of(const std::string &filename, const std::string &expected) {
   ppArgs[1] = &flag[0];
   ppArgs[2] = &input[0];
 
-  EntryPointHandler().handle(3, ppArgs);
+  REQUIRE(0 == EntryPointHandler().handle(3, ppArgs));
 
   delete[] ppArgs;
 

@@ -1,7 +1,7 @@
-#include "../src/entry/entry_point_handler.hpp"
-#include "../src/lexer/fast_lexer.hpp"
-#include "../src/lexer/lexer_exception.hpp"
-#include "catch.hpp"
+#include "../catch.hpp"
+#include "entry/entry_point_handler.hpp"
+#include "lexer/fast_lexer.hpp"
+#include "lexer/lexer_exception.hpp"
 #include <fstream>
 #include <iostream>
 #include <iterator>

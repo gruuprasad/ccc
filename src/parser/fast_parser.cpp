@@ -3,11 +3,13 @@
 namespace ccc {
 
 void FastParser::parseExternalDeclaration() {
+  std::cout << __FUNCTION__ << std::endl;
   while (curTokenIdx + 1 != tokens.size())
     parseFuncDefOrDeclaration();
 }
 
 void FastParser::parseFuncDefOrDeclaration() {
+  std::cout << __FUNCTION__ << std::endl;
   parseTypeSpecifiers();
   if (peek().is(TokenType::SEMICOLON) && consume())
     return;
@@ -27,6 +29,7 @@ void FastParser::parseFuncDefOrDeclaration() {
 }
 
 void FastParser::parseCompoundStatement() {
+  std::cout << __FUNCTION__ << std::endl;
   expect(TokenType::BRACE_OPEN);
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is_oneof(C_TYPES)) {
@@ -45,6 +48,7 @@ void FastParser::parseCompoundStatement() {
 void FastParser::parseBlockItemList() {}
 
 void FastParser::parseStatement() {
+  std::cout << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
     parseLabeledStatement();
@@ -82,11 +86,13 @@ void FastParser::parseStatement() {
 }
 
 void FastParser::parseLabeledStatement() {
+  std::cout << __FUNCTION__ << std::endl;
   expect(TokenType::IDENTIFIER, TokenType::COLON);
   parseStatement();
 }
 
 void FastParser::parseSelectionStatement() {
+  std::cout << __FUNCTION__ << std::endl;
   expect(TokenType::IF, TokenType::PARENTHESIS_OPEN);
   parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE);
@@ -97,6 +103,7 @@ void FastParser::parseSelectionStatement() {
 }
 
 void FastParser::parseIterationStatement() {
+  std::cout << __FUNCTION__ << std::endl;
   expect(TokenType::WHILE, TokenType::PARENTHESIS_OPEN);
   parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE);
@@ -104,6 +111,7 @@ void FastParser::parseIterationStatement() {
 }
 
 void FastParser::parseDeclarations() {
+  std::cout << __FUNCTION__ << std::endl;
   do {
     parseTypeSpecifiers();
     if (peek().is_not(TokenType::SEMICOLON))
@@ -113,6 +121,7 @@ void FastParser::parseDeclarations() {
 }
 
 void FastParser::parseTypeSpecifiers() {
+  std::cout << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::VOID:
   case TokenType::CHAR:
@@ -130,11 +139,13 @@ void FastParser::parseTypeSpecifiers() {
 }
 
 void FastParser::parseDeclarator() {
+  std::cout << __FUNCTION__ << std::endl;
   parseList([&]() {}, TokenType::STAR);
   parseDirectDeclarator();
 }
 
 void FastParser::parseDirectDeclarator() {
+  std::cout << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
     nextToken();
@@ -156,6 +167,7 @@ void FastParser::parseDirectDeclarator() {
 }
 
 void FastParser::parseParameterList() {
+  std::cout << __FUNCTION__ << std::endl;
   parseList(
       [&]() {
         parseTypeSpecifiers();
@@ -166,6 +178,7 @@ void FastParser::parseParameterList() {
 }
 
 void FastParser::parseStructOrUnionSpecifier() {
+  std::cout << __FUNCTION__ << std::endl;
   nextToken();
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
@@ -187,6 +200,7 @@ void FastParser::parseStructOrUnionSpecifier() {
 }
 
 void FastParser::parseStructDeclaration() {
+  std::cout << __FUNCTION__ << std::endl;
   parseTypeSpecifiers();
   if (peek().is_not(TokenType::SEMICOLON))
     parseList([&]() { parseDeclarator(); }, TokenType::COMMA);
@@ -195,6 +209,7 @@ void FastParser::parseStructDeclaration() {
 
 // Expressions
 void FastParser::parseExpression() {
+  std::cout << __FUNCTION__ << std::endl;
   parseUnaryExpression();
 
   while (true) {
@@ -209,6 +224,7 @@ void FastParser::parseExpression() {
 }
 
 void FastParser::parseUnaryExpression() {
+  std::cout << __FUNCTION__ << std::endl;
   if (peek().is_oneof(UNARY_OP) && consume()) {
     if (peek().is(TokenType::PARENTHESIS_OPEN) && consume()) {
       parseTypeSpecifiers();
@@ -222,6 +238,7 @@ void FastParser::parseUnaryExpression() {
 }
 
 void FastParser::parsePostfixExpression() {
+  std::cout << __FUNCTION__ << std::endl;
   parsePrimaryExpression();
   // optional postfix varients
   switch (peek().getType()) {
@@ -247,6 +264,7 @@ void FastParser::parsePostfixExpression() {
 }
 
 void FastParser::parsePrimaryExpression() {
+  std::cout << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
   case TokenType::NUMBER:
@@ -267,7 +285,12 @@ void FastParser::parsePrimaryExpression() {
 }
 
 void FastParser::parseArgumentExpressionList() {
+  std::cout << __FUNCTION__ << std::endl;
   // TODO implement
+}
+void FastParser::parseTranslationUnit() {
+  std::cout << __FUNCTION__ << std::endl;
+  return parseExternalDeclaration();
 }
 
 } // namespace ccc

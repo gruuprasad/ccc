@@ -1,10 +1,10 @@
-#include "../src/ast/ast_node.hpp"
-#include "../src/ast/constant.hpp"
-#include "../src/ast/declaration.hpp"
-#include "../src/ast/expression.hpp"
-#include "../src/ast/statement.hpp"
-#include "../src/entry/entry_point_handler.hpp"
-#include "catch.hpp"
+#include "../catch.hpp"
+#include "ast/ast_node.hpp"
+#include "ast/constant.hpp"
+#include "ast/declaration.hpp"
+#include "ast/expression.hpp"
+#include "ast/statement.hpp"
+#include "entry/entry_point_handler.hpp"
 
 using namespace ccc;
 

@@ -1,6 +1,6 @@
-#include "../src/lexer/fast_lexer.hpp"
-#include "../src/parser/fast_parser.hpp"
-#include "catch.hpp"
+#include "../catch.hpp"
+#include "lexer/fast_lexer.hpp"
+#include "parser/fast_parser.hpp"
 
 //#define PRINT
 
