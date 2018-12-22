@@ -1,8 +1,4 @@
 #include "../src/ast/ast_node.hpp"
-#include "../src/ast/constant.hpp"
-#include "../src/ast/declaration.hpp"
-#include "../src/ast/expression.hpp"
-#include "../src/ast/statement.hpp"
 #include "../src/entry/entry_point_handler.hpp"
 #include "catch.hpp"
 
