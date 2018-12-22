@@ -108,6 +108,12 @@ enum class TokenType {
   HASHHASH_ALT,
   FLOAT,
   DOUBLE,
+  // helper tokens
+  BLOCKCOMMENT,
+  LINECOMMENT,
+  WHITESPACE,
+  NONKEYWORD,
+  INVALIDTOK,
   TOKENEND
 };
 
