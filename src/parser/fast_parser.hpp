@@ -19,7 +19,9 @@ public:
     tokens.emplace_back(TokenType::TOKENEND, 0, 0);
   }
 
-  ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT,
+                 bool debug = false) {
+    this->debug = debug;
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -40,6 +42,8 @@ public:
   std::string getError() { return error; }
 
 private:
+  bool debug;
+
   void print_token();
 
   Token nextToken() { return tokens[curTokenIdx++]; }
@@ -47,21 +51,25 @@ private:
   int count = 0;
 
   bool consume(std::string callee = "no one") {
-    std::cout << callee << " consumes " << tokens[curTokenIdx].name()
-              << std::endl;
+    if (this->debug) {
+      std::cout << callee << " consumes " << tokens[curTokenIdx].name()
+                << std::endl;
+    }
     curTokenIdx++;
     return true;
   }
 
   bool expect(TokenType tok, std::string callee = "no one") {
     if (peek().is(tok)) {
-      std::cout << callee << " expects " << peek().name() << std::endl;
+      if (this->debug) {
+        std::cout << callee << " expects " << peek().name() << std::endl;
+      }
       return consume(callee);
     } else {
       error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
                            "Unexpected Token: \"" + peek().name() +
-                               "\", expecting  \"" +
-                               (new Token(tok, 0, 0))->name() + "\"");
+                               "\", expecting  \"" + (new Token(tok))->name() +
+                               "\"");
       std::cout << error << std::endl;
       return false;
     }
