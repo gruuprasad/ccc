@@ -6,6 +6,8 @@
 #include "../src/entry/entry_point_handler.hpp"
 #include "catch.hpp"
 
+using namespace ccc;
+
 TEST_CASE("generate ast") {
   int count = 0;
   std::vector<ASTNode *> scope;
