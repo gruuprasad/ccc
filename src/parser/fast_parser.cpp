@@ -1,35 +1,39 @@
 #include "fast_parser.hpp"
+#include <ast/ast_node.hpp>
+#include <ast/statement.hpp>
 
 namespace ccc {
 
-void FastParser::parseExternalDeclaration() {
-  std::cout << __FUNCTION__ << std::endl;
+ASTNode *FastParser::parseExternalDeclaration() {
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   while (curTokenIdx + 1 != tokens.size())
     parseFuncDefOrDeclaration();
+  return new Declaration(count++, nullptr, TypeSpecifier::VOID);
 }
 
-void FastParser::parseFuncDefOrDeclaration() {
-  std::cout << __FUNCTION__ << std::endl;
+ASTNode *FastParser::parseFuncDefOrDeclaration() {
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   parseTypeSpecifiers();
   if (peek().is(TokenType::SEMICOLON) && consume())
-    return;
+    return nullptr;
   parseDeclarator();
   switch (peek().getType()) {
   case TokenType::SEMICOLON:
     consume();
-    return;
+    return nullptr;
   case TokenType::BRACE_OPEN:
     parseCompoundStatement();
-    return;
+    return nullptr;
   default:
     parseDeclarations();
     parseCompoundStatement();
-    return;
+    return nullptr;
   }
 }
 
-void FastParser::parseCompoundStatement() {
-  std::cout << __FUNCTION__ << std::endl;
+ASTNode *FastParser::parseCompoundStatement() {
+  std::vector<ASTNode *> block;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   expect(TokenType::BRACE_OPEN);
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is_oneof(C_TYPES)) {
@@ -37,31 +41,31 @@ void FastParser::parseCompoundStatement() {
       parseDeclarator();
       expect(TokenType::SEMICOLON);
     } else {
-      parseStatement();
+      block.push_back(parseStatement());
     }
     if (fail())
-      return;
+      return nullptr;
   }
   consume();
+  return new CompoundStatement(count++, block);
 }
 
 void FastParser::parseBlockItemList() {}
 
-void FastParser::parseStatement() {
-  std::cout << __FUNCTION__ << std::endl;
+ASTNode *FastParser::parseStatement() {
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
     parseLabeledStatement();
-    return;
+    return nullptr;
   case TokenType::BRACE_OPEN:
-    parseCompoundStatement();
-    return;
+    return parseCompoundStatement();
   case TokenType::IF:
     parseSelectionStatement();
-    return;
+    return nullptr;
   case TokenType::WHILE:
     parseIterationStatement();
-    return;
+    return nullptr;
   case TokenType::GOTO:
     consume();
     expect(TokenType::IDENTIFIER);
@@ -86,24 +90,27 @@ void FastParser::parseStatement() {
 }
 
 void FastParser::parseLabeledStatement() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   expect(TokenType::IDENTIFIER, TokenType::COLON);
   parseStatement();
 }
 
 void FastParser::parseSelectionStatement() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   expect(TokenType::IF, TokenType::PARENTHESIS_OPEN);
   parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE);
-  peek().is(TokenType::IF) ? parseSelectionStatement() : parseStatement();
+  if (peek().is(TokenType::IF))
+    parseSelectionStatement();
+  else
+    parseStatement();
   if (peek().is(TokenType::ELSE) && consume())
     parseStatement();
   return;
 }
 
 void FastParser::parseIterationStatement() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   expect(TokenType::WHILE, TokenType::PARENTHESIS_OPEN);
   parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE);
@@ -111,7 +118,7 @@ void FastParser::parseIterationStatement() {
 }
 
 void FastParser::parseDeclarations() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   do {
     parseTypeSpecifiers();
     if (peek().is_not(TokenType::SEMICOLON))
@@ -121,7 +128,7 @@ void FastParser::parseDeclarations() {
 }
 
 void FastParser::parseTypeSpecifiers() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::VOID:
   case TokenType::CHAR:
@@ -130,6 +137,7 @@ void FastParser::parseTypeSpecifiers() {
     nextToken();
     return;
   case TokenType::STRUCT:
+    nextToken();
     return parseStructOrUnionSpecifier();
   default:
     error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
@@ -139,19 +147,22 @@ void FastParser::parseTypeSpecifiers() {
 }
 
 void FastParser::parseDeclarator() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   parseList([&]() {}, TokenType::STAR);
   parseDirectDeclarator();
 }
 
 void FastParser::parseDirectDeclarator() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
-    nextToken();
-    if (peek().is(TokenType::PARENTHESIS_OPEN) && consume())
+    if (peek().is(TokenType::PARENTHESIS_OPEN)) {
+      consume();
       parseParameterList();
-    return;
+    } else {
+      parseExpression();
+      return;
+    }
   case TokenType::PARENTHESIS_OPEN:
     consume();
     parseDeclarator();
@@ -164,10 +175,10 @@ void FastParser::parseDirectDeclarator() {
                          "Unexpected Token: \"" + peek().name() +
                              "\", expecting declarator");
   }
-}
+} // namespace ccc
 
 void FastParser::parseParameterList() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   parseList(
       [&]() {
         parseTypeSpecifiers();
@@ -178,8 +189,7 @@ void FastParser::parseParameterList() {
 }
 
 void FastParser::parseStructOrUnionSpecifier() {
-  std::cout << __FUNCTION__ << std::endl;
-  nextToken();
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
     nextToken();
@@ -200,7 +210,7 @@ void FastParser::parseStructOrUnionSpecifier() {
 }
 
 void FastParser::parseStructDeclaration() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   parseTypeSpecifiers();
   if (peek().is_not(TokenType::SEMICOLON))
     parseList([&]() { parseDeclarator(); }, TokenType::COMMA);
@@ -209,7 +219,7 @@ void FastParser::parseStructDeclaration() {
 
 // Expressions
 void FastParser::parseExpression() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   parseUnaryExpression();
 
   while (true) {
@@ -224,7 +234,7 @@ void FastParser::parseExpression() {
 }
 
 void FastParser::parseUnaryExpression() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   if (peek().is_oneof(UNARY_OP) && consume()) {
     if (peek().is(TokenType::PARENTHESIS_OPEN) && consume()) {
       parseTypeSpecifiers();
@@ -238,7 +248,7 @@ void FastParser::parseUnaryExpression() {
 }
 
 void FastParser::parsePostfixExpression() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   parsePrimaryExpression();
   // optional postfix varients
   switch (peek().getType()) {
@@ -264,7 +274,7 @@ void FastParser::parsePostfixExpression() {
 }
 
 void FastParser::parsePrimaryExpression() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
   case TokenType::NUMBER:
@@ -285,12 +295,14 @@ void FastParser::parsePrimaryExpression() {
 }
 
 void FastParser::parseArgumentExpressionList() {
-  std::cout << __FUNCTION__ << std::endl;
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   // TODO implement
 }
-void FastParser::parseTranslationUnit() {
-  std::cout << __FUNCTION__ << std::endl;
-  return parseExternalDeclaration();
+ASTNode *FastParser::parseTranslationUnit() {
+  std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
+  std::vector<ASTNode *> items;
+  items.push_back(parseExternalDeclaration());
+  return new CompoundStatement(count++, items);
 }
 
 } // namespace ccc

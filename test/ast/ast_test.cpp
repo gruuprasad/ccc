@@ -6,10 +6,21 @@
 
 using namespace ccc;
 
-TEST_CASE("Fast Parser: Struct declaration test") {
-  auto language = "struct { int; }; struct A { int x; } a;";
+// TEST_CASE("ast struct test") {
+//  auto language = "struct { int; }; struct A { int x; } a;";
+//  auto token_list = (new FastLexer(language))->lex();
+//  auto *fp = new FastParser(token_list);
+//  fp->parse();
+//  REQUIRE(!fp->fail());
+//}
+
+TEST_CASE("ast statement test") {
+  auto language = "{ int a = 0; int a += 12;}";
   auto token_list = (new FastLexer(language))->lex();
   auto *fp = new FastParser(token_list);
-  fp->parse();
+  ASTNode *root = fp->parse(PARSE_TYPE::STATEMENT);
+  if (fp->fail())
+    std::cout << fp->getError() << std::endl;
   REQUIRE(!fp->fail());
+  std::cout << root->toGraph();
 }

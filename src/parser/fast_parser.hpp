@@ -4,6 +4,7 @@
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
 #include "../utils/macros.hpp"
+#include <ast/ast_node.hpp>
 #include <vector>
 
 namespace ccc {
@@ -16,18 +17,22 @@ public:
     tokens.emplace_back(TokenType::TOKENEND, 0, 0);
   }
 
-  void parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
-      return parseTranslationUnit();
+      parseTranslationUnit();
+      return nullptr;
     case PARSE_TYPE::EXPRESSION:
-      return parseExpression();
+      parseExpression();
+      return nullptr;
     case PARSE_TYPE::STATEMENT:
       return parseStatement();
     case PARSE_TYPE::DECLARATION:
-      return parseDeclarations();
+      parseDeclarations();
+      return nullptr;
     default:
       error = "Unknown parse type";
+      return nullptr;
     }
   }
 
@@ -36,6 +41,8 @@ public:
 
 private:
   Token nextToken() { return tokens[curTokenIdx++]; }
+
+  int count = 0;
 
   bool consume() {
     curTokenIdx++;
@@ -89,9 +96,9 @@ private:
   //                   direct-abstract-declarator direct-abstract-declarator ::
   //                   ( abstract-declarator) | ( parameter-type-list(opt) )+
 
-  void parseTranslationUnit();
-  void parseExternalDeclaration();
-  void parseFuncDefOrDeclaration();
+  ASTNode *parseTranslationUnit();
+  ASTNode *parseExternalDeclaration();
+  ASTNode *parseFuncDefOrDeclaration();
 
   // declarations
   void parseDeclarations();
@@ -136,9 +143,9 @@ private:
   void parsePostfixExpression();
 
   // Statements
-  void parseCompoundStatement();
+  ASTNode *parseCompoundStatement();
   void parseBlockItemList();
-  void parseStatement();
+  ASTNode *parseStatement();
   void parseLabeledStatement();
   void parseSelectionStatement();
   void parseIterationStatement();
