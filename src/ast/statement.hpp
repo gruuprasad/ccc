@@ -7,6 +7,7 @@
 #include "expression.hpp"
 
 #include <vector>
+#include <sstream>
 
 namespace ccc {
 
@@ -18,7 +19,18 @@ public:
       : ASTNode(id, name, token, children) {}
 
 private:
-  std::string toGraphWalker() override;
+  std::string toGraphWalker() override {
+    std::stringstream ss;
+    ss << this->id << "[label=<" << this->name << "<br/><font point-size='10'>"
+      << this->name
+      << "</font>> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
+    for (ASTNode *child : this->children) {
+      ss << "subgraph cluster_" << child->getId() << "{\n"
+        << child->toGraphWalker() << "}\n";
+      ss << this->id << "--" << child->getId() << ";\n";
+    }
+    return ss.str();
+  }
 };
 
 class LabelStatement : public Statement {

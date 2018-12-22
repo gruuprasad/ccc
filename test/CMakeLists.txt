@@ -17,6 +17,6 @@ target_link_libraries(test_lexer entry lexer)
 add_dependencies(check test_lexer)
 add_test(NAME lexer COMMAND test_lexer)
 
-target_link_libraries(test_parser entry lexer parser ast)
+target_link_libraries(test_parser entry lexer parser)
 add_dependencies(check test_parser)
 add_test(NAME parser COMMAND test_parser)

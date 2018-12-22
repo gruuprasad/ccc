@@ -3,6 +3,15 @@
 
 #include "ast_node.hpp"
 #include <string>
+#include <sstream>
+
+template <typename T>
+static std::string graphWalkerImpl(int id, T constant) {
+  std::stringstream ss;
+  ss << id << "[label=\"" << constant
+     << "\" shape=diamond style=filled fillcolor=lightyellow];\n";
+  return ss.str();
+}
 
 namespace ccc {
 
@@ -14,7 +23,9 @@ public:
 class IntegerConstant : public Constant {
 private:
   int constant;
-  std::string toGraphWalker() override;
+  std::string toGraphWalker() override {
+    return graphWalkerImpl(id, constant);
+  }
 
 public:
   IntegerConstant(int id, int constant) : Constant(id), constant(constant) {}
@@ -23,7 +34,9 @@ public:
 class CharacterConstant : public Constant {
 private:
   char constant;
-  std::string toGraphWalker() override;
+  std::string toGraphWalker() override {
+    return graphWalkerImpl(id, constant);
+  }
 
 public:
   CharacterConstant(int id, char constant) : Constant(id), constant(constant) {}
@@ -32,7 +45,9 @@ public:
 class EnumerationConstant : public Constant {
 private:
   std::string constant;
-  std::string toGraphWalker() override;
+  std::string toGraphWalker() override {
+    return graphWalkerImpl(id, constant);
+  }
 
 public:
   EnumerationConstant(int id, std::string &constant)

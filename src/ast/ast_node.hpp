@@ -28,6 +28,7 @@ public:
   virtual ~ASTNode() {
     for (auto &child : this->children) {
       delete child;
+    }
   }
 };
 

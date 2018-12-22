@@ -5,6 +5,7 @@
 #include "constant.hpp"
 #include "declaration.hpp"
 
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -12,7 +13,19 @@ namespace ccc {
 
 class Expression : public ASTNode {
 private:
-  std::string toGraphWalker() override;
+  std::string toGraphWalker() override {
+    std::stringstream ss;
+    ss << this->id << "[label=<" << this->name << "<br/><font point-size='10'>"
+      << this->name
+      << "</font>> shape=oval style=filled fillcolor=lightskyblue];\n";
+    for (ASTNode *child : this->children) {
+      ss << child->toGraphWalker();
+      ss << this->id << " -- " << child->getId()
+        << "[taillabel=\"?\" labeldistance=0 labelangle=0 "
+        "labelfontcolor=red];\n";
+    }
+    return ss.str();
+  }
 
 public:
   Expression(int id, std::string name, Token *token = nullptr, 
