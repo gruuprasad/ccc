@@ -27,7 +27,11 @@ public:
 
 class StringLiteral : public Expression {};
 
-class PrimaryExpression : public Expression {};
+class PrimaryExpression : public Expression {
+public:
+  explicit PrimaryExpression(int id)
+      : Expression(id, "primary expression", 1, nullptr, {}){};
+};
 
 class AssignmentExpression : public Expression {
 public:

@@ -31,7 +31,7 @@ ASTNode *FastParser::parseFuncDefOrDeclaration() {
   }
 }
 
-ASTNode *FastParser::parseCompoundStatement() {
+Statement *FastParser::parseCompoundStatement() {
   std::vector<ASTNode *> block;
   std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   expect(TokenType::BRACE_OPEN);
@@ -52,12 +52,12 @@ ASTNode *FastParser::parseCompoundStatement() {
 
 void FastParser::parseBlockItemList() {}
 
-ASTNode *FastParser::parseStatement() {
+Statement *FastParser::parseStatement() {
   std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
-  case TokenType::IDENTIFIER:
-    parseLabeledStatement();
+  case TokenType::SEMICOLON: {
     return nullptr;
+  }
   case TokenType::BRACE_OPEN:
     return parseCompoundStatement();
   case TokenType::IF:
@@ -81,10 +81,16 @@ ASTNode *FastParser::parseStatement() {
     if (peek().is_not(TokenType::SEMICOLON))
       parseExpression();
     break;
+  case TokenType::IDENTIFIER: {
+    if (peek(1).is(TokenType::COLON)) {
+      parseLabeledStatement();
+      return nullptr;
+    }
+  }
   default:
-    if (peek().is_not(TokenType::SEMICOLON))
-      parseExpression();
-    break;
+    Expression *exp = parseExpression();
+    expect(TokenType::SEMICOLON);
+    return new ExpressionStatement(count++, exp);
   }
   expect(TokenType::SEMICOLON);
 }
@@ -218,75 +224,98 @@ void FastParser::parseStructDeclaration() {
 }
 
 // Expressions
-void FastParser::parseExpression() {
+Expression *FastParser::parseExpression() {
   std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
-  parseUnaryExpression();
-
-  while (true) {
-    // Parse binary op and RHS, if there is.
-    if (peek().is_oneof(BINARY_OP)) {
+  auto exp = parseUnaryExpression();
+  if (peek().is_oneof(BINARY_OP)) {
+    std::cout << peek() << " -> "
+              << "parseBinaryExpression" << std::endl;
+    switch (peek().getType()) {
+    case TokenType::STAR:
       consume();
-      parseUnaryExpression();
-    } else {
-      break;
+      return new MultiplicativeExpression(count++, exp, parseUnaryExpression());
+    case TokenType::PLUS:
+    case TokenType::MINUS:
+      consume();
+      return new AdditiveExpression(count++, exp, parseUnaryExpression());
+    case TokenType::LESS:
+    case TokenType::EQUAL:
+    case TokenType::NOT_EQUAL:
+      consume();
+      return new RelationalExpression(count++, exp, parseUnaryExpression());
+    case TokenType::AND:
+      consume();
+      return new LogicalAndExpression(count++, exp, parseUnaryExpression());
+    case TokenType::OR:
+      consume();
+      return new LogicalOrExpression(count++, exp, parseUnaryExpression());
+    case TokenType::ASSIGN:
+      consume();
+      return new AssignmentExpression(count++, exp, parseUnaryExpression());
+    case TokenType::PLUS_ASSIGN:
+      consume();
+      return new AssignmentExpression(count++, exp, parseUnaryExpression());
     }
-  }
+  } else
+    return exp;
 }
 
-void FastParser::parseUnaryExpression() {
+Expression *FastParser::parseUnaryExpression() {
   std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   if (peek().is_oneof(UNARY_OP) && consume()) {
     if (peek().is(TokenType::PARENTHESIS_OPEN) && consume()) {
       parseTypeSpecifiers();
       expect(TokenType::PARENTHESIS_CLOSE);
-      return;
+      return nullptr;
     }
-    parseUnaryExpression();
+    return parseUnaryExpression();
   } else {
-    parsePostfixExpression();
+    return parsePostfixExpression();
   }
 }
 
-void FastParser::parsePostfixExpression() {
+Expression *FastParser::parsePostfixExpression() {
   std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
-  parsePrimaryExpression();
+  Expression *exp = parsePrimaryExpression();
   // optional postfix varients
   switch (peek().getType()) {
-  case TokenType::BRACKET_OPEN:
+  case TokenType::BRACKET_OPEN: {
     consume();
-    parseExpression();
+    Expression *exp = parseExpression();
     expect(TokenType::BRACKET_CLOSE);
-    return;
+    return exp;
+  }
   case TokenType::PARENTHESIS_OPEN:
     consume();
     parseArgumentExpressionList();
     expect(TokenType::PARENTHESIS_CLOSE);
-    return;
+    return nullptr;
   case TokenType::DOT:
     consume();
     expect(TokenType::IDENTIFIER);
-    return;
+    return nullptr;
   case TokenType::ARROW:
     consume();
     expect(TokenType::IDENTIFIER);
-    return;
+    return nullptr;
   }
+  return exp;
 }
 
-void FastParser::parsePrimaryExpression() {
+Expression *FastParser::parsePrimaryExpression() {
   std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
   case TokenType::NUMBER:
   case TokenType::CHARACTER:
   case TokenType::STRING:
-    nextToken();
-    return;
+    consume();
+    return new PrimaryExpression(count++);
   case TokenType::PARENTHESIS_OPEN:
     consume();
     parseExpression();
     expect(TokenType::PARENTHESIS_CLOSE);
-    return;
+    return new PrimaryExpression(count++);
   default:
     error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
                          "Unexpected Token: \"" + peek().name() +

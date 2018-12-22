@@ -1,7 +1,6 @@
 #ifndef C4_STATEMENT_HPP
 #define C4_STATEMENT_HPP
 
-
 #include "../lexer/token.hpp"
 #include "ast_node.hpp"
 #include "expression.hpp"
@@ -36,7 +35,8 @@ public:
 class ExpressionStatement : public Statement {
 public:
   explicit ExpressionStatement(int id, Expression *expr = nullptr)
-      : Statement(id, "expresson-statement", expr == nullptr ? 0 : 1) {}
+      : Statement(id, "expresson-statement", expr == nullptr ? 0 : 1, nullptr,
+                  {expr}) {}
 };
 
 class IfStatement : public Statement {

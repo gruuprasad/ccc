@@ -5,6 +5,7 @@
 #include "../utils/assert.hpp"
 #include "../utils/macros.hpp"
 #include <ast/ast_node.hpp>
+#include <ast/statement.hpp>
 #include <vector>
 
 namespace ccc {
@@ -135,17 +136,17 @@ private:
   // (6.5.2) argument-expr-list: assignment | argument-expr-list , assignment
   // (6.5.1) primary: identifer | constant | string-literal | ( expression )
 
-  void parseExpression();
+  Expression *parseExpression();
   void parsePrimary();
-  void parsePrimaryExpression();
-  void parseUnaryExpression();
+  Expression *parsePrimaryExpression();
+  Expression *parseUnaryExpression();
   void parseArgumentExpressionList();
-  void parsePostfixExpression();
+  Expression *parsePostfixExpression();
 
   // Statements
-  ASTNode *parseCompoundStatement();
+  Statement *parseStatement();
+  Statement *parseCompoundStatement();
   void parseBlockItemList();
-  ASTNode *parseStatement();
   void parseLabeledStatement();
   void parseSelectionStatement();
   void parseIterationStatement();

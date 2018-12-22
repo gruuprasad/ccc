@@ -1,6 +1,7 @@
 #include "../catch.hpp"
 #include "lexer/fast_lexer.hpp"
 #include "parser/fast_parser.hpp"
+#include <fstream>
 
 //#define PRINT
 
@@ -15,7 +16,7 @@ using namespace ccc;
 //}
 
 TEST_CASE("ast statement test") {
-  auto language = "{ int a = 0; int a += 12;}";
+  auto language = "{ a == 0; a += 12;}";
   auto token_list = (new FastLexer(language))->lex();
   auto *fp = new FastParser(token_list);
   ASTNode *root = fp->parse(PARSE_TYPE::STATEMENT);
@@ -23,4 +24,8 @@ TEST_CASE("ast statement test") {
     std::cout << fp->getError() << std::endl;
   REQUIRE(!fp->fail());
   std::cout << root->toGraph();
+  std::ofstream file;
+  file.open("ast.gv");
+  file << root->toGraph();
+  file.close();
 }
