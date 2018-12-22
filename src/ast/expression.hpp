@@ -29,8 +29,8 @@ class StringLiteral : public Expression {};
 
 class PrimaryExpression : public Expression {
 public:
-  explicit PrimaryExpression(int id)
-      : Expression(id, "primary expression", 1, nullptr, {}){};
+  PrimaryExpression(int id, const Token *token)
+      : Expression(id, "primary expression", 1, token, {}){};
 };
 
 class AssignmentExpression : public Expression {
@@ -56,39 +56,44 @@ public:
 
 class MultiplicativeExpression : public Expression {
 public:
-  MultiplicativeExpression(int id, Expression *expr1, Expression *expr2)
-      : Expression(id, "multiplicative-expression", 2, nullptr,
-                   {expr1, expr2}) {}
+  MultiplicativeExpression(int id, Expression *expr1, const Token *token,
+                           Expression *expr2)
+      : Expression(id, "multiplicative-expression", 2, token, {expr1, expr2}) {}
 };
 
 class AdditiveExpression : public Expression {
 public:
-  AdditiveExpression(int, Expression *expr1, Expression *expr2)
-      : Expression(id, "additive-expression", 2, nullptr, {expr1, expr2}) {}
+  AdditiveExpression(int, Expression *expr1, const Token *token,
+                     Expression *expr2)
+      : Expression(id, "additive-expression", 2, token, {expr1, expr2}) {}
 };
 
 class RelationalExpression : public Expression {
 public:
-  RelationalExpression(int id, Expression *expr1, Expression *expr2)
-      : Expression(id, "relational-expression", 2, nullptr, {expr1, expr2}) {}
+  RelationalExpression(int id, Expression *expr1, const Token *token,
+                       Expression *expr2)
+      : Expression(id, "relational-expression", 2, token, {expr1, expr2}) {}
 };
 
 class EqualityExpression : public Expression {
 public:
-  EqualityExpression(int id, Expression *expr1, Expression *expr2)
-      : Expression(id, "equality-expression", 2, nullptr, {expr1, expr2}) {}
+  EqualityExpression(int id, Expression *expr1, const Token *token,
+                     Expression *expr2)
+      : Expression(id, "equality-expression", 2, token, {expr1, expr2}) {}
 };
 
 class LogicalAndExpression : public Expression {
 public:
-  LogicalAndExpression(int id, Expression *expr1, Expression *expr2)
-      : Expression(id, "logical-And-expression", 2, nullptr, {expr1, expr2}) {}
+  LogicalAndExpression(int id, Expression *expr1, const Token *token,
+                       Expression *expr2)
+      : Expression(id, "logical-And-expression", 2, token, {expr1, expr2}) {}
 };
 
 class LogicalOrExpression : public Expression {
 public:
-  LogicalOrExpression(int id, Expression *expr1, Expression *expr2)
-      : Expression(id, "logical-Or-expression", 2, nullptr, {expr1, expr2}) {}
+  LogicalOrExpression(int id, Expression *expr1, const Token *token,
+                      Expression *expr2)
+      : Expression(id, "logical-Or-expression", 2, token, {expr1, expr2}) {}
 };
 
 class ConditionalExpression : public Expression {

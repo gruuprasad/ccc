@@ -6,9 +6,12 @@ namespace ccc {
 std::string Expression::toGraphWalker() {
   std::stringstream ss;
   ss << this->id << "[label=<" << this->name;
-  if (this->token)
-    ss << "<br/><font point-size='10'>" << this->token->name()
-       << this->token->getExtra() << "</font>";
+  if (this->token) {
+    ss << "<br/><font point-size='10'>" << this->token->name();
+    if (!this->token->getExtra().empty())
+      ss << " " << this->token->getExtra();
+    ss << "</font>";
+  }
   ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
   for (ASTNode *child : this->children) {
     ss << child->toGraphWalker();
@@ -17,6 +20,6 @@ std::string Expression::toGraphWalker() {
           "labelfontcolor=red];\n";
   }
   return ss.str();
-}
+} // namespace ccc
 
 } // namespace ccc

@@ -228,28 +228,34 @@ Expression *FastParser::parseExpression() {
   std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   auto exp = parseUnaryExpression();
   if (peek().is_oneof(BINARY_OP)) {
-    const Token *op = &peek();
     std::cout << peek() << " -> "
               << "parseBinaryExpression" << std::endl;
     consume();
-    switch (op->getType()) {
+    switch (peek(-1).getType()) {
     case TokenType::STAR:
-      return new MultiplicativeExpression(count++, exp, parseUnaryExpression());
+      return new MultiplicativeExpression(count++, exp, &peek(-1),
+                                          parseUnaryExpression());
     case TokenType::PLUS:
     case TokenType::MINUS:
-      return new AdditiveExpression(count++, exp, parseUnaryExpression());
+      return new AdditiveExpression(count++, exp, &peek(-1),
+                                    parseUnaryExpression());
     case TokenType::LESS:
     case TokenType::EQUAL:
     case TokenType::NOT_EQUAL:
-      return new RelationalExpression(count++, exp, parseUnaryExpression());
+      return new RelationalExpression(count++, exp, &peek(-1),
+                                      parseUnaryExpression());
     case TokenType::AND:
-      return new LogicalAndExpression(count++, exp, parseUnaryExpression());
+      return new LogicalAndExpression(count++, exp, &peek(-1),
+                                      parseUnaryExpression());
     case TokenType::OR:
-      return new LogicalOrExpression(count++, exp, parseUnaryExpression());
+      return new LogicalOrExpression(count++, exp, &peek(-1),
+                                     parseUnaryExpression());
     case TokenType::ASSIGN:
-      return new AssignmentExpression(count++, exp, op, parseUnaryExpression());
+      return new AssignmentExpression(count++, exp, &peek(-1),
+                                      parseUnaryExpression());
     case TokenType::PLUS_ASSIGN:
-      return new AssignmentExpression(count++, exp, op, parseUnaryExpression());
+      return new AssignmentExpression(count++, exp, &peek(-1),
+                                      parseUnaryExpression());
     }
   } else
     return exp;
@@ -305,17 +311,19 @@ Expression *FastParser::parsePrimaryExpression() {
   case TokenType::CHARACTER:
   case TokenType::STRING:
     consume();
-    return new PrimaryExpression(count++);
-  case TokenType::PARENTHESIS_OPEN:
+    return new PrimaryExpression(count++, &peek(-1));
+  case TokenType::PARENTHESIS_OPEN: {
     consume();
-    parseExpression();
+    Expression *exp = parseExpression();
     expect(TokenType::PARENTHESIS_CLOSE);
-    return new PrimaryExpression(count++);
+    return exp;
+  }
   default:
     error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
                          "Unexpected Token: \"" + peek().name() +
                              "\", in primary expression.");
   }
+  return nullptr;
 }
 
 void FastParser::parseArgumentExpressionList() {

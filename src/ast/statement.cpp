@@ -8,9 +8,12 @@ namespace ccc {
 std::string Statement::toGraphWalker() {
   std::stringstream ss;
   ss << this->id << "[label=<" << this->name;
-  if (this->token)
-    ss << "<br/><font point-size='10'>"
-       << " " << this->token->name() << this->token->getExtra() << "</font>";
+  if (this->token) {
+    ss << "<br/><font point-size='10'>" << this->token->name();
+    if (!this->token->getExtra().empty())
+      ss << " " << this->token->getExtra();
+    ss << "</font>";
+  }
   ss << "> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
   for (ASTNode *child : this->children) {
     ss << "subgraph cluster_" << child->getId() << "{\n"
