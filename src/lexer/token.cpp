@@ -223,6 +223,8 @@ const std::string Token::name() const {
     return "double";
   case TokenType::TOKENEND:
     return "";
+  case TokenType::_EOF:
+    return "EOF";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";
@@ -436,6 +438,8 @@ const std::string Token::token_type() const {
     return "keyword";
   case TokenType::TOKENEND:
     return "";
+  case TokenType::_EOF:
+    return "EOF";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";

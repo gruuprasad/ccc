@@ -16,10 +16,11 @@ using namespace ccc;
 //}
 
 TEST_CASE("ast statement test") {
-  auto language = "{ a == 0; a += 12;}";
+  auto language = "void foo () { a == 0; a += 3; int b = 0;}";
   auto token_list = (new FastLexer(language))->lex();
+  token_list.emplace_back(TokenType::_EOF, -1, -1);
   auto *fp = new FastParser(token_list);
-  ASTNode *root = fp->parse(PARSE_TYPE::STATEMENT);
+  ASTNode *root = fp->parse(PARSE_TYPE::TRANSLATIONUNIT);
   if (fp->fail())
     std::cout << fp->getError() << std::endl;
   REQUIRE(!fp->fail());

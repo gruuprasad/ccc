@@ -16,9 +16,9 @@
 
 #define LEXER_ERROR(line, column, msg)                                         \
   std::to_string(line) + ":" + std::to_string(column + 1) + ": error: '" +     \
-      msg + "'. Lexing Stopped!"
+      msg + "'. Lexing Stopped!" + __FUNCTION__
 #define PARSER_ERROR(line, column, msg)                                        \
   std::to_string(line) + ":" + std::to_string(column) + ": error: '" + msg +   \
-      "'. Parsing Stopped!"
+      "'. Parsing Stopped!" + __FUNCTION__
 
 #endif

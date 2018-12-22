@@ -1,4 +1,5 @@
 #include "expression.hpp"
+#include <iostream>
 #include <sstream>
 
 namespace ccc {
@@ -6,18 +7,15 @@ namespace ccc {
 std::string Expression::toGraphWalker() {
   std::stringstream ss;
   ss << this->id << "[label=<" << this->name;
-  if (this->token) {
-    ss << "<br/><font point-size='10'>" << this->token->name();
-    if (!this->token->getExtra().empty())
-      ss << " " << this->token->getExtra();
-    ss << "</font>";
-  }
+  if (this->token)
+    ss << "<br/><font point-size='10'>" << *this->token << "</font>";
+  ;
   ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
   for (ASTNode *child : this->children) {
-    ss << child->toGraphWalker();
-    ss << this->id << " -- " << child->getId()
-       << "[taillabel=\"?\" labeldistance=0 labelangle=0 "
-          "labelfontcolor=red];\n";
+    if (child) {
+      ss << child->toGraphWalker() << this->id << " -- " << child->getId()
+         << std::endl;
+    }
   }
   return ss.str();
 } // namespace ccc

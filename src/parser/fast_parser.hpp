@@ -2,6 +2,7 @@
 #define C4_PARSER_HPP
 
 #include "../ast/ast_node.hpp"
+#include "../ast/ghost.hpp"
 #include "../ast/statement.hpp"
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
@@ -21,11 +22,9 @@ public:
   ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
-      parseTranslationUnit();
-      return nullptr;
+      return parseTranslationUnit();
     case PARSE_TYPE::EXPRESSION:
-      parseExpression();
-      return nullptr;
+      return parseExpression();
     case PARSE_TYPE::STATEMENT:
       return parseStatement();
     case PARSE_TYPE::DECLARATION:
@@ -41,29 +40,32 @@ public:
   std::string getError() { return error; }
 
 private:
+  void print_token();
+
   Token nextToken() { return tokens[curTokenIdx++]; }
 
   int count = 0;
 
-  bool consume() {
+  bool consume(std::string callee = "no one") {
+    std::cout << callee << " consumes " << tokens[curTokenIdx].name()
+              << std::endl;
     curTokenIdx++;
     return true;
   }
 
-  bool expect(TokenType tok) {
+  bool expect(TokenType tok, std::string callee = "no one") {
     if (peek().is(tok)) {
-      return consume();
+      std::cout << callee << " expects " << peek().name() << std::endl;
+      return consume(callee);
     } else {
       error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
                            "Unexpected Token: \"" + peek().name() +
-                               "\", expecting  \"" + "\"");
+                               "\", expecting  \"" +
+                               (new Token(tok, 0, 0))->name() + "\"");
+      std::cout << error << std::endl;
       return false;
     }
     // FIXME get string version of token?
-  }
-
-  template <typename T, typename... Args> bool expect(T first, Args... args) {
-    return expect(first) && expect(args...);
   }
 
   const Token &peek(int k = 0) {

@@ -13,7 +13,7 @@ class Statement : public ASTNode {
 private:
 public:
   Statement(int id, const std::string name, unsigned long size = 0,
-            Token *token = nullptr, std::vector<ASTNode *> children = {})
+            const Token *token = nullptr, std::vector<ASTNode *> children = {})
       : ASTNode(id, name, size, token, children) {}
 
 private:
@@ -28,14 +28,15 @@ public:
 
 class CompoundStatement : public Statement {
 public:
-  CompoundStatement(int id, std::vector<ASTNode *> items)
-      : Statement(id, "compound-statement", 1, nullptr, items) {}
+  CompoundStatement(int id, const Token *token, std::vector<ASTNode *> items)
+      : Statement(id, "compound-statement", 1, token, items) {}
 };
 
 class ExpressionStatement : public Statement {
 public:
-  explicit ExpressionStatement(int id, Expression *expr = nullptr)
-      : Statement(id, "expression-statement", expr == nullptr ? 0 : 1, nullptr,
+  explicit ExpressionStatement(int id, const Token *token,
+                               Expression *expr = nullptr)
+      : Statement(id, "expression-statement", expr == nullptr ? 0 : 1, token,
                   {expr}) {}
 };
 
