@@ -228,33 +228,28 @@ Expression *FastParser::parseExpression() {
   std::cout << peek() << " -> " << __FUNCTION__ << std::endl;
   auto exp = parseUnaryExpression();
   if (peek().is_oneof(BINARY_OP)) {
+    const Token *op = &peek();
     std::cout << peek() << " -> "
               << "parseBinaryExpression" << std::endl;
-    switch (peek().getType()) {
+    consume();
+    switch (op->getType()) {
     case TokenType::STAR:
-      consume();
       return new MultiplicativeExpression(count++, exp, parseUnaryExpression());
     case TokenType::PLUS:
     case TokenType::MINUS:
-      consume();
       return new AdditiveExpression(count++, exp, parseUnaryExpression());
     case TokenType::LESS:
     case TokenType::EQUAL:
     case TokenType::NOT_EQUAL:
-      consume();
       return new RelationalExpression(count++, exp, parseUnaryExpression());
     case TokenType::AND:
-      consume();
       return new LogicalAndExpression(count++, exp, parseUnaryExpression());
     case TokenType::OR:
-      consume();
       return new LogicalOrExpression(count++, exp, parseUnaryExpression());
     case TokenType::ASSIGN:
-      consume();
-      return new AssignmentExpression(count++, exp, parseUnaryExpression());
+      return new AssignmentExpression(count++, exp, op, parseUnaryExpression());
     case TokenType::PLUS_ASSIGN:
-      consume();
-      return new AssignmentExpression(count++, exp, parseUnaryExpression());
+      return new AssignmentExpression(count++, exp, op, parseUnaryExpression());
     }
   } else
     return exp;

@@ -66,7 +66,7 @@ private:
     return expect(first) && expect(args...);
   }
 
-  const Token &peek(int k = 0) const {
+  const Token &peek(int k = 0) {
     // TODO bound check. Append k number of empty tokens at the end of tokens
     // so we don't need to bound check.
     return tokens[curTokenIdx + k];

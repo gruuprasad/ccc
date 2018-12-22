@@ -35,7 +35,7 @@ public:
 class ExpressionStatement : public Statement {
 public:
   explicit ExpressionStatement(int id, Expression *expr = nullptr)
-      : Statement(id, "expresson-statement", expr == nullptr ? 0 : 1, nullptr,
+      : Statement(id, "expression-statement", expr == nullptr ? 0 : 1, nullptr,
                   {expr}) {}
 };
 

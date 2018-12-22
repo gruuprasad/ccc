@@ -16,7 +16,7 @@ private:
 
 public:
   Expression(int id, std::string name, unsigned long size,
-             Token *token = nullptr, std::vector<ASTNode *> children = {})
+             const Token *token = nullptr, std::vector<ASTNode *> children = {})
       : ASTNode(id, name, size, token, children) {}
 };
 
@@ -35,8 +35,9 @@ public:
 
 class AssignmentExpression : public Expression {
 public:
-  AssignmentExpression(int id, Expression *assign, Expression *expression)
-      : Expression(id, "assignment-expression", 2, nullptr,
+  AssignmentExpression(int id, Expression *assign, const Token *token,
+                       Expression *expression)
+      : Expression(id, "assignment-expression", 2, token,
                    {assign, expression}) {}
 };
 
