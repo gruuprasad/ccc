@@ -11,6 +11,7 @@ add_executable(test_parser
         test_main.cpp
         parser_test.cpp
         parser_simple.cpp
+        parser_big_test.cpp
         )
 
 target_link_libraries(test_lexer entry lexer)
