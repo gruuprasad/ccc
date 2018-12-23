@@ -12,7 +12,7 @@ ASTNode *FastParser::parseExternalDeclaration() {
   const Token *start = &peek();
   while (!peek().is(TokenType::ENDOFFILE))
     block.push_back(parseFuncDefOrDeclaration());
-  return new Ghost(count++, start, block);
+  return new Ghost(idx++, start, block);
 }
 
 ASTNode *FastParser::parseFuncDefOrDeclaration() {
@@ -64,14 +64,14 @@ Statement *FastParser::parseCompoundStatement() {
     if (peek().is_oneof(C_TYPES)) {
       parseTypeSpecifiers();
       parseDeclarator();
-      block.push_back(new Ghost(count++, &peek()));
+      block.push_back(new Ghost(idx++, &peek()));
       expect(TokenType::SEMICOLON, __FUNCTION__);
     } else {
       block.push_back(parseStatement());
     }
   }
   expect(TokenType::BRACE_CLOSE, __FUNCTION__);
-  return new CompoundStatement(count++, brace, block);
+  return new CompoundStatement(idx++, brace, block);
 }
 
 void FastParser::parseBlockItemList() {}
@@ -90,8 +90,7 @@ Statement *FastParser::parseStatement() {
   case TokenType::BRACE_OPEN:
     return parseCompoundStatement();
   case TokenType::IF:
-    parseSelectionStatement();
-    return nullptr;
+    return parseSelectionStatement();
   case TokenType::WHILE:
     parseIterationStatement();
     return nullptr;
@@ -105,11 +104,16 @@ Statement *FastParser::parseStatement() {
   case TokenType::BREAK:
     consume(__FUNCTION__);
     break;
-  case TokenType::RETURN:
+  case TokenType::RETURN: {
+    const Token *token = &peek();
     consume(__FUNCTION__);
-    if (peek().is_not(TokenType::SEMICOLON))
-      parseExpression();
-    break;
+    if (peek().is_not(TokenType::SEMICOLON)) {
+      Expression *exp = parseExpression();
+      expect(TokenType::SEMICOLON, __FUNCTION__);
+      return new ReturnStatement(idx++, token, exp);
+    }
+    return new ReturnStatement(idx++, token);
+  }
   case TokenType::IDENTIFIER: {
     if (peek(1).is(TokenType::COLON)) {
       parseLabeledStatement();
@@ -122,7 +126,7 @@ Statement *FastParser::parseStatement() {
     const Token *start = &peek();
     Expression *exp = parseExpression();
     expect(TokenType::SEMICOLON, __FUNCTION__);
-    return new ExpressionStatement(count++, start, exp);
+    return new ExpressionStatement(idx++, start, exp);
   }
   return nullptr;
 }
@@ -138,24 +142,24 @@ void FastParser::parseLabeledStatement() {
   parseStatement();
 }
 
-void FastParser::parseSelectionStatement() {
+Statement *FastParser::parseSelectionStatement() {
   if (this->debug) {
     print_token();
     std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
               << std::endl;
   }
+  const Token *token = &peek();
   expect(TokenType::IF);
-  expect(TokenType::PARENTHESIS_OPEN);
-
-  parseExpression();
-  expect(TokenType::PARENTHESIS_CLOSE);
-  if (peek().is(TokenType::IF))
-    parseSelectionStatement();
-  else
-    parseStatement();
-  if (peek().is(TokenType::ELSE) && consume(__FUNCTION__))
-    parseStatement();
-  return;
+  expect(TokenType::PARENTHESIS_OPEN, __FUNCTION__);
+  Expression *cond = parseExpression();
+  expect(TokenType::PARENTHESIS_CLOSE, __FUNCTION__);
+  Statement *if_stat = parseStatement();
+  if (peek().is(TokenType::ELSE) && consume(__FUNCTION__)) {
+    Statement *else_stat = parseStatement();
+    return new IfElseStatement(idx++, token, cond, if_stat, else_stat);
+  } else {
+    return new IfElseStatement(idx++, token, cond, if_stat);
+  }
 }
 
 void FastParser::parseIterationStatement() {
@@ -319,29 +323,24 @@ Expression *FastParser::parseExpression() { // TODO fix order of ops s. lecture
     switch (peek(-1).getType()) {
     case TokenType::DIV:
     case TokenType::STAR:
-      return new MultiplicativeExpression(count++, exp, &peek(-1),
+      return new MultiplicativeExpression(idx++, exp, &peek(-1),
                                           parseExpression());
     case TokenType::PLUS:
     case TokenType::MINUS:
-      return new AdditiveExpression(count++, exp, &peek(-1), parseExpression());
+      return new AdditiveExpression(idx++, exp, &peek(-1), parseExpression());
     case TokenType::LESS:
-      return new RelationalExpression(count++, exp, &peek(-1),
-                                      parseExpression());
+      return new RelationalExpression(idx++, exp, &peek(-1), parseExpression());
     case TokenType::EQUAL:
     case TokenType::NOT_EQUAL:
-      return new EqualityExpression(count++, exp, &peek(-1), parseExpression());
+      return new EqualityExpression(idx++, exp, &peek(-1), parseExpression());
     case TokenType::AND:
-      return new LogicalAndExpression(count++, exp, &peek(-1),
-                                      parseExpression());
+      return new LogicalAndExpression(idx++, exp, &peek(-1), parseExpression());
     case TokenType::OR:
-      return new LogicalOrExpression(count++, exp, &peek(-1),
-                                     parseExpression());
+      return new LogicalOrExpression(idx++, exp, &peek(-1), parseExpression());
     case TokenType::ASSIGN:
-      return new AssignmentExpression(count++, exp, &peek(-1),
-                                      parseExpression());
+      return new AssignmentExpression(idx++, exp, &peek(-1), parseExpression());
     case TokenType::PLUS_ASSIGN:
-      return new AssignmentExpression(count++, exp, &peek(-1),
-                                      parseExpression());
+      return new AssignmentExpression(idx++, exp, &peek(-1), parseExpression());
     default:
       return nullptr;
     }
@@ -396,9 +395,8 @@ Expression *FastParser::parsePostfixExpression() {
     expect(TokenType::IDENTIFIER);
     return nullptr;
   default:
-    return nullptr;
+    return exp;
   }
-  return exp;
 }
 
 Expression *FastParser::parsePrimaryExpression() {
@@ -413,7 +411,7 @@ Expression *FastParser::parsePrimaryExpression() {
   case TokenType::CHARACTER:
   case TokenType::STRING:
     consume(__FUNCTION__);
-    return new PrimaryExpression(count++, &peek(-1));
+    return new PrimaryExpression(idx++, &peek(-1));
   case TokenType::PARENTHESIS_OPEN: {
     consume(__FUNCTION__);
     Expression *exp = parseExpression();
@@ -442,7 +440,7 @@ ASTNode *FastParser::parseTranslationUnit() {
     std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
               << std::endl;
   }
-  return new Ghost(count++, &peek(), parseExternalDeclaration());
+  return new Ghost(idx++, &peek(), parseExternalDeclaration());
 }
 
 } // namespace ccc

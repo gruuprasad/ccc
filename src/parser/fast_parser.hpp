@@ -46,7 +46,7 @@ private:
 
   Token nextToken() { return tokens[curTokenIdx++]; }
 
-  int count = 0;
+  int idx = 0;
 
   bool consume(std::string callee = "no one") {
     if (this->debug) {
@@ -158,7 +158,7 @@ private:
   Statement *parseCompoundStatement();
   void parseBlockItemList();
   void parseLabeledStatement();
-  void parseSelectionStatement();
+  Statement *parseSelectionStatement();
   void parseIterationStatement();
 
   std::vector<Token> &tokens;

@@ -286,16 +286,11 @@ public:
                   {expr}) {}
 };
 
-class IfStatement : public Statement {
-public:
-  IfStatement(int id, Expression *expr, Statement *stmt)
-      : Statement(id, "selection-statement", nullptr, {expr, stmt}) {}
-};
-
 class IfElseStatement : public Statement {
 public:
-  IfElseStatement(int id, Expression *expr, Statement *stmt1, Statement *stmt2)
-      : Statement(id, "selection-statement", nullptr, {expr, stmt1, stmt2}) {}
+  IfElseStatement(int id, const Token *token, Expression *expr,
+                  Statement *stmt1, Statement *stmt2 = nullptr)
+      : Statement(id, "selection-statement", token, {expr, stmt1, stmt2}) {}
 };
 
 class WhileStatement : public Statement {
@@ -323,9 +318,8 @@ public:
 
 class ReturnStatement : public Statement {
 public:
-  ReturnStatement(int id, Expression *expr)
-      : Statement(id, "jump-statement", nullptr, std::vector<ASTNode *>{expr}) {
-  }
+  ReturnStatement(int id, const Token *token, Expression *expr = nullptr)
+      : Statement(id, "jump-statement", token, std::vector<ASTNode *>{expr}) {}
 };
 
 } // namespace ccc
