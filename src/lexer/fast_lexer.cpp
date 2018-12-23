@@ -1,16 +1,7 @@
 #include "fast_lexer.hpp"
-#include "lexer_exception.hpp"
 #include <iostream>
 
-#define LEXER_ERROR(line, column, msg)                                         \
-  std::to_string(line) + ":" + std::to_string(column + 1) + ": error: '" +     \
-      msg + "'. Lexing Stopped!"
-
 namespace ccc {
-
-FastLexer::FastLexer(const std::string &content) : content(content) {
-  token_list.reserve(content.size());
-}
 
 inline char FastLexer::getCharAt(unsigned long position) {
   return content[position];
@@ -22,7 +13,7 @@ inline bool FastLexer::keyWordEnd(unsigned long position) {
            ('A' <= first && first <= 'Z') || first == '_');
 }
 
-inline bool FastLexer::failParsing() {
+inline Token FastLexer::failParsing() {
   std::string msg = "Unknown token " + std::string(1, getCharAt(position));
   if (getCharAt(position + 1) != 0) {
     msg += std::string(1, getCharAt(position + 1));
@@ -34,10 +25,10 @@ inline bool FastLexer::failParsing() {
     }
   }
   error = LEXER_ERROR(line, column, msg);
-  return false;
+  return Token(TokenType::INVALIDTOK, line, column);
 }
 
-inline bool FastLexer::munchWhitespace() {
+inline Token FastLexer::munchWhitespace() {
   char first = getCharAt(position);
   while (first == ' ' || first == '\t' || first == '\n' || first == '\r') {
     switch (first) {
@@ -56,15 +47,17 @@ inline bool FastLexer::munchWhitespace() {
     }
     first = getCharAt(++position);
   }
-  return first != 0;
+  if (first == 0)
+    return Token(TokenType::TOKENEND, line, column);
+  return Token(TokenType::WHITESPACE, line, column);
 }
 
-inline bool FastLexer::munchLineComment() {
+inline Token FastLexer::munchLineComment() {
   char first = getCharAt(position);
   while (first != '\n' && first != '\r') {
     first = getCharAt(++position);
     if (first == 0) {
-      return false;
+      return Token(TokenType::TOKENEND, line, column);
     }
   }
   switch (first) {
@@ -81,10 +74,10 @@ inline bool FastLexer::munchLineComment() {
     break;
   }
   ++position;
-  return true;
+  return Token(TokenType::LINECOMMENT, line, column);
 }
 
-inline bool FastLexer::munchBlockComment() {
+inline Token FastLexer::munchBlockComment() {
   char first = getCharAt(position);
   unsigned long previousLine = line;
   unsigned long previousColumn = column;
@@ -94,7 +87,7 @@ inline bool FastLexer::munchBlockComment() {
     case 0:
       error =
           LEXER_ERROR(previousLine, previousColumn, "Unterminated Comment!");
-      return false;
+      return Token(TokenType::INVALIDTOK, previousLine, previousColumn);
     case '\r':
       if (getCharAt(position + 1) == '\n') {
         ++position;
@@ -112,45 +105,46 @@ inline bool FastLexer::munchBlockComment() {
   }
   position += 2;
   column += 2;
-  return true;
+  return Token(TokenType::BLOCKCOMMENT, line, column);
 }
 
-inline bool FastLexer::munchNumber() {
+inline Token FastLexer::munchNumber() {
   unsigned long oldPosition = position;
   char first;
   do {
     first = getCharAt(++position);
   } while ('0' <= first && first <= '9');
-  token_list.emplace_back(
-      TokenType::NUMBER, line, column,
-      std::string(&content[oldPosition], position - oldPosition));
+  auto result =
+      Token(TokenType::NUMBER, line, column,
+            std::string(&content[oldPosition], position - oldPosition));
   column += position - oldPosition;
-  return true;
+  return result;
 }
 
-inline bool FastLexer::munchIdentifier() {
+inline Token FastLexer::munchIdentifier() {
   unsigned long oldPosition = position;
   char first;
   do {
     first = getCharAt(++position);
   } while (('0' <= first && first <= '9') || ('a' <= first && first <= 'z') ||
            ('A' <= first && first <= 'Z') || first == '_');
-  token_list.emplace_back(
-      TokenType::IDENTIFIER, line, column,
-      std::string(&content[oldPosition], position - oldPosition));
+  auto result =
+      Token(TokenType::IDENTIFIER, line, column,
+            std::string(&content[oldPosition], position - oldPosition));
   column += position - oldPosition;
-  return true;
+  return result;
 }
 
-inline bool FastLexer::munchCharacter() {
+inline Token FastLexer::munchCharacter() {
+  Token result;
   char first = getCharAt(++position);
   if (first != '\'' && first != '\\' && first != '\n' && first != '\r' &&
       getCharAt(position + 1) == '\'') {
-    token_list.emplace_back(TokenType::CHARACTER, line, column,
-                            std::string(1, first));
+    auto result =
+        Token(TokenType::CHARACTER, line, column, std::string(1, first));
     column += 3;
     position += 2;
-    return true;
+    return result;
   }
   if (first == '\\') {
     first = getCharAt(++position);
@@ -166,24 +160,24 @@ inline bool FastLexer::munchCharacter() {
     case 'r':
     case 't':
     case 'v':
-      token_list.emplace_back(TokenType::CHARACTER, line, column,
-                              std::string(&content[position - 1], 2));
+      result = Token(TokenType::CHARACTER, line, column,
+                     std::string(&content[position - 1], 2));
       column += 4;
       position += 2;
-      return true;
+      return result;
     default:
       error = LEXER_ERROR(line, column,
                           "Invalid character: '" +
                               std::string(&content[position - 1], 2) + "'");
-      return false;
+      return Token(TokenType::INVALIDTOK, line, column, "");
     }
   }
   error = LEXER_ERROR(line, column,
                       "Invalid character: '" + std::string(1, first) + "'");
-  return false;
+  return Token(TokenType::INVALIDTOK, line, column, "");
 }
 
-inline bool FastLexer::munchString() {
+inline Token FastLexer::munchString() {
   unsigned long oldPosition = position;
   unsigned long initColumn = column;
   char first = getCharAt(++position);
@@ -194,7 +188,7 @@ inline bool FastLexer::munchString() {
           line, column,
           "Line break in string at " +
               std::string(&content[oldPosition + 1], position - oldPosition));
-      return false;
+      return Token(TokenType::INVALIDTOK, line, column, "");
     }
     if (first == '\\') {
       first = getCharAt(++position);
@@ -217,352 +211,354 @@ inline bool FastLexer::munchString() {
             line, column,
             "Invalid escape at " +
                 std::string(&content[oldPosition + 1], position - oldPosition));
-        return false;
+        return Token(TokenType::INVALIDTOK, line, column, "");
       }
     }
     first = getCharAt(++position);
     ++column;
   }
-  token_list.emplace_back(
-      TokenType::STRING, line, initColumn,
-      std::string(&content[oldPosition + 1], position - oldPosition - 1));
+  auto result =
+      Token(TokenType::STRING, line, initColumn,
+            std::string(&content[oldPosition + 1], position - oldPosition - 1));
   ++position;
   ++column;
-  return true;
+  return result;
 }
 
-inline bool FastLexer::isPunctuator() {
+inline Token FastLexer::munchPunctuator() {
+  Token result;
   const char first = getCharAt(position);
   switch (first) {
   case '{':
-    token_list.emplace_back(TokenType::BRACE_OPEN, line, column);
+    result = Token(TokenType::BRACE_OPEN, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '}':
-    token_list.emplace_back(TokenType::BRACE_CLOSE, line, column);
+    result = Token(TokenType::BRACE_CLOSE, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '[':
-    token_list.emplace_back(TokenType::BRACKET_OPEN, line, column);
+    result = Token(TokenType::BRACKET_OPEN, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case ']':
-    token_list.emplace_back(TokenType::BRACKET_CLOSE, line, column);
+    result = Token(TokenType::BRACKET_CLOSE, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '(':
-    token_list.emplace_back(TokenType::PARENTHESIS_OPEN, line, column);
+    result = Token(TokenType::PARENTHESIS_OPEN, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case ')':
-    token_list.emplace_back(TokenType::PARENTHESIS_CLOSE, line, column);
+    result = Token(TokenType::PARENTHESIS_CLOSE, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '+':
     if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(TokenType::PLUS_ASSIGN, line, column);
+      result = Token(TokenType::PLUS_ASSIGN, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
     if (getCharAt(position + 1) == '+') {
-      token_list.emplace_back(TokenType::PLUSPLUS, line, column);
+      result = Token(TokenType::PLUSPLUS, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::PLUS, line, column);
+    result = Token(TokenType::PLUS, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '-':
     switch (getCharAt(position + 1)) {
     case '-':
-      token_list.emplace_back(TokenType::MINUSMINUS, line, column);
+      result = Token(TokenType::MINUSMINUS, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     case '=':
-      token_list.emplace_back(TokenType::MINUS_ASSIGN, line, column);
+      result = Token(TokenType::MINUS_ASSIGN, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     case '>':
-      token_list.emplace_back(TokenType::ARROW, line, column);
+      result = Token(TokenType::ARROW, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     default:
-      token_list.emplace_back(TokenType::MINUS, line, column);
+      result = Token(TokenType::MINUS, line, column);
       ++position;
       ++column;
-      return true;
+      return result;
     }
     break;
   case '=':
     if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(TokenType::EQUAL, line, column);
+      result = Token(TokenType::EQUAL, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::ASSIGN, line, column);
+    result = Token(TokenType::ASSIGN, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '<':
     switch (getCharAt(position + 1)) {
     case ':':
-      token_list.emplace_back(TokenType::BRACKET_OPEN_ALT, line, column);
+      result = Token(TokenType::BRACKET_OPEN_ALT, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     case '%':
-      token_list.emplace_back(TokenType::BRACE_OPEN_ALT, line, column);
+      result = Token(TokenType::BRACE_OPEN_ALT, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     case '=':
-      token_list.emplace_back(TokenType::LESS_EQUAL, line, column);
+      result = Token(TokenType::LESS_EQUAL, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     case '<':
       if (getCharAt(position + 2) == '=') {
-        token_list.emplace_back(TokenType::LEFT_SHIFT_ASSIGN, line, column);
+        result = Token(TokenType::LEFT_SHIFT_ASSIGN, line, column);
         position += 3;
         column += 3;
-        return true;
+        return result;
       }
-      token_list.emplace_back(TokenType::LEFT_SHIFT, line, column);
+      result = Token(TokenType::LEFT_SHIFT, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     default:
-      token_list.emplace_back(TokenType::LESS, line, column);
+      result = Token(TokenType::LESS, line, column);
       ++position;
       ++column;
-      return true;
+      return result;
     }
     break;
   case '>':
     if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(TokenType::GREATER_EQUAL, line, column);
+      result = Token(TokenType::GREATER_EQUAL, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
     if (getCharAt(position + 1) == '>') {
       if (getCharAt(position + 2) == '=') {
-        token_list.emplace_back(TokenType::RIGHT_SHIFT_ASSIGN, line, column);
+        result = Token(TokenType::RIGHT_SHIFT_ASSIGN, line, column);
         position += 3;
         column += 3;
-        return true;
+        return result;
       }
-      token_list.emplace_back(TokenType::RIGHT_SHIFT, line, column);
+      result = Token(TokenType::RIGHT_SHIFT, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::GREATER, line, column);
+    result = Token(TokenType::GREATER, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '!':
     if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(TokenType::NOT_EQUAL, line, column);
+      result = Token(TokenType::NOT_EQUAL, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::NOT, line, column);
+    result = Token(TokenType::NOT, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case ',':
-    token_list.emplace_back(TokenType::COMMA, line, column);
+    result = Token(TokenType::COMMA, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case ';':
-    token_list.emplace_back(TokenType::SEMICOLON, line, column);
+    result = Token(TokenType::SEMICOLON, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '.':
     if (getCharAt(position + 1) == '.' && getCharAt(position + 2) == '.') {
-      token_list.emplace_back(TokenType::TRI_DOTS, line, column);
+      result = Token(TokenType::TRI_DOTS, line, column);
       position += 3;
       column += 3;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::DOT, line, column);
+    result = Token(TokenType::DOT, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '^':
     if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(TokenType::CARET_ASSIGN, line, column);
+      result = Token(TokenType::CARET_ASSIGN, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::CARET, line, column);
+    result = Token(TokenType::CARET, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '~':
-    token_list.emplace_back(TokenType::TILDE, line, column);
+    result = Token(TokenType::TILDE, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '*':
     if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(TokenType::STAR_ASSIGN, line, column);
+      result = Token(TokenType::STAR_ASSIGN, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::STAR, line, column);
+    result = Token(TokenType::STAR, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '/':
     if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(TokenType::DIV_ASSIGN, line, column);
+      result = Token(TokenType::DIV_ASSIGN, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::DIV, line, column);
+    result = Token(TokenType::DIV, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '%':
     switch (getCharAt(position + 1)) {
     case '=':
-      token_list.emplace_back(TokenType::MOD_ASSIGN, line, column);
+      result = Token(TokenType::MOD_ASSIGN, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     case ':':
       if (getCharAt(position + 2) == '%' && getCharAt(position + 3) == ':') {
-        token_list.emplace_back(TokenType::HASHHASH_ALT, line, column);
+        result = Token(TokenType::HASHHASH_ALT, line, column);
         position += 4;
         column += 4;
-        return true;
+        return result;
       }
-      token_list.emplace_back(TokenType::HASH_ALT, line, column);
+      result = Token(TokenType::HASH_ALT, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     case '>':
-      token_list.emplace_back(TokenType::BRACE_CLOSE_ALT, line, column);
+      result = Token(TokenType::BRACE_CLOSE_ALT, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     default:
-      token_list.emplace_back(TokenType::MOD, line, column);
+      result = Token(TokenType::MOD, line, column);
       ++position;
       ++column;
-      return true;
+      return result;
     }
   case '&':
     if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(TokenType::AMPERSAND_ASSIGN, line, column);
+      result = Token(TokenType::AMPERSAND_ASSIGN, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
     if (getCharAt(position + 1) == '&') {
-      token_list.emplace_back(TokenType::AND, line, column);
+      result = Token(TokenType::AND, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::AMPERSAND, line, column);
+    result = Token(TokenType::AMPERSAND, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '|':
     if (getCharAt(position + 1) == '=') {
-      token_list.emplace_back(TokenType::PIPE_ASSIGN, line, column);
+      result = Token(TokenType::PIPE_ASSIGN, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
     if (getCharAt(position + 1) == '|') {
-      token_list.emplace_back(TokenType::OR, line, column);
+      result = Token(TokenType::OR, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::PIPE, line, column);
+    result = Token(TokenType::PIPE, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case ':':
     if (getCharAt(position + 1) == '>') {
-      token_list.emplace_back(TokenType::BRACKET_CLOSE_ALT, line, column);
+      result = Token(TokenType::BRACKET_CLOSE_ALT, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::COLON, line, column);
+    result = Token(TokenType::COLON, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '#':
     if (getCharAt(position + 1) == '#') {
-      token_list.emplace_back(TokenType::HASHHASH, line, column);
+      result = Token(TokenType::HASHHASH, line, column);
       position += 2;
       column += 2;
-      return true;
+      return result;
     }
-    token_list.emplace_back(TokenType::HASH, line, column);
+    result = Token(TokenType::HASH, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   case '?':
-    token_list.emplace_back(TokenType::QUESTION, line, column);
+    result = Token(TokenType::QUESTION, line, column);
     ++position;
     ++column;
-    return true;
+    return result;
   default:
     break;
   }
   /*
    * Fallthrough, no punctuator matched!
    */
-  return false;
+  return Token(TokenType::INVALIDTOK, line, column);
 }
 
-inline bool FastLexer::isKeyword() {
+inline Token FastLexer::munchKeyword() {
+  Token result;
   const char first = getCharAt(position);
   switch (first) {
   case 'a':
     if (getCharAt(position + 1) == 'u' && getCharAt(position + 2) == 't' &&
         getCharAt(position + 3) == 'o' && keyWordEnd(position + 4)) {
-      token_list.emplace_back(TokenType::AUTO, line, column);
+      result = Token(TokenType::AUTO, line, column);
       position += 4;
       column += 4;
-      return true;
+      return result;
     }
     break;
   case 'b':
     if (getCharAt(position + 1) == 'r' && getCharAt(position + 2) == 'e' &&
         getCharAt(position + 3) == 'a' && getCharAt(position + 4) == 'k' &&
         keyWordEnd(position + 5)) {
-      token_list.emplace_back(TokenType::BREAK, line, column);
+      result = Token(TokenType::BREAK, line, column);
       position += 5;
       column += 5;
-      return true;
+      return result;
     }
     break;
   case 'c':
@@ -570,37 +566,37 @@ inline bool FastLexer::isKeyword() {
     case 'a':
       if (getCharAt(position + 2) == 's' && getCharAt(position + 3) == 'e' &&
           keyWordEnd(position + 4)) {
-        token_list.emplace_back(TokenType::CASE, line, column);
+        result = Token(TokenType::CASE, line, column);
         position += 4;
         column += 4;
-        return true;
+        return result;
       }
       break;
     case 'h':
       if (getCharAt(position + 2) == 'a' && getCharAt(position + 3) == 'r' &&
           keyWordEnd(position + 4)) {
-        token_list.emplace_back(TokenType::CHAR, line, column);
+        result = Token(TokenType::CHAR, line, column);
         position += 4;
         column += 4;
-        return true;
+        return result;
       }
       break;
     case 'o':
       if (getCharAt(position + 2) == 'n') {
         if (getCharAt(position + 3) == 's' && getCharAt(position + 4) == 't' &&
             keyWordEnd(position + 5)) {
-          token_list.emplace_back(TokenType::CONST, line, column);
+          result = Token(TokenType::CONST, line, column);
           position += 5;
           column += 5;
-          return true;
+          return result;
         }
         if (getCharAt(position + 3) == 't' && getCharAt(position + 4) == 'i' &&
             getCharAt(position + 5) == 'n' && getCharAt(position + 6) == 'u' &&
             getCharAt(position + 7) == 'e' && keyWordEnd(position + 8)) {
-          token_list.emplace_back(TokenType::CONTINUE, line, column);
+          result = Token(TokenType::CONTINUE, line, column);
           position += 8;
           column += 8;
-          return true;
+          return result;
         }
       }
       break;
@@ -613,16 +609,16 @@ inline bool FastLexer::isKeyword() {
       if (getCharAt(position + 2) == 'u' && getCharAt(position + 3) == 'b' &&
           getCharAt(position + 4) == 'l' && getCharAt(position + 5) == 'e' &&
           keyWordEnd(position + 6)) {
-        token_list.emplace_back(TokenType::DOUBLE, line, column);
+        result = Token(TokenType::DOUBLE, line, column);
         position += 6;
         column += 6;
-        return true;
+        return result;
       }
       if (keyWordEnd(position + 2)) {
-        token_list.emplace_back(TokenType::DO, line, column);
+        result = Token(TokenType::DO, line, column);
         position += 2;
         column += 2;
-        return true;
+        return result;
       }
       break;
     }
@@ -630,10 +626,10 @@ inline bool FastLexer::isKeyword() {
         getCharAt(position + 3) == 'a' && getCharAt(position + 4) == 'u' &&
         getCharAt(position + 5) == 'l' && getCharAt(position + 6) == 't' &&
         keyWordEnd(position + 7)) {
-      token_list.emplace_back(TokenType::DEFAULT, line, column);
+      result = Token(TokenType::DEFAULT, line, column);
       position += 7;
       column += 7;
-      return true;
+      return result;
     }
     break;
   case 'e':
@@ -641,29 +637,29 @@ inline bool FastLexer::isKeyword() {
     case 'l':
       if (getCharAt(position + 2) == 's' && getCharAt(position + 3) == 'e' &&
           keyWordEnd(position + 4)) {
-        token_list.emplace_back(TokenType::ELSE, line, column);
+        result = Token(TokenType::ELSE, line, column);
         position += 4;
         column += 4;
-        return true;
+        return result;
       }
       break;
     case 'n':
       if (getCharAt(position + 2) == 'u' && getCharAt(position + 3) == 'm' &&
           keyWordEnd(position + 4)) {
-        token_list.emplace_back(TokenType::ENUM, line, column);
+        result = Token(TokenType::ENUM, line, column);
         position += 4;
         column += 4;
-        return true;
+        return result;
       }
       break;
     case 'x':
       if (getCharAt(position + 2) == 't' && getCharAt(position + 3) == 'e' &&
           getCharAt(position + 4) == 'r' && getCharAt(position + 5) == 'n' &&
           keyWordEnd(position + 6)) {
-        token_list.emplace_back(TokenType::EXTERN, line, column);
+        result = Token(TokenType::EXTERN, line, column);
         position += 6;
         column += 6;
-        return true;
+        return result;
       }
       break;
     default:
@@ -673,53 +669,53 @@ inline bool FastLexer::isKeyword() {
   case 'f':
     if (getCharAt(position + 1) == 'o' && getCharAt(position + 2) == 'r' &&
         keyWordEnd(position + 3)) {
-      token_list.emplace_back(TokenType::FOR, line, column);
+      result = Token(TokenType::FOR, line, column);
       position += 3;
       column += 3;
-      return true;
+      return result;
     }
     if (getCharAt(position + 1) == 'l' && getCharAt(position + 2) == 'o' &&
         getCharAt(position + 3) == 'a' && getCharAt(position + 4) == 't' &&
         keyWordEnd(position + 5)) {
-      token_list.emplace_back(TokenType::FLOAT, line, column);
+      result = Token(TokenType::FLOAT, line, column);
       position += 5;
       column += 5;
-      return true;
+      return result;
     }
     break;
   case 'g':
     if (getCharAt(position + 1) == 'o' && getCharAt(position + 2) == 't' &&
         getCharAt(position + 3) == 'o' && keyWordEnd(position + 4)) {
-      token_list.emplace_back(TokenType::GOTO, line, column);
+      result = Token(TokenType::GOTO, line, column);
       position += 4;
       column += 4;
-      return true;
+      return result;
     }
     break;
   case 'i':
     switch (getCharAt(position + 1)) {
     case 'f':
       if (keyWordEnd(position + 2)) {
-        token_list.emplace_back(TokenType::IF, line, column);
+        result = Token(TokenType::IF, line, column);
         position += 2;
         column += 2;
-        return true;
+        return result;
       }
       break;
     case 'n':
       if (getCharAt(position + 2) == 't' && keyWordEnd(position + 3)) {
-        token_list.emplace_back(TokenType::INT, line, column);
+        result = Token(TokenType::INT, line, column);
         position += 3;
         column += 3;
-        return true;
+        return result;
       }
       if (getCharAt(position + 2) == 'l' && getCharAt(position + 3) == 'i' &&
           getCharAt(position + 4) == 'n' && getCharAt(position + 5) == 'e' &&
           keyWordEnd(position + 6)) {
-        token_list.emplace_back(TokenType::INLINE, line, column);
+        result = Token(TokenType::INLINE, line, column);
         position += 6;
         column += 6;
-        return true;
+        return result;
       }
       break;
     default:
@@ -729,10 +725,10 @@ inline bool FastLexer::isKeyword() {
   case 'l':
     if (getCharAt(position + 1) == 'o' && getCharAt(position + 2) == 'n' &&
         getCharAt(position + 3) == 'g' && keyWordEnd(position + 4)) {
-      token_list.emplace_back(TokenType::LONG, line, column);
+      result = Token(TokenType::LONG, line, column);
       position += 4;
       column += 4;
-      return true;
+      return result;
     }
     break;
   case 'r':
@@ -742,29 +738,29 @@ inline bool FastLexer::isKeyword() {
         if (getCharAt(position + 3) == 'i' && getCharAt(position + 4) == 's' &&
             getCharAt(position + 5) == 't' && getCharAt(position + 6) == 'e' &&
             getCharAt(position + 7) == 'r' && keyWordEnd(position + 8)) {
-          token_list.emplace_back(TokenType::REGISTER, line, column);
+          result = Token(TokenType::REGISTER, line, column);
           position += 8;
           column += 8;
-          return true;
+          return result;
         }
         break;
       case 's':
         if (getCharAt(position + 3) == 't' && getCharAt(position + 4) == 'r' &&
             getCharAt(position + 5) == 'i' && getCharAt(position + 6) == 'c' &&
             getCharAt(position + 7) == 't' && keyWordEnd(position + 8)) {
-          token_list.emplace_back(TokenType::RESTRICT, line, column);
+          result = Token(TokenType::RESTRICT, line, column);
           position += 8;
           column += 8;
-          return true;
+          return result;
         }
         break;
       case 't':
         if (getCharAt(position + 3) == 'u' && getCharAt(position + 4) == 'r' &&
             getCharAt(position + 5) == 'n' && keyWordEnd(position + 6)) {
-          token_list.emplace_back(TokenType::RETURN, line, column);
+          result = Token(TokenType::RETURN, line, column);
           position += 6;
           column += 6;
-          return true;
+          return result;
         }
         break;
       default:
@@ -778,56 +774,56 @@ inline bool FastLexer::isKeyword() {
     case 'h':
       if (getCharAt(position + 2) == 'o' && getCharAt(position + 3) == 'r' &&
           getCharAt(position + 4) == 't' && keyWordEnd(position + 5)) {
-        token_list.emplace_back(TokenType::SHORT, line, column);
+        result = Token(TokenType::SHORT, line, column);
         position += 5;
         column += 5;
-        return true;
+        return result;
       }
       break;
     case 'i':
       if (getCharAt(position + 2) == 'g' && getCharAt(position + 3) == 'n' &&
           getCharAt(position + 4) == 'e' && getCharAt(position + 5) == 'd' &&
           keyWordEnd(position + 6)) {
-        token_list.emplace_back(TokenType::SIGNED, line, column);
+        result = Token(TokenType::SIGNED, line, column);
         position += 6;
         column += 6;
-        return true;
+        return result;
       }
       if (getCharAt(position + 2) == 'z' && getCharAt(position + 3) == 'e' &&
           getCharAt(position + 4) == 'o' && getCharAt(position + 5) == 'f' &&
           keyWordEnd(position + 6)) {
-        token_list.emplace_back(TokenType::SIZEOF, line, column);
+        result = Token(TokenType::SIZEOF, line, column);
         position += 6;
         column += 6;
-        return true;
+        return result;
       }
       break;
     case 't':
       if (getCharAt(position + 2) == 'a' && getCharAt(position + 3) == 't' &&
           getCharAt(position + 4) == 'i' && getCharAt(position + 5) == 'c' &&
           keyWordEnd(position + 6)) {
-        token_list.emplace_back(TokenType::STATIC, line, column);
+        result = Token(TokenType::STATIC, line, column);
         position += 6;
         column += 6;
-        return true;
+        return result;
       }
       if (getCharAt(position + 2) == 'r' && getCharAt(position + 3) == 'u' &&
           getCharAt(position + 4) == 'c' && getCharAt(position + 5) == 't' &&
           keyWordEnd(position + 6)) {
-        token_list.emplace_back(TokenType::STRUCT, line, column);
+        result = Token(TokenType::STRUCT, line, column);
         position += 6;
         column += 6;
-        return true;
+        return result;
       }
       break;
     case 'w':
       if (getCharAt(position + 2) == 'i' && getCharAt(position + 3) == 't' &&
           getCharAt(position + 4) == 'c' && getCharAt(position + 5) == 'h' &&
           keyWordEnd(position + 6)) {
-        token_list.emplace_back(TokenType::SWITCH, line, column);
+        result = Token(TokenType::SWITCH, line, column);
         position += 6;
         column += 6;
-        return true;
+        return result;
       }
       break;
     default:
@@ -839,29 +835,29 @@ inline bool FastLexer::isKeyword() {
         getCharAt(position + 3) == 'e' && getCharAt(position + 4) == 'd' &&
         getCharAt(position + 5) == 'e' && getCharAt(position + 6) == 'f' &&
         keyWordEnd(position + 7)) {
-      token_list.emplace_back(TokenType::TYPEDEF, line, column);
+      result = Token(TokenType::TYPEDEF, line, column);
       position += 7;
       column += 7;
-      return true;
+      return result;
     }
     break;
   case 'u':
     if (getCharAt(position + 1) == 'n') {
       if (getCharAt(position + 2) == 'i' && getCharAt(position + 3) == 'o' &&
           getCharAt(position + 4) == 'n' && keyWordEnd(position + 5)) {
-        token_list.emplace_back(TokenType::UNION, line, column);
+        result = Token(TokenType::UNION, line, column);
         position += 5;
         column += 5;
-        return true;
+        return result;
       }
       if (getCharAt(position + 2) == 's' && getCharAt(position + 3) == 'i' &&
           getCharAt(position + 4) == 'g' && getCharAt(position + 5) == 'n' &&
           getCharAt(position + 6) == 'e' && getCharAt(position + 7) == 'd' &&
           keyWordEnd(position + 8)) {
-        token_list.emplace_back(TokenType::UNSIGNED, line, column);
+        result = Token(TokenType::UNSIGNED, line, column);
         position += 8;
         column += 8;
-        return true;
+        return result;
       }
     }
     break;
@@ -869,19 +865,19 @@ inline bool FastLexer::isKeyword() {
     if (getCharAt(position + 1) == 'o') {
       if (getCharAt(position + 2) == 'i' && getCharAt(position + 3) == 'd' &&
           keyWordEnd(position + 4)) {
-        token_list.emplace_back(TokenType::VOID, line, column);
+        result = Token(TokenType::VOID, line, column);
         position += 4;
         column += 4;
-        return true;
+        return result;
       }
       if (getCharAt(position + 2) == 'l' && getCharAt(position + 3) == 'a' &&
           getCharAt(position + 4) == 't' && getCharAt(position + 5) == 'i' &&
           getCharAt(position + 6) == 'l' && getCharAt(position + 7) == 'e' &&
           keyWordEnd(position + 8)) {
-        token_list.emplace_back(TokenType::VOLATILE, line, column);
+        result = Token(TokenType::VOLATILE, line, column);
         position += 8;
         column += 8;
-        return true;
+        return result;
       }
     }
     break;
@@ -889,10 +885,10 @@ inline bool FastLexer::isKeyword() {
     if (getCharAt(position + 1) == 'h' && getCharAt(position + 2) == 'i' &&
         getCharAt(position + 3) == 'l' && getCharAt(position + 4) == 'e' &&
         keyWordEnd(position + 5)) {
-      token_list.emplace_back(TokenType::WHILE, line, column);
+      result = Token(TokenType::WHILE, line, column);
       position += 5;
       column += 5;
-      return true;
+      return result;
     }
     break;
   case '_':
@@ -902,35 +898,35 @@ inline bool FastLexer::isKeyword() {
           getCharAt(position + 4) == 'g' && getCharAt(position + 5) == 'n') {
         if (getCharAt(position + 6) == 'a' && getCharAt(position + 7) == 's' &&
             keyWordEnd(position + 8)) {
-          token_list.emplace_back(TokenType::ALIGN_AS, line, column);
+          result = Token(TokenType::ALIGN_AS, line, column);
           position += 8;
           column += 8;
-          return true;
+          return result;
         }
         if (getCharAt(position + 6) == 'o' && getCharAt(position + 7) == 'f' &&
             keyWordEnd(position + 8)) {
-          token_list.emplace_back(TokenType::ALIGN_OF, line, column);
+          result = Token(TokenType::ALIGN_OF, line, column);
           position += 8;
           column += 8;
-          return true;
+          return result;
         }
       }
       if (getCharAt(position + 2) == 't' && getCharAt(position + 3) == 'o' &&
           getCharAt(position + 4) == 'm' && getCharAt(position + 5) == 'i' &&
           getCharAt(position + 6) == 'c' && keyWordEnd(position + 7)) {
-        token_list.emplace_back(TokenType::ATOMIC, line, column);
+        result = Token(TokenType::ATOMIC, line, column);
         position += 7;
         column += 7;
-        return true;
+        return result;
       }
       break;
     case 'B':
       if (getCharAt(position + 2) == 'o' && getCharAt(position + 3) == 'o' &&
           getCharAt(position + 4) == 'l' && keyWordEnd(position + 5)) {
-        token_list.emplace_back(TokenType::BOOL, line, column);
+        result = Token(TokenType::BOOL, line, column);
         position += 5;
         column += 5;
-        return true;
+        return result;
       }
       break;
     case 'C':
@@ -938,10 +934,10 @@ inline bool FastLexer::isKeyword() {
           getCharAt(position + 4) == 'p' && getCharAt(position + 5) == 'l' &&
           getCharAt(position + 6) == 'e' && getCharAt(position + 7) == 'x' &&
           keyWordEnd(position + 8)) {
-        token_list.emplace_back(TokenType::COMPLEX, line, column);
+        result = Token(TokenType::COMPLEX, line, column);
         position += 8;
         column += 8;
-        return true;
+        return result;
       }
       break;
     case 'G':
@@ -949,10 +945,10 @@ inline bool FastLexer::isKeyword() {
           getCharAt(position + 4) == 'e' && getCharAt(position + 5) == 'r' &&
           getCharAt(position + 6) == 'i' && getCharAt(position + 7) == 'c' &&
           keyWordEnd(position + 8)) {
-        token_list.emplace_back(TokenType::GENERIC, line, column);
+        result = Token(TokenType::GENERIC, line, column);
         position += 8;
         column += 8;
-        return true;
+        return result;
       }
       break;
     case 'I':
@@ -961,10 +957,10 @@ inline bool FastLexer::isKeyword() {
           getCharAt(position + 6) == 'n' && getCharAt(position + 7) == 'a' &&
           getCharAt(position + 8) == 'r' && getCharAt(position + 9) == 'y' &&
           keyWordEnd(position + 10)) {
-        token_list.emplace_back(TokenType::IMAGINARY, line, column);
+        result = Token(TokenType::IMAGINARY, line, column);
         position += 10;
         column += 10;
-        return true;
+        return result;
       }
       break;
     case 'N':
@@ -972,10 +968,10 @@ inline bool FastLexer::isKeyword() {
           getCharAt(position + 4) == 'e' && getCharAt(position + 5) == 't' &&
           getCharAt(position + 6) == 'u' && getCharAt(position + 7) == 'r' &&
           getCharAt(position + 8) == 'n' && keyWordEnd(position + 9)) {
-        token_list.emplace_back(TokenType::NO_RETURN, line, column);
+        result = Token(TokenType::NO_RETURN, line, column);
         position += 9;
         column += 9;
-        return true;
+        return result;
       }
       break;
     case 'S':
@@ -986,10 +982,10 @@ inline bool FastLexer::isKeyword() {
           getCharAt(position + 10) == 's' && getCharAt(position + 11) == 'e' &&
           getCharAt(position + 12) == 'r' && getCharAt(position + 13) == 't' &&
           keyWordEnd(position + 14)) {
-        token_list.emplace_back(TokenType::STATIC_ASSERT, line, column);
+        result = Token(TokenType::STATIC_ASSERT, line, column);
         position += 14;
         column += 14;
-        return true;
+        return result;
       }
       break;
     case 'T':
@@ -999,10 +995,10 @@ inline bool FastLexer::isKeyword() {
           getCharAt(position + 8) == 'l' && getCharAt(position + 9) == 'o' &&
           getCharAt(position + 10) == 'c' && getCharAt(position + 11) == 'a' &&
           getCharAt(position + 12) == 'l' && keyWordEnd(position + 13)) {
-        token_list.emplace_back(TokenType::THREAD_LOCAL, line, column);
+        result = Token(TokenType::THREAD_LOCAL, line, column);
         position += 13;
         column += 13;
-        return true;
+        return result;
       }
       break;
     default:
@@ -1015,13 +1011,14 @@ inline bool FastLexer::isKeyword() {
   /*
    * Fallthrough, no keyword matched!
    */
-  return false;
+  return Token(TokenType::NONKEYWORD, line, column);
 }
 
-inline bool FastLexer::munch() {
+inline Token FastLexer::munch() {
+  Token result;
   switch (getCharAt(position)) {
   case 0:
-    return false;
+    return Token(TokenType::TOKENEND, line, column);
   case ' ':
   case '\t':
   case '\n':
@@ -1061,10 +1058,10 @@ inline bool FastLexer::munch() {
   case ':':
   case '#':
   case '?':
-    if (isPunctuator()) {
-      return true;
-    }
-    return failParsing();
+    result = munchPunctuator();
+    if (result.getType() == TokenType::INVALIDTOK)
+      return failParsing();
+    return result;
   case '0':
   case '1':
   case '2':
@@ -1092,9 +1089,9 @@ inline bool FastLexer::munch() {
   case 'v':
   case 'w':
   case '_':
-    if (isKeyword()) {
-      return true;
-    }
+    result = munchKeyword();
+    if (result.getType() != TokenType::NONKEYWORD)
+      return result;
     // fall-through
   case 'h':
   case 'j':
@@ -1143,8 +1140,32 @@ inline bool FastLexer::munch() {
   }
 }
 
-std::vector<Token, std::allocator<Token>> FastLexer::lex() {
-  while (munch()) {
+Token FastLexer::lex_valid() {
+  while (true) {
+    auto curToken = munch();
+    switch (curToken.getType()) {
+    case TokenType::BLOCKCOMMENT:
+    case TokenType::LINECOMMENT:
+    case TokenType::WHITESPACE:
+      // These tokens are skipped over.
+      continue;
+    default:
+      return curToken;
+    }
+  };
+}
+
+std::vector<Token> FastLexer::lex() {
+  std::vector<Token> token_list;
+  token_list.reserve(content.size());
+  Token curToken;
+  while (true) {
+    curToken = lex_valid();
+    if (curToken.getType() == TokenType::INVALIDTOK ||
+        curToken.getType() == TokenType::TOKENEND) {
+      break;
+    }
+    token_list.push_back(std::move(curToken));
   }
   return token_list;
 }

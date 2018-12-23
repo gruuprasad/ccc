@@ -108,8 +108,13 @@ enum class TokenType {
   HASHHASH_ALT,
   FLOAT,
   DOUBLE,
-  TOKENEND,
-  _EOF
+  // helper tokens
+  BLOCKCOMMENT,
+  LINECOMMENT,
+  WHITESPACE,
+  NONKEYWORD,
+  INVALIDTOK,
+  TOKENEND
 };
 
 } // namespace ccc
