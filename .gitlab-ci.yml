@@ -70,19 +70,6 @@ analysis:coverage:
     expire_in: 5 mins
   allow_failure: true
 
-deploy:graphviz:
-  stage: deploy
-  script:
-  - gv -V
-  allow_failure: true
-
-deploy:python3:
-  stage: deploy
-  script:
-  - pip freeze
-  - pip3 freeze
-  allow_failure: true
-
 deploy:benchmark:
   stage: deploy
   script:
