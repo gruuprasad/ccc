@@ -112,6 +112,7 @@ Statement *FastParser::parseStatement() {
       expect(TokenType::SEMICOLON, __FUNCTION__);
       return new ReturnStatement(idx++, token, exp);
     }
+    consume(__FUNCTION__);
     return new ReturnStatement(idx++, token);
   }
   case TokenType::IDENTIFIER: {
