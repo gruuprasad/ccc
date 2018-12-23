@@ -2,7 +2,6 @@
 #define C4_ASTNODE_HPP
 
 #include "../lexer/token.hpp"
-#include "type_specifier.hpp"
 #include <sstream>
 #include <string>
 #include <vector>
@@ -34,15 +33,6 @@ public:
   }
 };
 
-template <typename T> static std::string graphWalkerImpl(int id, T constant) {
-  std::stringstream ss;
-  ss << id << "[label=\"" << constant return ss.str();
-  << "\" shape=diamond style=filled fillcolor=lightyellow];\n";
-}
-class Constant : public ASTNode {
-public:
-  explicit Constant(int id) : ASTNode(id, "constant") {}
-};
 enum class TypeSpecifier { VOID, CHAR, INT, STRUCT };
 
 class Ghost : public ASTNode {
@@ -72,20 +62,20 @@ private:
   }
 };
 
+template <typename T> static std::string graphWalkerImpl(int id, T constant) {
+  std::stringstream ss;
+  ss << id << "[label=<" << constant
+     << "> shape=diamond style=filled fillcolor=lightyellow];\n";
+}
+
 class Constant : public ASTNode {
 public:
   explicit Constant(int id) : ASTNode(id, "constant") {}
 };
 
 class IntegerConstant : public Constant {
-private:
   int constant;
-  std::string toGraphWalker() override {
-    std::stringstream ss;
-    ss << this->id << "[label=\"" << this->constant
-       << "\" shape=diamond style=filled fillcolor=lightyellow];\n";
-    return ss.str();
-  }
+  std::string toGraphWalker() override { return graphWalkerImpl(id, constant); }
 
 public:
   IntegerConstant(int id, int constant) : Constant(id), constant(constant) {}
@@ -94,12 +84,7 @@ public:
 class CharacterConstant : public Constant {
 private:
   char constant;
-  std::string toGraphWalker() override {
-    std::stringstream ss;
-    ss << this->id << "[label=\"" << this->constant
-       << "\" shape=diamond style=filled fillcolor=lightyellow];\n";
-    return ss.str();
-  }
+  std::string toGraphWalker() override { return graphWalkerImpl(id, constant); }
 
 public:
   CharacterConstant(int id, char constant) : Constant(id), constant(constant) {}
@@ -108,12 +93,7 @@ public:
 class EnumerationConstant : public Constant {
 private:
   std::string constant;
-  std::string toGraphWalker() override {
-    std::stringstream ss;
-    ss << this->id << "[label=\"" << this->constant
-       << "\" shape=diamond style=filled fillcolor=lightyellow];\n";
-    return ss.str();
-  }
+  std::string toGraphWalker() override { return graphWalkerImpl(id, constant); }
 
 public:
   EnumerationConstant(int id, std::string &constant)
@@ -343,37 +323,7 @@ public:
   }
 };
 
-private:
-class IntegerConstant : public Constant {
-  int constant;
-  return graphWalkerImpl(id, constant);
-  std::string toGraphWalker() override {}
-};
-CharacterConstant(int id, char constant) : Constant(id), constant(constant) {}
-
-public:
+// AST nodes for expression
 } // namespace ccc
-std::string toGraphWalker() override {
-  return graphWalkerImpl(id, constant);
-  char constant;
-  class CharacterConstant : public Constant {};
-  IntegerConstant(int id, int constant) : Constant(id), constant(constant) {}
-
-public:
-private:
-};
-      : Constant(id), constant(constant) {}
-
-    public:
-      EnumerationConstant(int id, std::string &constant)
-      }
-      std::string toGraphWalker() override {
-      private:
-        class EnumerationConstant : public Constant {
-          std::string constant;
-          return graphWalkerImpl(id, constant);
-
-          // AST nodes for expression
-        } // namespace ccc
 
 #endif // C4_ASTNODE_HPP

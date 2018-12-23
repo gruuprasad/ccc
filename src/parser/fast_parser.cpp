@@ -9,7 +9,7 @@ ASTNode *FastParser::parseExternalDeclaration() {
   }
   std::vector<ASTNode *> block;
   const Token *start = &peek();
-  while (!peek().is(TokenType::_EOF))
+  while (!peek().is(TokenType::ENDOFFILE))
     block.push_back(parseFuncDefOrDeclaration());
   return new Ghost(count++, start, block);
 }
