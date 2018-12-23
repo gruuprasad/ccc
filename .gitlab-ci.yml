@@ -52,6 +52,8 @@ test:tests:
 
 analysis:coverage:
   stage: analysis
+  dependencies:
+  - test:test
   script:
   - mkdir -p build
   - cd ./build
@@ -79,6 +81,6 @@ deploy:benchmark:
   artifacts:
     paths:
     - ./benchmark.svg
-    expire_in: 1 week
+    expire_in: 3 days
 
 
