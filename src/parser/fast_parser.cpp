@@ -35,10 +35,12 @@ ASTNode *FastParser::parseFuncDefOrDeclaration() {
       return nullptr;
     case TokenType::BRACE_OPEN:
       return parseCompoundStatement();
+    default:
+      break;
     }
   }
   return nullptr;
-} // namespace ccc
+}
 
 void FastParser::print_token() {
   //  for (int i = curTokenIdx; i < tokens.size(); i++) {
@@ -109,14 +111,16 @@ Statement *FastParser::parseStatement() {
       parseLabeledStatement();
       return nullptr;
     }
+    // fall through
   }
+    // fall through
   default:
     const Token *start = &peek();
     Expression *exp = parseExpression();
     expect(TokenType::SEMICOLON, __FUNCTION__);
     return new ExpressionStatement(count++, start, exp);
   }
-  expect(TokenType::SEMICOLON, __FUNCTION__);
+  return nullptr;
 }
 
 void FastParser::parseLabeledStatement() {
@@ -214,10 +218,12 @@ void FastParser::parseDirectDeclarator() {
     if (peek().is(TokenType::PARENTHESIS_OPEN)) {
       consume(__FUNCTION__);
       parseParameterList();
+      // fall through
     } else {
       parseExpression();
       return;
     }
+    // fall through
   case TokenType::PARENTHESIS_OPEN:
     consume(__FUNCTION__);
     parseDeclarator();
@@ -256,6 +262,7 @@ void FastParser::parseStructOrUnionSpecifier() {
     consume(__FUNCTION__);
     if (peek().is_not(TokenType::BRACE_OPEN))
       return;
+    // fall through
   case TokenType::BRACE_OPEN:
     consume(__FUNCTION__);
     do {
@@ -319,6 +326,8 @@ Expression *FastParser::parseExpression() { // TODO fix order of ops s. lecture
     case TokenType::PLUS_ASSIGN:
       return new AssignmentExpression(count++, exp, &peek(-1),
                                       parseExpression());
+    default:
+      return nullptr;
     }
   } else
     return exp;
@@ -367,6 +376,8 @@ Expression *FastParser::parsePostfixExpression() {
   case TokenType::ARROW:
     consume(__FUNCTION__);
     expect(TokenType::IDENTIFIER);
+    return nullptr;
+  default:
     return nullptr;
   }
   return exp;

@@ -10,14 +10,14 @@ namespace ccc {
 
 class ASTNode {
 protected:
+  int id;
+  std::string name;
+  const Token *token;
+  std::vector<ASTNode *> children;
   ASTNode(int id, std::string name, const Token *token = nullptr,
           std::vector<ASTNode *> children = std::vector<ASTNode *>())
       : id(id), name(std::move(name)), token(token),
         children(std::move(children)) {}
-  const Token *token;
-  int id;
-  std::string name;
-  std::vector<ASTNode *> children;
 
 public:
   int getId() const { return id; }
@@ -66,6 +66,7 @@ template <typename T> static std::string graphWalkerImpl(int id, T constant) {
   std::stringstream ss;
   ss << id << "[label=<" << constant
      << "> shape=diamond style=filled fillcolor=lightyellow];\n";
+  return ss.str();
 }
 
 class Constant : public ASTNode {
@@ -121,6 +122,8 @@ public:
   InitDeclaration(int id, ASTNode *ident, TypeSpecifier type)
       : Declaration(id, ident, type) {}
 };
+
+// AST nodes for expression
 
 class Expression : public ASTNode {
 private:
@@ -236,6 +239,8 @@ public:
                    std::vector<ASTNode *>{constant}) {}
 };
 
+// AST nodes for statements
+
 class Statement : public ASTNode {
 private:
 public:
@@ -323,7 +328,6 @@ public:
   }
 };
 
-// AST nodes for expression
 } // namespace ccc
 
 #endif // C4_ASTNODE_HPP

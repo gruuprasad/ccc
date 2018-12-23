@@ -21,4 +21,6 @@
   std::to_string(line) + ":" + std::to_string(column) + ": error: '" + msg +   \
       "'. Parsing Stopped!"
 
+#define UNUSED(var) (void)var
+
 #endif
