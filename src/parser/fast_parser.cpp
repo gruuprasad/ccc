@@ -5,7 +5,8 @@ namespace ccc {
 ASTNode *FastParser::parseExternalDeclaration() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   std::vector<ASTNode *> block;
   const Token *start = &peek();
@@ -17,7 +18,8 @@ ASTNode *FastParser::parseExternalDeclaration() {
 ASTNode *FastParser::parseFuncDefOrDeclaration() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
 
   if (peek().is_oneof(C_TYPES)) {
@@ -53,7 +55,8 @@ Statement *FastParser::parseCompoundStatement() {
   std::vector<ASTNode *> block;
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   const Token *brace = &peek();
   expect(TokenType::BRACE_OPEN, __FUNCTION__);
@@ -76,7 +79,8 @@ void FastParser::parseBlockItemList() {}
 Statement *FastParser::parseStatement() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   switch (peek().getType()) {
   case TokenType::SEMICOLON: {
@@ -126,7 +130,8 @@ Statement *FastParser::parseStatement() {
 void FastParser::parseLabeledStatement() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   expect(TokenType::IDENTIFIER);
   expect(TokenType::COLON);
@@ -136,7 +141,8 @@ void FastParser::parseLabeledStatement() {
 void FastParser::parseSelectionStatement() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   expect(TokenType::IF);
   expect(TokenType::PARENTHESIS_OPEN);
@@ -155,7 +161,8 @@ void FastParser::parseSelectionStatement() {
 void FastParser::parseIterationStatement() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   expect(TokenType::WHILE);
   expect(TokenType::PARENTHESIS_OPEN);
@@ -167,7 +174,8 @@ void FastParser::parseIterationStatement() {
 void FastParser::parseDeclarations() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   do {
     parseTypeSpecifiers();
@@ -180,7 +188,8 @@ void FastParser::parseDeclarations() {
 void FastParser::parseTypeSpecifiers() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   switch (peek().getType()) {
   case TokenType::VOID:
@@ -202,7 +211,8 @@ void FastParser::parseTypeSpecifiers() {
 void FastParser::parseDeclarator() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   parseList([&]() {}, TokenType::STAR);
   parseDirectDeclarator();
@@ -211,7 +221,8 @@ void FastParser::parseDeclarator() {
 void FastParser::parseDirectDeclarator() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
@@ -241,7 +252,8 @@ void FastParser::parseDirectDeclarator() {
 void FastParser::parseParameterList() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   parseList(
       [&]() {
@@ -255,7 +267,8 @@ void FastParser::parseParameterList() {
 void FastParser::parseStructOrUnionSpecifier() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
@@ -280,7 +293,8 @@ void FastParser::parseStructOrUnionSpecifier() {
 void FastParser::parseStructDeclaration() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   parseTypeSpecifiers();
   if (peek().is_not(TokenType::SEMICOLON))
@@ -292,16 +306,18 @@ void FastParser::parseStructDeclaration() {
 Expression *FastParser::parseExpression() { // TODO fix order of ops s. lecture
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   auto exp = parseUnaryExpression();
   if (peek().is_oneof(BINARY_OP)) {
     if (this->debug) {
-      std::cout << "===> " << peek() << " -> "
+      std::cout << "\033[0;37m" << peek() << "\033[0m -> "
                 << "parseBinaryExpression" << std::endl;
     }
     consume(__FUNCTION__);
     switch (peek(-1).getType()) {
+    case TokenType::DIV:
     case TokenType::STAR:
       return new MultiplicativeExpression(count++, exp, &peek(-1),
                                           parseExpression());
@@ -336,7 +352,8 @@ Expression *FastParser::parseExpression() { // TODO fix order of ops s. lecture
 Expression *FastParser::parseUnaryExpression() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   if (peek().is_oneof(UNARY_OP) && consume(__FUNCTION__)) {
     if (peek().is(TokenType::PARENTHESIS_OPEN) && consume(__FUNCTION__)) {
@@ -353,7 +370,8 @@ Expression *FastParser::parseUnaryExpression() {
 Expression *FastParser::parsePostfixExpression() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   Expression *exp = parsePrimaryExpression();
   // optional postfix varients
@@ -386,7 +404,8 @@ Expression *FastParser::parsePostfixExpression() {
 Expression *FastParser::parsePrimaryExpression() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
@@ -412,14 +431,16 @@ Expression *FastParser::parsePrimaryExpression() {
 void FastParser::parseArgumentExpressionList() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   // TODO implement
 }
 ASTNode *FastParser::parseTranslationUnit() {
   if (this->debug) {
     print_token();
-    std::cout << "===> " << peek() << " -> " << __FUNCTION__ << std::endl;
+    std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+              << std::endl;
   }
   return new Ghost(count++, &peek(), parseExternalDeclaration());
 }

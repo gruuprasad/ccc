@@ -19,7 +19,7 @@ TEST_CASE("ast statement test") {
   auto language = "{ a == 0; a += 3; int b = 0;}";
 
   auto token_list = (new FastLexer(language))->lex();
-  token_list.emplace_back(TokenType::ENDOFFILE, -1, -1);
+  token_list.emplace_back(TokenType::ENDOFFILE);
 
   auto *fp = new FastParser(token_list);
 

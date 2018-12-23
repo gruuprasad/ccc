@@ -50,8 +50,9 @@ private:
 
   bool consume(std::string callee = "no one") {
     if (this->debug) {
-      std::cout << callee << " consumes " << tokens[curTokenIdx].name()
-                << std::endl;
+      std::cout << "\033[0;33m==> " << callee << " consumes \033[0;36m"
+                << peek() << std::endl
+                << "\033[0;37m" << peek(1) << "\033[0m" << std::endl;
     }
     curTokenIdx++;
     return true;
@@ -60,9 +61,10 @@ private:
   bool expect(TokenType tok, std::string callee = "no one") {
     if (peek().is(tok)) {
       if (this->debug) {
-        std::cout << callee << " expects " << peek().name() << std::endl;
+        std::cout << "\033[0;31m==> " << callee << " expects \033[0m"
+                  << peek().name() << " ";
       }
-      return consume(callee);
+      return consume("_");
     } else {
       error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
                            "Unexpected Token: \"" + peek().name() +

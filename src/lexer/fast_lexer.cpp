@@ -1167,6 +1167,7 @@ std::vector<Token> FastLexer::lex() {
     }
     token_list.push_back(std::move(curToken));
   }
+  //  token_list.emplace_back(Token(TokenType::ENDOFFILE, line, column));
   return token_list;
 }
 

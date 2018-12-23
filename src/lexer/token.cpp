@@ -224,7 +224,7 @@ const std::string Token::name() const {
   case TokenType::TOKENEND:
     return "";
   case TokenType::ENDOFFILE:
-    return "EOF";
+    return "";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";

@@ -41,7 +41,7 @@ using namespace ccc;
     REQUIRE(firstToken.getColumn() == 1);                                      \
   }                                                                            \
   TEST_CASE("Fast Lexer keyword " #keyword " length") {                        \
-    auto lastToken = FastLexer(#keyword " n").lex().back();                    \
+    auto lastToken = FastLexer(#keyword " n").lex().pop_back().back();         \
     REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);                     \
     REQUIRE(lastToken.getLine() == 1);                                         \
     REQUIRE(lastToken.getColumn() == sizeof(#keyword) + 1);                    \
