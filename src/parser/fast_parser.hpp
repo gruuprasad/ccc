@@ -2,8 +2,6 @@
 #define C4_PARSER_HPP
 
 #include "../ast/ast_node.hpp"
-#include "../ast/ghost.hpp"
-#include "../ast/statement.hpp"
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
 #include "../utils/macros.hpp"

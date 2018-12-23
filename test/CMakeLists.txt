@@ -7,7 +7,7 @@ add_executable(test_lexer
         lexer/first_test.cpp
         )
 
-target_link_libraries(test_lexer entry lexer parser ast)
+target_link_libraries(test_lexer entry lexer parser)
 add_dependencies(check test_lexer)
 add_test(NAME lexer COMMAND test_lexer)
 
@@ -18,7 +18,7 @@ add_executable(test_parser
         parser/parser_big_test.cpp
         )
 
-target_link_libraries(test_parser entry lexer parser ast)
+target_link_libraries(test_parser entry lexer parser)
 add_dependencies(check test_parser)
 add_test(NAME parser COMMAND test_parser)
 
@@ -27,6 +27,6 @@ add_executable(test_ast
         ast/ast_test.cpp
         )
 
-target_link_libraries(test_ast entry lexer parser ast)
+target_link_libraries(test_ast entry lexer parser)
 add_dependencies(check test_ast)
 add_test(NAME ast COMMAND test_ast)
