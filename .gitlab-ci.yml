@@ -53,7 +53,7 @@ test:tests:
 analysis:coverage:
   stage: analysis
   dependencies:
-  - test:test
+  - test:tests
   script:
   - mkdir -p build
   - cd ./build
