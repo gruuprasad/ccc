@@ -18,10 +18,19 @@ protected:
           std::vector<ASTNode *> children = std::vector<ASTNode *>())
       : id(id), name(std::move(name)), token(token),
         children(std::move(children)) {}
+  std::string feed(int n) {
+    std::stringstream ss;
+    for (int i = 0; i < n; i++)
+      ss << "  ";
+    return ss.str();
+  }
 
 public:
   int getId() const { return id; }
   virtual std::string toGraphWalker() = 0;
+  virtual std::string toString(int indent) { return feed(indent) + "?"; };
+  virtual std::string checkSemantic() { return "?"; };
+  virtual std::string toCode() { return "?"; };
   std::string toGraph() {
     return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n" +
            this->toGraphWalker() + "}\n}\n";
@@ -44,6 +53,13 @@ public:
 
   Ghost(int id, const Token *token, std::vector<ASTNode *> children = {})
       : ASTNode(id, "ghost", token, children) {}
+
+  std::string toString(int indent) override {
+    std::stringstream ss;
+    for (ASTNode *child : this->children)
+      ss << child->toString(indent);
+    return ss.str();
+  }
 
 private:
   std::string toGraphWalker() override {
@@ -277,6 +293,12 @@ class CompoundStatement : public Statement {
 public:
   CompoundStatement(int id, const Token *token, std::vector<ASTNode *> items)
       : Statement(id, "compound-statement", token, items) {}
+  std::string toString(int indent) override {
+    std::stringstream ss;
+    for (ASTNode *child : this->children)
+      ss << feed(indent) << child->toString(indent + 1) << std::endl;
+    return "{\n" + ss.str() + feed(indent) + "}\n";
+  }
 };
 
 class ExpressionStatement : public Statement {
@@ -292,6 +314,14 @@ public:
   IfElseStatement(int id, const Token *token, Expression *expr,
                   Statement *stmt1, Statement *stmt2 = nullptr)
       : Statement(id, "selection-statement", token, {expr, stmt1, stmt2}) {}
+  std::string toString(int indent) override {
+    std::stringstream ss;
+    ss << feed(indent) << "if (" << this->children[0]->toString(0) << ") "
+       << this->children[1]->toString(indent);
+    if (this->children[2])
+      ss << feed(indent) << "else " << this->children[2]->toString(indent);
+    return ss.str();
+  }
 };
 
 class WhileStatement : public Statement {
