@@ -42,8 +42,8 @@ TEST_CASE("Fast Lexer number test.") {
 
 TEST_CASE("Fast Lexer number with extra test.") {
   auto token_list = FastLexer("123afg").lex();
-  auto firstToken = token_list.front();
-  auto secondToken = token_list.back();
+  auto firstToken = token_list[0];
+  auto secondToken = token_list[1];
   REQUIRE(firstToken.getType() == TokenType::NUMBER);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
@@ -84,6 +84,7 @@ TEST_CASE("Fast Lexer invalid character literal test.") {
 TEST_CASE("Fast Lexer line comment test.") {
   auto token_list =
       FastLexer("  aaa//blah\ntest//hehe\r\nmore//test\rtesting").lex();
+  token_list.pop_back();
   auto lastToken = token_list.back();
   REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);
   REQUIRE(lastToken.getLine() == 4);
@@ -93,6 +94,7 @@ TEST_CASE("Fast Lexer line comment test.") {
 
 TEST_CASE("Fast Lexer block comment test.") {
   auto token_list = FastLexer(" /**/x").lex();
+  token_list.pop_back();
   auto lastToken = token_list.back();
   REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);
   REQUIRE(lastToken.getLine() == 1);
@@ -102,6 +104,7 @@ TEST_CASE("Fast Lexer block comment test.") {
 
 TEST_CASE("Fast Lexer block comment multiline test.") {
   auto token_list = FastLexer(" /*\nee*/x").lex();
+  token_list.pop_back();
   auto lastToken = token_list.back();
   REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);
   REQUIRE(lastToken.getLine() == 2);
@@ -161,6 +164,7 @@ TEST_CASE("Fast Lexer string escape sequence test.") {
 
 TEST_CASE("::") {
   auto tokenList = FastLexer(":::").lex();
+  tokenList.pop_back();
   REQUIRE(tokenList.size() == 3);
 
   auto &firstToken = tokenList.front();
@@ -181,6 +185,7 @@ TEST_CASE("::") {
 
 TEST_CASE(".*") {
   auto tokenList = FastLexer(".*.").lex();
+  tokenList.pop_back();
   REQUIRE(tokenList.size() == 3);
 
   auto &firstToken = tokenList.front();

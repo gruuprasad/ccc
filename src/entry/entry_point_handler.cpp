@@ -33,7 +33,6 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       return EXIT_SUCCESS;
     }
     if (flagName == "--parse") {
-      token_list.emplace_back(TokenType::ENDOFFILE, -1, -1);
       auto parser = FastParser(token_list);
       parser.parse();
       if (parser.fail()) {
