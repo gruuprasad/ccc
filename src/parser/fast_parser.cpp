@@ -92,18 +92,15 @@ Statement *FastParser::parseStatement() {
   case TokenType::IF:
     return parseSelectionStatement();
   case TokenType::WHILE:
-    parseIterationStatement();
-    return nullptr;
+    return parseIterationStatement();
   case TokenType::GOTO:
     consume(__FUNCTION__);
     expect(TokenType::IDENTIFIER);
     break;
   case TokenType::CONTINUE:
-    consume(__FUNCTION__);
-    break;
+    return new ContinueStatement(idx++, pop(__FUNCTION__));
   case TokenType::BREAK:
-    consume(__FUNCTION__);
-    break;
+    return new BreakStatement(idx++, pop(__FUNCTION__));
   case TokenType::RETURN: {
     const Token *token = &peek();
     consume(__FUNCTION__);
@@ -155,31 +152,34 @@ Statement *FastParser::parseSelectionStatement() {
   Expression *cond = parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE, __FUNCTION__);
   Statement *if_stat = parseStatement();
-  if (if_stat->instanceof <CompoundStatement>())
+  if (!if_stat->instanceof <CompoundStatement>())
     if_stat = new CompoundStatement(idx++, token, {if_stat});
   if (peek().is(TokenType::ELSE) && consume(__FUNCTION__)) {
     token = &peek(-1);
     Statement *else_stat = parseStatement();
-    if (else_stat->instanceof <CompoundStatement>())
-      return new IfElseStatement(idx++, token, cond, if_stat, else_stat);
-    else_stat = new CompoundStatement(idx++, token, {else_stat});
+    if (!else_stat->instanceof <CompoundStatement>())
+      else_stat = new CompoundStatement(idx++, token, {else_stat});
     return new IfElseStatement(idx++, token, cond, if_stat, else_stat);
   } else {
     return new IfElseStatement(idx++, token, cond, if_stat);
   }
 }
 
-void FastParser::parseIterationStatement() {
+Statement *FastParser::parseIterationStatement() {
   if (this->debug) {
     print_token();
     std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
               << std::endl;
   }
+  const Token *token = &peek();
   expect(TokenType::WHILE);
   expect(TokenType::PARENTHESIS_OPEN);
-  parseExpression();
+  Expression *cond = parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE);
-  parseStatement();
+  Statement *block = parseStatement();
+  if (!block->instanceof <CompoundStatement>())
+    block = new CompoundStatement(idx++, token, {block});
+  return new WhileStatement(idx++, token, cond, block);
 }
 
 void FastParser::parseDeclarations() {

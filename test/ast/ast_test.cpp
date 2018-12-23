@@ -16,7 +16,8 @@ using namespace ccc;
 //}
 
 TEST_CASE("ast statement test") {
-  auto language = "{ if (a == 0) {if (1) a += 3;} else a = 1; return 0;}";
+  auto language = "{ if (a == 0) {while (1) {a += 3; break; continue;}} else a "
+                  "= 1; return 0;}";
 
   auto token_list = (new FastLexer(language))->lex();
 

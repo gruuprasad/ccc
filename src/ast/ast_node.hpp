@@ -296,8 +296,8 @@ public:
 
 class WhileStatement : public Statement {
 public:
-  WhileStatement(int, Expression *expr, Statement *stmt)
-      : Statement(id, "iteration-statement", nullptr, {expr, stmt}) {}
+  WhileStatement(int id, const Token *token, Expression *expr, Statement *stmt)
+      : Statement(id, "iteration-statement", token, {expr, stmt}) {}
 };
 
 class GotoStatement : public Statement {
@@ -309,12 +309,14 @@ public:
 
 class BreakStatement : public Statement {
 public:
-  explicit BreakStatement(int id) : Statement(id, "jump-statement") {}
+  explicit BreakStatement(int id, const Token *token)
+      : Statement(id, "jump-statement", token) {}
 };
 
 class ContinueStatement : public Statement {
 public:
-  explicit ContinueStatement(int id) : Statement(id, "jump-statement") {}
+  explicit ContinueStatement(int id, const Token *token)
+      : Statement(id, "jump-statement", token) {}
 };
 
 class ReturnStatement : public Statement {

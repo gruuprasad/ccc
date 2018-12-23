@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef C4_PARSER_HPP
 #define C4_PARSER_HPP
 
@@ -46,9 +48,14 @@ private:
 
   Token nextToken() { return tokens[curTokenIdx++]; }
 
+  const Token *pop(const std::string &callee = "no one") {
+    consume(callee);
+    return &peek(-1);
+  }
+
   int idx = 0;
 
-  bool consume(std::string callee = "no one") {
+  bool consume(const std::string &callee = "no one") {
     if (this->debug) {
       std::cout << "\033[0;33m==> " << callee << " consumes \033[0;36m"
                 << peek() << std::endl
@@ -58,7 +65,7 @@ private:
     return true;
   }
 
-  bool expect(TokenType tok, std::string callee = "no one") {
+  bool expect(TokenType tok, const std::string &callee = "no one") {
     if (peek().is(tok)) {
       if (this->debug) {
         std::cout << "\033[0;31m==> " << callee << " expects \033[0m"
@@ -159,7 +166,7 @@ private:
   void parseBlockItemList();
   void parseLabeledStatement();
   Statement *parseSelectionStatement();
-  void parseIterationStatement();
+  Statement *parseIterationStatement();
 
   std::vector<Token> &tokens;
   std::size_t curTokenIdx = 0;
