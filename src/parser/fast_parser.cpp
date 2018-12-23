@@ -154,8 +154,14 @@ Statement *FastParser::parseSelectionStatement() {
   Expression *cond = parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE, __FUNCTION__);
   Statement *if_stat = parseStatement();
+  if (if_stat->instanceof <CompoundStatement>())
+    if_stat = new CompoundStatement(idx++, token, {if_stat});
   if (peek().is(TokenType::ELSE) && consume(__FUNCTION__)) {
+    token = &peek(-1);
     Statement *else_stat = parseStatement();
+    if (else_stat->instanceof <CompoundStatement>())
+      return new IfElseStatement(idx++, token, cond, if_stat, else_stat);
+    else_stat = new CompoundStatement(idx++, token, {else_stat});
     return new IfElseStatement(idx++, token, cond, if_stat, else_stat);
   } else {
     return new IfElseStatement(idx++, token, cond, if_stat);

@@ -23,4 +23,8 @@
 
 #define UNUSED(var) (void)var
 
+template <class DstType, class SrcType> bool instanceof (const SrcType *src) {
+  return dynamic_cast<const DstType *>(src) != nullptr;
+}
+
 #endif

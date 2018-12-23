@@ -31,6 +31,7 @@ public:
       delete child;
     }
   }
+  template <class C> bool instanceof () { return (dynamic_cast<C *>(this)); }
 };
 
 enum class TypeSpecifier { VOID, CHAR, INT, STRUCT };
