@@ -27,7 +27,7 @@ TEST_CASE("ast statement test") {
   auto *root = fp->parse(PARSE_TYPE::TRANSLATIONUNIT, true);
   REQUIRE(!fp->fail());
 
-  std::cout << root->toString(0);
+  std::cout << root->toGraph();
   std::ofstream file;
   file.open("ast.gv");
   file.clear();
