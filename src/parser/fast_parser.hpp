@@ -16,7 +16,7 @@ enum PARSE_TYPE { TRANSLATIONUNIT, EXPRESSION, STATEMENT, DECLARATION };
 
 class FastParser {
 public:
-  FastParser(std::vector<Token> &tokens_) : tokens(tokens_) {
+  explicit FastParser(std::vector<Token> &tokens_) : tokens(tokens_) {
     tokens.emplace_back(TokenType::TOKENEND, 0, 0);
   }
 
@@ -45,8 +45,6 @@ public:
 #endif
 
 private:
-  Token nextToken() { return tokens[curTokenIdx++]; }
-
   const Token *pop() {
     consume();
     return &peek(-1);
@@ -192,7 +190,6 @@ private:
   // (6.5.1) primary: identifer | constant | string-literal | ( expression )
 
   Expression *parseExpression();
-  Expression *parseBinaryExpression(Expression *exp);
   Expression *parsePrimaryExpression();
   Expression *parseUnaryExpression();
   void parseArgumentExpressionList();
