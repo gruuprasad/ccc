@@ -259,25 +259,10 @@ Expression *FastParser::parseExpression() {
   printParserTrace();
   auto exp = parseUnaryExpression();
   if (peek().is_oneof(BINARY_OP)) {
-    switch (peek().getType()) {
-    case TokenType::DIV:
-    case TokenType::STAR:
-    case TokenType::PLUS:
-    case TokenType::MINUS:
-    case TokenType::LESS:
-    case TokenType::EQUAL:
-    case TokenType::NOT_EQUAL:
-    case TokenType::AND:
-    case TokenType::OR:
-    case TokenType::ASSIGN:
-    case TokenType::PLUS_ASSIGN:
-      return new BinaryExpression(exp, pop(__FUNCTION__), parseExpression());
-    default:
-      return nullptr;
-    }
+    return new BinaryExpression(exp, pop(__FUNCTION__), parseExpression());
   } else
     return exp;
-}
+} // namespace ccc
 
 Expression *FastParser::parseUnaryExpression() {
   printParserTrace();
