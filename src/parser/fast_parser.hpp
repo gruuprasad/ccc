@@ -21,7 +21,7 @@ public:
 
   ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT,
                  bool debug = false) {
-    this->printParseTrace = debug;
+    this->debug = debug;
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -42,7 +42,7 @@ public:
   std::string getError() { return error; }
 
 private:
-  bool printParseTrace;
+  bool debug;
 
   void print_token();
 
@@ -56,7 +56,7 @@ private:
   int idx = 0;
 
   bool consume(const std::string &callee = "no one") {
-    if (this->printParseTrace) {
+    if (this->debug) {
       std::cout << "\033[0;33m==> " << callee << " consumes \033[0;36m"
                 << peek() << std::endl
                 << "\033[0;37m" << peek(1) << "\033[0m" << std::endl;
@@ -67,7 +67,7 @@ private:
 
   bool expect(TokenType tok, const std::string &callee = "no one") {
     if (peek().is(tok)) {
-      if (this->printParseTrace) {
+      if (this->debug) {
         std::cout << "\033[0;31m==> " << callee << " expects \033[0m"
                   << peek().name() << " ";
       }
@@ -81,6 +81,14 @@ private:
       return false;
     }
     // FIXME get string version of token?
+  }
+
+  void printParserTrace() {
+    if (this->debug) {
+      print_token();
+      std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+                << std::endl;
+    }
   }
 
   const Token &peek(int k = 0) {

@@ -168,7 +168,7 @@ public:
 
 class Identifier : public Expression {
 public:
-  explicit Identifier(int id) : Expression("primary-expression", 0) {}
+  explicit Identifier() : Expression("primary-expression", 0) {}
 };
 
 class StringLiteral : public Expression {};
