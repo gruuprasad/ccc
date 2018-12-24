@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef C4_ASTNODE_HPP
 #define C4_ASTNODE_HPP
 
@@ -51,8 +53,8 @@ public:
   Ghost(const Token *token, ASTNode *child)
       : ASTNode("ghost", token, {child}) {}
 
-  Ghost(const Token *token, std::vector<ASTNode *> children = {})
-      : ASTNode("ghost", token, children) {}
+  explicit Ghost(const Token *token, std::vector<ASTNode *> children = {})
+      : ASTNode("ghost", token, std::move(children)) {}
 
   std::string toString(int indent) override {
     std::stringstream ss;
@@ -97,7 +99,7 @@ class IntegerConstant : public Constant {
   std::string toGraphWalker() override { return graphWalkerImpl(constant); }
 
 public:
-  IntegerConstant(int constant) : Constant(), constant(constant) {}
+  explicit IntegerConstant(int constant) : Constant(), constant(constant) {}
 };
 
 class CharacterConstant : public Constant {
@@ -106,7 +108,7 @@ private:
   std::string toGraphWalker() override { return graphWalkerImpl(constant); }
 
 public:
-  CharacterConstant(char constant) : Constant(), constant(constant) {}
+  explicit CharacterConstant(char constant) : Constant(), constant(constant) {}
 };
 
 class EnumerationConstant : public Constant {
@@ -115,7 +117,8 @@ private:
   std::string toGraphWalker() override { return graphWalkerImpl(constant); }
 
 public:
-  EnumerationConstant(std::string &constant) : Constant(), constant(constant) {}
+  explicit EnumerationConstant(std::string &constant)
+      : Constant(), constant(constant) {}
 };
 
 class Declaration : public ASTNode {
@@ -161,78 +164,40 @@ private:
   }
 
 public:
-  Expression(std::string name, const Token *token = nullptr,
-             std::vector<ASTNode *> children = {})
-      : ASTNode(name, token, children) {}
+  explicit Expression(std::string name, const Token *token = nullptr,
+                      std::vector<ASTNode *> children = {})
+      : ASTNode(std::move(name), token, std::move(children)) {}
 };
 
 class Identifier : public Expression {
 public:
-  explicit Identifier() : Expression("primary-expression", 0) {}
+  explicit Identifier() : Expression("primary-expression", nullptr) {}
 };
 
 class StringLiteral : public Expression {};
 
 class PrimaryExpression : public Expression {
 public:
-  PrimaryExpression(const Token *token)
+  explicit PrimaryExpression(const Token *token)
       : Expression("primary expression", token, {}){};
-};
-
-class AssignmentExpression : public Expression {
-public:
-  AssignmentExpression(Expression *assign, const Token *token,
-                       Expression *expression)
-      : Expression("assignment-expression", token, {assign, expression}) {}
 };
 
 class FunctionCall : public Expression {
 public:
-  FunctionCall(std::vector<ASTNode *> arguments)
-      : Expression("postfix-expression", nullptr, arguments) {}
+  explicit FunctionCall(std::vector<ASTNode *> arguments)
+      : Expression("postfix-expression", nullptr, std::move(arguments)) {}
 };
 
 class SizeOfExpression : public Expression {
 public:
-  SizeOfExpression(ASTNode *type)
+  explicit SizeOfExpression(ASTNode *type)
       : Expression("unary-expression", nullptr, std::vector<ASTNode *>{type}) {}
 };
 
-class MultiplicativeExpression : public Expression {
+class BinaryExpression : public Expression {
 public:
-  MultiplicativeExpression(Expression *expr1, const Token *token,
-                           Expression *expr2)
-      : Expression("multiplicative-expression", token, {expr1, expr2}) {}
-};
-
-class AdditiveExpression : public Expression {
-public:
-  AdditiveExpression(Expression *expr1, const Token *token, Expression *expr2)
+  BinaryExpression(Expression *expr1, const Token *token, Expression *expr2)
       : Expression("additive-expression", token, {expr1, expr2}) {}
-};
-
-class RelationalExpression : public Expression {
-public:
-  RelationalExpression(Expression *expr1, const Token *token, Expression *expr2)
-      : Expression("relational-expression", token, {expr1, expr2}) {}
-};
-
-class EqualityExpression : public Expression {
-public:
-  EqualityExpression(Expression *expr1, const Token *token, Expression *expr2)
-      : Expression("equality-expression", token, {expr1, expr2}) {}
-};
-
-class LogicalAndExpression : public Expression {
-public:
-  LogicalAndExpression(Expression *expr1, const Token *token, Expression *expr2)
-      : Expression("logical-And-expression", token, {expr1, expr2}) {}
-};
-
-class LogicalOrExpression : public Expression {
-public:
-  LogicalOrExpression(Expression *expr1, const Token *token, Expression *expr2)
-      : Expression("logical-Or-expression", token, {expr1, expr2}) {}
 };
 
 class ConditionalExpression : public Expression {
@@ -243,7 +208,7 @@ public:
 
 class ConstantExpression : public Expression {
 public:
-  ConstantExpression(Constant *constant)
+  explicit ConstantExpression(Constant *constant)
       : Expression("primary-expression", nullptr,
                    std::vector<ASTNode *>{constant}) {}
 };
@@ -253,9 +218,9 @@ public:
 class Statement : public ASTNode {
 private:
 public:
-  Statement(const std::string name, const Token *token = nullptr,
-            std::vector<ASTNode *> children = {})
-      : ASTNode(name, token, children) {}
+  explicit Statement(const std::string &name, const Token *token = nullptr,
+                     std::vector<ASTNode *> children = {})
+      : ASTNode(name, token, std::move(children)) {}
 
 private:
   std::string toGraphWalker() override {
@@ -284,7 +249,7 @@ public:
 class CompoundStatement : public Statement {
 public:
   CompoundStatement(const Token *token, std::vector<ASTNode *> items)
-      : Statement("compound-statement", token, items) {}
+      : Statement("compound-statement", token, std::move(items)) {}
   std::string toString(int indent) override {
     std::stringstream ss;
     for (ASTNode *child : this->children)
@@ -296,8 +261,8 @@ public:
 class ExpressionStatement : public Statement {
 public:
   explicit ExpressionStatement(const Token *token, Expression *expr = nullptr)
-      : Statement("expression-statement", expr == nullptr ? 0 : token, {expr}) {
-  }
+      : Statement("expression-statement", expr == nullptr ? nullptr : token,
+                  {expr}) {}
 };
 
 class IfElseStatement : public Statement {
@@ -323,7 +288,7 @@ public:
 
 class GotoStatement : public Statement {
 public:
-  GotoStatement(Expression *ident)
+  explicit GotoStatement(Expression *ident)
       : Statement("jump-statement", nullptr, std::vector<ASTNode *>{ident}) {}
 };
 
@@ -341,7 +306,7 @@ public:
 
 class ReturnStatement : public Statement {
 public:
-  ReturnStatement(const Token *token, Expression *expr = nullptr)
+  explicit ReturnStatement(const Token *token, Expression *expr = nullptr)
       : Statement("jump-statement", token, std::vector<ASTNode *>{expr}) {}
 };
 

@@ -259,39 +259,25 @@ Expression *FastParser::parseExpression() {
   printParserTrace();
   auto exp = parseUnaryExpression();
   if (peek().is_oneof(BINARY_OP)) {
-    return parseBinaryExpression(exp);
+    switch (peek().getType()) {
+    case TokenType::DIV:
+    case TokenType::STAR:
+    case TokenType::PLUS:
+    case TokenType::MINUS:
+    case TokenType::LESS:
+    case TokenType::EQUAL:
+    case TokenType::NOT_EQUAL:
+    case TokenType::AND:
+    case TokenType::OR:
+    case TokenType::ASSIGN:
+    case TokenType::PLUS_ASSIGN:
+      return new BinaryExpression(exp, pop(__FUNCTION__), parseExpression());
+    default:
+      return nullptr;
+    }
   } else
     return exp;
 }
-
-Expression *FastParser::parseBinaryExpression(
-    Expression *exp) { // TODO fix order of ops s. lecture
-  printParserTrace();
-  switch (peek().getType()) {
-  case TokenType::DIV:
-  case TokenType::STAR:
-    return new MultiplicativeExpression(exp, pop(__FUNCTION__),
-                                        parseExpression());
-  case TokenType::PLUS:
-  case TokenType::MINUS:
-    return new AdditiveExpression(exp, pop(__FUNCTION__), parseExpression());
-  case TokenType::LESS:
-    return new RelationalExpression(exp, pop(__FUNCTION__), parseExpression());
-  case TokenType::EQUAL:
-  case TokenType::NOT_EQUAL:
-    return new EqualityExpression(exp, pop(__FUNCTION__), parseExpression());
-  case TokenType::AND:
-    return new LogicalAndExpression(exp, pop(__FUNCTION__), parseExpression());
-  case TokenType::OR:
-    return new LogicalOrExpression(exp, pop(__FUNCTION__), parseExpression());
-  case TokenType::ASSIGN:
-    return new AssignmentExpression(exp, pop(__FUNCTION__), parseExpression());
-  case TokenType::PLUS_ASSIGN:
-    return new AssignmentExpression(exp, pop(__FUNCTION__), parseExpression());
-  default:
-    return nullptr;
-  }
-};
 
 Expression *FastParser::parseUnaryExpression() {
   printParserTrace();
