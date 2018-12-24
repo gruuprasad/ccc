@@ -7,6 +7,7 @@
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
 #include "../utils/macros.hpp"
+#include <execinfo.h>
 #include <vector>
 
 namespace ccc {
@@ -21,7 +22,9 @@ public:
 
   ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT,
                  bool debug = false) {
+#if DEBUG
     this->debug = debug;
+#endif
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -44,34 +47,56 @@ public:
 private:
   bool debug;
 
-  void print_token();
-
   Token nextToken() { return tokens[curTokenIdx++]; }
 
-  const Token *pop(const std::string &callee = "no one") {
-    consume(callee);
+  const Token *pop() {
+    consume();
     return &peek(-1);
   }
 
-  int idx = 0;
-
-  bool consume(const std::string &callee = "no one") {
+  bool consume() {
+#if DEBUG
     if (this->debug) {
-      std::cout << "\033[0;33m==> " << callee << " consumes \033[0;36m"
+      void *array[3];
+      std::string caller = backtrace_symbols(array, backtrace(array, 2))[1];
+      if (caller.rfind("expect") < caller.size() ||
+          caller.rfind("pop") < caller.size())
+        caller = backtrace_symbols(array, backtrace(array, 3))[2];
+
+      caller = caller.substr(caller.rfind("parse"));
+      caller = caller.substr(0, caller.find("Ev"));
+
+      std::cout << "\033[0;33m==> " << caller << " consumes \033[0;36m"
                 << peek() << std::endl
-                << "\033[0;37m" << peek(1) << "\033[0m" << std::endl;
+                << "\033[0;37m";
+      for (size_t i = curTokenIdx + 1, count = 0; i < tokens.size();
+           (i++, count++)) {
+        if (count > 5) {
+          std::cout << "...";
+          break;
+        }
+        std::cout << "[" << tokens[i] << "] ";
+      }
+      std::cout << "\033[0m" << std::endl;
     }
+#endif
     curTokenIdx++;
     return true;
   }
 
-  bool expect(TokenType tok, const std::string &callee = "no one") {
+  bool expect(TokenType tok) {
     if (peek().is(tok)) {
+#if DEBUG
       if (this->debug) {
-        std::cout << "\033[0;31m==> " << callee << " expects \033[0m"
-                  << peek().name() << " ";
+        void *array[2];
+        std::string caller = backtrace_symbols(array, backtrace(array, 2))[1];
+        caller = caller.substr(caller.rfind("parse"));
+        caller = caller.substr(0, caller.find("Ev"));
+        std::cout << "\033[0;31m==> " << caller << " expects \033[0;36m"
+                  << peek().name() << "\033[0m ";
       }
-      return consume("_");
+#endif
+      return consume();
     } else {
       error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
                            "Unexpected Token: \"" + peek().name() +
@@ -82,14 +107,18 @@ private:
     }
     // FIXME get string version of token?
   }
-
+#if DEBUG
   void printParserTrace() {
     if (this->debug) {
-      print_token();
-      std::cout << "\033[0;37m" << peek() << "\033[0m -> " << __FUNCTION__
+      void *array[2];
+      std::string caller = backtrace_symbols(array, backtrace(array, 2))[1];
+      caller = caller.substr(caller.rfind("parse"));
+      caller = caller.substr(0, caller.rfind("Ev"));
+      std::cout << "\033[0;37m" << peek() << "\033[0m -> " << caller
                 << std::endl;
     }
   }
+#endif
 
   const Token &peek(int k = 0) {
     // TODO bound check. Append k number of empty tokens at the end of tokens
@@ -106,9 +135,9 @@ private:
   // Grammar Rules we plan to implement.
   // (6.9) translationUnit :: external-declaration+
   // (6.9) external-declaration :: function-definition | declaration
-  // (6.9.1) function-definition :: type-specifier declarator declaration+(opt)
-  // compound-statement (6.7)  declaration :: type-specifier declarator(opt) ;
-  // (6.7.2) type-specifier :: void | char | short | int |
+  // (6.9.1) function-definition :: type-specifier declarator
+  // declaration+(opt) compound-statement (6.7)  declaration :: type-specifier
+  // declarator(opt) ; (6.7.2) type-specifier :: void | char | short | int |
   // struct-or-union-specifier (6.7.2.1) struct-or-union-specifier :: struct
   // identifer(opt) { struct-declaration+ } | struct-or-union identifier
   // (6.7.2.1) struct-declaration :: type-specifier declarator (opt) ;
@@ -119,8 +148,9 @@ private:
   // TODO Add rules -> parameter-declaration :: type-specifiers
   // abstract-declarator(opt)
   //                   abstract-declarator :: pointer | pointer(opt)
-  //                   direct-abstract-declarator direct-abstract-declarator ::
-  //                   ( abstract-declarator) | ( parameter-type-list(opt) )+
+  //                   direct-abstract-declarator direct-abstract-declarator
+  //                   :: ( abstract-declarator) | ( parameter-type-list(opt)
+  //                   )+
 
   ASTNode *parseTranslationUnit();
   ASTNode *parseExternalDeclaration();
@@ -138,18 +168,19 @@ private:
   // Expressions
   // (6.5.17) expression: assignment+ (comma-separated)
   // (6.5.16) assignment: conditional | unary assignment-op assignment
-  // (6.5.16) assignment-op: = | *= | /= | %= | += | -= | <<= | >>= | &= | ^= |
-  // |= (6.5.15) conditional: logical-OR | logical-OR ? expression : conditional
-  // (6.5.14) logical-OR: logical-AND | logical-OR || logical-AND
+  // (6.5.16) assignment-op: = | *= | /= | %= | += | -= | <<= | >>= | &= | ^=
+  // |
+  // |= (6.5.15) conditional: logical-OR | logical-OR ? expression :
+  // conditional (6.5.14) logical-OR: logical-AND | logical-OR || logical-AND
   // (6.5.13) logical-AND: inclusive-OR | logical-AND && inclusive-OR
   // (6.5.12) inclusive-OR: exclusive-OR | inclusive-OR | exclusive-OR
   // (6.5.11) exclusive-OR: AND | exclusive-OR ^ AND
   // (6.5.10) AND: equality | AND & equality
   // (6.5.9) equality: relational | equality == relational | equality !=
   // relational (6.5.8) relational: shift | relational < shift | relational >
-  // shift | relational <= shift | relational >= shift (6.5.7) shift: additive |
-  // shift << additive | shift >> additive (6.5.6) additive: multiplicative |
-  // additive + multiplicative | additive - multiplicative (6.5.5)
+  // shift | relational <= shift | relational >= shift (6.5.7) shift: additive
+  // | shift << additive | shift >> additive (6.5.6) additive: multiplicative
+  // | additive + multiplicative | additive - multiplicative (6.5.5)
   // multiplicative: cast | multiplicative * cast | multiplicative / cast |
   // multiplicative % cast (6.5.4) cast: unary | ( type-name ) cast (6.5.3)
   // unary: postfix | ++ unary | -- unary | unary-op cast | sizeof unary |
@@ -157,7 +188,8 @@ private:
   // postfix: primary | postfix [ expression ] | postfix (
   // argument-expr-list(opt) ) | postfix . identifier
   //                  postfix -> identifier | postfix -- | ( type-name ) {
-  //                  initializer-list } | ( type-name ) { initializer-list , }
+  //                  initializer-list } | ( type-name ) { initializer-list ,
+  //                  }
   // (6.5.2) argument-expr-list: assignment | argument-expr-list , assignment
   // (6.5.1) primary: identifer | constant | string-literal | ( expression )
 
