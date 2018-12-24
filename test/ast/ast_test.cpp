@@ -23,8 +23,10 @@ TEST_CASE("ast statement test") {
   auto token_list = (new FastLexer(language))->lex();
 
   auto *fp = new FastParser(token_list);
-
-  auto *root = fp->parse(PARSE_TYPE::TRANSLATIONUNIT, true);
+#if DEBUG
+  fp->printTrace = true;
+#endif
+  auto *root = fp->parse(PARSE_TYPE::TRANSLATIONUNIT);
   REQUIRE(!fp->fail());
 
   //  std::cout << root->toGraph();

@@ -20,11 +20,7 @@ public:
     tokens.emplace_back(TokenType::TOKENEND, 0, 0);
   }
 
-  ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT,
-                 bool debug = false) {
-#if DEBUG
-    this->debug = debug;
-#endif
+  ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -44,9 +40,11 @@ public:
   bool fail() const { return !error.empty(); }
   std::string getError() { return error; }
 
-private:
-  bool debug;
+#if DEBUG
+  bool printTrace = false;
+#endif
 
+private:
   Token nextToken() { return tokens[curTokenIdx++]; }
 
   const Token *pop() {
@@ -56,7 +54,7 @@ private:
 
   bool consume() {
 #if DEBUG
-    if (this->debug) {
+    if (this->printTrace) {
       void *array[3];
       std::string caller = backtrace_symbols(array, backtrace(array, 2))[1];
       if (caller.rfind("expect") < caller.size() ||
@@ -87,7 +85,7 @@ private:
   bool expect(TokenType tok) {
     if (peek().is(tok)) {
 #if DEBUG
-      if (this->debug) {
+      if (this->printTrace) {
         void *array[2];
         std::string caller = backtrace_symbols(array, backtrace(array, 2))[1];
         caller = caller.substr(caller.rfind("parse"));
@@ -109,7 +107,7 @@ private:
   }
 #if DEBUG
   void printParserTrace() {
-    if (this->debug) {
+    if (this->printTrace) {
       void *array[2];
       std::string caller = backtrace_symbols(array, backtrace(array, 2))[1];
       caller = caller.substr(caller.rfind("parse"));

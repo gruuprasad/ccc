@@ -27,4 +27,8 @@ template <class DstType, class SrcType> bool instanceof (const SrcType *src) {
   return dynamic_cast<const DstType *>(src) != nullptr;
 }
 
+#ifndef DEBUG
+#define DEBUG false
+#endif
+
 #endif
