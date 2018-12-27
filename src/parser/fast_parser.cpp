@@ -123,12 +123,6 @@ void FastParser::parseDeclaration() {
   mustExpect(TokenType::SEMICOLON);
 }
 
-void FastParser::parseDeclarations() {
-  do {
-    parseDeclaration();
-  } while (peek().is(C_TYPES));
-}
-
 // (6.7.2.1) struct-or-union-specifier :: struct identifer(opt) { struct-declaration+ } | struct identifier
 void FastParser::parseStructOrUnionSpecifier() {
   mustExpect(TokenType::STRUCT);
