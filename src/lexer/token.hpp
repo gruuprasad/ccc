@@ -2,6 +2,7 @@
 #define C4_TOKEN_HPP
 
 #include "token_type.hpp"
+#include "../utils/location.hpp"
 #include <ostream>
 #include <string>
 
@@ -11,7 +12,7 @@ using Precedence = unsigned int;
 
 class Token {
 public:
-  Token() {}
+  Token() :loc(1, 0) {}
   Token(ccc::TokenType type, unsigned long line, unsigned long column,
         std::string extra = std::string());
   Token(const Token &t) = default;
@@ -39,8 +40,7 @@ public:
 
 private:
   ccc::TokenType type;
-  unsigned long line;
-  unsigned long column;
+  Location loc;
   std::string extra;
 
 public:
