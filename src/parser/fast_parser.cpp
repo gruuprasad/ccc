@@ -233,15 +233,15 @@ void FastParser::parseIterationStatement() {
 
 // Expressions
 // (6.5.17) expression: assignment
-// (6.5.15) conditional-expr: logical-OR | logical-OR ? expression : conditional-expr
 void FastParser::parseExpression() {
   parseAssignmentExpression();
 }
 
 // (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op assignment-expr
+// (6.5.15) conditional-expr: logical-OR | logical-OR ? expression : conditional-expr
 void FastParser::parseAssignmentExpression() {
   parseUnaryExpression(); // LHS
-  parseBinOpWithRHS(/*LHS Expr ,*/ 0); // BinOpLeft + RHS
+  parseBinOpWithRHS(/*LHS Expr ,*/ 1/*assignmentPrec*/); // BinOpLeft + RHS
 }
 
 void FastParser::parseBinOpWithRHS(/*LHS , */ Precedence minPrec) {
@@ -254,6 +254,13 @@ void FastParser::parseBinOpWithRHS(/*LHS , */ Precedence minPrec) {
       return; // LHS
 
     auto binOpLeft = nextToken();
+
+    // Handle conditional operator middle expression
+    if (binOpLeft.getType() == TokenType::CONDITIONAL) {
+      parseExpression(); // Ternary middle
+      mustExpect(TokenType::COLON);
+    }
+
     parseUnaryExpression();       // RHS
 
     auto binOpLeftPrec = nextTokenPrec;
@@ -261,6 +268,8 @@ void FastParser::parseBinOpWithRHS(/*LHS , */ Precedence minPrec) {
 
     if (binOpLeftPrec < nextTokenPrec) {
       // Evaluate RHS + binOpRight...
+      // TODO handle conditional Expresion reduction during AST creation.
+      // LHS = LHS + TernaryMiddle + RHS
       parseBinOpWithRHS(/*RHS  Expr ,*/binOpLeftPrec); // new RHS after evaluation
     }
 

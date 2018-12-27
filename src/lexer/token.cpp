@@ -183,7 +183,7 @@ const std::string Token::name() const {
     return ",";
   case TokenType::COLON:
     return ":";
-  case TokenType::QUESTION:
+  case TokenType::CONDITIONAL:
     return "?";
   case TokenType::SEMICOLON:
     return ";";
@@ -461,34 +461,36 @@ const std::string Token::token_type() const {
     std::cerr << "error: unknown TokenType";
     return "unknown type";
   }
-  std::cerr << "error: unknown TokenType";
-  return "unknown type";
 }
 
 Precedence Token::getPrecedence() const {
   switch (type) {
-    case TokenType::OR:
+    case TokenType::ASSIGN:
       return 1;
+    case TokenType::CONDITIONAL:
+      returb 2;
+    case TokenType::OR:
+      return 3;
     case TokenType::AND:
-      return 2;
+      return 4;
     case TokenType::LESS:
-      return 3;
+      return 5;
     case TokenType::GREATER:
-      return 3;
+      return 5;
     case TokenType::EQUAL:
-      return 3;
+      return 5;
     case TokenType::NOT_EQUAL:
-      return 3;
+      return 5;
     case TokenType::PLUS:
-      return 4;
+      return 6;
     case TokenType::MINUS:
-      return 4;
+      return 6;
     case TokenType::STAR:
-      return 5;
+      return 7;
     case TokenType::LEFT_SHIFT:
-      return 5;
+      return 7;
     case TokenType::RIGHT_SHIFT:
-      return 5;
+      return 7;
     default:
       return 0;
   }
