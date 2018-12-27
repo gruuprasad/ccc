@@ -16,8 +16,7 @@ template <typename T> void print(const T &t) {
 
 #define PARSE_VALID(language)                                                  \
   {                                                                            \
-    auto token_list = FastLexer(language).lex();                               \
-    auto fp = FastParser(token_list);                                          \
+    auto fp = FastParser(language);                                            \
     fp.parse();                                                                \
     REQUIRE(fp.fail() == false);                                               \
   }
@@ -43,6 +42,12 @@ template <typename T> void print(const T &t) {
     PARSE_VALID(type " a (" + std::string(type) +                              \
                 " a, void b, char c, short e);")                               \
   }
+
+TEST_CASE("debug") {
+  auto fp = FastParser("int a;");
+  fp.parse();
+  REQUIRE(fp.fail() == false);
+}
 
 TEST_CASE("Fast Parser: Struct declaration test") {
   PARSE_VALID("struct { int; };");
@@ -87,8 +92,7 @@ DECLARATION_TESTS("struct A")
 
 #define PARSE_VALID_EXPRESSION(language)                                       \
   {                                                                            \
-    auto token_list = FastLexer(language).lex();                               \
-    auto fp = FastParser(token_list);                                          \
+    auto fp = FastParser(language);                                          \
     fp.parse(PARSE_TYPE::EXPRESSION);                                          \
     REQUIRE(fp.fail() == false);                                               \
   }
@@ -137,20 +141,17 @@ TEST_CASE("Fast Parser:binary expression test") {
   PARSE_VALID_EXPRESSION("a + b * c")
 }
 
-TEST_CASE("debug") {}
 
 #define PARSE_VALID_STATEMENT(language)                                        \
   {                                                                            \
-    auto token_list = FastLexer(language).lex();                               \
-    auto fp = FastParser(token_list);                                          \
+    auto fp = FastParser(language);                                          \
     fp.parse(PARSE_TYPE::STATEMENT);                                           \
     REQUIRE(fp.fail() == false);                                               \
   }
 
 #define PARSE_INVALID_STATEMENT(language)                                      \
   {                                                                            \
-    auto token_list = FastLexer(language).lex();                               \
-    auto fp = FastParser(token_list);                                          \
+    auto fp = FastParser(language);                                          \
     fp.parse(PARSE_TYPE::STATEMENT);                                           \
     REQUIRE(fp.fail() == true);                                                \
   }

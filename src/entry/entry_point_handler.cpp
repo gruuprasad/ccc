@@ -31,7 +31,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       return EXIT_SUCCESS;
     }
     if (flagName == "--parse") {
-      auto parser = FastParser(token_list);
+      auto parser = FastParser(buffer);
       if (parser.fail()) {
         std::cerr << filename << ":" << parser.getError() << std::endl;
         return EXIT_FAILURE;
