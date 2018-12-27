@@ -87,11 +87,20 @@ Statement *FastParser::parseStatement() {
   case TokenType::GOTO:
     consume();
     expect(TokenType::IDENTIFIER);
+    expect(TokenType::SEMICOLON);
     break;
-  case TokenType::CONTINUE:
-    return new ContinueStatement(pop());
-  case TokenType::BREAK:
-    return new BreakStatement(pop());
+  case TokenType::CONTINUE: {
+    const Token *token = &peek();
+    consume();
+    expect(TokenType::SEMICOLON);
+    return new ContinueStatement(token);
+  }
+  case TokenType::BREAK: {
+    const Token *token = &peek();
+    consume();
+    expect(TokenType::SEMICOLON);
+    return new BreakStatement(token);
+  }
   case TokenType::RETURN: {
     const Token *token = &peek();
     consume();
@@ -138,15 +147,20 @@ Statement *FastParser::parseSelectionStatement() {
   expect(TokenType::PARENTHESIS_OPEN);
   Expression *cond = parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE);
-  Statement *if_stat = parseStatement();
-  if (!if_stat->instanceof <CompoundStatement>())
-    if_stat = new CompoundStatement(token, {if_stat});
+  Statement *if_stat;
+  if (peek().is(TokenType::BRACE_OPEN))
+    if_stat = parseCompoundStatement();
+  else
+    if_stat = new CompoundStatement(token, {parseStatement()});
   if (peek().is(TokenType::ELSE) && consume()) {
     token = &peek(-1);
-    Statement *else_stat = parseStatement();
-    if (!else_stat->instanceof <CompoundStatement>())
-      else_stat = new CompoundStatement(token, {else_stat});
-    return new IfElseStatement(token, cond, if_stat, else_stat);
+    if (peek().is(TokenType::BRACE_OPEN))
+      return new IfElseStatement(token, cond, if_stat,
+                                 parseCompoundStatement());
+    else
+      return new IfElseStatement(
+          token, cond, if_stat,
+          new CompoundStatement(token, {parseStatement()}));
   } else {
     return new IfElseStatement(token, cond, if_stat);
   }
@@ -161,10 +175,11 @@ Statement *FastParser::parseIterationStatement() {
   expect(TokenType::PARENTHESIS_OPEN);
   Expression *cond = parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE);
-  Statement *block = parseStatement();
-  if (!block->instanceof <CompoundStatement>())
-    block = new CompoundStatement(token, {block});
-  return new WhileStatement(token, cond, block);
+  if (peek().is(TokenType::BRACE_OPEN))
+    return new WhileStatement(token, cond, parseCompoundStatement());
+  else
+    return new WhileStatement(token, cond,
+                              new CompoundStatement(token, {parseStatement()}));
 }
 
 void FastParser::parseDeclarations() {

@@ -16,9 +16,10 @@ using namespace ccc;
 //}
 
 TEST_CASE("ast statement test") {
-  auto language =
-      "{ if (a == 0) {while (1) {if (0) a += 3; break; continue;}} else a "
-      "= 1; return 0;} ";
+  auto language = "{ if (a == 0) {while (1) if(c == p) a += 3; else "
+                  "{if (a) continue; else break;} "
+                  "return;} else a "
+                  "= 1; return 1 + 3;} ";
 
   auto token_list = (new FastLexer(language))->lex();
 
@@ -29,7 +30,7 @@ TEST_CASE("ast statement test") {
   auto *root = fp->parse(PARSE_TYPE::TRANSLATIONUNIT);
   REQUIRE(!fp->fail());
 
-  //  std::cout << root->toGraph();
+  std::cout << root->toString() << std::endl;
   std::ofstream file;
   file.open("ast.gv");
   file.clear();

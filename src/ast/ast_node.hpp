@@ -4,6 +4,7 @@
 #define C4_ASTNODE_HPP
 
 #include "../lexer/token.hpp"
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -23,14 +24,15 @@ protected:
   std::string feed(int n) {
     std::stringstream ss;
     for (int i = 0; i < n; i++)
-      ss << "  ";
+      ss << ". ";
     return ss.str();
   }
 
 public:
   unsigned long getId() const { return id; }
   virtual std::string toGraphWalker() = 0;
-  virtual std::string toString(int indent) { return feed(indent) + "?"; };
+  std::string toString() { return this->toString(0); };
+  virtual std::string toString(int) { return "?"; };
   virtual std::string checkSemantic() { return "?"; };
   virtual std::string toCode() { return "?"; };
   std::string toGraph() {
@@ -56,10 +58,10 @@ public:
   explicit Ghost(const Token *token, std::vector<ASTNode *> children = {})
       : ASTNode("ghost", token, std::move(children)) {}
 
-  std::string toString(int indent) override {
+  std::string toString(int) override {
     std::stringstream ss;
     for (ASTNode *child : this->children)
-      ss << child->toString(indent);
+      ss << child->toString();
     return ss.str();
   }
 
@@ -180,6 +182,9 @@ class PrimaryExpression : public Expression {
 public:
   explicit PrimaryExpression(const Token *token)
       : Expression("primary expression", token, {}){};
+  std::string toString(int indent) override {
+    return feed(indent) + this->token->getExtra();
+  };
 };
 
 class FunctionCall : public Expression {
@@ -198,6 +203,10 @@ class BinaryExpression : public Expression {
 public:
   BinaryExpression(Expression *expr1, const Token *token, Expression *expr2)
       : Expression("additive-expression", token, {expr1, expr2}) {}
+  std::string toString(int indent) override {
+    return feed(indent) + children[0]->toString() + " " + token->name() + " " +
+           children[1]->toString();
+  };
 };
 
 class ConditionalExpression : public Expression {
@@ -252,9 +261,10 @@ public:
       : Statement("compound-statement", token, std::move(items)) {}
   std::string toString(int indent) override {
     std::stringstream ss;
-    for (ASTNode *child : this->children)
-      ss << feed(indent) << child->toString(indent + 1) << std::endl;
-    return "{\n" + ss.str() + feed(indent) + "}\n";
+    for (ASTNode *child : this->children) {
+      ss << feed(indent + 1) << child->toString(indent + 1) << std::endl;
+    }
+    return "{\n" + ss.str() + feed(indent) + "}";
   }
 };
 
@@ -263,6 +273,7 @@ public:
   explicit ExpressionStatement(const Token *token, Expression *expr = nullptr)
       : Statement("expression-statement", expr == nullptr ? nullptr : token,
                   {expr}) {}
+  std::string toString(int) override { return children[0]->toString() + ";"; };
 };
 
 class IfElseStatement : public Statement {
@@ -272,10 +283,11 @@ public:
       : Statement("selection-statement", token, {expr, stmt1, stmt2}) {}
   std::string toString(int indent) override {
     std::stringstream ss;
-    ss << feed(indent) << "if (" << this->children[0]->toString(0) << ") "
+    ss << "if (" << this->children[0]->toString() << ") "
        << this->children[1]->toString(indent);
     if (this->children[2])
-      ss << feed(indent) << "else " << this->children[2]->toString(indent);
+      ss << std::endl
+         << feed(indent) << "else " << this->children[2]->toString(indent);
     return ss.str();
   }
 };
@@ -284,6 +296,12 @@ class WhileStatement : public Statement {
 public:
   WhileStatement(const Token *token, Expression *expr, Statement *stmt)
       : Statement("iteration-statement", token, {expr, stmt}) {}
+  std::string toString(int indent) override {
+    std::stringstream ss;
+    ss << "while (" << this->children[0]->toString() << ") "
+       << this->children[1]->toString(indent);
+    return ss.str();
+  }
 };
 
 class GotoStatement : public Statement {
@@ -296,18 +314,27 @@ class BreakStatement : public Statement {
 public:
   explicit BreakStatement(const Token *token)
       : Statement("jump-statement", token) {}
+  std::string toString(int) override { return "break;"; }
 };
 
 class ContinueStatement : public Statement {
 public:
   explicit ContinueStatement(const Token *token)
       : Statement("jump-statement", token) {}
+  std::string toString(int) override { return "continue;"; }
 };
 
 class ReturnStatement : public Statement {
 public:
   explicit ReturnStatement(const Token *token, Expression *expr = nullptr)
       : Statement("jump-statement", token, std::vector<ASTNode *>{expr}) {}
+  std::string toString(int) override {
+    std::stringstream ss;
+    ss << "return";
+    if (this->children[0])
+      ss << "(" << this->children[0]->toString() + ")";
+    return ss.str() + ";";
+  }
 };
 
 } // namespace ccc
