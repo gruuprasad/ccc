@@ -24,14 +24,13 @@ public:
   const std::string &getExtra() const;
   const std::string name() const;
   const std::string token_type() const;
-  bool is(TokenType expected) const { return type == expected; }
   bool is_not(TokenType expected) const { return type != expected; }
-  template <typename T> bool is_oneof(const T &base) const {
+  template <typename T> bool is(const T &base) const {
     return type == base;
   }
   template <typename T, typename... Args>
-  bool is_oneof(const T &first, const Args &... args) const {
-    return (type == first) || is_oneof(args...);
+  bool is(const T &first, const Args &... args) const {
+    return (type == first) || is(args...);
   }
 
   unsigned int getPrecedence();
