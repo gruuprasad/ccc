@@ -31,7 +31,7 @@ public:
     case PARSE_TYPE::STATEMENT:
       return parseStatement();
     case PARSE_TYPE::DECLARATION:
-      return parseDeclarations();
+      return parseDeclaration();
     default:
       error = "Unknown parse type";
     }
@@ -91,7 +91,6 @@ private:
 
   // Declarations
   void parseDeclaration();
-  void parseDeclarations();
   void parseTypeSpecifier();
   void parseDeclarator();
   void parseParameterList();

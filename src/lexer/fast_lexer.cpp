@@ -521,7 +521,7 @@ inline Token FastLexer::munchPunctuator() {
     ++column;
     return result;
   case '?':
-    result = Token(TokenType::QUESTION, line, column);
+    result = Token(TokenType::CONDITIONAL, line, column);
     ++position;
     ++column;
     return result;
