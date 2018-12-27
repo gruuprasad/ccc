@@ -19,18 +19,18 @@ TEST_CASE("ast statement test") {
   auto language = "{ if (a == 0) {while (1) if(c == p) a += 3; else "
                   "{if (a) continue; else break;} "
                   "return;} else a "
-                  "= 1; return 1 + 3;} ";
+                  "= 1; {return 1 + 3;}} ";
 
   auto token_list = (new FastLexer(language))->lex();
 
   auto *fp = new FastParser(token_list);
-#if DEBUG
-  fp->printTrace = true;
-#endif
+  //#if DEBUG
+  //  fp->printTrace = true;
+  //#endif
   auto *root = fp->parse(PARSE_TYPE::TRANSLATIONUNIT);
   REQUIRE(!fp->fail());
 
-  std::cout << root->toString() << std::endl;
+  std::cout << root->prettyPrint() << std::endl;
   std::ofstream file;
   file.open("ast.gv");
   file.clear();

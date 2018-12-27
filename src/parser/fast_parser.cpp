@@ -147,20 +147,9 @@ Statement *FastParser::parseSelectionStatement() {
   expect(TokenType::PARENTHESIS_OPEN);
   Expression *cond = parseExpression();
   expect(TokenType::PARENTHESIS_CLOSE);
-  Statement *if_stat;
-  if (peek().is(TokenType::BRACE_OPEN))
-    if_stat = parseCompoundStatement();
-  else
-    if_stat = new CompoundStatement(token, {parseStatement()});
+  Statement *if_stat = parseStatement();
   if (peek().is(TokenType::ELSE) && consume()) {
-    token = &peek(-1);
-    if (peek().is(TokenType::BRACE_OPEN))
-      return new IfElseStatement(token, cond, if_stat,
-                                 parseCompoundStatement());
-    else
-      return new IfElseStatement(
-          token, cond, if_stat,
-          new CompoundStatement(token, {parseStatement()}));
+    return new IfElseStatement(token, cond, if_stat, parseStatement());
   } else {
     return new IfElseStatement(token, cond, if_stat);
   }

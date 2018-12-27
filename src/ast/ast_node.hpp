@@ -21,18 +21,15 @@ protected:
                    std::vector<ASTNode *> children = std::vector<ASTNode *>())
       : id((unsigned long)this), name(std::move(name)), token(token),
         children(std::move(children)) {}
-  std::string feed(int n) {
-    std::stringstream ss;
-    for (int i = 0; i < n; i++)
-      ss << ". ";
-    return ss.str();
-  }
 
 public:
   unsigned long getId() const { return id; }
   virtual std::string toGraphWalker() = 0;
-  std::string toString() { return this->toString(0); };
-  virtual std::string toString(int) { return "?"; };
+  virtual std::string prettyPrint() { return this->prettyPrint(0); };
+  virtual std::string prettyPrint(int) { return "\n?"; };
+  virtual std::string prettyPrintInline(int lvl) {
+    return this->prettyPrint(lvl);
+  };
   virtual std::string checkSemantic() { return "?"; };
   virtual std::string toCode() { return "?"; };
   std::string toGraph() {
@@ -58,10 +55,10 @@ public:
   explicit Ghost(const Token *token, std::vector<ASTNode *> children = {})
       : ASTNode("ghost", token, std::move(children)) {}
 
-  std::string toString(int) override {
+  std::string prettyPrint(int lvl) override {
     std::stringstream ss;
     for (ASTNode *child : this->children)
-      ss << child->toString();
+      ss << child->prettyPrint(lvl);
     return ss.str();
   }
 
@@ -182,9 +179,7 @@ class PrimaryExpression : public Expression {
 public:
   explicit PrimaryExpression(const Token *token)
       : Expression("primary expression", token, {}){};
-  std::string toString(int indent) override {
-    return feed(indent) + this->token->getExtra();
-  };
+  std::string prettyPrint(int) override { return this->token->getExtra(); };
 };
 
 class FunctionCall : public Expression {
@@ -203,9 +198,9 @@ class BinaryExpression : public Expression {
 public:
   BinaryExpression(Expression *expr1, const Token *token, Expression *expr2)
       : Expression("additive-expression", token, {expr1, expr2}) {}
-  std::string toString(int indent) override {
-    return feed(indent) + children[0]->toString() + " " + token->name() + " " +
-           children[1]->toString();
+  std::string prettyPrint(int) override {
+    return children[0]->prettyPrint() + " " + token->name() + " " +
+           children[1]->prettyPrint();
   };
 };
 
@@ -247,6 +242,17 @@ private:
     }
     return ss.str();
   }
+
+protected:
+  std::string indent(int n) {
+    if (n >= 0) {
+      std::stringstream ss;
+      for (int i = 0; i < n; i++)
+        ss << "\t";
+      return "\n" + ss.str();
+    } else
+      return "";
+  }
 };
 
 class LabelStatement : public Statement {
@@ -259,12 +265,19 @@ class CompoundStatement : public Statement {
 public:
   CompoundStatement(const Token *token, std::vector<ASTNode *> items)
       : Statement("compound-statement", token, std::move(items)) {}
-  std::string toString(int indent) override {
+  std::string prettyPrint(int lvl) override {
     std::stringstream ss;
     for (ASTNode *child : this->children) {
-      ss << feed(indent + 1) << child->toString(indent + 1) << std::endl;
+      ss << child->prettyPrint(lvl + 1);
     }
-    return "{\n" + ss.str() + feed(indent) + "}";
+    return indent(lvl) + "{" + ss.str() + indent(lvl) + "}";
+  }
+  std::string prettyPrintInline(int lvl) override {
+    std::stringstream ss;
+    for (ASTNode *child : this->children) {
+      ss << child->prettyPrint(lvl);
+    }
+    return " {" + ss.str() + indent(lvl - 1) + "}";
   }
 };
 
@@ -273,7 +286,9 @@ public:
   explicit ExpressionStatement(const Token *token, Expression *expr = nullptr)
       : Statement("expression-statement", expr == nullptr ? nullptr : token,
                   {expr}) {}
-  std::string toString(int) override { return children[0]->toString() + ";"; };
+  std::string prettyPrint(int lvl) override {
+    return indent(lvl) + children[0]->prettyPrint() + ";";
+  };
 };
 
 class IfElseStatement : public Statement {
@@ -281,13 +296,13 @@ public:
   IfElseStatement(const Token *token, Expression *expr, Statement *stmt1,
                   Statement *stmt2 = nullptr)
       : Statement("selection-statement", token, {expr, stmt1, stmt2}) {}
-  std::string toString(int indent) override {
+  std::string prettyPrint(int lvl) override {
     std::stringstream ss;
-    ss << "if (" << this->children[0]->toString() << ") "
-       << this->children[1]->toString(indent);
+    ss << indent(lvl) << "if (" << this->children[0]->prettyPrint() << ")"
+       << this->children[1]->prettyPrintInline(lvl + 1);
     if (this->children[2])
-      ss << std::endl
-         << feed(indent) << "else " << this->children[2]->toString(indent);
+      ss << indent(lvl) << "else "
+         << this->children[2]->prettyPrintInline(lvl + 1);
     return ss.str();
   }
 };
@@ -296,10 +311,10 @@ class WhileStatement : public Statement {
 public:
   WhileStatement(const Token *token, Expression *expr, Statement *stmt)
       : Statement("iteration-statement", token, {expr, stmt}) {}
-  std::string toString(int indent) override {
+  std::string prettyPrint(int lvl) override {
     std::stringstream ss;
-    ss << "while (" << this->children[0]->toString() << ") "
-       << this->children[1]->toString(indent);
+    ss << indent(lvl) << "while (" << this->children[0]->prettyPrint() << ")"
+       << this->children[1]->prettyPrintInline(lvl + 1);
     return ss.str();
   }
 };
@@ -314,25 +329,27 @@ class BreakStatement : public Statement {
 public:
   explicit BreakStatement(const Token *token)
       : Statement("jump-statement", token) {}
-  std::string toString(int) override { return "break;"; }
+  std::string prettyPrint(int lvl) override { return indent(lvl) + "break;"; }
 };
 
 class ContinueStatement : public Statement {
 public:
   explicit ContinueStatement(const Token *token)
       : Statement("jump-statement", token) {}
-  std::string toString(int) override { return "continue;"; }
+  std::string prettyPrint(int lvl) override {
+    return indent(lvl) + "continue;";
+  }
 };
 
 class ReturnStatement : public Statement {
 public:
   explicit ReturnStatement(const Token *token, Expression *expr = nullptr)
       : Statement("jump-statement", token, std::vector<ASTNode *>{expr}) {}
-  std::string toString(int) override {
+  std::string prettyPrint(int lvl) override {
     std::stringstream ss;
-    ss << "return";
+    ss << indent(lvl) << "return";
     if (this->children[0])
-      ss << "(" << this->children[0]->toString() + ")";
+      ss << " (" + this->children[0]->prettyPrint() + ")";
     return ss.str() + ";";
   }
 };
