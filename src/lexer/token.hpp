@@ -7,6 +7,8 @@
 
 namespace ccc {
 
+using Precedence = unsigned int;
+
 class Token {
 public:
   Token() {}
@@ -33,7 +35,7 @@ public:
     return (type == first) || is(args...);
   }
 
-  unsigned int getPrecedence();
+  Precedence getPrecedence() const;
 
 private:
   ccc::TokenType type;

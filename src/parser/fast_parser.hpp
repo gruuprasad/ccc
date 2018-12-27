@@ -101,11 +101,12 @@ private:
 
   // Expressions
   void parseExpression();
-  void parsePrimary();
-  void parsePrimaryExpression();
+  void parseAssignmentExpression();
+  void parseBinOpWithRHS(/* LHS ,*/ Precedence minPrec);
   void parseUnaryExpression();
-  void parseArgumentExpressionList();
   void parsePostfixExpression();
+  void parsePrimaryExpression();
+  void parseArgumentExpressionList();
 
   // Statements
   void parseCompoundStatement();

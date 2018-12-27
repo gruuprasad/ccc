@@ -465,38 +465,32 @@ const std::string Token::token_type() const {
   return "unknown type";
 }
 
-unsigned int Token::getPrecedence() {
+Precedence Token::getPrecedence() const {
   switch (type) {
-  case TokenType::STAR:
-    return 10;
-  case TokenType::PLUS:
-    return 10;
-  case TokenType::MINUS:
-    return 10;
-  case TokenType::EQUAL:
-    return 10;
-  case TokenType::NOT_EQUAL:
-    return 10;
-  case TokenType::AND:
-    return 10;
-  case TokenType::OR:
-    return 10;
-  case TokenType::ASSIGN:
-    return 10;
-  case TokenType::LESS:
-    return 10;
-  case TokenType::GREATER:
-    return 10;
-  case TokenType::NOT:
-    return 10;
-  case TokenType::DOT:
-    return 10;
-  case TokenType::LEFT_SHIFT_ASSIGN:
-    return 10;
-  case TokenType::RIGHT_SHIFT_ASSIGN:
-    return 10;
-  default:
-    return 0;
+    case TokenType::OR:
+      return 1;
+    case TokenType::AND:
+      return 2;
+    case TokenType::LESS:
+      return 3;
+    case TokenType::GREATER:
+      return 3;
+    case TokenType::EQUAL:
+      return 3;
+    case TokenType::NOT_EQUAL:
+      return 3;
+    case TokenType::PLUS:
+      return 4;
+    case TokenType::MINUS:
+      return 4;
+    case TokenType::STAR:
+      return 5;
+    case TokenType::LEFT_SHIFT:
+      return 5;
+    case TokenType::RIGHT_SHIFT:
+      return 5;
+    default:
+      return 0;
   }
 }
 

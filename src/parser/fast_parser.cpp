@@ -137,7 +137,7 @@ void FastParser::parseStructOrUnionSpecifier() {
     if (peek().is_not(TokenType::BRACE_OPEN))
       return;
   }
-  
+
   if (peek().is(TokenType::BRACE_OPEN)) {
     nextToken();
     do {
@@ -238,63 +238,74 @@ void FastParser::parseIterationStatement() {
 }
 
 // Expressions
-// (6.5.17) expression: assignment+ (comma-separated)
-// (6.5.16) assignment: conditional | unary assignment-op assignment
-// (6.5.16) assignment-op: = | *= | /= | %= | += | -= | <<= | >>= | &= | ^= |
-// |= (6.5.15) conditional: logical-OR | logical-OR ? expression : conditional
-// (6.5.14) logical-OR: logical-AND | logical-OR || logical-AND
-// (6.5.13) logical-AND: inclusive-OR | logical-AND && inclusive-OR
-// (6.5.12) inclusive-OR: exclusive-OR | inclusive-OR | exclusive-OR
-// (6.5.11) exclusive-OR: AND | exclusive-OR ^ AND
-// (6.5.10) AND: equality | AND & equality
-// (6.5.9) equality: relational | equality == relational | equality !=
-// relational 
-// (6.5.8) relational: shift | relational < shift | relational >
-// shift | relational <= shift | relational >= shift 
-// (6.5.7) shift: additive | shift << additive | shift >> additive (6.5.6) additive: multiplicative |
-// additive + multiplicative | additive - multiplicative (6.5.5)
-// multiplicative: cast | multiplicative * cast | multiplicative / cast |
-// multiplicative % cast (6.5.4) cast: unary | ( type-name ) cast (6.5.3)
-// unary: postfix | ++ unary | -- unary | unary-op cast | sizeof unary |
-// sizeof ( type-name ) (6.5.3) unary-op: & | * | + | - | ~ |  ! (6.5.2)
-// postfix: primary | postfix [ expression ] | postfix (
-// argument-expr-list(opt) ) | postfix . identifier
-//                  postfix -> identifier | postfix -- | ( type-name ) {
-//                  initializer-list } | ( type-name ) { initializer-list , }
-// (6.5.2) argument-expr-list: assignment | argument-expr-list , assignment
-// (6.5.1) primary: identifer | constant | string-literal | ( expression )
-
-// Expressions
-// 
+// (6.5.17) expression: assignment
+// (6.5.15) conditional-expr: logical-OR | logical-OR ? expression : conditional-expr
 void FastParser::parseExpression() {
-  parseUnaryExpression();
+  parseAssignmentExpression();
+}
+
+// (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op assignment-expr
+void FastParser::parseAssignmentExpression() {
+  parseUnaryExpression(); // LHS
+  parseBinOpWithRHS(/*LHS Expr ,*/ 0); // BinOpLeft + RHS
+}
+
+void FastParser::parseBinOpWithRHS(/*LHS , */ Precedence minPrec) {
+  auto nextTokenPrec = peek().getPrecedence();
 
   while (true) {
-    // Parse binary op and RHS, if there is.
-    if (peek().is(BINARY_OP)) {
-      parseUnaryExpression();
-    } else {
-      break;
+    // If precedence of BinOp encounted is smaller than current Precedence
+    // level return LHS.
+    if (nextTokenPrec < minPrec)
+      return; // LHS
+
+    auto binOpLeft = nextToken();
+    parseUnaryExpression();       // RHS
+
+    auto binOpLeftPrec = nextTokenPrec;
+    nextTokenPrec = peek().getPrecedence(); // binOpRight
+
+    if (binOpLeftPrec < nextTokenPrec) {
+      // Evaluate RHS + binOpRight...
+      parseBinOpWithRHS(/*RHS  Expr ,*/binOpLeftPrec); // new RHS after evaluation
     }
+
+    // Make AST LHS = LHS + RHS
+    nextTokenPrec = peek().getPrecedence();
   }
 }
 
+// (6.5.3) unary-expression : postfix-expression
+//                            unary-operator unary-expression
+//                            sizeof unary-expression
+//                            sizeof unary-expression
 void FastParser::parseUnaryExpression() {
   if (peek().is(UNARY_OP)) {
+    parseUnaryExpression();
+    return;
+  }
+  if (peek().is(TokenType::SIZEOF)) {
+    nextToken();
     if (mayExpect(TokenType::PARENTHESIS_OPEN)) {
-      parseTypeSpecifier();
+      // Parse type
+      nextToken();
       mustExpect(TokenType::PARENTHESIS_CLOSE);
       return;
     }
     parseUnaryExpression();
-  } else {
-    parsePostfixExpression();
+    return;
   }
+  parsePostfixExpression();
+  return;
 }
 
+// (6.5.2) postfix-expression : primary-expr
+//                              postfix-expr [ expression ]
+//                              postfix-expr ( argument-expr-list(opt) )
+//                              postfix-expr . identifier
+//                              postfix-expr -> identifier
 void FastParser::parsePostfixExpression() {
   parsePrimaryExpression();
-  // optional postfix varients
   switch (peek().getType()) {
   case TokenType::BRACKET_OPEN:
     nextToken();
@@ -304,21 +315,23 @@ void FastParser::parsePostfixExpression() {
   case TokenType::PARENTHESIS_OPEN:
     nextToken();
     parseArgumentExpressionList();
-    mayExpect(TokenType::PARENTHESIS_CLOSE);
+    mustExpect(TokenType::PARENTHESIS_CLOSE);
     return;
   case TokenType::DOT:
     nextToken();
-    mayExpect(TokenType::IDENTIFIER);
+    mustExpect(TokenType::IDENTIFIER);
     return;
   case TokenType::ARROW:
     nextToken();
-    mayExpect(TokenType::IDENTIFIER);
+    mustExpect(TokenType::IDENTIFIER);
     return;
   default:
-    return;
+    return; // only primary-expression AST
+    break;
   }
 }
 
+// (6.5.1) primary: identifer | constant | string-literal | ( expression )
 void FastParser::parsePrimaryExpression() {
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
@@ -328,9 +341,7 @@ void FastParser::parsePrimaryExpression() {
     nextToken();
     return;
   case TokenType::PARENTHESIS_OPEN:
-    nextToken();
-    parseExpression();
-    mayExpect(TokenType::PARENTHESIS_CLOSE);
+    parseParenthesizedFn([&] () { parseExpression(); });
     return;
   default:
     error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
