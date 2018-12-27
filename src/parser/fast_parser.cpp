@@ -281,6 +281,7 @@ void FastParser::parseBinOpWithRHS(/*LHS , */ Precedence minPrec) {
 //                            sizeof unary-expression
 void FastParser::parseUnaryExpression() {
   if (peek().is(UNARY_OP)) {
+    nextToken();
     parseUnaryExpression();
     return;
   }
