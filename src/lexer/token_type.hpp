@@ -101,7 +101,7 @@ enum class TokenType {
   OR,
   PIPE,
   COLON,
-  QUESTION,
+  CONDITIONAL,
   HASH,
   HASHHASH,
   HASH_ALT,

@@ -407,7 +407,7 @@ const std::string Token::token_type() const {
     return "punctuator";
   case TokenType::COLON:
     return "punctuator";
-  case TokenType::QUESTION:
+  case TokenType::CONDITIONAL:
     return "punctuator";
   case TokenType::SEMICOLON:
     return "punctuator";
@@ -468,7 +468,7 @@ Precedence Token::getPrecedence() const {
     case TokenType::ASSIGN:
       return 1;
     case TokenType::CONDITIONAL:
-      returb 2;
+      return 2;
     case TokenType::OR:
       return 3;
     case TokenType::AND:
