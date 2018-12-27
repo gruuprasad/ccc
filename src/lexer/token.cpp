@@ -222,10 +222,21 @@ const std::string Token::name() const {
   case TokenType::DOUBLE:
     return "double";
   case TokenType::TOKENEND:
-    return "";
+    return "EOF";
+  case TokenType::BLOCKCOMMENT:
+    return "b-comment";
+  case TokenType::LINECOMMENT:
+    return "l-comment";
+  case TokenType::WHITESPACE:
+    return "whitespace";
+  case TokenType::NONKEYWORD:
+    return "non-keyword";
+  case TokenType::INVALIDTOK:
+    return "invalid-tok";
+  default:
+    std::cerr << "error: unknown TokenType";
+    return "unknown type";
   }
-  std::cerr << "error: unknown TokenType";
-  return "unknown type";
 }
 
 const std::string Token::token_type() const {
@@ -435,7 +446,20 @@ const std::string Token::token_type() const {
   case TokenType::DOUBLE:
     return "keyword";
   case TokenType::TOKENEND:
-    return "";
+    return "helper";
+  case TokenType::BLOCKCOMMENT:
+    return "helper";
+  case TokenType::LINECOMMENT:
+    return "helper";
+  case TokenType::WHITESPACE:
+    return "helper";
+  case TokenType::NONKEYWORD:
+    return "helper";
+  case TokenType::INVALIDTOK:
+    return "helper";
+  default:
+    std::cerr << "error: unknown TokenType";
+    return "unknown type";
   }
   std::cerr << "error: unknown TokenType";
   return "unknown type";

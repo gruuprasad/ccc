@@ -24,7 +24,7 @@ private:
 
 class NullAssert {
 public:
-  NullAssert(bool cond) {}
+  NullAssert(bool) {}
   template <class T> inline NullAssert &operator<<(const T &message) {
     return *this;
   }
