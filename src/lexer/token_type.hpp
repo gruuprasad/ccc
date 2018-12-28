@@ -114,7 +114,6 @@ enum class TokenType {
   WHITESPACE,
   NONKEYWORD,
   INVALIDTOK,
-  TOKENEND,
   ENDOFFILE,
   GHOST
 };
