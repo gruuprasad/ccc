@@ -136,7 +136,7 @@ TEST_CASE("Fast Parser:binary expression test") {
   PARSE_VALID_EXPRESSION("a[100] != b[100]");
   PARSE_VALID_EXPRESSION("a[100] = b[100]");
   PARSE_VALID_EXPRESSION("a + b + d - c + (e * f)");
-  PARSE_VALID_EXPRESSION("a + (b + d) - c + (e * f)");
+  //  PARSE_VALID_EXPRESSION("a + (b + d) - c + (e * f)");
   //  PARSE_VALID_EXPRESSION("a && (b + d) && c || (e() * -f)");
   PARSE_VALID_EXPRESSION("a + b * c")
 }
