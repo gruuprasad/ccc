@@ -25,7 +25,7 @@ public:
       elem = lexer.lex_valid();
   }
 
-  ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  void parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -37,7 +37,7 @@ public:
       return parseDeclaration();
     default:
       error = "Unknown parse type";
-      return nullptr;
+      return;
     }
   }
 
@@ -60,12 +60,18 @@ private:
     if (peek().is(tok_type)) {
       nextToken();
       return true;
+    }
+    return false;
+  }
 
   bool mustExpect(TokenType tok_type) {
     if (peek().is(tok_type)) {
       nextToken(); // Token is not used by parser
       return true;
     }
+    // Set error
+    return false;
+  }
     
   const Token &peek(std::size_t k = 0) const {
     assert (k < N);

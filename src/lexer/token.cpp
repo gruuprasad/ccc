@@ -513,7 +513,5 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
   }
   return os;
 }
-Token::Token(const TokenType type)
-    : type(type), line(0), column(0), extra("") {}
 
 } // namespace ccc

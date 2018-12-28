@@ -23,7 +23,7 @@ TEST_CASE("ast statement test") {
 
   auto token_list = (new FastLexer(language))->lex();
 
-  auto *fp = new FastParser(token_list);
+  auto *fp = new FastParser(language);
   //#if DEBUG
   //  fp->printTrace = true;
   //#endif
