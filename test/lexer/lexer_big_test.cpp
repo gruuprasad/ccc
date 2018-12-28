@@ -35,8 +35,8 @@ bool lexing_of(const std::string &filename, const std::string &expected) {
 
   std::cout.rdbuf(sb);
 
-  std::vector<std::string> expected_lines = split_lines(expected);
-  std::vector<std::string> content_lines = split_lines(ss.str());
+  std::vector<std::string> expected_lines = Utils::split_lines(expected);
+  std::vector<std::string> content_lines = Utils::split_lines(ss.str());
 
   unsigned int counter = 0;
   for (unsigned long i = 0;
