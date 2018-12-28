@@ -43,6 +43,7 @@ public:
            this->graphWalker() + "}\n}\n";
   }
   virtual ~ASTNode() {
+    delete token;
     for (auto &child : this->children) {
       delete child;
     }
