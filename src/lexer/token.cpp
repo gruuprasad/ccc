@@ -6,15 +6,6 @@
 
 namespace ccc {
 
-Token::Token(const TokenType type, const unsigned long line,
-             const unsigned long column, const std::string extra)
-    : type(type), line(line), column(column), extra(std::move(extra)) {}
-
-TokenType Token::getType() const { return type; }
-unsigned long Token::getLine() const { return line; }
-unsigned long Token::getColumn() const { return column + 1; }
-const std::string &Token::getExtra() const { return extra; }
-
 const std::string Token::name() const {
   switch (type) {
   case TokenType::NUMBER:
@@ -497,7 +488,5 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
   }
   return os;
 }
-Token::Token(const TokenType type)
-    : type(type), line(0), column(0), extra("") {}
 
 } // namespace ccc

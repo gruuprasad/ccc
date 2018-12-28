@@ -17,7 +17,7 @@ ASTNode *FastParser::parseExternalDeclaration() {
   const Token *start = &peek();
   while (!peek().is(TokenType::ENDOFFILE))
     block.push_back(parseFuncDefOrDeclaration());
-  return new Ghost(start, block);
+  return new GhostNode(start, block);
 }
 
 ASTNode *FastParser::parseFuncDefOrDeclaration() {
@@ -57,7 +57,7 @@ Statement *FastParser::parseCompoundStatement() {
     if (peek().is_oneof(C_TYPES)) {
       parseTypeSpecifiers();
       parseDeclarator();
-      block.push_back(new Ghost(&peek()));
+      block.push_back(new GhostNode(&peek()));
       expect(TokenType::SEMICOLON);
     } else {
       block.push_back(parseStatement());
@@ -295,7 +295,7 @@ Expression *FastParser::parseExpression() {
 #endif
   auto exp = parseUnaryExpression();
   if (peek().is_oneof(BINARY_OP)) {
-    return new BinaryExpression(exp, pop(), parseExpression());
+    return new BinaryExpression(pop(), exp, parseExpression());
   } else
     return exp;
 } // namespace ccc

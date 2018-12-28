@@ -24,17 +24,23 @@ protected:
 
 public:
   unsigned long getId() const { return id; }
-  virtual std::string toGraphWalker() = 0;
+  virtual std::string graphWalker() = 0;
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
   virtual std::string prettyPrint(int) { return "\n?"; };
   virtual std::string prettyPrintInline(int lvl) {
     return this->prettyPrint(lvl);
   };
+  virtual std::string prettyPrintInlineElse(int lvl) {
+    return this->prettyPrintInline(lvl);
+  };
+  virtual std::string prettyPrintInlineIf(int lvl) {
+    return this->prettyPrintInline(lvl);
+  };
   virtual std::string checkSemantic() { return "?"; };
   virtual std::string toCode() { return "?"; };
   std::string toGraph() {
     return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n" +
-           this->toGraphWalker() + "}\n}\n";
+           this->graphWalker() + "}\n}\n";
   }
   virtual ~ASTNode() {
     for (auto &child : this->children) {
@@ -46,13 +52,13 @@ public:
 
 enum class TypeSpecifier { VOCHAR, INT, STRUCT };
 
-class Ghost : public ASTNode {
+class GhostNode : public ASTNode {
 private:
 public:
-  Ghost(const Token *token, ASTNode *child)
+  GhostNode(const Token *token, ASTNode *child)
       : ASTNode("ghost", token, {child}) {}
 
-  explicit Ghost(const Token *token, std::vector<ASTNode *> children = {})
+  explicit GhostNode(const Token *token, std::vector<ASTNode *> children = {})
       : ASTNode("ghost", token, std::move(children)) {}
 
   std::string prettyPrint(int lvl) override {
@@ -63,7 +69,7 @@ public:
   }
 
 private:
-  std::string toGraphWalker() override {
+  std::string graphWalker() override {
     if (children.empty() && this->token) {
       std::stringstream ss;
       ss << this->id << "[label=<<font point-size='10'>" << *this->token
@@ -73,58 +79,18 @@ private:
     } else {
       std::stringstream ss;
       for (ASTNode *child : children) {
-        ss << child->toGraphWalker();
+        ss << child->graphWalker();
       }
       return ss.str();
     }
   }
 };
 
-class Constant : public ASTNode {
-protected:
-  template <typename T> std::string graphWalkerImpl(T constant) {
-    std::stringstream ss;
-    ss << id << "[label=<" << constant
-       << "> shape=diamond style=filled fillcolor=lightyellow];\n";
-    return ss.str();
-  }
-
-public:
-  explicit Constant() : ASTNode("constant") {}
-};
-
-class IntegerConstant : public Constant {
-  int constant;
-  std::string toGraphWalker() override { return graphWalkerImpl(constant); }
-
-public:
-  explicit IntegerConstant(int constant) : Constant(), constant(constant) {}
-};
-
-class CharacterConstant : public Constant {
-private:
-  char constant;
-  std::string toGraphWalker() override { return graphWalkerImpl(constant); }
-
-public:
-  explicit CharacterConstant(char constant) : Constant(), constant(constant) {}
-};
-
-class EnumerationConstant : public Constant {
-private:
-  std::string constant;
-  std::string toGraphWalker() override { return graphWalkerImpl(constant); }
-
-public:
-  explicit EnumerationConstant(std::string &constant)
-      : Constant(), constant(constant) {}
-};
-
 class Declaration : public ASTNode {
 private:
   ASTNode *ident;
   TypeSpecifier type;
-  std::string toGraphWalker() override {
+  std::string graphWalker() override {
     std::stringstream ss;
     ss << this->id << "[label=\"" << this->name
        << "\" shape=box style=filled fillcolor=lightsalmon];\n";
@@ -146,7 +112,7 @@ public:
 
 class Expression : public ASTNode {
 private:
-  std::string toGraphWalker() override {
+  std::string graphWalker() override {
     std::stringstream ss;
     ss << this->id << "[label=<" << this->name;
     if (this->token)
@@ -155,7 +121,7 @@ private:
     ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
     for (ASTNode *child : this->children) {
       if (child) {
-        ss << child->toGraphWalker() << this->id << "--" << child->getId()
+        ss << child->graphWalker() << this->id << "--" << child->getId()
            << std::endl;
       }
     }
@@ -168,18 +134,39 @@ public:
       : ASTNode(std::move(name), token, std::move(children)) {}
 };
 
-class Identifier : public Expression {
-public:
-  explicit Identifier() : Expression("primary-expression", nullptr) {}
-};
-
-class StringLiteral : public Expression {};
-
 class PrimaryExpression : public Expression {
 public:
   explicit PrimaryExpression(const Token *token)
       : Expression("primary expression", token, {}){};
-  std::string prettyPrint(int) override { return this->token->getExtra(); };
+  explicit PrimaryExpression(std::string name, const Token *token)
+      : Expression(std::move(name), token, {}){};
+
+private:
+  std::string graphWalker() override {
+    std::stringstream ss;
+    ss << id << "[label=<" << this->token->getExtra()
+       << "> shape=diamond style=filled fillcolor=lightyellow];\n";
+    return ss.str();
+  }
+  std::string prettyPrint(int) override { return this->token->getExtra(); }
+};
+
+class Identifier : public PrimaryExpression {
+public:
+  explicit Identifier(const Token *token = nullptr)
+      : PrimaryExpression("identifier", token) {}
+};
+
+class StringLiteral : public PrimaryExpression {
+public:
+  explicit StringLiteral(const Token *token = nullptr)
+      : PrimaryExpression("string-literal", token) {}
+};
+
+class Constant : public PrimaryExpression {
+public:
+  explicit Constant(const Token *token = nullptr)
+      : PrimaryExpression("constant", token) {}
 };
 
 class FunctionCall : public Expression {
@@ -196,11 +183,11 @@ public:
 
 class BinaryExpression : public Expression {
 public:
-  BinaryExpression(Expression *expr1, const Token *token, Expression *expr2)
+  BinaryExpression(const Token *token, Expression *expr1, Expression *expr2)
       : Expression("additive-expression", token, {expr1, expr2}) {}
-  std::string prettyPrint(int) override {
-    return children[0]->prettyPrint() + " " + token->name() + " " +
-           children[1]->prettyPrint();
+  std::string prettyPrint() override {
+    return "(" + children[0]->prettyPrint() + " " + token->name() + " " +
+           children[1]->prettyPrint() + ")";
   };
 };
 
@@ -227,7 +214,7 @@ public:
       : ASTNode(name, token, std::move(children)) {}
 
 private:
-  std::string toGraphWalker() override {
+  std::string graphWalker() override {
     std::stringstream ss;
     ss << this->id << "[label=<" << this->name;
     if (this->token)
@@ -236,7 +223,7 @@ private:
     for (ASTNode *child : this->children) {
       if (child) {
         ss << "subgraph cluster_" << child->getId() << "{\n"
-           << child->toGraphWalker() << "}\n";
+           << child->graphWalker() << "}\n";
         ss << this->id << "--" << child->getId() << ";\n";
       }
     }
@@ -249,7 +236,7 @@ protected:
       std::stringstream ss;
       for (int i = 0; i < n; i++)
         ss << "\t";
-      return "\n" + ss.str();
+      return ss.str();
     } else
       return "";
   }
@@ -270,14 +257,21 @@ public:
     for (ASTNode *child : this->children) {
       ss << child->prettyPrint(lvl + 1);
     }
-    return indent(lvl) + "{" + ss.str() + indent(lvl) + "}";
+    return indent(lvl) + "{\n" + ss.str() + indent(lvl) + "}\n";
   }
   std::string prettyPrintInline(int lvl) override {
     std::stringstream ss;
     for (ASTNode *child : this->children) {
       ss << child->prettyPrint(lvl);
     }
-    return " {" + ss.str() + indent(lvl - 1) + "}";
+    return " {\n" + ss.str() + indent(lvl - 1) + "}\n";
+  }
+  std::string prettyPrintInlineElse(int lvl) override {
+    std::stringstream ss;
+    for (ASTNode *child : this->children) {
+      ss << child->prettyPrint(lvl);
+    }
+    return " {\n" + ss.str() + indent(lvl - 1) + "} ";
   }
 };
 
@@ -287,8 +281,15 @@ public:
       : Statement("expression-statement", expr == nullptr ? nullptr : token,
                   {expr}) {}
   std::string prettyPrint(int lvl) override {
-    return indent(lvl) + children[0]->prettyPrint() + ";";
+    return indent(lvl) + children[0]->prettyPrint() + ";\n";
   };
+  std::string prettyPrintInline(int lvl) override {
+    return "\n" + indent(lvl) + children[0]->prettyPrint() + ";\n";
+  }
+  std::string prettyPrintInlineElse(int lvl) override {
+    return "\n" + indent(lvl) + children[0]->prettyPrint() + ";\n" +
+           indent(lvl - 1);
+  }
 };
 
 class IfElseStatement : public Statement {
@@ -298,11 +299,29 @@ public:
       : Statement("selection-statement", token, {expr, stmt1, stmt2}) {}
   std::string prettyPrint(int lvl) override {
     std::stringstream ss;
-    ss << indent(lvl) << "if (" << this->children[0]->prettyPrint() << ")"
-       << this->children[1]->prettyPrintInline(lvl + 1);
-    if (this->children[2])
-      ss << indent(lvl) << "else "
-         << this->children[2]->prettyPrintInline(lvl + 1);
+    if (this->children[2]) {
+      ss << indent(lvl) << "if (" << this->children[0]->prettyPrint() << ")"
+         << this->children[1]->prettyPrintInlineElse(lvl + 1);
+      ss << "else" << this->children[2]->prettyPrintInlineIf(lvl + 1);
+    } else {
+      ss << indent(lvl) << "if (" << this->children[0]->prettyPrint() << ")"
+         << this->children[1]->prettyPrintInline(lvl + 1);
+    }
+    return ss.str();
+  }
+  std::string prettyPrintInline(int lvl) override {
+    return "\n" + this->prettyPrint(lvl);
+  }
+  std::string prettyPrintInlineIf(int lvl) override {
+    std::stringstream ss;
+    if (this->children[2]) {
+      ss << " if (" << this->children[0]->prettyPrint() << ")"
+         << this->children[1]->prettyPrintInlineElse(lvl);
+      ss << "else" << this->children[2]->prettyPrintInline(lvl);
+    } else {
+      ss << " if (" << this->children[0]->prettyPrint() << ")"
+         << this->children[1]->prettyPrintInline(lvl);
+    }
     return ss.str();
   }
 };
@@ -346,11 +365,16 @@ public:
   explicit ReturnStatement(const Token *token, Expression *expr = nullptr)
       : Statement("jump-statement", token, std::vector<ASTNode *>{expr}) {}
   std::string prettyPrint(int lvl) override {
-    std::stringstream ss;
-    ss << indent(lvl) << "return";
-    if (this->children[0])
-      ss << " (" + this->children[0]->prettyPrint() + ")";
-    return ss.str() + ";";
+    if (children[0])
+      return indent(lvl) + "return " + children[0]->prettyPrint() + ";\n";
+    else
+      return indent(lvl) + "return;\n";
+  };
+  std::string prettyPrintInline(int lvl) override {
+    return "\n" + this->prettyPrint(lvl);
+  }
+  std::string prettyPrintInlineElse(int lvl) override {
+    return this->prettyPrintInline(lvl) + indent(lvl - 1);
   }
 };
 
