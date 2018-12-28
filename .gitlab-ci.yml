@@ -44,8 +44,7 @@ test:tests:
   - mkdir -p build
   - cd ./build
   - cmake ..
-  - make -j$(nproc)
-  - make test
+  - make check -j$(nproc)
   allow_failure: true
 
 analysis:coverage:
@@ -56,8 +55,7 @@ analysis:coverage:
   - mkdir -p build
   - cd ./build
   - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
-  - make -j$(nproc)
-  - make test
+  - make check -j$(nproc)
   - cd ..
   - chmod +x ./scripts/coverage.sh
   - ./scripts/coverage.sh
