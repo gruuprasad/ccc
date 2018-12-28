@@ -14,8 +14,7 @@ add_test(NAME lexer COMMAND test_lexer)
 add_executable(test_parser
         test_main.cpp
         parser/parser_test.cpp
-#        ast/parser_simple.cpp
-#        parser/parser_big_test.cpp
+        parser/parser_big_test.cpp
         )
 
 target_link_libraries(test_parser entry lexer parser)
