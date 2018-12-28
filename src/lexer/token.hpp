@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef C4_TOKEN_HPP
 #define C4_TOKEN_HPP
 
@@ -21,11 +23,6 @@ public:
   Token(Token &&t) = default;
   Token &operator=(Token &&t) = default;
   ~Token() = default;
-  ccc::TokenType getType() const;
-
-  unsigned long getLine() const;
-  unsigned long getColumn() const;
-  const std::string &getExtra() const;
   const std::string name() const;
   const std::string token_type() const;
   bool is_not(TokenType expected) const { return type != expected; }
@@ -39,13 +36,12 @@ public:
 
   Precedence getPrecedence() const;
 
+  friend std::ostream &operator<<(std::ostream &os, const Token &token);
+
 private:
   ccc::TokenType type;
   Location loc;
   std::string extra;
-
-public:
-  friend std::ostream &operator<<(std::ostream &os, const Token &token);
 };
 
 } // namespace ccc
