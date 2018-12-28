@@ -114,8 +114,8 @@ enum class TokenType {
   WHITESPACE,
   NONKEYWORD,
   INVALIDTOK,
-  TOKENEND,
-  ENDOFFILE
+  ENDOFFILE,
+  GHOST
 };
 
 } // namespace ccc

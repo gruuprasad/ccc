@@ -48,7 +48,7 @@ inline Token FastLexer::munchWhitespace() {
     first = getCharAt(++position);
   }
   if (first == 0)
-    return Token(TokenType::TOKENEND, line, column);
+    return Token(TokenType::ENDOFFILE, line, column);
   return Token(TokenType::WHITESPACE, line, column);
 }
 
@@ -57,7 +57,7 @@ inline Token FastLexer::munchLineComment() {
   while (first != '\n' && first != '\r') {
     first = getCharAt(++position);
     if (first == 0) {
-      return Token(TokenType::TOKENEND, line, column);
+      return Token(TokenType::ENDOFFILE, line, column);
     }
   }
   switch (first) {
@@ -1018,7 +1018,7 @@ inline Token FastLexer::munch() {
   Token result;
   switch (getCharAt(position)) {
   case 0:
-    return Token(TokenType::TOKENEND, line, column);
+    return Token(TokenType::ENDOFFILE, line, column);
   case ' ':
   case '\t':
   case '\n':
@@ -1162,7 +1162,7 @@ std::vector<Token> FastLexer::lex() {
   while (true) {
     curToken = lex_valid();
     if (curToken.getType() == TokenType::INVALIDTOK ||
-        curToken.getType() == TokenType::TOKENEND) {
+        curToken.getType() == TokenType::ENDOFFILE) {
       break;
     }
     token_list.push_back(std::move(curToken));

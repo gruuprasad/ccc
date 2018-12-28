@@ -4,24 +4,24 @@ namespace ccc {
 
 // (6.9) translationUnit :: external-declaration+
 void FastParser::parseTranslationUnit() {
-  while (peek().is_not(TokenType::TOKENEND)) {
+  while (peek().is_not(TokenType::ENDOFFILE)) {
     parseExternalDeclaration();
   }
 }
 
 // (6.9) external-declaration :: function-definition | declaration
-// Both non-terminals (func-def and declaration) on rhs has same terms upto declaration (see below),
-// hence we parse upto that, then find out which type of AST node to be created.
-void FastParser::parseExternalDeclaration() {
-    parseFuncDefOrDeclaration();
-}
+// Both non-terminals (func-def and declaration) on rhs has same terms upto
+// declaration (see below), hence we parse upto that, then find out which type
+// of AST node to be created.
+void FastParser::parseExternalDeclaration() { parseFuncDefOrDeclaration(); }
 
-// (6.9.1) function-definition :: type-specifier declarator declaration+(opt) compound-statement
-// (6.7)  declaration :: type-specifier declarator(opt) ;
+// (6.9.1) function-definition :: type-specifier declarator declaration+(opt)
+// compound-statement (6.7)  declaration :: type-specifier declarator(opt) ;
 void FastParser::parseFuncDefOrDeclaration() {
-  // Presence or absence of SEMICOLON determines whether declaration or function-definition
+  // Presence or absence of SEMICOLON determines whether declaration or
+  // function-definition
   parseTypeSpecifier();
-  if (mayExpect(TokenType::SEMICOLON))  {
+  if (mayExpect(TokenType::SEMICOLON)) {
     return;
   }
   parseDeclarator();
@@ -38,7 +38,8 @@ void FastParser::parseFuncDefOrDeclaration() {
   return;
 }
 
-// (6.7.2) type-specifier :: void | char | short | int | struct-or-union-specifier
+// (6.7.2) type-specifier :: void | char | short | int |
+// struct-or-union-specifier
 void FastParser::parseTypeSpecifier() {
   switch (peek().getType()) {
   case TokenType::VOID:
@@ -58,24 +59,26 @@ void FastParser::parseTypeSpecifier() {
 
 // Function to handle all kinds of declarator.
 // (6.7.6)  declarator :: pointer(opt) direct-declarator
-// (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator ( parameter-list )
-// (6.7.6) abstract-declarator :: pointer | pointer(opt) direct-abstract-declarator
-// (6.7.6) direct-abstract-declarator :: ( abstract-declarator ) | ( parameter-list(opt) )+
+// (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator
+// ( parameter-list ) (6.7.6) abstract-declarator :: pointer | pointer(opt)
+// direct-abstract-declarator (6.7.6) direct-abstract-declarator :: (
+// abstract-declarator ) | ( parameter-list(opt) )+
 void FastParser::parseDeclarator() {
-  int ptrCount = 0;                       // > 0 means declarator is ptr type
-  bool existIdent = false;                // decides whether declarator is abstract or not.
-  parseList( [&]() { ++ptrCount; }, TokenType::STAR); // consume  0 or more pointers
+  int ptrCount = 0;        // > 0 means declarator is ptr type
+  bool existIdent = false; // decides whether declarator is abstract or not.
+  parseList([&]() { ++ptrCount; },
+            TokenType::STAR); // consume  0 or more pointers
   if (peek().is(TokenType::IDENTIFIER)) {
     nextToken();
     existIdent = true;
   }
   if (peek().is(TokenType::PARENTHESIS_OPEN)) {
     if (peek().is(C_TYPES)) {
-      parseParenthesizedFn([&] () { parseParameterList(); });
-      return;                           // based on existIdent value create AST.
+      parseParenthesizedFn([&]() { parseParameterList(); });
+      return; // based on existIdent value create AST.
     }
-    parseParenthesizedFn([&] () { parseDeclarator(); });
-    return;                             // based on existIdent value create AST.
+    parseParenthesizedFn([&]() { parseDeclarator(); });
+    return; // based on existIdent value create AST.
   }
 
   if (existIdent) {
@@ -94,24 +97,23 @@ void FastParser::parseDeclarator() {
   }
 
   error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
-      "Unexpected Token: \"" + peek().name() +
-      "\", expecting declarator");
+                       "Unexpected Token: \"" + peek().name() +
+                           "\", expecting declarator");
 }
 
 // (6.7.6)  parameter-list :: parameter-declaration (comma-separated)
 void FastParser::parseParameterList() {
-  parseList(
-      [&]() {
-      parseParameterDeclaration();
-      },
-      TokenType::COMMA);
+  parseList([&]() { parseParameterDeclaration(); }, TokenType::COMMA);
 }
 
-// (6.7.5) parameter-declaration :: type-specifier declarator | type-specifier abstract-declarator(opt)
+// (6.7.5) parameter-declaration :: type-specifier declarator | type-specifier
+// abstract-declarator(opt)
 void FastParser::parseParameterDeclaration() {
   parseTypeSpecifier();
-  if (peek().is(TokenType::COMMA)) return;
-  if (peek().is(TokenType::PARENTHESIS_CLOSE)) return;
+  if (peek().is(TokenType::COMMA))
+    return;
+  if (peek().is(TokenType::PARENTHESIS_CLOSE))
+    return;
   parseDeclarator();
 }
 
@@ -123,7 +125,8 @@ void FastParser::parseDeclaration() {
   mustExpect(TokenType::SEMICOLON);
 }
 
-// (6.7.2.1) struct-or-union-specifier :: struct identifer(opt) { struct-declaration+ } | struct identifier
+// (6.7.2.1) struct-or-union-specifier :: struct identifer(opt) {
+// struct-declaration+ } | struct identifier
 void FastParser::parseStructOrUnionSpecifier() {
   mustExpect(TokenType::STRUCT);
   if (peek().is(TokenType::IDENTIFIER)) {
@@ -141,8 +144,8 @@ void FastParser::parseStructOrUnionSpecifier() {
     return;
   }
   error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
-      "Unexpected Token: \"" + peek().name() +
-      "\", expecting struct");
+                       "Unexpected Token: \"" + peek().name() +
+                           "\", expecting struct");
 }
 
 // (6.7.2.1) struct-declaration :: type-specifier declarator (opt) ;
@@ -231,15 +234,14 @@ void FastParser::parseIterationStatement() {
 
 // Expressions
 // (6.5.17) expression: assignment
-void FastParser::parseExpression() {
-  parseAssignmentExpression();
-}
+void FastParser::parseExpression() { parseAssignmentExpression(); }
 
-// (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op assignment-expr
-// (6.5.15) conditional-expr: logical-OR | logical-OR ? expression : conditional-expr
+// (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op
+// assignment-expr (6.5.15) conditional-expr: logical-OR | logical-OR ?
+// expression : conditional-expr
 void FastParser::parseAssignmentExpression() {
-  parseUnaryExpression(); // LHS
-  parseBinOpWithRHS(/*LHS Expr ,*/ 1/*assignmentPrec*/); // BinOpLeft + RHS
+  parseUnaryExpression();                                 // LHS
+  parseBinOpWithRHS(/*LHS Expr ,*/ 1 /*assignmentPrec*/); // BinOpLeft + RHS
 }
 
 void FastParser::parseBinOpWithRHS(/*LHS , */ Precedence minPrec) {
@@ -259,7 +261,7 @@ void FastParser::parseBinOpWithRHS(/*LHS , */ Precedence minPrec) {
       mustExpect(TokenType::COLON);
     }
 
-    parseUnaryExpression();       // RHS
+    parseUnaryExpression(); // RHS
 
     auto binOpLeftPrec = nextTokenPrec;
     nextTokenPrec = peek().getPrecedence(); // binOpRight
@@ -268,7 +270,8 @@ void FastParser::parseBinOpWithRHS(/*LHS , */ Precedence minPrec) {
       // Evaluate RHS + binOpRight...
       // TODO handle conditional Expresion reduction during AST creation.
       // LHS = LHS + TernaryMiddle + RHS
-      parseBinOpWithRHS(/*RHS  Expr ,*/binOpLeftPrec); // new RHS after evaluation
+      parseBinOpWithRHS(
+          /*RHS  Expr ,*/ binOpLeftPrec); // new RHS after evaluation
     }
 
     // Make AST LHS = LHS + RHS
@@ -343,7 +346,7 @@ void FastParser::parsePrimaryExpression() {
     nextToken();
     return;
   case TokenType::PARENTHESIS_OPEN:
-    parseParenthesizedFn([&] () { parseExpression(); });
+    parseParenthesizedFn([&]() { parseExpression(); });
     return;
   default:
     error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
