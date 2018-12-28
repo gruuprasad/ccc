@@ -31,8 +31,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
         std::cout << filename << ":" << token << '\n';
       }
       return EXIT_SUCCESS;
-    }
-    if (flagName == "--parse") {
+    } else if (flagName == "--parse") {
       auto parser = FastParser(buffer);
       parser.parse();
       if (parser.fail()) {
@@ -40,7 +39,13 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
         return EXIT_FAILURE;
       }
       return EXIT_SUCCESS;
+    } else if (flagName == "--print-ast") {
+      ASTNode *root =
+          new CompoundStatement(new Token(TokenType::BRACE_OPEN), {});
+      std::cout << root->prettyPrint();
+      return EXIT_SUCCESS;
     }
   }
+  std::cerr << "?" << std::endl;
   return EXIT_FAILURE;
 }

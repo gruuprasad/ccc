@@ -26,7 +26,7 @@ public:
   unsigned long getId() const { return id; }
   virtual std::string graphWalker() = 0;
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
-  virtual std::string prettyPrint(int) { return "\n?"; };
+  virtual std::string prettyPrint(int) { return "?"; };
   virtual std::string prettyPrintInline(int lvl) {
     return this->prettyPrint(lvl);
   };
@@ -232,13 +232,10 @@ private:
 
 protected:
   std::string indent(int n) {
-    if (n >= 0) {
-      std::stringstream ss;
-      for (int i = 0; i < n; i++)
-        ss << "\t";
-      return ss.str();
-    } else
-      return "";
+    std::stringstream ss;
+    for (int i = 0; i < n; i++)
+      ss << "\t";
+    return ss.str();
   }
 };
 

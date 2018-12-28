@@ -26,6 +26,7 @@ test:run:
   - cd ./build
   - ./release/c4 --tokenize ../example/hello_world.c
   - ./release/c4 --parse ../example/hello_world.c
+  - ./release/c4 --print-ast ../example/hello_world.c
 
 build:test:
   stage: build

@@ -33,6 +33,7 @@ add_test(NAME ast COMMAND test_ast)
 add_executable(test_prettyPrinter
         test_main.cpp
         ast/prettyPrinter_test.cpp
+        ast/prettyPrinter_entry_test.cpp
         )
 
 target_link_libraries(test_prettyPrinter entry lexer parser)

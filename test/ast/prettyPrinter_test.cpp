@@ -1,32 +1,17 @@
 #include "../catch.hpp"
 #include "lexer/fast_lexer.hpp"
 #include "parser/fast_parser.hpp"
+#include "utils/utils.hpp"
 #include <fstream>
 
-//#define PRINT
-
 using namespace ccc;
-
-std::vector<std::string> split_lines(const std::string &str) {
-  std::stringstream ss(str);
-  std::string tmp;
-  std::vector<std::string> split;
-  while (std::getline(ss, tmp, '\n')) {
-    while (tmp[tmp.length() - 1] == '\r' || tmp[tmp.length() - 1] == '\n') {
-      tmp.pop_back();
-    }
-    split.push_back(tmp);
-  }
-  return split;
-}
-
 bool compare(ASTNode *root, const std::string &expected) {
 
-  std::string content = root->prettyPrint(0);
+  std::string content = root->prettyPrint();
 
   if (expected != content) {
-    std::vector<std::string> expected_lines = split_lines(expected);
-    std::vector<std::string> content_lines = split_lines(content);
+    std::vector<std::string> expected_lines = Utils::split_lines(expected);
+    std::vector<std::string> content_lines = Utils::split_lines(content);
 
     for (unsigned long i = 0, errors = 0;
          i < std::max(content_lines.size(), expected_lines.size()); i++) {

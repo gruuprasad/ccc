@@ -2,6 +2,7 @@
 #include "entry/entry_point_handler.hpp"
 #include "lexer/fast_lexer.hpp"
 #include "lexer/lexer_exception.hpp"
+#include "utils/utils.hpp"
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -14,19 +15,6 @@ using namespace ccc;
   TEST_CASE("Compare " #name ".c to " #name ".txt") {                          \
     REQUIRE(lexing_of(#name ".c", to_match(#name ".txt")));                    \
   }
-
-std::vector<std::string> split_lines(const std::string &str) {
-  std::stringstream ss(str);
-  std::string tmp;
-  std::vector<std::string> split;
-  while (std::getline(ss, tmp, '\n')) {
-    while (tmp[tmp.length() - 1] == '\r' || tmp[tmp.length() - 1] == '\n') {
-      tmp.pop_back();
-    }
-    split.push_back(tmp);
-  }
-  return split;
-}
 
 bool lexing_of(const std::string &filename, const std::string &expected) {
 
