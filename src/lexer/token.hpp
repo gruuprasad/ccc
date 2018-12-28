@@ -15,6 +15,7 @@ public:
   Token() :loc(1, 0) {}
   Token(ccc::TokenType type, unsigned long line, unsigned long column,
         std::string extra = std::string());
+  Token(ccc::TokenType type);
   Token(const Token &t) = default;
   Token &operator=(const Token &t) = default;
   Token(Token &&t) = default;

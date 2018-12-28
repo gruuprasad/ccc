@@ -114,8 +114,9 @@ inline Token FastLexer::munchNumber() {
   do {
     first = getCharAt(++position);
   } while ('0' <= first && first <= '9');
-  auto result = Token(TokenType::NUMBER, line, column,
-      std::string(&content[oldPosition], position - oldPosition));
+  auto result =
+      Token(TokenType::NUMBER, line, column,
+            std::string(&content[oldPosition], position - oldPosition));
   column += position - oldPosition;
   return result;
 }
@@ -127,8 +128,9 @@ inline Token FastLexer::munchIdentifier() {
     first = getCharAt(++position);
   } while (('0' <= first && first <= '9') || ('a' <= first && first <= 'z') ||
            ('A' <= first && first <= 'Z') || first == '_');
-  auto result = Token(TokenType::IDENTIFIER, line, column,
-       std::string(&content[oldPosition], position - oldPosition));
+  auto result =
+      Token(TokenType::IDENTIFIER, line, column,
+            std::string(&content[oldPosition], position - oldPosition));
   column += position - oldPosition;
   return result;
 }
@@ -138,8 +140,8 @@ inline Token FastLexer::munchCharacter() {
   char first = getCharAt(++position);
   if (first != '\'' && first != '\\' && first != '\n' && first != '\r' &&
       getCharAt(position + 1) == '\'') {
-    auto result = Token(TokenType::CHARACTER, line, column,
-                            std::string(1, first));
+    auto result =
+        Token(TokenType::CHARACTER, line, column, std::string(1, first));
     column += 3;
     position += 2;
     return result;
@@ -159,7 +161,7 @@ inline Token FastLexer::munchCharacter() {
     case 't':
     case 'v':
       result = Token(TokenType::CHARACTER, line, column,
-                              std::string(&content[position - 1], 2));
+                     std::string(&content[position - 1], 2));
       column += 4;
       position += 2;
       return result;
@@ -205,7 +207,8 @@ inline Token FastLexer::munchString() {
       case 'v':
         break;
       default:
-        error = LEXER_ERROR(line, column,
+        error = LEXER_ERROR(
+            line, column,
             "Invalid escape at " +
                 std::string(&content[oldPosition + 1], position - oldPosition));
         return Token(TokenType::INVALIDTOK, line, column, "");
@@ -214,8 +217,9 @@ inline Token FastLexer::munchString() {
     first = getCharAt(++position);
     ++column;
   }
-  auto result = Token(TokenType::STRING, line, initColumn,
-      std::string(&content[oldPosition + 1], position - oldPosition - 1));
+  auto result =
+      Token(TokenType::STRING, line, initColumn,
+            std::string(&content[oldPosition + 1], position - oldPosition - 1));
   ++position;
   ++column;
   return result;
@@ -1140,13 +1144,13 @@ Token FastLexer::lex_valid() {
   while (true) {
     auto curToken = munch();
     switch (curToken.getType()) {
-      case TokenType::BLOCKCOMMENT:
-      case TokenType::LINECOMMENT:
-      case TokenType::WHITESPACE:
-        // These tokens are skipped over.
-        continue;
-      default:
-        return curToken;
+    case TokenType::BLOCKCOMMENT:
+    case TokenType::LINECOMMENT:
+    case TokenType::WHITESPACE:
+      // These tokens are skipped over.
+      continue;
+    default:
+      return curToken;
     }
   };
 }
@@ -1157,12 +1161,13 @@ std::vector<Token> FastLexer::lex() {
   Token curToken;
   while (true) {
     curToken = lex_valid();
-    if (curToken.getType() == TokenType::INVALIDTOK || 
+    if (curToken.getType() == TokenType::INVALIDTOK ||
         curToken.getType() == TokenType::TOKENEND) {
       break;
     }
     token_list.push_back(std::move(curToken));
   }
+  token_list.emplace_back(Token(TokenType::ENDOFFILE, line, column));
   return token_list;
 }
 

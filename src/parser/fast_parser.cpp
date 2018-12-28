@@ -163,8 +163,6 @@ void FastParser::parseCompoundStatement() {
     } else {
       parseStatement();
     }
-    if (fail())
-      return;
   }
   mustExpect(TokenType::BRACE_CLOSE);
 }

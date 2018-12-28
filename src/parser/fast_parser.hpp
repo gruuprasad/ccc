@@ -1,14 +1,17 @@
 #ifndef C4_PARSER_HPP
 #define C4_PARSER_HPP
 
+#include "../ast/ast_node.hpp"
 #include "../lexer/fast_lexer.hpp"
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
 #include "../utils/macros.hpp"
+
 #include <algorithm>
-#include <cassert>
-#include <vector>
 #include <array>
+#include <cassert>
+#include <execinfo.h>
+#include <vector>
 
 namespace ccc {
 
@@ -22,7 +25,7 @@ public:
       elem = lexer.lex_valid();
   }
 
-  void parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  ASTNode *parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -34,11 +37,16 @@ public:
       return parseDeclaration();
     default:
       error = "Unknown parse type";
+      return nullptr;
     }
   }
 
   bool fail() const { return !error.empty(); }
   std::string getError() { return error; }
+
+#if DEBUG
+  bool printTrace = false;
+#endif
 
 private:
   Token nextToken() {
@@ -52,10 +60,6 @@ private:
     if (peek().is(tok_type)) {
       nextToken();
       return true;
-    }
-    return false;
-  }
-
 
   bool mustExpect(TokenType tok_type) {
     if (peek().is(tok_type)) {
@@ -63,11 +67,6 @@ private:
       return true;
     }
     
-    error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
-        "Unexpected Token: \"" + peek().name() + "\", expecting  \"" + "\"");
-    return false;
-  }
-
   const Token &peek(std::size_t k = 0) const {
     assert (k < N);
     return la_buffer[k];
@@ -108,9 +107,9 @@ private:
   void parseArgumentExpressionList();
 
   // Statements
+  void parseStatement();
   void parseCompoundStatement();
   void parseBlockItemList();
-  void parseStatement();
   void parseLabeledStatement();
   void parseSelectionStatement();
   void parseIterationStatement();

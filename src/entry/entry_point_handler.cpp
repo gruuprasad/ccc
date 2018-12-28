@@ -26,12 +26,15 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     }
     if (flagName == "--tokenize") {
       for (const auto &token : token_list) {
+        if (token.is(TokenType::ENDOFFILE))
+          break;
         std::cout << filename << ":" << token << '\n';
       }
       return EXIT_SUCCESS;
     }
     if (flagName == "--parse") {
       auto parser = FastParser(buffer);
+      parser.parse();
       if (parser.fail()) {
         std::cerr << filename << ":" << parser.getError() << std::endl;
         return EXIT_FAILURE;
