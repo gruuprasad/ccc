@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef C4_TOKEN_HPP
 #define C4_TOKEN_HPP
 
@@ -38,13 +40,12 @@ public:
   }
   Precedence getPrecedence() const;
 
+  friend std::ostream &operator<<(std::ostream &os, const Token &token);
+
 private:
   TokenType type;
   Location loc;
   std::string extra;
-
-public:
-  friend std::ostream &operator<<(std::ostream &os, const Token &token);
 };
 
 } // namespace ccc

@@ -34,19 +34,16 @@ build:test:
   - cd ./build
   - cmake ..
   - make -j$(nproc)
-  - cd ..
-  artifacts:
-    when: on_success
-    paths:
-    - ./build/*
-    expire_in: 5 mins
 
 test:tests:
   stage: test
   dependencies:
   - build:test
   script:
+  - mkdir -p build
   - cd ./build
+  - cmake ..
+  - make -j$(nproc)
   - make test
   allow_failure: true
 
