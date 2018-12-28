@@ -47,14 +47,6 @@ test:tests:
   - make check -j$(nproc)
   allow_failure: true
 
-analysis:valgrind:
-  stage: analysis
-  dependencies:
-  - test:tests
-  script:
-  - valgrind --version
-  allow_failure: true
-
 analysis:coverage:
   stage: analysis
   dependencies:
