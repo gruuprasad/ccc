@@ -447,6 +447,6 @@ TEST_CASE("pretty print if else if else goto label") {
                         "\t;\n"
                         "end:\n"
                         "}\n"));
-  Utils::saveAST(root, "test.gv");
+  //  Utils::saveAST(root, "test.gv");
   delete root;
 }
