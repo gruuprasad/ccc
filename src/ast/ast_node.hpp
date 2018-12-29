@@ -220,17 +220,17 @@ protected:
   }
 };
 
-class LabelStatement : public Statement {
+class LabeledStatement : public Statement {
 private:
   Expression *expr;
   Statement *stat;
 
 public:
-  explicit LabelStatement(Expression *expr, Statement *stat = nullptr)
+  explicit LabeledStatement(Expression *expr, Statement *stat = nullptr)
       : Statement("labeled-statement"), expr(expr), stat(stat) {}
   std::string graphWalker() override { return walk(this, {expr, stat}); }
   std::string prettyPrint(int lvl) override;
-  ~LabelStatement() override {
+  ~LabeledStatement() override {
     delete (expr);
     delete (stat);
   }

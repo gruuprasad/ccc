@@ -393,10 +393,11 @@ TEST_CASE("pretty print while inline break continue blocks") {
 TEST_CASE("pretty print goto label") {
   auto *root = new CompoundStatement(
       Token(),
-      {new WhileStatement(Token(), new Constant(Token(TokenType::NUMBER, "1")),
-                          new LabelStatement(new Identifier(Token(
-                                                 TokenType::IDENTIFIER, "foo")),
-                                             new BreakStatement(Token()))),
+      {new WhileStatement(
+           Token(), new Constant(Token(TokenType::NUMBER, "1")),
+           new LabeledStatement(
+               new Identifier(Token(TokenType::IDENTIFIER, "foo")),
+               new BreakStatement(Token()))),
        new GotoStatement(new Identifier(Token(TokenType::IDENTIFIER, "foo")))});
 
   REQUIRE(compare(root, "{\n"
@@ -412,7 +413,7 @@ TEST_CASE("pretty print if else if else goto label") {
       Token(),
       {new IfElseStatement(
            Token(), new Constant(Token(TokenType::NUMBER, "1")),
-           new LabelStatement(
+           new LabeledStatement(
                new Identifier(Token(TokenType::IDENTIFIER, "foo")),
                new GotoStatement(
                    new Identifier(Token(TokenType::IDENTIFIER, "empty")))),
@@ -421,14 +422,15 @@ TEST_CASE("pretty print if else if else goto label") {
                new CompoundStatement(
                    Token(), {new GotoStatement(new Identifier(
                                  Token(TokenType::IDENTIFIER, "end"))),
-                             new LabelStatement(new Identifier(
+                             new LabeledStatement(new Identifier(
                                  Token(TokenType::IDENTIFIER, "bar")))}),
                new CompoundStatement(
                    Token(), {new GotoStatement(new Identifier(
                                 Token(TokenType::IDENTIFIER, "foo")))}))),
-       new LabelStatement(new Identifier(Token(TokenType::IDENTIFIER, "empty")),
-                          new ExpressionStatement(Token())),
-       new LabelStatement(
+       new LabeledStatement(
+           new Identifier(Token(TokenType::IDENTIFIER, "empty")),
+           new ExpressionStatement(Token())),
+       new LabeledStatement(
            new Identifier(Token(TokenType::IDENTIFIER, "end")))});
 
   REQUIRE(compare(root, "{\n"
@@ -445,6 +447,6 @@ TEST_CASE("pretty print if else if else goto label") {
                         "\t;\n"
                         "end:\n"
                         "}\n"));
-  //  Utils::saveAST(root, "test.gv");
+  Utils::saveAST(root, "test.gv");
   delete root;
 }

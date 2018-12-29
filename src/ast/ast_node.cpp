@@ -111,7 +111,7 @@ std::string Declaration::graphWalker() {
 
 std::string PrimaryExpression::graphWalker() {
   std::stringstream ss;
-  ss << (unsigned long)this << "[label=<" << this->token.getExtra()
+  ss << (unsigned long)this << "[label=<" << this->extra
      << "> shape=diamond style=filled fillcolor=lightyellow];\n";
   return ss.str();
 }
@@ -148,7 +148,7 @@ std::string GotoStatement::prettyPrint(int lvl) {
   return indent(lvl) + "goto " + this->expr->prettyPrint() + ";\n";
 }
 
-std::string LabelStatement::prettyPrint(int lvl) {
+std::string LabeledStatement::prettyPrint(int lvl) {
   std::stringstream ss;
   ss << this->expr->prettyPrint() + ":\n";
   if (this->stat)
