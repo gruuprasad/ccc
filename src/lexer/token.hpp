@@ -35,6 +35,7 @@ public:
   const std::string &getExtra() const { return extra; }
   const std::string name() const;
   const std::string token_type() const;
+  bool isGhostType() const { return type == TokenType::GHOST; }
 
   bool is_not(TokenType expected) const { return type != expected; }
   template <typename T> bool is(const T &base) const { return type == base; }
