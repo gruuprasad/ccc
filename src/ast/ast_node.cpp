@@ -28,7 +28,7 @@ std::string CompoundStatement::prettyPrint(int lvl) {
   return indent(lvl) + "{\n" + ss.str() + indent(lvl) + "}\n";
 }
 
-std::string CompoundStatement::prettyPrintInline(int lvl) {
+std::string CompoundStatement::prettyPrintScope(int lvl) {
   std::stringstream ss;
   for (ASTNode *child : this->children) {
     ss << child->prettyPrint(lvl);
@@ -40,16 +40,7 @@ std::string ExpressionStatement::prettyPrint(int lvl) {
   return indent(lvl) + children[0]->prettyPrint() + ";\n";
 }
 
-std::string ExpressionStatement::prettyPrintInline(int lvl) {
-  return "\n" + indent(lvl) + children[0]->prettyPrint() + ";\n";
-}
-
-std::string ExpressionStatement::prettyPrintInlineElse(int lvl) {
-  return "\n" + indent(lvl) + children[0]->prettyPrint() + ";\n" +
-         indent(lvl - 1);
-}
-
-std::string CompoundStatement::prettyPrintInlineElse(int lvl) {
+std::string CompoundStatement::prettyPrintScopeIndent(int lvl) {
   std::stringstream ss;
   for (ASTNode *child : this->children) {
     ss << child->prettyPrint(lvl);
@@ -61,16 +52,16 @@ std::string IfElseStatement::prettyPrint(int lvl) {
   std::stringstream ss;
   if (this->children[2]) {
     ss << indent(lvl) << "if (" << this->children[0]->prettyPrint() << ")"
-       << this->children[1]->prettyPrintInlineElse(lvl + 1);
+       << this->children[1]->prettyPrintScopeIndent(lvl + 1);
     ss << "else" << this->children[2]->prettyPrintInlineIf(lvl + 1);
   } else {
     ss << indent(lvl) << "if (" << this->children[0]->prettyPrint() << ")"
-       << this->children[1]->prettyPrintInline(lvl + 1);
+       << this->children[1]->prettyPrintScope(lvl + 1);
   }
   return ss.str();
 }
 
-std::string IfElseStatement::prettyPrintInline(int lvl) {
+std::string IfElseStatement::prettyPrintScope(int lvl) {
   return "\n" + this->prettyPrint(lvl);
 }
 
@@ -78,11 +69,11 @@ std::string IfElseStatement::prettyPrintInlineIf(int lvl) {
   std::stringstream ss;
   if (this->children[2]) {
     ss << " if (" << this->children[0]->prettyPrint() << ")"
-       << this->children[1]->prettyPrintInlineElse(lvl);
-    ss << "else" << this->children[2]->prettyPrintInline(lvl);
+       << this->children[1]->prettyPrintScopeIndent(lvl);
+    ss << "else" << this->children[2]->prettyPrintScope(lvl);
   } else {
     ss << " if (" << this->children[0]->prettyPrint() << ")"
-       << this->children[1]->prettyPrintInline(lvl);
+       << this->children[1]->prettyPrintScope(lvl);
   }
   return ss.str();
 }
@@ -90,16 +81,16 @@ std::string IfElseStatement::prettyPrintInlineIf(int lvl) {
 std::string WhileStatement::prettyPrint(int lvl) {
   std::stringstream ss;
   ss << indent(lvl) << "while (" << this->children[0]->prettyPrint() << ")"
-     << this->children[1]->prettyPrintInline(lvl + 1);
+     << this->children[1]->prettyPrintScope(lvl + 1);
   return ss.str();
 }
 
 std::string BreakStatement::prettyPrint(int lvl) {
-  return indent(lvl) + "break;";
+  return indent(lvl) + "break;\n";
 }
 
 std::string ContinueStatement::prettyPrint(int lvl) {
-  return indent(lvl) + "continue;";
+  return indent(lvl) + "continue;\n";
 }
 
 std::string ReturnStatement::prettyPrint(int lvl) {
@@ -107,14 +98,6 @@ std::string ReturnStatement::prettyPrint(int lvl) {
     return indent(lvl) + "return " + children[0]->prettyPrint() + ";\n";
   else
     return indent(lvl) + "return;\n";
-}
-
-std::string ReturnStatement::prettyPrintInline(int lvl) {
-  return "\n" + this->prettyPrint(lvl);
-}
-
-std::string ReturnStatement::prettyPrintInlineElse(int lvl) {
-  return this->prettyPrintInline(lvl) + indent(lvl - 1);
 }
 
 // Methods to generate dot language of graphviz for different AST types.

@@ -25,14 +25,14 @@ public:
   virtual std::string graphWalker() = 0;
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
   virtual std::string prettyPrint(int) { return "?"; };
-  virtual std::string prettyPrintInline(int lvl) {
+  virtual std::string prettyPrintScope(int lvl) {
     return this->prettyPrint(lvl);
   }
-  virtual std::string prettyPrintInlineElse(int lvl) {
-    return this->prettyPrintInline(lvl);
+  virtual std::string prettyPrintScopeIndent(int lvl) {
+    return this->prettyPrintScope(lvl);
   }
   virtual std::string prettyPrintInlineIf(int lvl) {
-    return this->prettyPrintInline(lvl);
+    return this->prettyPrintScope(lvl);
   }
   virtual std::string checkSemantic() { return "?"; };
   virtual std::string toCode() { return "?"; };
@@ -163,6 +163,12 @@ public:
 
 protected:
   std::string indent(int n);
+  std::string prettyPrintScope(int lvl) override {
+    return "\n" + this->prettyPrint(lvl);
+  }
+  std::string prettyPrintScopeIndent(int lvl) override {
+    return this->prettyPrintScope(lvl) + indent(lvl - 1);
+  }
 
 private:
   std::string graphWalker() override;
@@ -179,8 +185,8 @@ public:
   CompoundStatement(const Token *token, std::vector<ASTNode *> items)
       : Statement("compound-statement", token, std::move(items)) {}
   std::string prettyPrint(int lvl) override;
-  std::string prettyPrintInline(int lvl) override;
-  std::string prettyPrintInlineElse(int lvl) override;
+  std::string prettyPrintScope(int lvl) override;
+  std::string prettyPrintScopeIndent(int lvl) override;
 };
 
 class ExpressionStatement : public Statement {
@@ -189,8 +195,6 @@ public:
       : Statement("expression-statement", expr == nullptr ? nullptr : token,
                   {expr}) {}
   std::string prettyPrint(int lvl) override;
-  std::string prettyPrintInline(int lvl) override;
-  std::string prettyPrintInlineElse(int lvl) override;
 };
 
 class IfElseStatement : public Statement {
@@ -199,7 +203,7 @@ public:
                   Statement *stmt2 = nullptr)
       : Statement("selection-statement", token, {expr, stmt1, stmt2}) {}
   std::string prettyPrint(int lvl) override;
-  std::string prettyPrintInline(int lvl) override;
+  std::string prettyPrintScope(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
 };
 
@@ -235,8 +239,6 @@ public:
   explicit ReturnStatement(const Token *token, Expression *expr = nullptr)
       : Statement("jump-statement", token, std::vector<ASTNode *>{expr}) {}
   std::string prettyPrint(int lvl) override;
-  std::string prettyPrintInline(int lvl) override;
-  std::string prettyPrintInlineElse(int lvl) override;
 };
 
 } // namespace ccc

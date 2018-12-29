@@ -33,7 +33,7 @@ bool compare(ASTNode *root, const std::string &expected) {
         break;
       }
     }
-    //    std::cout << content << std::endl;
+    std::cout << content << std::endl;
     return false;
   }
   return true;
@@ -343,6 +343,87 @@ TEST_CASE("pretty print while inline") {
                         "\t\t\treturn 1;\n"
                         "\t\telse\n"
                         "\t\t\treturn \"test\";\n"
+                        "}\n"));
+  delete root;
+}
+
+TEST_CASE("pretty print while inline if else break continue") {
+  auto *root = new CompoundStatement(
+      new Token(TokenType::GHOST),
+      {new WhileStatement(
+          new Token(TokenType::GHOST),
+          new Constant(new Token(TokenType::NUMBER, "3")),
+          new IfElseStatement(
+              new Token(TokenType::GHOST),
+              new Constant(new Token(TokenType::NUMBER, "1")),
+              new BreakStatement(new Token(TokenType::GHOST)),
+              new ContinueStatement(new Token(TokenType::GHOST))))});
+
+  REQUIRE(compare(root, "{\n"
+                        "\twhile (3)\n"
+                        "\t\tif (1)\n"
+                        "\t\t\tbreak;\n"
+                        "\t\telse\n"
+                        "\t\t\tcontinue;\n"
+                        "}\n"));
+  delete root;
+}
+
+TEST_CASE("pretty print while inline break continue") {
+  auto *root = new CompoundStatement(
+      new Token(TokenType::GHOST),
+      {new WhileStatement(new Token(TokenType::GHOST),
+                          new Constant(new Token(TokenType::NUMBER, "3")),
+                          new BreakStatement(new Token(TokenType::GHOST))),
+       new WhileStatement(new Token(TokenType::GHOST),
+                          new Constant(new Token(TokenType::NUMBER, "1")),
+                          new ContinueStatement(new Token(TokenType::GHOST)))});
+
+  REQUIRE(compare(root, "{\n"
+                        "\twhile (3)\n"
+                        "\t\tbreak;\n"
+                        "\twhile (1)\n"
+                        "\t\tcontinue;\n"
+                        "}\n"));
+  delete root;
+}
+TEST_CASE("pretty print while inline break continue blocks") {
+  auto *root = new CompoundStatement(
+      new Token(TokenType::GHOST),
+      {new WhileStatement(new Token(TokenType::GHOST),
+                          new Constant(new Token(TokenType::NUMBER, "3")),
+                          new CompoundStatement(new Token(TokenType::GHOST),
+                                                {new BreakStatement(new Token(
+                                                    TokenType::GHOST))})),
+       new WhileStatement(
+           new Token(TokenType::GHOST),
+           new Constant(new Token(TokenType::NUMBER, "2")),
+           new CompoundStatement(
+               new Token(TokenType::GHOST),
+               {new BreakStatement(new Token(TokenType::GHOST)),
+                new CompoundStatement(
+                    new Token(TokenType::GHOST),
+                    {new ContinueStatement(new Token(TokenType::GHOST))})})),
+       new WhileStatement(
+           new Token(TokenType::GHOST),
+           new Constant(new Token(TokenType::NUMBER, "1")),
+           new CompoundStatement(
+               new Token(TokenType::GHOST),
+               {new ContinueStatement(new Token(TokenType::GHOST))}))});
+
+  REQUIRE(compare(root, "{\n"
+                        "\twhile (3) {\n"
+                        "\t\tbreak;\n"
+                        "\t}\n"
+                        "\twhile (2) {\n"
+                        "\t\tbreak;\n"
+                        "\t\t{\n"
+                        "\t\t\tcontinue;\n"
+                        "\t\t}\n"
+                        "\t}\n"
+                        "\twhile (1) {\n"
+                        "\t\tcontinue;\n"
+                        "\t}\n"
                         "}\n"));
   delete root;
 }
