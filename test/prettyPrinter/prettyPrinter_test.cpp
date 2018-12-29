@@ -47,6 +47,7 @@ TEST_CASE("pretty print block block") {
                         "\t{\n"
                         "\t}\n"
                         "}\n"));
+  std::cout << root->toGraph();
   delete root;
 }
 

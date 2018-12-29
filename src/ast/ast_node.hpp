@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef C4_ASTNODE_HPP
 #define C4_ASTNODE_HPP
 
@@ -22,6 +24,8 @@ protected:
         children(std::vector<ASTNode *>()) {}
 
 public:
+  static std::string walkStatement(ASTNode *root,
+                                   std::vector<ASTNode *> children);
   virtual std::string graphWalker() = 0;
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
   virtual std::string prettyPrint(int) { return "-?-"; };
@@ -170,6 +174,9 @@ public:
   }
 
 protected:
+  std::string graphWalker() override {
+    return walkStatement(this, std::vector<ASTNode *>());
+  }
   std::string indent(int n) {
     if (n >= 0) {
       std::stringstream ss;
@@ -179,9 +186,6 @@ protected:
     } else
       return "";
   }
-
-private:
-  std::string graphWalker() override;
 };
 
 class LabelStatement : public Statement {
@@ -198,12 +202,18 @@ private:
 
 public:
   CompoundStatement(const Token *token, std::vector<Statement *> block)
-      : Statement("compound-statement", token), block(block) {
-    this->children.insert(this->children.end(), block.begin(), block.end());
-  }
+      : Statement("compound-statement", token), block(std::move(block)) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintBlock(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
+  std::string graphWalker() override {
+    return walkStatement(this,
+                         std::vector<ASTNode *>(block.begin(), block.end()));
+  }
+  ~CompoundStatement() override {
+    for (Statement *stat : block)
+      delete (stat);
+  }
 };
 
 class ExpressionStatement : public Statement {
@@ -213,10 +223,10 @@ private:
 public:
   explicit ExpressionStatement(const Token *token, Expression *expr = nullptr)
       : Statement("expression-statement", expr == nullptr ? nullptr : token),
-        expr(expr) {
-    this->children.insert(this->children.end(), {expr});
-  }
+        expr(expr) {}
+  std::string graphWalker() override { return walkStatement(this, {expr}); }
   std::string prettyPrint(int lvl) override;
+  ~ExpressionStatement() override { delete (expr); }
 };
 
 class IfElseStatement : public Statement {
@@ -229,12 +239,18 @@ public:
   IfElseStatement(const Token *token, Expression *expr, Statement *ifStat,
                   Statement *elseStat = nullptr)
       : Statement("selection-statement", token), expr(expr), ifStat(ifStat),
-        elseStat(elseStat) {
-    this->children.insert(this->children.end(), {expr, ifStat, elseStat});
-  }
+        elseStat(elseStat) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintBlock(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
+  std::string graphWalker() override {
+    return walkStatement(this, {expr, ifStat, elseStat});
+  }
+  ~IfElseStatement() override {
+    delete (expr);
+    delete (ifStat);
+    delete (elseStat);
+  }
 };
 
 class WhileStatement : public Statement {
@@ -244,8 +260,9 @@ private:
 
 public:
   WhileStatement(const Token *token, Expression *expr, Statement *stat)
-      : Statement("iteration-statement", token), expr(expr), stat(stat) {
-    //    this->children.insert(this->children.end(), {expr, stat});
+      : Statement("iteration-statement", token), expr(expr), stat(stat) {}
+  std::string graphWalker() override {
+    return walkStatement(this, {expr, stat});
   }
   ~WhileStatement() override {
     delete (expr);
@@ -282,10 +299,10 @@ private:
 
 public:
   explicit ReturnStatement(const Token *token, Expression *expr = nullptr)
-      : Statement("jump-statement", token), expr(expr) {
-    this->children.insert(this->children.end(), {expr});
-  }
+      : Statement("jump-statement", token), expr(expr) {}
+  std::string graphWalker() override { return walkStatement(this, {expr}); }
   std::string prettyPrint(int lvl) override;
+  ~ReturnStatement() override { delete (expr); }
 };
 
 } // namespace ccc

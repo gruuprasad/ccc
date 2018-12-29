@@ -95,7 +95,7 @@ std::string ReturnStatement::prettyPrint(int lvl) {
 
 std::string TranslationUnit::prettyPrint(int lvl) {
   std::stringstream ss;
-  for (ASTNode *child : this->children)
+  for (ASTNode *child : children)
     ss << child->prettyPrint(lvl);
   return ss.str();
 }
@@ -132,7 +132,7 @@ std::string Expression::graphWalker() {
     ss << "<br/><font point-size='10'>" << *this->token << "</font>";
   ;
   ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
-  for (ASTNode *child : this->children) {
+  for (ASTNode *child : children) {
     if (child) {
       ss << child->graphWalker() << (unsigned long)this << "--"
          << (unsigned long)child << std::endl;
@@ -148,17 +148,19 @@ std::string PrimaryExpression::graphWalker() {
   return ss.str();
 }
 
-std::string Statement::graphWalker() {
+std::string ASTNode::walkStatement(ASTNode *root,
+                                   std::vector<ASTNode *> children) {
   std::stringstream ss;
-  ss << (unsigned long)this << "[label=<" << this->name;
-  if (this->token)
-    ss << "<br/><font point-size='10'>" << *this->token << "</font>";
+  ss << (unsigned long)root << "[label=<" << root->name;
+  if (root->token)
+    ss << "<br/><font point-size='10'>" << *root->token << "</font>";
   ss << "> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
-  for (ASTNode *child : this->children) {
+
+  for (ASTNode *child : children) {
     if (child) {
       ss << "subgraph cluster_" << (unsigned long)child << "{\n"
          << child->graphWalker() << "}\n";
-      ss << (unsigned long)this << "--" << (unsigned long)child << ";\n";
+      ss << (unsigned long)root << "--" << (unsigned long)child << ";\n";
     }
   }
   return ss.str();
