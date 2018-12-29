@@ -6,7 +6,7 @@ namespace ccc {
 
 // Methods to generate prettyprinting for different AST types.
 std::string BinaryExpression::prettyPrint() {
-  return "(" + this->leftExpr->prettyPrint() + " " + token->name() + " " +
+  return "(" + this->leftExpr->prettyPrint() + " " + token.name() + " " +
          this->rightExpr->prettyPrint() + ")";
 }
 
@@ -111,7 +111,7 @@ std::string Declaration::graphWalker() {
 
 std::string PrimaryExpression::graphWalker() {
   std::stringstream ss;
-  ss << (unsigned long)this << "[label=<" << this->token->getExtra()
+  ss << (unsigned long)this << "[label=<" << this->token.getExtra()
      << "> shape=diamond style=filled fillcolor=lightyellow];\n";
   return ss.str();
 }
