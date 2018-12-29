@@ -14,11 +14,12 @@ using Precedence = unsigned int;
 
 class Token {
 public:
+  Token() : type(TokenType::GHOST), loc(0, 0), extra(std::string("?")) {}
+  explicit Token(TokenType type, std::string extra = "?") : Token(type, 0, 0, std::move(extra)) {}
   Token(const TokenType type, const unsigned long line,
         const unsigned long column, std::string extra = "?")
       : type(type), loc(line, column), extra(std::move(extra)) {}
 
-  Token() : type(TokenType::GHOST), loc(0, 0), extra(std::string("?")) {}
   Token(const Token &t) = default;
   Token &operator=(const Token &t) = default;
   Token(Token &&t) = default;
