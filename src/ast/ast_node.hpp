@@ -24,19 +24,14 @@ protected:
 public:
   virtual std::string graphWalker() = 0;
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
-  virtual std::string prettyPrint(int) { return "?"; };
-  virtual std::string prettyPrintScope(int lvl) {
-    return this->prettyPrint(lvl);
-  }
-  virtual std::string prettyPrintScopeIndent(int lvl) {
-    return this->prettyPrintScope(lvl);
-  }
-  virtual std::string prettyPrintInlineIf(int lvl) {
-    return this->prettyPrintScope(lvl);
-  }
+  virtual std::string prettyPrint(int) { return "-?-"; };
   virtual std::string checkSemantic() { return "?"; };
   virtual std::string toCode() { return "?"; };
-  std::string toGraph();
+  template <class C> C *cast() { return dynamic_cast<C *>(this); }
+  std::string toGraph() {
+    return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n" +
+           this->graphWalker() + "}\n}\n";
+  }
 
   virtual ~ASTNode() {
     delete token;
@@ -161,13 +156,25 @@ public:
                      std::vector<ASTNode *> children = {})
       : ASTNode(name, token, std::move(children)) {}
 
-protected:
-  std::string indent(int n);
-  std::string prettyPrintScope(int lvl) override {
+  virtual std::string prettyPrintScope(int lvl) {
     return "\n" + this->prettyPrint(lvl);
   }
-  std::string prettyPrintScopeIndent(int lvl) override {
+  virtual std::string prettyPrintScopeIndent(int lvl) {
     return this->prettyPrintScope(lvl) + indent(lvl - 1);
+  }
+  virtual std::string prettyPrintInlineIf(int lvl) {
+    return this->prettyPrintScope(lvl);
+  }
+
+protected:
+  std::string indent(int n) {
+    if (n >= 0) {
+      std::stringstream ss;
+      for (int i = 0; i < n; i++)
+        ss << "\t";
+      return ss.str();
+    } else
+      return "";
   }
 
 private:
@@ -198,10 +205,16 @@ public:
 };
 
 class IfElseStatement : public Statement {
+private:
+  Expression *condExp;
+  Statement *ifStat;
+  Statement *elseStat;
+
 public:
-  IfElseStatement(const Token *token, Expression *expr, Statement *stmt1,
-                  Statement *stmt2 = nullptr)
-      : Statement("selection-statement", token, {expr, stmt1, stmt2}) {}
+  IfElseStatement(const Token *token, Expression *condExp, Statement *ifStat,
+                  Statement *elseStat = nullptr)
+      : Statement("selection-statement", token, {condExp, ifStat, elseStat}),
+        condExp(condExp), ifStat(ifStat), elseStat(elseStat) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintScope(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
