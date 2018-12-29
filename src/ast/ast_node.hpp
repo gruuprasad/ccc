@@ -14,17 +14,14 @@ enum class TypeSpecifier { VOID, CHAR, INT, STRUCT };
 
 class ASTNode {
 protected:
-  unsigned long id;   // Graphviz related.
-  std::string name;   // Text representing type of the AST node.
+  std::string name; // Text representing type of the AST node.
   const Token *token;
   std::vector<ASTNode *> children;
   explicit ASTNode(std::string name, const Token *token = nullptr,
                    std::vector<ASTNode *> children = std::vector<ASTNode *>())
-      : id((unsigned long)this), name(std::move(name)), token(token),
-        children(std::move(children)) {}
+      : name(std::move(name)), token(token), children(std::move(children)) {}
 
 public:
-  unsigned long getId() const { return id; }
   virtual std::string graphWalker() = 0;
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
   virtual std::string prettyPrint(int) { return "?"; };
@@ -40,7 +37,7 @@ public:
   virtual std::string checkSemantic() { return "?"; };
   virtual std::string toCode() { return "?"; };
   std::string toGraph();
- 
+
   virtual ~ASTNode() {
     delete token;
     for (auto &child : this->children) {
@@ -71,7 +68,7 @@ public:
       : ASTNode("declaration"), ident(ident), type(type) {}
 
 private:
-  std::string graphWalker() override; 
+  std::string graphWalker() override;
   ASTNode *ident;
   TypeSpecifier type;
 };
@@ -86,7 +83,7 @@ public:
 class Expression : public ASTNode {
 public:
   Expression(std::string name, const Token *token = nullptr,
-                      std::vector<ASTNode *> children = {})
+             std::vector<ASTNode *> children = {})
       : ASTNode(std::move(name), token, std::move(children)) {}
 
 private:
@@ -166,8 +163,9 @@ public:
 
 protected:
   std::string indent(int n);
+
 private:
-  std::string graphWalker() override; 
+  std::string graphWalker() override;
 };
 
 class LabelStatement : public Statement {
@@ -182,7 +180,7 @@ public:
       : Statement("compound-statement", token, std::move(items)) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintInline(int lvl) override;
-  std::string prettyPrintInlineElse(int lvl) override; 
+  std::string prettyPrintInlineElse(int lvl) override;
 };
 
 class ExpressionStatement : public Statement {
@@ -222,14 +220,14 @@ class BreakStatement : public Statement {
 public:
   explicit BreakStatement(const Token *token)
       : Statement("jump-statement", token) {}
-  std::string prettyPrint(int lvl) override; 
+  std::string prettyPrint(int lvl) override;
 };
 
 class ContinueStatement : public Statement {
 public:
   explicit ContinueStatement(const Token *token)
       : Statement("jump-statement", token) {}
-  std::string prettyPrint(int lvl) override; 
+  std::string prettyPrint(int lvl) override;
 };
 
 class ReturnStatement : public Statement {
