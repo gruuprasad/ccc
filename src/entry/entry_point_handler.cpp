@@ -41,7 +41,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       return EXIT_SUCCESS;
     } else if (flagName == "--print-ast") {
       ASTNode *root =
-          new CompoundStatement(new Token(TokenType::BRACE_OPEN), {});
+          new CompoundStatement(Token(TokenType::BRACE_OPEN), {});
       std::cout << root->prettyPrint();
       delete root;
       return EXIT_SUCCESS;

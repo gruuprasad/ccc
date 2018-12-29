@@ -6,7 +6,7 @@ namespace ccc {
 
 // Methods to generate prettyprinting for different AST types.
 std::string BinaryExpression::prettyPrint() {
-  return "(" + children[0]->prettyPrint() + " " + token->name() + " " +
+  return "(" + children[0]->prettyPrint() + " " + token.name() + " " +
          children[1]->prettyPrint() + ")";
 }
 
@@ -131,10 +131,10 @@ std::string TranslationUnit::prettyPrint(int lvl) {
 }
 
 std::string TranslationUnit::graphWalker() {
-  if (children.empty() && this->token) {
+  if (children.empty() && !token.isGhostType()) {
     std::stringstream ss;
     ss << (unsigned long)this << "[label=<<font point-size='10'>"
-       << *this->token << "</font>";
+       << token << "</font>";
     ss << "> shape=none style=filled fillcolor=lightgrey];\n";
     return ss.str();
   } else {
@@ -156,8 +156,8 @@ std::string Declaration::graphWalker() {
 std::string Expression::graphWalker() {
   std::stringstream ss;
   ss << (unsigned long)this << "[label=<" << this->name;
-  if (this->token)
-    ss << "<br/><font point-size='10'>" << *this->token << "</font>";
+  if (!token.isGhostType())
+    ss << "<br/><font point-size='10'>" << token << "</font>";
   ;
   ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
   for (ASTNode *child : this->children) {
@@ -171,7 +171,7 @@ std::string Expression::graphWalker() {
 
 std::string PrimaryExpression::graphWalker() {
   std::stringstream ss;
-  ss << (unsigned long)this << "[label=<" << this->token->getExtra()
+  ss << (unsigned long)this << "[label=<" << token.getExtra()
      << "> shape=diamond style=filled fillcolor=lightyellow];\n";
   return ss.str();
 }
@@ -179,8 +179,8 @@ std::string PrimaryExpression::graphWalker() {
 std::string Statement::graphWalker() {
   std::stringstream ss;
   ss << (unsigned long)this << "[label=<" << this->name;
-  if (this->token)
-    ss << "<br/><font point-size='10'>" << *this->token << "</font>";
+  if (!token.isGhostType())
+    ss << "<br/><font point-size='10'>" << token << "</font>";
   ss << "> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
   for (ASTNode *child : this->children) {
     if (child) {
