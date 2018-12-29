@@ -21,11 +21,15 @@ protected:
   std::string name;
   // Text representing type of the AST node.
   const Token token;
-  explicit ASTNode(std::string name, const Token token = Token())
-      : name(std::move(name)), token(token) {}
+  Location loc;
+  explicit ASTNode(std::string name, Location loc = Location(0, 0))
+      : name(std::move(name)), loc(loc) {}
 
 public:
-  const Token *getToken() const { return &token; }
+  const Token getToken() const {
+    return Token(TokenType::GHOST, loc.getLine(), loc.getColumn(),
+                 token.getExtra());
+  }
   const std::string &getName() const { return name; }
   virtual std::string walk(ASTNode *root, std::vector<ASTNode *> children) = 0;
   virtual std::string graphWalker() {
@@ -50,11 +54,15 @@ private:
   std::vector<ASTNode *> children;
 
 public:
-  TranslationUnit(const Token token, ASTNode *child)
-      : ASTNode("translationUnit", token), children({child}) {}
+  TranslationUnit(const Token &token, ASTNode *child)
+      : ASTNode("translationUnit",
+                Location(token.getLine(), token.getColumn())),
+        children({child}) {}
 
-  TranslationUnit(const Token token, std::vector<ASTNode *> children)
-      : ASTNode("translationUnit", token), children(std::move(children)) {}
+  TranslationUnit(const Token &token, std::vector<ASTNode *> children)
+      : ASTNode("translationUnit",
+                Location(token.getLine(), token.getColumn())),
+        children(std::move(children)) {}
 
   std::string prettyPrint(int lvl) override;
   ~TranslationUnit() override {
@@ -83,20 +91,23 @@ public:
 // AST nodes for expression
 class Expression : public ASTNode {
 public:
-  explicit Expression(std::string name, const Token token = Token())
-      : ASTNode(std::move(name), token) {}
+  explicit Expression(std::string name, Location loc = Location(0, 0))
+      : ASTNode(std::move(name), loc) {}
 
 protected:
   std::string walk(ASTNode *root, std::vector<ASTNode *> children) override;
 };
 
 class PrimaryExpression : public Expression {
+private:
+  std::string extra;
+
 public:
-  explicit PrimaryExpression(const Token token)
-      : Expression("primary expression", token){};
-  PrimaryExpression(std::string name, const Token token)
-      : Expression(std::move(name), token){};
-  std::string prettyPrint(int) override { return this->token.getExtra(); }
+  PrimaryExpression(std::string name, const Token &token)
+      : Expression(std::move(name),
+                   Location(token.getLine(), token.getColumn())),
+        extra(token.getExtra()){};
+  std::string prettyPrint(int) override { return extra; }
 
 private:
   std::string graphWalker() override;
@@ -104,19 +115,19 @@ private:
 
 class Identifier : public PrimaryExpression {
 public:
-  explicit Identifier(const Token token = Token())
+  explicit Identifier(const Token &token = Token())
       : PrimaryExpression("identifier", token) {}
 };
 
 class StringLiteral : public PrimaryExpression {
 public:
-  explicit StringLiteral(const Token token = Token())
+  explicit StringLiteral(const Token &token = Token())
       : PrimaryExpression("string-literal", token) {}
 };
 
 class Constant : public PrimaryExpression {
 public:
-  explicit Constant(const Token token = Token())
+  explicit Constant(const Token &token = Token())
       : PrimaryExpression("constant", token) {}
 };
 
@@ -141,11 +152,13 @@ class BinaryExpression : public Expression {
 private:
   Expression *leftExpr;
   Expression *rightExpr;
+  std::string op;
 
 public:
-  BinaryExpression(const Token token, Expression *expr1, Expression *expr2)
-      : Expression("additive-expression", token), leftExpr(expr1),
-        rightExpr(expr2) {}
+  BinaryExpression(const Token &token, Expression *expr1, Expression *expr2)
+      : Expression("additive-expression",
+                   Location(token.getLine(), token.getColumn())),
+        leftExpr(expr1), rightExpr(expr2), op(token.name()) {}
   std::string prettyPrint() override;
   std::string graphWalker() override {
     return walk(this, {leftExpr, rightExpr});
@@ -178,8 +191,8 @@ public:
 class Statement : public ASTNode {
 private:
 public:
-  explicit Statement(const std::string &name, const Token token = Token())
-      : ASTNode(name, token) {}
+  explicit Statement(const std::string &name, Location loc = Location(0, 0))
+      : ASTNode(name, loc) {}
 
   virtual std::string prettyPrintBlock(int lvl) {
     return "\n" + this->prettyPrint(lvl);
@@ -227,8 +240,10 @@ private:
   std::vector<Statement *> block;
 
 public:
-  CompoundStatement(const Token token, std::vector<Statement *> block)
-      : Statement("compound-statement", token), block(std::move(block)) {}
+  CompoundStatement(const Token &token, std::vector<Statement *> block)
+      : Statement("compound-statement",
+                  Location(token.getLine(), token.getColumn())),
+        block(std::move(block)) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintBlock(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
@@ -246,8 +261,10 @@ private:
   Expression *expr;
 
 public:
-  explicit ExpressionStatement(const Token token, Expression *expr = nullptr)
-      : Statement("expression-statement", token), expr(expr) {}
+  explicit ExpressionStatement(const Token &token, Expression *expr = nullptr)
+      : Statement("expression-statement",
+                  Location(token.getLine(), token.getColumn())),
+        expr(expr) {}
   std::string graphWalker() override { return walk(this, {expr}); }
   std::string prettyPrint(int lvl) override;
   ~ExpressionStatement() override { delete (expr); }
@@ -260,10 +277,11 @@ private:
   Statement *elseStat;
 
 public:
-  IfElseStatement(const Token token, Expression *expr, Statement *ifStat,
+  IfElseStatement(const Token &token, Expression *expr, Statement *ifStat,
                   Statement *elseStat = nullptr)
-      : Statement("selection-statement", token), expr(expr), ifStat(ifStat),
-        elseStat(elseStat) {}
+      : Statement("selection-statement",
+                  Location(token.getLine(), token.getColumn())),
+        expr(expr), ifStat(ifStat), elseStat(elseStat) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintBlock(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
@@ -283,8 +301,10 @@ private:
   Statement *stat;
 
 public:
-  WhileStatement(const Token token, Expression *expr, Statement *stat)
-      : Statement("iteration-statement", token), expr(expr), stat(stat) {}
+  WhileStatement(const Token &token, Expression *expr, Statement *stat)
+      : Statement("iteration-statement",
+                  Location(token.getLine(), token.getColumn())),
+        expr(expr), stat(stat) {}
   std::string graphWalker() override { return walk(this, {expr, stat}); }
   ~WhileStatement() override {
     delete (expr);
@@ -306,15 +326,17 @@ public:
 
 class BreakStatement : public Statement {
 public:
-  explicit BreakStatement(const Token token)
-      : Statement("jump-statement", token) {}
+  explicit BreakStatement(const Token &token)
+      : Statement("jump-statement",
+                  Location(token.getLine(), token.getColumn())) {}
   std::string prettyPrint(int lvl) override;
 };
 
 class ContinueStatement : public Statement {
 public:
-  explicit ContinueStatement(const Token token)
-      : Statement("jump-statement", token) {}
+  explicit ContinueStatement(const Token &token)
+      : Statement("jump-statement",
+                  Location(token.getLine(), token.getColumn())) {}
   std::string prettyPrint(int lvl) override;
 };
 
@@ -323,8 +345,10 @@ private:
   Expression *expr;
 
 public:
-  explicit ReturnStatement(const Token token, Expression *expr = nullptr)
-      : Statement("jump-statement", token), expr(expr) {}
+  explicit ReturnStatement(const Token &token, Expression *expr = nullptr)
+      : Statement("jump-statement",
+                  Location(token.getLine(), token.getColumn())),
+        expr(expr) {}
   std::string graphWalker() override { return walk(this, {expr}); }
   std::string prettyPrint(int lvl) override;
   ~ReturnStatement() override { delete (expr); }

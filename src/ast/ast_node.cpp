@@ -6,7 +6,7 @@ namespace ccc {
 
 // Methods to generate prettyprinting for different AST types.
 std::string BinaryExpression::prettyPrint() {
-  return "(" + this->leftExpr->prettyPrint() + " " + token.name() + " " +
+  return "(" + this->leftExpr->prettyPrint() + " " + this->op + " " +
          this->rightExpr->prettyPrint() + ")";
 }
 
@@ -119,9 +119,7 @@ std::string PrimaryExpression::graphWalker() {
 std::string Expression::walk(ASTNode *root, std::vector<ASTNode *> children) {
   std::stringstream ss;
   ss << (unsigned long)this << "[label=<" << root->getName();
-  if (root->getToken())
-    ss << "<br/><font point-size='10'>" << *root->getToken() << "</font>";
-  ;
+  ss << "<br/><font point-size='10'>" << root->getToken() << "</font>";
   ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
   for (ASTNode *child : children) {
     if (child) {
@@ -135,10 +133,8 @@ std::string Expression::walk(ASTNode *root, std::vector<ASTNode *> children) {
 std::string Statement::walk(ASTNode *root, std::vector<ASTNode *> children) {
   std::stringstream ss;
   ss << (unsigned long)root << "[label=<" << root->getName();
-  if (root->getToken())
-    ss << "<br/><font point-size='10'>" << *root->getToken() << "</font>";
+  ss << "<br/><font point-size='10'>" << root->getToken() << "</font>";
   ss << "> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
-
   for (ASTNode *child : children) {
     if (child) {
       ss << "subgraph cluster_" << (unsigned long)child << "{\n"
