@@ -10,10 +10,12 @@
 
 namespace ccc {
 
+enum class TypeSpecifier { VOID, CHAR, INT, STRUCT };
+
 class ASTNode {
 protected:
-  unsigned long id;
-  std::string name;
+  unsigned long id;   // Graphviz related.
+  std::string name;   // Text representing type of the AST node.
   const Token *token;
   std::vector<ASTNode *> children;
   explicit ASTNode(std::string name, const Token *token = nullptr,
@@ -47,16 +49,14 @@ public:
   template <class C> bool instanceof () { return (dynamic_cast<C *>(this)); }
 };
 
-enum class TypeSpecifier { VOCHAR, INT, STRUCT };
-
 class TranslationUnit : public ASTNode {
 private:
 public:
   TranslationUnit(const Token *token, ASTNode *child)
-      : ASTNode("ghost", token, {child}) {}
+      : ASTNode("translationUnit", token, {child}) {}
 
   TranslationUnit(const Token *token, std::vector<ASTNode *> children = {})
-      : ASTNode("ghost", token, std::move(children)) {}
+      : ASTNode("translationUnit", token, std::move(children)) {}
 
   std::string prettyPrint(int lvl) override;
 
