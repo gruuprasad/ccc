@@ -1,6 +1,8 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include "ast/ast_node.hpp"
+#include <fstream>
 #include <sstream>
 
 namespace ccc {
@@ -18,6 +20,13 @@ public:
       split.push_back(tmp);
     }
     return split;
+  }
+  static void saveAST(ASTNode *root, const std::string &filename) {
+    std::fstream file;
+    file.open(filename, std::ios::out | std::ios::trunc);
+    file.clear();
+    file << root->toGraph();
+    file.close();
   }
 };
 } // namespace ccc

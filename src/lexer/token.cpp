@@ -224,6 +224,8 @@ const std::string Token::name() const {
     return "non-keyword";
   case TokenType::INVALIDTOK:
     return "invalid-tok";
+  case TokenType::GHOST:
+    return "ghost";
   default:
     std::cerr << "error: unknown TokenType";
     return "unknown type";
@@ -437,17 +439,19 @@ const std::string Token::token_type() const {
   case TokenType::DOUBLE:
     return "keyword";
   case TokenType::ENDOFFILE:
-    return "ghost";
+    return "helper";
   case TokenType::BLOCKCOMMENT:
-    return "ghost";
+    return "helper";
   case TokenType::LINECOMMENT:
-    return "ghost";
+    return "helper";
   case TokenType::WHITESPACE:
-    return "ghost";
+    return "helper";
   case TokenType::NONKEYWORD:
-    return "ghost";
+    return "helper";
   case TokenType::INVALIDTOK:
-    return "ghost";
+    return "helper";
+  case TokenType::GHOST:
+    return "helper";
   default:
     std::cerr << "error: unknown TokenType";
     return "unknown type";

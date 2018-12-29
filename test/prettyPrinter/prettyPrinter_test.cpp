@@ -7,7 +7,6 @@
 using namespace ccc;
 bool compare(ASTNode *root, const std::string &expected) {
   std::string content = root->prettyPrint();
-  delete root;
   if (expected != content) {
     std::vector<std::string> expected_lines = Utils::split_lines(expected);
     std::vector<std::string> content_lines = Utils::split_lines(content);
@@ -34,10 +33,21 @@ bool compare(ASTNode *root, const std::string &expected) {
         break;
       }
     }
-    std::cout << content << std::endl;
+    //    std::cout << content << std::endl;
     return false;
   }
   return true;
+}
+TEST_CASE("pretty print block block") {
+  auto root = new CompoundStatement(
+      new Token(TokenType::GHOST),
+      {new CompoundStatement(new Token(TokenType::GHOST), {})});
+
+  REQUIRE(compare(root, "{\n"
+                        "\t{\n"
+                        "\t}\n"
+                        "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print block") {
@@ -53,6 +63,7 @@ TEST_CASE("pretty print block") {
   REQUIRE(compare(root, "{\n"
                         "\t(b = 2);\n"
                         "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print if") {
@@ -78,6 +89,7 @@ TEST_CASE("pretty print if") {
                         "\t\t(b += 2);\n"
                         "\t}\n"
                         "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print if inline") {
@@ -100,6 +112,7 @@ TEST_CASE("pretty print if inline") {
                         "\tif ((a == 1))\n"
                         "\t\t(b += 2);\n"
                         "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print if else") {
@@ -135,6 +148,7 @@ TEST_CASE("pretty print if else") {
                         "\t\t(b += 2);\n"
                         "\t}\n"
                         "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print if else inline") {
@@ -165,6 +179,7 @@ TEST_CASE("pretty print if else inline") {
                         "\telse\n"
                         "\t\t(a / 3);\n"
                         "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print if else if else inline") {
@@ -200,6 +215,7 @@ TEST_CASE("pretty print if else if else inline") {
                         "\t\treturn 0;\n"
                         "\t}\n"
                         "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print if else if else") {
@@ -237,6 +253,7 @@ TEST_CASE("pretty print if else if else") {
                         "\t\treturn 0;\n"
                         "\t}\n"
                         "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print if else if") {
@@ -267,6 +284,7 @@ TEST_CASE("pretty print if else if") {
                         "\t\treturn 1;\n"
                         "\t}\n"
                         "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print while") {
@@ -300,6 +318,7 @@ TEST_CASE("pretty print while") {
                         "\t\t(0 * 5);\n"
                         "\t}\n"
                         "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print while inline") {
@@ -325,4 +344,5 @@ TEST_CASE("pretty print while inline") {
                         "\t\telse\n"
                         "\t\t\treturn \"test\";\n"
                         "}\n"));
+  delete root;
 }
