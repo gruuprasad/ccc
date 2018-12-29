@@ -27,6 +27,10 @@ public:
     file.clear();
     file << root->toGraph();
     file.close();
+
+    std::stringstream ss;
+    ss << "dot " << filename << " -Tsvg > test.svg";
+    std::system(ss.str().c_str());
   }
 };
 } // namespace ccc

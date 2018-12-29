@@ -47,7 +47,6 @@ TEST_CASE("pretty print block block") {
                         "\t{\n"
                         "\t}\n"
                         "}\n"));
-  std::cout << root->toGraph();
   delete root;
 }
 
@@ -221,28 +220,28 @@ TEST_CASE("pretty print if else if else inline") {
 
 TEST_CASE("pretty print if else if else") {
   auto root = new CompoundStatement(
-      new Token(TokenType::GHOST),
+      new Token(TokenType::BRACE_OPEN),
       {new IfElseStatement(
-          new Token(TokenType::GHOST),
+          new Token(TokenType::IF),
           new Constant(new Token(TokenType::NUMBER, "1")),
           new ReturnStatement(
-              new Token(TokenType::GHOST),
+              new Token(TokenType::RETURN),
               new BinaryExpression(
                   new Token(TokenType::PLUS),
                   new Constant(new Token(TokenType::NUMBER, "1")),
                   new Constant(new Token(TokenType::NUMBER, "3")))),
           new IfElseStatement(
-              new Token(TokenType::GHOST),
+              new Token(TokenType::IF),
               new Constant(new Token(TokenType::NUMBER, "0")),
               new CompoundStatement(
-                  new Token(TokenType::GHOST),
+                  new Token(TokenType::BRACE_OPEN),
                   {new ReturnStatement(
-                      new Token(TokenType::GHOST),
+                      new Token(TokenType::RETURN),
                       new Identifier(new Token(TokenType::NUMBER, "1")))}),
               new CompoundStatement(
-                  new Token(TokenType::GHOST),
+                  new Token(TokenType::BRACE_OPEN),
                   {new ReturnStatement(
-                      new Token(TokenType::GHOST),
+                      new Token(TokenType::RETURN),
                       new Identifier(new Token(TokenType::NUMBER, "0")))})))});
 
   REQUIRE(compare(root, "{\n"
@@ -254,6 +253,7 @@ TEST_CASE("pretty print if else if else") {
                         "\t\treturn 0;\n"
                         "\t}\n"
                         "}\n"));
+  //  Utils::saveAST(root, "test.gv");
   delete root;
 }
 

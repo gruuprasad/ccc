@@ -1,5 +1,7 @@
 #include <utility>
 
+#include <utility>
+
 #ifndef C4_ASTNODE_HPP
 #define C4_ASTNODE_HPP
 
@@ -16,17 +18,19 @@ enum class TypeSpecifier { VOID, CHAR, INT, STRUCT };
 
 class ASTNode {
 protected:
-  std::string name; // Text representing type of the AST node.
+  std::string name;
+  // Text representing type of the AST node.
   const Token *token;
-  std::vector<ASTNode *> children; // only used for gv, may become deprecated
   explicit ASTNode(std::string name, const Token *token = nullptr)
-      : name(std::move(name)), token(token),
-        children(std::vector<ASTNode *>()) {}
+      : name(std::move(name)), token(token) {}
 
 public:
-  static std::string walkStatement(ASTNode *root,
-                                   std::vector<ASTNode *> children);
-  virtual std::string graphWalker() = 0;
+  const Token *getToken() const { return token; }
+  const std::string &getName() const { return name; }
+  virtual std::string walk(ASTNode *root, std::vector<ASTNode *> children) = 0;
+  virtual std::string graphWalker() {
+    return walk(this, std::vector<ASTNode *>());
+  }
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
   virtual std::string prettyPrint(int) { return "-?-"; };
   virtual std::string checkSemantic() { return "?"; };
@@ -37,32 +41,26 @@ public:
            this->graphWalker() + "}\n}\n";
   }
 
-  virtual ~ASTNode() {
-    delete token;
-    for (auto &child : this->children) {
-      delete child;
-    }
-  }
+  virtual ~ASTNode() { delete token; }
   template <class C> bool instanceof () { return (dynamic_cast<C *>(this)); }
 };
 
 class TranslationUnit : public ASTNode {
 private:
+  std::vector<ASTNode *> children;
+
 public:
   TranslationUnit(const Token *token, ASTNode *child)
-      : ASTNode("translationUnit", token) {
-    this->children.push_back(child);
-  }
+      : ASTNode("translationUnit", token), children({child}) {}
 
-  TranslationUnit(const Token *token) : ASTNode("translationUnit", token) {
-    this->children.insert(this->children.end(), children.begin(),
-                          children.end());
-  }
+  TranslationUnit(const Token *token, std::vector<ASTNode *> children)
+      : ASTNode("translationUnit", token), children(std::move(children)) {}
 
   std::string prettyPrint(int lvl) override;
-
-private:
-  std::string graphWalker() override;
+  ~TranslationUnit() override {
+    for (ASTNode *node : children)
+      delete (node);
+  }
 };
 
 class Declaration : public ASTNode {
@@ -88,8 +86,8 @@ public:
   explicit Expression(std::string name, const Token *token = nullptr)
       : ASTNode(std::move(name), token) {}
 
-private:
-  std::string graphWalker() override;
+protected:
+  std::string walk(ASTNode *root, std::vector<ASTNode *> children) override;
 };
 
 class PrimaryExpression : public Expression {
@@ -124,34 +122,54 @@ public:
 
 class FunctionCall : public Expression {
 public:
-  explicit FunctionCall(std::vector<ASTNode *> arguments)
-      : Expression("postfix-expression") {
-    this->children.insert(this->children.end(), arguments.begin(),
-                          arguments.end());
-  }
+  //  explicit FunctionCall(std::vector<ASTNode *> arguments)
+  //      : Expression("postfix-expression") {
+  //    this->children.insert(this->children.end(), arguments.begin(),
+  //                          arguments.end());
+  //  }
 };
 
 class SizeOfExpression : public Expression {
 public:
-  explicit SizeOfExpression(ASTNode *type) : Expression("unary-expression") {
-    this->children.push_back(type);
-  }
+  //  explicit SizeOfExpression(ASTNode *type) : Expression("unary-expression")
+  //  {
+  //    this->children.push_back(type);
+  //  }
 };
 
 class BinaryExpression : public Expression {
+private:
+  Expression *leftExpr;
+  Expression *rightExpr;
+
 public:
   BinaryExpression(const Token *token, Expression *expr1, Expression *expr2)
-      : Expression("additive-expression", token) {
-    this->children.insert(this->children.end(), {expr1, expr2});
-  }
+      : Expression("additive-expression", token), leftExpr(expr1),
+        rightExpr(expr2) {}
   std::string prettyPrint() override;
+  std::string graphWalker() override {
+    return walk(this, {leftExpr, rightExpr});
+  }
+  ~BinaryExpression() override {
+    delete (leftExpr);
+    delete (rightExpr);
+  }
 };
 
 class ConditionalExpression : public Expression {
+private:
+  Expression *condExpr;
+  Expression *ifExpr;
+  Expression *elseExpr;
+
 public:
   ConditionalExpression(Expression *expr1, Expression *expr2, Expression *expr3)
-      : Expression("conditional-expression") {
-    this->children.insert(this->children.end(), {expr1, expr2, expr3});
+      : Expression("conditional-expression"), condExpr(expr1), ifExpr(expr2),
+        elseExpr(expr3) {}
+  ~ConditionalExpression() override {
+    delete (condExpr);
+    delete (ifExpr);
+    delete (elseExpr);
   }
 };
 
@@ -174,8 +192,9 @@ public:
   }
 
 protected:
+  std::string walk(ASTNode *root, std::vector<ASTNode *> children) override;
   std::string graphWalker() override {
-    return walkStatement(this, std::vector<ASTNode *>());
+    return walk(this, std::vector<ASTNode *>());
   }
   std::string indent(int n) {
     if (n >= 0) {
@@ -189,10 +208,17 @@ protected:
 };
 
 class LabelStatement : public Statement {
+private:
+  Expression *expr;
+  Statement *stat;
+
 public:
-  LabelStatement(Expression *ident, Statement *stmt)
-      : Statement("labeled-statement", nullptr) {
-    this->children.insert(this->children.end(), {ident, stmt});
+  LabelStatement(Expression *expr, Statement *stat)
+      : Statement("labeled-statement", nullptr), expr(expr), stat(stat) {}
+  std::string graphWalker() override { return walk(this, {expr, stat}); }
+  ~LabelStatement() override {
+    delete (expr);
+    delete (stat);
   }
 };
 
@@ -207,8 +233,7 @@ public:
   std::string prettyPrintBlock(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
   std::string graphWalker() override {
-    return walkStatement(this,
-                         std::vector<ASTNode *>(block.begin(), block.end()));
+    return walk(this, std::vector<ASTNode *>(block.begin(), block.end()));
   }
   ~CompoundStatement() override {
     for (Statement *stat : block)
@@ -224,7 +249,7 @@ public:
   explicit ExpressionStatement(const Token *token, Expression *expr = nullptr)
       : Statement("expression-statement", expr == nullptr ? nullptr : token),
         expr(expr) {}
-  std::string graphWalker() override { return walkStatement(this, {expr}); }
+  std::string graphWalker() override { return walk(this, {expr}); }
   std::string prettyPrint(int lvl) override;
   ~ExpressionStatement() override { delete (expr); }
 };
@@ -244,7 +269,7 @@ public:
   std::string prettyPrintBlock(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
   std::string graphWalker() override {
-    return walkStatement(this, {expr, ifStat, elseStat});
+    return walk(this, {expr, ifStat, elseStat});
   }
   ~IfElseStatement() override {
     delete (expr);
@@ -261,9 +286,7 @@ private:
 public:
   WhileStatement(const Token *token, Expression *expr, Statement *stat)
       : Statement("iteration-statement", token), expr(expr), stat(stat) {}
-  std::string graphWalker() override {
-    return walkStatement(this, {expr, stat});
-  }
+  std::string graphWalker() override { return walk(this, {expr, stat}); }
   ~WhileStatement() override {
     delete (expr);
     delete (stat);
@@ -272,11 +295,14 @@ public:
 };
 
 class GotoStatement : public Statement {
+private:
+  Expression *expr;
+
 public:
-  explicit GotoStatement(Expression *ident)
-      : Statement("jump-statement", nullptr) {
-    this->children.insert(this->children.end(), {ident});
-  }
+  explicit GotoStatement(Expression *expr)
+      : Statement("jump-statement"), expr(expr) {}
+  std::string graphWalker() override { return walk(this, {expr}); }
+  ~GotoStatement() override { delete (expr); }
 };
 
 class BreakStatement : public Statement {
@@ -300,7 +326,7 @@ private:
 public:
   explicit ReturnStatement(const Token *token, Expression *expr = nullptr)
       : Statement("jump-statement", token), expr(expr) {}
-  std::string graphWalker() override { return walkStatement(this, {expr}); }
+  std::string graphWalker() override { return walk(this, {expr}); }
   std::string prettyPrint(int lvl) override;
   ~ReturnStatement() override { delete (expr); }
 };

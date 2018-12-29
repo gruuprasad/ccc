@@ -6,8 +6,8 @@ namespace ccc {
 
 // Methods to generate prettyprinting for different AST types.
 std::string BinaryExpression::prettyPrint() {
-  return "(" + children[0]->prettyPrint() + " " + token->name() + " " +
-         children[1]->prettyPrint() + ")";
+  return "(" + this->leftExpr->prettyPrint() + " " + token->name() + " " +
+         this->rightExpr->prettyPrint() + ")";
 }
 
 std::string CompoundStatement::prettyPrint(int lvl) {
@@ -95,28 +95,12 @@ std::string ReturnStatement::prettyPrint(int lvl) {
 
 std::string TranslationUnit::prettyPrint(int lvl) {
   std::stringstream ss;
-  for (ASTNode *child : children)
-    ss << child->prettyPrint(lvl);
+  for (ASTNode *node : this->children)
+    ss << node->prettyPrint(lvl);
   return ss.str();
 }
 
 // Methods to generate dot language of graphviz for different AST types.
-
-std::string TranslationUnit::graphWalker() {
-  if (children.empty() && this->token) {
-    std::stringstream ss;
-    ss << (unsigned long)this << "[label=<<font point-size='10'>"
-       << *this->token << "</font>";
-    ss << "> shape=none style=filled fillcolor=lightgrey];\n";
-    return ss.str();
-  } else {
-    std::stringstream ss;
-    for (ASTNode *child : children) {
-      ss << child->graphWalker();
-    }
-    return ss.str();
-  }
-}
 
 std::string Declaration::graphWalker() {
   std::stringstream ss;
@@ -125,11 +109,18 @@ std::string Declaration::graphWalker() {
   return ss.str();
 }
 
-std::string Expression::graphWalker() {
+std::string PrimaryExpression::graphWalker() {
   std::stringstream ss;
-  ss << (unsigned long)this << "[label=<" << this->name;
-  if (this->token)
-    ss << "<br/><font point-size='10'>" << *this->token << "</font>";
+  ss << (unsigned long)this << "[label=<" << this->token->getExtra()
+     << "> shape=diamond style=filled fillcolor=lightyellow];\n";
+  return ss.str();
+}
+
+std::string Expression::walk(ASTNode *root, std::vector<ASTNode *> children) {
+  std::stringstream ss;
+  ss << (unsigned long)this << "[label=<" << root->getName();
+  if (root->getToken())
+    ss << "<br/><font point-size='10'>" << *root->getToken() << "</font>";
   ;
   ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
   for (ASTNode *child : children) {
@@ -141,19 +132,11 @@ std::string Expression::graphWalker() {
   return ss.str();
 }
 
-std::string PrimaryExpression::graphWalker() {
+std::string Statement::walk(ASTNode *root, std::vector<ASTNode *> children) {
   std::stringstream ss;
-  ss << (unsigned long)this << "[label=<" << this->token->getExtra()
-     << "> shape=diamond style=filled fillcolor=lightyellow];\n";
-  return ss.str();
-}
-
-std::string ASTNode::walkStatement(ASTNode *root,
-                                   std::vector<ASTNode *> children) {
-  std::stringstream ss;
-  ss << (unsigned long)root << "[label=<" << root->name;
-  if (root->token)
-    ss << "<br/><font point-size='10'>" << *root->token << "</font>";
+  ss << (unsigned long)root << "[label=<" << root->getName();
+  if (root->getToken())
+    ss << "<br/><font point-size='10'>" << *root->getToken() << "</font>";
   ss << "> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
 
   for (ASTNode *child : children) {
