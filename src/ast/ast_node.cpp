@@ -12,16 +12,16 @@ std::string BinaryExpression::prettyPrint() {
 
 std::string CompoundStatement::prettyPrint(int lvl) {
   std::stringstream ss;
-  for (ASTNode *child : this->children) {
-    ss << child->prettyPrint(lvl + 1);
+  for (Statement *stat : this->block) {
+    ss << stat->prettyPrint(lvl + 1);
   }
   return indent(lvl) + "{\n" + ss.str() + indent(lvl) + "}\n";
 }
 
 std::string CompoundStatement::prettyPrintBlock(int lvl) {
   std::stringstream ss;
-  for (ASTNode *child : this->children) {
-    ss << child->prettyPrint(lvl);
+  for (Statement *stat : this->block) {
+    ss << stat->prettyPrint(lvl);
   }
   return " {\n" + ss.str() + indent(lvl - 1) + "}\n";
 }

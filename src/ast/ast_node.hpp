@@ -16,7 +16,7 @@ class ASTNode {
 protected:
   std::string name; // Text representing type of the AST node.
   const Token *token;
-  std::vector<ASTNode *> children;
+  std::vector<ASTNode *> children; // only used for gv, may become deprecated
   explicit ASTNode(std::string name, const Token *token = nullptr)
       : name(std::move(name)), token(token),
         children(std::vector<ASTNode *>()) {}
@@ -245,7 +245,11 @@ private:
 public:
   WhileStatement(const Token *token, Expression *expr, Statement *stat)
       : Statement("iteration-statement", token), expr(expr), stat(stat) {
-    this->children.insert(this->children.end(), {expr, stat});
+    //    this->children.insert(this->children.end(), {expr, stat});
+  }
+  ~WhileStatement() override {
+    delete (expr);
+    delete (stat);
   }
   std::string prettyPrint(int lvl) override;
 };
