@@ -144,4 +144,15 @@ std::string Statement::walk(ASTNode *root, std::vector<ASTNode *> children) {
   }
   return ss.str();
 }
+std::string GotoStatement::prettyPrint(int lvl) {
+  return indent(lvl) + "goto " + this->expr->prettyPrint() + ";\n";
+}
+
+std::string LabelStatement::prettyPrint(int lvl) {
+  std::stringstream ss;
+  ss << this->expr->prettyPrint() + ":\n";
+  if (this->stat)
+    ss << this->stat->prettyPrint(lvl);
+  return ss.str();
+}
 } // namespace ccc

@@ -226,9 +226,10 @@ private:
   Statement *stat;
 
 public:
-  LabelStatement(Expression *expr, Statement *stat)
+  explicit LabelStatement(Expression *expr, Statement *stat = nullptr)
       : Statement("labeled-statement"), expr(expr), stat(stat) {}
   std::string graphWalker() override { return walk(this, {expr, stat}); }
+  std::string prettyPrint(int lvl) override;
   ~LabelStatement() override {
     delete (expr);
     delete (stat);
@@ -320,6 +321,7 @@ private:
 public:
   explicit GotoStatement(Expression *expr)
       : Statement("jump-statement"), expr(expr) {}
+  std::string prettyPrint(int lvl) override;
   std::string graphWalker() override { return walk(this, {expr}); }
   ~GotoStatement() override { delete (expr); }
 };

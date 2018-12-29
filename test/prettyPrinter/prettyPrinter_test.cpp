@@ -39,9 +39,8 @@ bool compare(ASTNode *root, const std::string &expected) {
   return true;
 }
 TEST_CASE("pretty print block block") {
-  auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
-      {new CompoundStatement(Token(TokenType::GHOST), {})});
+  auto root =
+      new CompoundStatement(Token(), {new CompoundStatement(Token(), {})});
 
   REQUIRE(compare(root, "{\n"
                         "\t{\n"
@@ -52,13 +51,12 @@ TEST_CASE("pretty print block block") {
 
 TEST_CASE("pretty print block") {
   auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new ExpressionStatement(
-          Token(TokenType::GHOST),
-          new BinaryExpression(
-              Token(TokenType::ASSIGN),
-              new Identifier(Token(TokenType::IDENTIFIER, "b")),
-              new Constant(Token(TokenType::NUMBER, "2"))))});
+          Token(), new BinaryExpression(
+                       Token(TokenType::ASSIGN),
+                       new Identifier(Token(TokenType::IDENTIFIER, "b")),
+                       new Constant(Token(TokenType::NUMBER, "2"))))});
 
   REQUIRE(compare(root, "{\n"
                         "\t(b = 2);\n"
@@ -68,17 +66,17 @@ TEST_CASE("pretty print block") {
 
 TEST_CASE("pretty print if") {
   auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new IfElseStatement(
-          Token(TokenType::GHOST),
+          Token(),
           new BinaryExpression(
               Token(TokenType::EQUAL),
               new Identifier(Token(TokenType::IDENTIFIER, "a")),
               new Constant(Token(TokenType::NUMBER, "1"))),
           new CompoundStatement(
-              Token(TokenType::GHOST),
+              Token(),
               {new ExpressionStatement(
-                  Token(TokenType::GHOST),
+                  Token(),
                   new BinaryExpression(
                       Token(TokenType::PLUS_ASSIGN),
                       new Identifier(Token(TokenType::IDENTIFIER, "b")),
@@ -94,19 +92,18 @@ TEST_CASE("pretty print if") {
 
 TEST_CASE("pretty print if inline") {
   auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new IfElseStatement(
-          Token(TokenType::GHOST),
+          Token(),
           new BinaryExpression(
               Token(TokenType::EQUAL),
               new Identifier(Token(TokenType::IDENTIFIER, "a")),
               new Constant(Token(TokenType::NUMBER, "1"))),
           new ExpressionStatement(
-              Token(TokenType::GHOST),
-              new BinaryExpression(
-                  Token(TokenType::PLUS_ASSIGN),
-                  new Identifier(Token(TokenType::IDENTIFIER, "b")),
-                  new Constant(Token(TokenType::NUMBER, "2")))))});
+              Token(), new BinaryExpression(
+                           Token(TokenType::PLUS_ASSIGN),
+                           new Identifier(Token(TokenType::IDENTIFIER, "b")),
+                           new Constant(Token(TokenType::NUMBER, "2")))))});
 
   REQUIRE(compare(root, "{\n"
                         "\tif ((a == 1))\n"
@@ -117,17 +114,17 @@ TEST_CASE("pretty print if inline") {
 
 TEST_CASE("pretty print if else") {
   auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new IfElseStatement(
-          Token(TokenType::GHOST),
+          Token(),
           new BinaryExpression(
               Token(TokenType::EQUAL),
               new Identifier(Token(TokenType::IDENTIFIER, "a")),
               new Constant(Token(TokenType::NUMBER, "1"))),
           new CompoundStatement(
-              Token(TokenType::GHOST),
+              Token(),
               {new ExpressionStatement(
-                  Token(TokenType::GHOST),
+                  Token(),
                   new BinaryExpression(
                       Token(TokenType::PLUS_ASSIGN),
                       new Identifier(Token(TokenType::IDENTIFIER, "b")),
@@ -135,7 +132,7 @@ TEST_CASE("pretty print if else") {
           new CompoundStatement(
               Token(TokenType::BRACE_OPEN),
               {new ExpressionStatement(
-                  Token(TokenType::GHOST),
+                  Token(),
                   new BinaryExpression(
                       Token(TokenType::PLUS_ASSIGN),
                       new Identifier(Token(TokenType::IDENTIFIER, "b")),
@@ -153,25 +150,23 @@ TEST_CASE("pretty print if else") {
 
 TEST_CASE("pretty print if else inline") {
   auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new IfElseStatement(
-          Token(TokenType::GHOST),
+          Token(),
           new BinaryExpression(
               Token(TokenType::EQUAL),
               new Identifier(Token(TokenType::IDENTIFIER, "a")),
               new Constant(Token(TokenType::NUMBER, "1"))),
           new ExpressionStatement(
-              Token(TokenType::GHOST),
-              new BinaryExpression(
-                  Token(TokenType::PLUS_ASSIGN),
-                  new Identifier(Token(TokenType::IDENTIFIER, "b")),
-                  new Constant(Token(TokenType::NUMBER, "2")))),
+              Token(), new BinaryExpression(
+                           Token(TokenType::PLUS_ASSIGN),
+                           new Identifier(Token(TokenType::IDENTIFIER, "b")),
+                           new Constant(Token(TokenType::NUMBER, "2")))),
           new ExpressionStatement(
-              Token(TokenType::GHOST),
-              new BinaryExpression(
-                  Token(TokenType::DIV),
-                  new Identifier(Token(TokenType::IDENTIFIER, "a")),
-                  new Constant(Token(TokenType::NUMBER, "3")))))});
+              Token(), new BinaryExpression(
+                           Token(TokenType::DIV),
+                           new Identifier(Token(TokenType::IDENTIFIER, "a")),
+                           new Constant(Token(TokenType::NUMBER, "3")))))});
 
   REQUIRE(compare(root, "{\n"
                         "\tif ((a == 1))\n"
@@ -184,25 +179,22 @@ TEST_CASE("pretty print if else inline") {
 
 TEST_CASE("pretty print if else if else inline") {
   auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new IfElseStatement(
-          Token(TokenType::GHOST), new Constant(Token(TokenType::NUMBER, "1")),
-          new ReturnStatement(Token(TokenType::GHOST),
+          Token(), new Constant(Token(TokenType::NUMBER, "1")),
+          new ReturnStatement(Token(),
                               new BinaryExpression(
                                   Token(TokenType::PLUS),
                                   new Constant(Token(TokenType::NUMBER, "1")),
                                   new Constant(Token(TokenType::NUMBER, "3")))),
           new IfElseStatement(
-              Token(TokenType::GHOST),
-              new Constant(Token(TokenType::NUMBER, "0")),
+              Token(), new Constant(Token(TokenType::NUMBER, "0")),
               new ReturnStatement(
-                  Token(TokenType::GHOST),
-                  new Identifier(Token(TokenType::NUMBER, "1"))),
+                  Token(), new Identifier(Token(TokenType::NUMBER, "1"))),
               new CompoundStatement(
-                  Token(TokenType::GHOST),
-                  {new ReturnStatement(
-                      Token(TokenType::GHOST),
-                      new Identifier(Token(TokenType::NUMBER, "0")))})))});
+                  Token(), {new ReturnStatement(
+                               Token(), new Identifier(Token(TokenType::NUMBER,
+                                                             "0")))})))});
 
   REQUIRE(compare(root, "{\n"
                         "\tif (1)\n"
@@ -218,27 +210,24 @@ TEST_CASE("pretty print if else if else inline") {
 
 TEST_CASE("pretty print if else if else") {
   auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new IfElseStatement(
-          Token(TokenType::GHOST), new Constant(Token(TokenType::NUMBER, "1")),
-          new ReturnStatement(Token(TokenType::GHOST),
+          Token(), new Constant(Token(TokenType::NUMBER, "1")),
+          new ReturnStatement(Token(),
                               new BinaryExpression(
                                   Token(TokenType::PLUS),
                                   new Constant(Token(TokenType::NUMBER, "1")),
                                   new Constant(Token(TokenType::NUMBER, "3")))),
           new IfElseStatement(
-              Token(TokenType::GHOST),
-              new Constant(Token(TokenType::NUMBER, "0")),
+              Token(), new Constant(Token(TokenType::NUMBER, "0")),
               new CompoundStatement(
-                  Token(TokenType::GHOST),
+                  Token(),
                   {new ReturnStatement(
-                      Token(TokenType::GHOST),
-                      new Identifier(Token(TokenType::NUMBER, "1")))}),
+                      Token(), new Identifier(Token(TokenType::NUMBER, "1")))}),
               new CompoundStatement(
-                  Token(TokenType::GHOST),
-                  {new ReturnStatement(
-                      Token(TokenType::GHOST),
-                      new Identifier(Token(TokenType::NUMBER, "0")))})))});
+                  Token(), {new ReturnStatement(
+                               Token(), new Identifier(Token(TokenType::NUMBER,
+                                                             "0")))})))});
 
   REQUIRE(compare(root, "{\n"
                         "\tif (1)\n"
@@ -255,22 +244,20 @@ TEST_CASE("pretty print if else if else") {
 
 TEST_CASE("pretty print if else if") {
   auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new IfElseStatement(
-          Token(TokenType::GHOST), new Constant(Token(TokenType::NUMBER, "1")),
-          new ReturnStatement(Token(TokenType::GHOST),
+          Token(), new Constant(Token(TokenType::NUMBER, "1")),
+          new ReturnStatement(Token(),
                               new BinaryExpression(
                                   Token(TokenType::PLUS),
                                   new Constant(Token(TokenType::NUMBER, "1")),
                                   new Constant(Token(TokenType::NUMBER, "3")))),
           new IfElseStatement(
-              Token(TokenType::GHOST),
-              new Constant(Token(TokenType::NUMBER, "0")),
+              Token(), new Constant(Token(TokenType::NUMBER, "0")),
               new CompoundStatement(
-                  Token(TokenType::GHOST),
-                  {new ReturnStatement(
-                      Token(TokenType::GHOST),
-                      new Identifier(Token(TokenType::NUMBER, "1")))})))});
+                  Token(), {new ReturnStatement(
+                               Token(), new Identifier(Token(TokenType::NUMBER,
+                                                             "1")))})))});
 
   REQUIRE(compare(root, "{\n"
                         "\tif (1)\n"
@@ -288,21 +275,20 @@ TEST_CASE("pretty print while") {
       new Identifier(Token(TokenType::NUMBER, "3")));
 
   auto stat = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new ExpressionStatement(
-           Token(TokenType::GHOST),
+           Token(),
            new BinaryExpression(Token(TokenType::PLUS),
                                 new Constant(Token(TokenType::NUMBER, "1")),
                                 new Constant(Token(TokenType::NUMBER, "3")))),
        new ExpressionStatement(
-           Token(TokenType::GHOST),
+           Token(),
            new BinaryExpression(Token(TokenType::STAR),
                                 new Constant(Token(TokenType::NUMBER, "0")),
                                 new Constant(Token(TokenType::NUMBER, "5"))))});
 
-  auto root = new CompoundStatement(
-      Token(TokenType::GHOST),
-      {new WhileStatement(Token(TokenType::GHOST), cond, stat)});
+  auto root =
+      new CompoundStatement(Token(), {new WhileStatement(Token(), cond, stat)});
 
   REQUIRE(compare(root, "{\n"
                         "\twhile ((1 + 3)) {\n"
@@ -315,17 +301,15 @@ TEST_CASE("pretty print while") {
 
 TEST_CASE("pretty print while inline") {
   auto *root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new WhileStatement(
-          Token(TokenType::GHOST), new Constant(Token(TokenType::NUMBER, "3")),
+          Token(), new Constant(Token(TokenType::NUMBER, "3")),
           new IfElseStatement(
-              Token(TokenType::GHOST),
-              new Constant(Token(TokenType::NUMBER, "1")),
+              Token(), new Constant(Token(TokenType::NUMBER, "1")),
               new ReturnStatement(
-                  Token(TokenType::GHOST),
-                  new Identifier(Token(TokenType::NUMBER, "1"))),
+                  Token(), new Identifier(Token(TokenType::NUMBER, "1"))),
               new ReturnStatement(
-                  Token(TokenType::GHOST),
+                  Token(),
                   new Identifier(Token(TokenType::STRING, "\"test\"")))))});
 
   REQUIRE(compare(root, "{\n"
@@ -340,14 +324,12 @@ TEST_CASE("pretty print while inline") {
 
 TEST_CASE("pretty print while inline if else break continue") {
   auto *root = new CompoundStatement(
-      Token(TokenType::GHOST),
+      Token(),
       {new WhileStatement(
-          Token(TokenType::GHOST), new Constant(Token(TokenType::NUMBER, "3")),
+          Token(), new Constant(Token(TokenType::NUMBER, "3")),
           new IfElseStatement(
-              Token(TokenType::GHOST),
-              new Constant(Token(TokenType::NUMBER, "1")),
-              new BreakStatement(Token(TokenType::GHOST)),
-              new ContinueStatement(Token(TokenType::GHOST))))});
+              Token(), new Constant(Token(TokenType::NUMBER, "1")),
+              new BreakStatement(Token()), new ContinueStatement(Token())))});
 
   REQUIRE(compare(root, "{\n"
                         "\twhile (3)\n"
@@ -361,13 +343,11 @@ TEST_CASE("pretty print while inline if else break continue") {
 
 TEST_CASE("pretty print while inline break continue") {
   auto *root = new CompoundStatement(
-      Token(TokenType::GHOST),
-      {new WhileStatement(Token(TokenType::GHOST),
-                          new Constant(Token(TokenType::NUMBER, "3")),
-                          new BreakStatement(Token(TokenType::GHOST))),
-       new WhileStatement(Token(TokenType::GHOST),
-                          new Constant(Token(TokenType::NUMBER, "1")),
-                          new ContinueStatement(Token(TokenType::GHOST)))});
+      Token(),
+      {new WhileStatement(Token(), new Constant(Token(TokenType::NUMBER, "3")),
+                          new BreakStatement(Token())),
+       new WhileStatement(Token(), new Constant(Token(TokenType::NUMBER, "1")),
+                          new ContinueStatement(Token()))});
 
   REQUIRE(compare(root, "{\n"
                         "\twhile (3)\n"
@@ -379,25 +359,19 @@ TEST_CASE("pretty print while inline break continue") {
 }
 TEST_CASE("pretty print while inline break continue blocks") {
   auto *root = new CompoundStatement(
-      Token(TokenType::GHOST),
-      {new WhileStatement(Token(TokenType::GHOST),
-                          new Constant(Token(TokenType::NUMBER, "3")),
-                          new CompoundStatement(
-                              Token(TokenType::GHOST),
-                              {new BreakStatement(Token(TokenType::GHOST))})),
+      Token(),
+      {new WhileStatement(
+           Token(), new Constant(Token(TokenType::NUMBER, "3")),
+           new CompoundStatement(Token(), {new BreakStatement(Token())})),
        new WhileStatement(
-           Token(TokenType::GHOST), new Constant(Token(TokenType::NUMBER, "2")),
+           Token(), new Constant(Token(TokenType::NUMBER, "2")),
            new CompoundStatement(
-               Token(TokenType::GHOST),
-               {new BreakStatement(Token(TokenType::GHOST)),
-                new CompoundStatement(
-                    Token(TokenType::GHOST),
-                    {new ContinueStatement(Token(TokenType::GHOST))})})),
+               Token(), {new BreakStatement(Token()),
+                         new CompoundStatement(
+                             Token(), {new ContinueStatement(Token())})})),
        new WhileStatement(
-           Token(TokenType::GHOST), new Constant(Token(TokenType::NUMBER, "1")),
-           new CompoundStatement(
-               Token(TokenType::GHOST),
-               {new ContinueStatement(Token(TokenType::GHOST))}))});
+           Token(), new Constant(Token(TokenType::NUMBER, "1")),
+           new CompoundStatement(Token(), {new ContinueStatement(Token())}))});
 
   REQUIRE(compare(root, "{\n"
                         "\twhile (3) {\n"
@@ -413,5 +387,64 @@ TEST_CASE("pretty print while inline break continue blocks") {
                         "\t\tcontinue;\n"
                         "\t}\n"
                         "}\n"));
+  delete root;
+}
+
+TEST_CASE("pretty print goto label") {
+  auto *root = new CompoundStatement(
+      Token(),
+      {new WhileStatement(Token(), new Constant(Token(TokenType::NUMBER, "1")),
+                          new LabelStatement(new Identifier(Token(
+                                                 TokenType::IDENTIFIER, "foo")),
+                                             new BreakStatement(Token()))),
+       new GotoStatement(new Identifier(Token(TokenType::IDENTIFIER, "foo")))});
+
+  REQUIRE(compare(root, "{\n"
+                        "\twhile (1)\n"
+                        "foo:\n"
+                        "\t\tbreak;\n"
+                        "\tgoto foo;\n"
+                        "}\n"));
+  delete root;
+}
+TEST_CASE("pretty print if else if else goto label") {
+  auto root = new CompoundStatement(
+      Token(),
+      {new IfElseStatement(
+           Token(), new Constant(Token(TokenType::NUMBER, "1")),
+           new LabelStatement(
+               new Identifier(Token(TokenType::IDENTIFIER, "foo")),
+               new GotoStatement(
+                   new Identifier(Token(TokenType::IDENTIFIER, "empty")))),
+           new IfElseStatement(
+               Token(), new Constant(Token(TokenType::NUMBER, "0")),
+               new CompoundStatement(
+                   Token(), {new GotoStatement(new Identifier(
+                                 Token(TokenType::IDENTIFIER, "end"))),
+                             new LabelStatement(new Identifier(
+                                 Token(TokenType::IDENTIFIER, "bar")))}),
+               new CompoundStatement(
+                   Token(), {new GotoStatement(new Identifier(
+                                Token(TokenType::IDENTIFIER, "foo")))}))),
+       new LabelStatement(new Identifier(Token(TokenType::IDENTIFIER, "empty")),
+                          new ExpressionStatement(Token())),
+       new LabelStatement(
+           new Identifier(Token(TokenType::IDENTIFIER, "end")))});
+
+  REQUIRE(compare(root, "{\n"
+                        "\tif (1)\n"
+                        "foo:\n"
+                        "\t\tgoto empty;\n"
+                        "\telse if (0) {\n"
+                        "\t\tgoto end;\n"
+                        "bar:\n"
+                        "\t} else {\n"
+                        "\t\tgoto foo;\n"
+                        "\t}\n"
+                        "empty:\n"
+                        "\t;\n"
+                        "end:\n"
+                        "}\n"));
+  //  Utils::saveAST(root, "test.gv");
   delete root;
 }
