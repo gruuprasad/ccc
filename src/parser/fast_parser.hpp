@@ -44,10 +44,6 @@ public:
   bool fail() const { return !error.empty(); }
   std::string getError() { return error; }
 
-#if DEBUG
-  bool printTrace = false;
-#endif
-
 private:
   Token nextToken() {
     auto ret = la_buffer.front();
