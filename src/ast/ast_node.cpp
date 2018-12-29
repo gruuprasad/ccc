@@ -18,7 +18,7 @@ std::string CompoundStatement::prettyPrint(int lvl) {
   return indent(lvl) + "{\n" + ss.str() + indent(lvl) + "}\n";
 }
 
-std::string CompoundStatement::prettyPrintScope(int lvl) {
+std::string CompoundStatement::prettyPrintBlock(int lvl) {
   std::stringstream ss;
   for (ASTNode *child : this->children) {
     ss << child->prettyPrint(lvl);
@@ -27,13 +27,16 @@ std::string CompoundStatement::prettyPrintScope(int lvl) {
 }
 
 std::string ExpressionStatement::prettyPrint(int lvl) {
-  return indent(lvl) + children[0]->prettyPrint() + ";\n";
+  if (this->expr)
+    return indent(lvl) + expr->prettyPrint() + ";\n";
+  else
+    return indent(lvl) + ";\n";
 }
 
 std::string CompoundStatement::prettyPrintScopeIndent(int lvl) {
   std::stringstream ss;
-  for (ASTNode *child : this->children) {
-    ss << child->prettyPrint(lvl);
+  for (Statement *stat : this->block) {
+    ss << stat->prettyPrint(lvl);
   }
   return " {\n" + ss.str() + indent(lvl - 1) + "} ";
 }
@@ -41,37 +44,37 @@ std::string CompoundStatement::prettyPrintScopeIndent(int lvl) {
 std::string IfElseStatement::prettyPrint(int lvl) {
   std::stringstream ss;
   if (this->elseStat) {
-    ss << indent(lvl) << "if (" << this->condExp->prettyPrint() << ")"
+    ss << indent(lvl) << "if (" << this->expr->prettyPrint() << ")"
        << this->ifStat->prettyPrintScopeIndent(lvl + 1);
     ss << "else" << this->elseStat->prettyPrintInlineIf(lvl + 1);
   } else {
-    ss << indent(lvl) << "if (" << this->condExp->prettyPrint() << ")"
-       << this->ifStat->prettyPrintScope(lvl + 1);
+    ss << indent(lvl) << "if (" << this->expr->prettyPrint() << ")"
+       << this->ifStat->prettyPrintBlock(lvl + 1);
   }
   return ss.str();
 }
 
-std::string IfElseStatement::prettyPrintScope(int lvl) {
+std::string IfElseStatement::prettyPrintBlock(int lvl) {
   return "\n" + this->prettyPrint(lvl);
 }
 
 std::string IfElseStatement::prettyPrintInlineIf(int lvl) {
   std::stringstream ss;
   if (this->elseStat) {
-    ss << " if (" << this->condExp->prettyPrint() << ")"
+    ss << " if (" << this->expr->prettyPrint() << ")"
        << this->ifStat->prettyPrintScopeIndent(lvl);
-    ss << "else" << this->elseStat->prettyPrintScope(lvl);
+    ss << "else" << this->elseStat->prettyPrintBlock(lvl);
   } else {
-    ss << " if (" << this->condExp->prettyPrint() << ")"
-       << this->ifStat->prettyPrintScope(lvl);
+    ss << " if (" << this->expr->prettyPrint() << ")"
+       << this->ifStat->prettyPrintBlock(lvl);
   }
   return ss.str();
 }
 
 std::string WhileStatement::prettyPrint(int lvl) {
   std::stringstream ss;
-  ss << indent(lvl) << "while (" << this->children[0]->prettyPrint() << ")"
-     << this->children[1]->cast<Statement>()->prettyPrintScope(lvl + 1);
+  ss << indent(lvl) << "while (" << this->expr->prettyPrint() << ")"
+     << this->stat->prettyPrintBlock(lvl + 1);
   return ss.str();
 }
 
@@ -84,8 +87,8 @@ std::string ContinueStatement::prettyPrint(int lvl) {
 }
 
 std::string ReturnStatement::prettyPrint(int lvl) {
-  if (children[0])
-    return indent(lvl) + "return " + children[0]->prettyPrint() + ";\n";
+  if (expr)
+    return indent(lvl) + "return " + expr->prettyPrint() + ";\n";
   else
     return indent(lvl) + "return;\n";
 }
