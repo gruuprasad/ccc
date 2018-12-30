@@ -19,7 +19,7 @@ std::string PrimaryExpression::walk(ASTNode *root, std::string name,
                                     std::vector<ASTNode *>) {
   std::stringstream ss;
   ss << (unsigned long)this << "[label=<" << name << " " << this->extra;
-  ss << "<br/><font point-size='10'>" << root->getToken() << "</font>";
+  ss << "<br/><font point-size='10'>" << root->getLocation() << "</font>";
   ss << "> shape=diamond style=filled fillcolor=lightyellow];\n";
   return ss.str();
 }
@@ -28,7 +28,7 @@ std::string Expression::walk(ASTNode *root, std::string name,
                              std::vector<ASTNode *> children) {
   std::stringstream ss;
   ss << (unsigned long)this << "[label=<" << name;
-  ss << "<br/><font point-size='10'>" << root->getToken() << "</font>";
+  ss << "<br/><font point-size='10'>" << root->getLocation() << "</font>";
   ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
   for (ASTNode *child : children) {
     if (child) {
@@ -43,7 +43,7 @@ std::string Statement::walk(ASTNode *root, std::string name,
                             std::vector<ASTNode *> children) {
   std::stringstream ss;
   ss << (unsigned long)root << "[label=<" << name;
-  ss << "<br/><font point-size='10'>" << root->getToken() << "</font>";
+  ss << "<br/><font point-size='10'>" << root->getLocation() << "</font>";
   ss << "> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
   for (ASTNode *child : children) {
     if (child) {

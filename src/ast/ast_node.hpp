@@ -23,13 +23,16 @@ enum class TypeSpecifier { VOID, CHAR, INT, STRUCT };
 // TODO add pointer and parameter type discription w/ comparision
 
 class ASTNode {
+private:
+  Location location;
+
 protected:
-  Location loc;
-  explicit ASTNode(Location loc = Location(0, 0)) : loc(loc) {}
+  explicit ASTNode(Location loc = Location(0, 0)) : location(loc) {}
 
 public:
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
   virtual std::string prettyPrint(int) { return "?"; };
+  const Location getLocation() { return location; }
   bool checkSemantic() { return true; };
   template <class C> C *cast() { return dynamic_cast<C *>(this); }
   virtual ~ASTNode() = default;
@@ -39,7 +42,7 @@ public:
     return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n" +
            this->graphWalker() + "}\n}\n";
   }
-  Token getToken() { return Token(TokenType::GHOST, loc); }
+  Token getToken() { return Token(TokenType::GHOST, location); }
   virtual std::string walk(ASTNode *root, std::string name,
                            std::vector<ASTNode *> children) = 0;
   virtual std::string graphWalker() = 0;
@@ -303,7 +306,10 @@ public:
   std::string prettyPrintInlineIf(int lvl) override;
 #if GRAPHVIZ
   std::string graphWalker() override {
-    return walk(this, "selection-statement", {expr, ifStat, elseStat});
+    if (elseStat)
+      return walk(this, "ifelse-statement", {expr, ifStat, elseStat});
+    else
+      return walk(this, "if-statement", {expr, ifStat, elseStat});
   }
 #endif
   ~IfElseStatement() override {
@@ -328,7 +334,7 @@ public:
   std::string prettyPrint(int lvl) override;
 #if GRAPHVIZ
   std::string graphWalker() override {
-    return walk(this, "iteration-statement", {expr, stat});
+    return walk(this, "while-statement", {expr, stat});
   }
 #endif
 };
@@ -343,7 +349,7 @@ public:
   ~GotoStatement() override { delete (expr); }
 #if GRAPHVIZ
   std::string graphWalker() override {
-    return walk(this, "jump-statement", {expr});
+    return walk(this, "goto-statement", {expr});
   }
 #endif
 };
@@ -355,7 +361,7 @@ public:
   std::string prettyPrint(int lvl) override;
 #if GRAPHVIZ
   std::string graphWalker() override {
-    return walk(this, "jump-statement", {});
+    return walk(this, "break-statement", {});
   }
 #endif
 };
@@ -367,7 +373,7 @@ public:
   std::string prettyPrint(int lvl) override;
 #if GRAPHVIZ
   std::string graphWalker() override {
-    return walk(this, "jump-statement", {});
+    return walk(this, "continue-statement", {});
   }
 #endif
 };
@@ -383,7 +389,7 @@ public:
   ~ReturnStatement() override { delete (expr); }
 #if GRAPHVIZ
   std::string graphWalker() override {
-    return walk(this, "jump-statement", {expr});
+    return walk(this, "return-statement", {expr});
   }
 #endif
 };

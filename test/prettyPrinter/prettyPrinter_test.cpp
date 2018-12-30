@@ -238,7 +238,6 @@ TEST_CASE("pretty print if else if else") {
                         "\t\treturn 0;\n"
                         "\t}\n"
                         "}\n"));
-  //  Utils::saveAST(root, "test.gv");
   delete root;
 }
 
@@ -387,7 +386,7 @@ TEST_CASE("pretty print while inline break continue blocks") {
                         "\t\tcontinue;\n"
                         "\t}\n"
                         "}\n"));
-  //  Utils::saveAST(root, "test.gv");
+  //  Utils::saveAST(root, "../../ast");
   delete root;
 }
 
@@ -432,7 +431,10 @@ TEST_CASE("pretty print if else if else goto label") {
            new Identifier(Token(TokenType::IDENTIFIER, "empty")),
            new ExpressionStatement(Token())),
        new LabeledStatement(
-           new Identifier(Token(TokenType::IDENTIFIER, "end")))});
+           new Identifier(Token(TokenType::IDENTIFIER, "end")),
+           new IfElseStatement(Token(),
+                               new Constant(Token(TokenType::NUMBER, "1")),
+                               new ReturnStatement(Token())))});
 
   REQUIRE(compare(root, "{\n"
                         "\tif (1)\n"
@@ -447,6 +449,8 @@ TEST_CASE("pretty print if else if else goto label") {
                         "empty:\n"
                         "\t;\n"
                         "end:\n"
+                        "\tif (1)\n"
+                        "\t\treturn;\n"
                         "}\n"));
   //  Utils::saveAST(root, "../../ast");
   delete root;
