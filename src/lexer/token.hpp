@@ -1,7 +1,3 @@
-#include <utility>
-
-#include <utility>
-
 #ifndef C4_TOKEN_HPP
 #define C4_TOKEN_HPP
 
@@ -9,6 +5,7 @@
 #include "token_type.hpp"
 #include <ostream>
 #include <string>
+#include <utility>
 
 namespace ccc {
 
