@@ -1,11 +1,3 @@
-#include <utility>
-
-#include <utility>
-
-#include <utility>
-
-#include <utility>
-
 #ifndef C4_ASTNODE_HPP
 #define C4_ASTNODE_HPP
 
@@ -27,7 +19,7 @@ private:
   Location location;
 
 protected:
-  explicit ASTNode(Location loc = Location(0, 0)) : location(loc) {}
+  explicit ASTNode(Location location = Location(0, 0)) : location(location) {}
 
 public:
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
@@ -304,6 +296,11 @@ public:
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintBlock(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
+  ~IfElseStatement() override {
+    delete (expr);
+    delete (ifStat);
+    delete (elseStat);
+  }
 #if GRAPHVIZ
   std::string graphWalker() override {
     if (elseStat)
@@ -312,11 +309,6 @@ public:
       return walk(this, "if-statement", {expr, ifStat, elseStat});
   }
 #endif
-  ~IfElseStatement() override {
-    delete (expr);
-    delete (ifStat);
-    delete (elseStat);
-  }
 };
 
 class WhileStatement : public Statement {
