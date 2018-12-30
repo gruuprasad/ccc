@@ -310,7 +310,7 @@ TEST_CASE("pretty print while inline") {
                   Token(), new Identifier(Token(TokenType::NUMBER, "1"))),
               new ReturnStatement(
                   Token(),
-                  new Identifier(Token(TokenType::STRING, "\"test\"")))))});
+                  new StringLiteral(Token(TokenType::STRING, "\"test\"")))))});
 
   REQUIRE(compare(root, "{\n"
                         "\twhile (3)\n"
