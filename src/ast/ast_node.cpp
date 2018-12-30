@@ -100,7 +100,8 @@ std::string TranslationUnit::prettyPrint(int lvl) {
   return ss.str();
 }
 
-// Methods to generate dot language of graphviz for different AST types.
+#if GRAPHVIZ // Methods to generate dot language of graphviz for different AST
+             // types.
 
 std::string Declaration::graphWalker() {
   std::stringstream ss;
@@ -144,4 +145,5 @@ std::string Statement::walk(ASTNode *root, std::vector<ASTNode *> children) {
   }
   return ss.str();
 }
+#endif
 } // namespace ccc
