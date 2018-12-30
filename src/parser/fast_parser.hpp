@@ -16,12 +16,12 @@
 namespace ccc {
 
 enum PARSE_TYPE { TRANSLATIONUNIT, EXPRESSION, STATEMENT, DECLARATION };
-constexpr static const std::size_t N = 3; //la_buffer size
+constexpr static const std::size_t N = 3; // la_buffer size
 
 class FastParser {
 public:
-  explicit FastParser(const std::string & content) : lexer(content) {
-    for (auto & elem : la_buffer)
+  explicit FastParser(const std::string &content) : lexer(content) {
+    for (auto &elem : la_buffer)
       elem = lexer.lex_valid();
   }
 
@@ -68,9 +68,9 @@ private:
     // Set error
     return false;
   }
-    
+
   const Token &peek(std::size_t k = 0) const {
-    assert (k < N);
+    assert(k < N);
     return la_buffer[k];
   }
 
