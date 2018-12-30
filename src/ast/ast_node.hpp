@@ -16,6 +16,8 @@ namespace ccc {
 
 enum class TypeSpecifier { VOID, CHAR, INT, STRUCT };
 
+// TODO add pointer and parameter type discription w/ comparision
+
 class ASTNode {
 protected:
   std::string name; // Text representing type of the AST node, only used for gv
@@ -29,24 +31,23 @@ public:
     return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n" +
            this->graphWalker() + "}\n}\n";
   }
-  Token getToken() { return Token(TokenType::GHOST, loc); } // only used for gv
-  const std::string &getName() const { return name; }       // only used for gv
+  Token getToken() { return Token(TokenType::GHOST, loc); }
+  const std::string &getName() const { return name; }
   virtual std::string walk(ASTNode *root, std::vector<ASTNode *> children) = 0;
   virtual std::string graphWalker() {
     return walk(this, std::vector<ASTNode *>());
   }
 #endif
   virtual std::string prettyPrint() { return this->prettyPrint(0); };
-  virtual std::string prettyPrint(int) { return "-?-"; };
-  virtual std::string checkSemantic() { return "?"; };
-  virtual std::string toCode() { return "?"; };
+  virtual std::string prettyPrint(int) { return "?"; };
+  bool checkSemantic() { return true; };
   template <class C> C *cast() { return dynamic_cast<C *>(this); }
 
   virtual ~ASTNode() = default;
   template <class C> bool instanceof () { return (dynamic_cast<C *>(this)); }
 };
 
-class TranslationUnit : public ASTNode {
+class TranslationUnit : public ASTNode { // TODO
 private:
   std::vector<ASTNode *> children;
 
@@ -65,7 +66,7 @@ public:
   }
 };
 
-class Declaration : public ASTNode {
+class Declaration : public ASTNode { // TODO
 public:
   Declaration(ASTNode *ident, TypeSpecifier type)
       : ASTNode("declaration"), ident(ident), type(type) {}
@@ -78,7 +79,7 @@ private:
   TypeSpecifier type;
 };
 
-class InitDeclaration : Declaration {
+class InitDeclaration : Declaration { // TODO
 public:
   InitDeclaration(ASTNode *ident, TypeSpecifier type)
       : Declaration(ident, type) {}
@@ -126,7 +127,7 @@ public:
       : PrimaryExpression("constant", token) {}
 };
 
-class FunctionCall : public Expression {
+class FunctionCall : public Expression { // TODO
 public:
   //  explicit FunctionCall(std::vector<ASTNode *> arguments)
   //      : Expression("postfix-expression") {
@@ -135,7 +136,7 @@ public:
   //  }
 };
 
-class SizeOfExpression : public Expression {
+class SizeOfExpression : public Expression { // TODO
 public:
   //  explicit SizeOfExpression(ASTNode *type) : Expression("unary-expression")
   //  {
@@ -165,7 +166,7 @@ public:
   }
 };
 
-class ConditionalExpression : public Expression {
+class ConditionalExpression : public Expression { // TODO
 private:
   Expression *condExpr;
   Expression *ifExpr;
