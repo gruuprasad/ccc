@@ -3,6 +3,8 @@ llvm/
 sample/
 cookie/
 venv/
+*.gv
+*.svg
 
 # Created by https://www.gitignore.io/api/c,c++
 

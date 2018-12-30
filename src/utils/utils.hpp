@@ -24,13 +24,13 @@ public:
 #if GRAPHVIZ
   static void saveAST(ASTNode *root, const std::string &filename) {
     std::fstream file;
-    file.open(filename, std::ios::out | std::ios::trunc);
+    file.open(filename + ".gv", std::ios::out | std::ios::trunc);
     file.clear();
     file << root->toGraph();
     file.close();
 
     std::stringstream ss;
-    ss << "dot " << filename << " -Tsvg > test.svg";
+    ss << "dot " << filename << ".gv -Tsvg > " << filename << ".svg";
     std::system(ss.str().c_str());
   }
 #endif

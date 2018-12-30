@@ -9,21 +9,25 @@ namespace ccc {
 
 std::string Declaration::graphWalker() {
   std::stringstream ss;
-  ss << (unsigned long)this << "[label=\"" << this->name
+  ss << (unsigned long)this << "[label=\""
+     << "declaration"
      << "\" shape=box style=filled fillcolor=lightsalmon];\n";
   return ss.str();
 }
 
-std::string PrimaryExpression::graphWalker() {
+std::string PrimaryExpression::walk(ASTNode *root, std::string name,
+                                    std::vector<ASTNode *>) {
   std::stringstream ss;
-  ss << (unsigned long)this << "[label=<" << this->extra
-     << "> shape=diamond style=filled fillcolor=lightyellow];\n";
+  ss << (unsigned long)this << "[label=<" << name << " " << this->extra;
+  ss << "<br/><font point-size='10'>" << root->getToken() << "</font>";
+  ss << "> shape=diamond style=filled fillcolor=lightyellow];\n";
   return ss.str();
 }
 
-std::string Expression::walk(ASTNode *root, std::vector<ASTNode *> children) {
+std::string Expression::walk(ASTNode *root, std::string name,
+                             std::vector<ASTNode *> children) {
   std::stringstream ss;
-  ss << (unsigned long)this << "[label=<" << root->getName();
+  ss << (unsigned long)this << "[label=<" << name;
   ss << "<br/><font point-size='10'>" << root->getToken() << "</font>";
   ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
   for (ASTNode *child : children) {
@@ -35,9 +39,10 @@ std::string Expression::walk(ASTNode *root, std::vector<ASTNode *> children) {
   return ss.str();
 }
 
-std::string Statement::walk(ASTNode *root, std::vector<ASTNode *> children) {
+std::string Statement::walk(ASTNode *root, std::string name,
+                            std::vector<ASTNode *> children) {
   std::stringstream ss;
-  ss << (unsigned long)root << "[label=<" << root->getName();
+  ss << (unsigned long)root << "[label=<" << name;
   ss << "<br/><font point-size='10'>" << root->getToken() << "</font>";
   ss << "> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
   for (ASTNode *child : children) {
