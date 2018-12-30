@@ -10,8 +10,11 @@ using namespace ccc;
     std::string filedir = "../examples/";                                      \
     std::string file = filedir + filename;                                     \
     file.push_back('\0');                                                      \
-    char *argv[] = {"c4", "--parse", &file[0]};                                \
-    auto rc = EntryPointHandler().handle(3, argv);                             \
+    std::string flag = "--parse";                                              \
+    char **ppArgs = new char *[3];                                             \
+    ppArgs[1] = &flag[0];                                                      \
+    ppArgs[2] = &file[0];                                                      \
+    auto rc = EntryPointHandler().handle(3, ppArgs);                           \
     REQUIRE(rc == 0);                                                          \
   }
 
