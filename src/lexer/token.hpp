@@ -20,9 +20,12 @@ public:
   explicit Token(TokenType type, std::string extra = std::string())
       : type(type), loc(0, 0), extra(std::move(extra)) {}
   Token(const TokenType type, const unsigned long line,
-        const unsigned long column, std::string extra = std::string())
+        const unsigned long column,
+        std::string extra = std::string()) // deprecated, replace w/ Location
       : type(type), loc(line, column), extra(std::move(extra)) {}
-
+  Token(const TokenType type, const Location loc,
+        std::string extra = std::string())
+      : type(type), loc(loc), extra(std::move(extra)) {}
   Token(const Token &t) = default;
   Token &operator=(const Token &t) = default;
   Token(Token &&t) = default;
@@ -32,6 +35,7 @@ public:
   TokenType getType() const { return type; }
   unsigned long getLine() const { return loc.getLine(); }
   unsigned long getColumn() const { return loc.getColumn(); }
+  const Location &getLocation() const { return loc; }
   const std::string &getExtra() const { return extra; }
   const std::string name() const;
   const std::string token_type() const;

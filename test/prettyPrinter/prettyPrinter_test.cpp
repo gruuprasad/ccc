@@ -387,6 +387,7 @@ TEST_CASE("pretty print while inline break continue blocks") {
                         "\t\tcontinue;\n"
                         "\t}\n"
                         "}\n"));
+  //  Utils::saveAST(root, "test.gv");
   delete root;
 }
 
