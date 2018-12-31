@@ -40,8 +40,9 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       }
       return EXIT_SUCCESS;
     } else if (flagName == "--print-ast") {
-      ASTNode *root = new CompoundStatement(Token(TokenType::BRACE_OPEN), {});
-      std::cout << root->prettyPrint();
+      ASTNode *root = new TranslationUnit(
+          {new CompoundStatement(Token(TokenType::BRACE_OPEN), {})});
+      std::cout << root->prettyPrint(0);
       delete root;
       return EXIT_SUCCESS;
     }

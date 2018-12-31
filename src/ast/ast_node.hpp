@@ -1,8 +1,9 @@
+#include <utility>
+
 #ifndef C4_ASTNODE_HPP
 #define C4_ASTNODE_HPP
 
 #include "../lexer/token.hpp"
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -10,9 +11,7 @@
 
 namespace ccc {
 
-enum class TypeSpecifier { VOID, CHAR, INT, STRUCT };
-
-// TODO add pointer and parameter type discription w/ comparision
+enum class TypeSpec { VOID, CHAR, INT, STRUCT, POINTER, FUNCTION };
 
 class ASTNode {
 private:
@@ -22,11 +21,10 @@ protected:
   explicit ASTNode(Location location = Location(0, 0)) : location(location) {}
 
 public:
-  virtual std::string prettyPrint() { return this->prettyPrint(0); };
   virtual std::string prettyPrint(int) { return "?"; };
   const Location getLocation() { return location; }
-  bool checkSemantic() { return true; };
-  template <class C> C *cast() { return dynamic_cast<C *>(this); }
+  //  bool checkSemantic() { return true; };
+  //  template <class C> C *cast() { return dynamic_cast<C *>(this); }
   virtual ~ASTNode() = default;
   template <class C> bool instanceof () { return (dynamic_cast<C *>(this)); }
 #if GRAPHVIZ
@@ -34,48 +32,37 @@ public:
     return "graph ast {\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n" +
            this->graphWalker() + "}\n}\n";
   }
-  Token getToken() { return Token(TokenType::GHOST, location); }
+  //  Token getToken() { return Token(TokenType::GHOST, location); }
   virtual std::string walk(ASTNode *root, std::string name,
                            std::vector<ASTNode *> children) = 0;
   virtual std::string graphWalker() = 0;
 #endif
 };
 
-class TranslationUnit : public ASTNode { // TODO
+class TranslationUnit : public ASTNode {
 private:
   std::vector<ASTNode *> children;
 
 public:
-  TranslationUnit(const Token &token, ASTNode *child)
-      : ASTNode(token.getLocation()), children({child}) {}
-
-  TranslationUnit(const Token &token, std::vector<ASTNode *> children)
-      : ASTNode(token.getLocation()), children(std::move(children)) {}
+  explicit TranslationUnit(
+      std::vector<ASTNode *> children = std::vector<ASTNode *>())
+      : ASTNode(), children(std::move(children)) {}
 
   std::string prettyPrint(int lvl) override;
   ~TranslationUnit() override {
-    for (ASTNode *node : children)
-      delete (node);
+    for (ASTNode *child : children)
+      delete (child);
   }
-};
-
-class Declaration : public ASTNode { // TODO
-private:
-  ASTNode *ident;
-  TypeSpecifier type;
-
-public:
-  Declaration(ASTNode *ident, TypeSpecifier type)
-      : ASTNode(), ident(ident), type(type) {}
 #if GRAPHVIZ
-  std::string graphWalker() override;
+  std::string graphWalker() override { return walk(this, "", children); }
+  std::string walk(ASTNode *, std::string,
+                   std::vector<ASTNode *> children) override {
+    std::stringstream ss;
+    for (ASTNode *child : children)
+      ss << child->graphWalker();
+    return ss.str();
+  }
 #endif
-};
-
-class InitDeclaration : Declaration { // TODO
-public:
-  InitDeclaration(ASTNode *ident, TypeSpecifier type)
-      : Declaration(ident, type) {}
 };
 
 // AST nodes for expression
@@ -86,7 +73,19 @@ protected:
 public:
 #if GRAPHVIZ
   std::string walk(ASTNode *root, std::string name,
-                   std::vector<ASTNode *> children) override;
+                   std::vector<ASTNode *> children) override {
+    std::stringstream ss;
+    ss << (unsigned long)this << "[label=<" << name;
+    ss << "<br/><font point-size='10'>" << root->getLocation() << "</font>";
+    ss << "> shape=oval style=filled fillcolor=lightskyblue];\n";
+    for (ASTNode *child : children) {
+      if (child) {
+        ss << child->graphWalker() << (unsigned long)this << "--"
+           << (unsigned long)child << std::endl;
+      }
+    }
+    return ss.str();
+  }
 #endif
 };
 
@@ -100,14 +99,19 @@ public:
   std::string prettyPrint(int) override { return extra; }
 #if GRAPHVIZ
   std::string walk(ASTNode *root, std::string name,
-                   std::vector<ASTNode *> children) override;
+                   std::vector<ASTNode *>) override {
+    std::stringstream ss;
+    ss << (unsigned long)this << "[label=<" << name << " " << this->extra;
+    ss << "<br/><font point-size='10'>" << root->getLocation() << "</font>";
+    ss << "> shape=diamond style=filled fillcolor=lightyellow];\n";
+    return ss.str();
+  }
 #endif
 };
 
 class Identifier : public PrimaryExpression {
 public:
-  explicit Identifier(const Token &token = Token())
-      : PrimaryExpression(token) {}
+  explicit Identifier(const Token &token) : PrimaryExpression(token) {}
 #if GRAPHVIZ
   std::string graphWalker() override { return walk(this, "identifier", {}); }
 #endif
@@ -115,8 +119,7 @@ public:
 
 class StringLiteral : public PrimaryExpression {
 public:
-  explicit StringLiteral(const Token &token = Token())
-      : PrimaryExpression(token) {}
+  explicit StringLiteral(const Token &token) : PrimaryExpression(token) {}
 #if GRAPHVIZ
   std::string graphWalker() override {
     return walk(this, "string-literal", {});
@@ -126,27 +129,75 @@ public:
 
 class Constant : public PrimaryExpression {
 public:
-  explicit Constant(const Token &token = Token()) : PrimaryExpression(token) {}
+  explicit Constant(const Token &token) : PrimaryExpression(token) {}
 #if GRAPHVIZ
   std::string graphWalker() override { return walk(this, "constant", {}); }
 #endif
 };
 
-class FunctionCall : public Expression { // TODO
+class CallExpression : public Expression {
+private:
+  Expression *call;
+  std::vector<Expression *> args;
+
 public:
-  //  explicit FunctionCall(std::vector<ASTNode *> arguments)
-  //      : Expression("postfix-expression") {
-  //    this->children.insert(this->children.end(), arguments.begin(),
-  //                          arguments.end());
-  //  }
+  explicit CallExpression(const Token &token, Expression *call,
+                          std::vector<Expression *> args)
+      : Expression(token.getLocation()), call(call), args(std::move(args)) {}
+  std::string prettyPrint(int) override;
+  ~CallExpression() override {
+    delete (call);
+    for (Expression *arg : args)
+      delete (arg);
+  }
+#if GRAPHVIZ
+  std::string graphWalker() override {
+    return walk(this, "call-expression", {});
+  }
+#endif
 };
 
-class SizeOfExpression : public Expression { // TODO
+class UnaryExpression : public Expression {
+private:
+  Expression *expr;
+  std::string op;
+
 public:
-  //  explicit SizeOfExpression(ASTNode *type) : Expression("unary-expression")
-  //  {
-  //    this->children.push_back(type);
-  //  }
+  UnaryExpression(const Token &token, Expression *expr)
+      : Expression(token.getLocation()), expr(expr), op(token.name()) {}
+  std::string prettyPrint(int) override {
+    return "(" + op + expr->prettyPrint(0) + ")";
+  }
+  ~UnaryExpression() override { delete (expr); }
+#if GRAPHVIZ
+  std::string graphWalker() override {
+    return walk(this, "uanry-expression", {expr});
+  }
+#endif
+};
+
+class PostfixExpression : public Expression {
+private:
+  Expression *expr;
+  Expression *post;
+  std::string op;
+
+public:
+  PostfixExpression(const Token &token, Expression *expr, Expression *post)
+      : Expression(token.getLocation()), expr(expr), post(post),
+        op(token.name()) {}
+  std::string prettyPrint(int) override {
+    return "(" + expr->prettyPrint(0) + op + post->prettyPrint(0) + ")";
+  }
+  ~PostfixExpression() override {
+    delete (expr);
+    delete (post);
+  }
+#if GRAPHVIZ
+  std::string graphWalker() override {
+    return walk(this, "postfix-expression", {expr});
+  }
+#endif
 };
 
 class BinaryExpression : public Expression {
@@ -159,7 +210,7 @@ public:
   BinaryExpression(const Token &token, Expression *expr1, Expression *expr2)
       : Expression(token.getLocation()), leftExpr(expr1), rightExpr(expr2),
         op(token.name()) {}
-  std::string prettyPrint() override;
+  std::string prettyPrint(int) override;
 
   ~BinaryExpression() override {
     delete (leftExpr);
@@ -172,15 +223,23 @@ public:
 #endif
 };
 
-class ConditionalExpression : public Expression { // TODO
+class ConditionalExpression : public Expression {
 private:
   Expression *condExpr;
   Expression *ifExpr;
   Expression *elseExpr;
 
 public:
-  ConditionalExpression(Expression *expr1, Expression *expr2, Expression *expr3)
-      : Expression(), condExpr(expr1), ifExpr(expr2), elseExpr(expr3) {}
+  ConditionalExpression(const Token &token, Expression *expr1,
+                        Expression *expr2, Expression *expr3)
+      : Expression(token.getLocation()), condExpr(expr1), ifExpr(expr2),
+        elseExpr(expr3) {}
+  std::string prettyPrint(int) override {
+    std::stringstream ss;
+    ss << "(" << condExpr->prettyPrint(0) << " ? " << ifExpr->prettyPrint(0)
+       << " : " << elseExpr->prettyPrint(0) << ")";
+    return ss.str();
+  }
   ~ConditionalExpression() override {
     delete (condExpr);
     delete (ifExpr);
@@ -192,6 +251,58 @@ public:
   }
 #endif
 };
+
+class TypeExpression : public Expression {
+private:
+  TypeSpec baseType;
+  TypeExpression *expr;
+  Identifier *iden;
+  std::vector<TypeExpression *> args;
+
+public:
+  explicit TypeExpression(TypeSpec baseType, TypeExpression *expr = nullptr)
+      : Expression(), baseType(baseType), expr(expr), iden(nullptr) {}
+  explicit TypeExpression(TypeSpec baseType, Identifier *iden,
+                          TypeExpression *expr = nullptr)
+      : Expression(), baseType(baseType), expr(expr), iden(iden) {}
+  explicit TypeExpression(TypeSpec baseType, TypeExpression *expr,
+                          std::vector<TypeExpression *> args)
+      : Expression(), baseType(baseType), expr(expr), iden(nullptr),
+        args(std::move(args)) {}
+  explicit TypeExpression(TypeSpec baseType, Identifier *iden,
+                          std::vector<TypeExpression *> args)
+      : Expression(), baseType(baseType), expr(nullptr), iden(iden),
+        args(std::move(args)) {}
+  std::string prettyPrint(int) override;
+#if GRAPHVIZ
+  std::string graphWalker() override {
+    return walk(this, "type-expression", {});
+  }
+#endif
+};
+
+class SizeOfExpression : public Expression {
+private:
+  Expression *expr;
+
+public:
+  explicit SizeOfExpression(const Token &token, Expression *expr)
+      : Expression(token.getLocation()), expr(expr) {}
+  std::string prettyPrint(int) override {
+    std::stringstream ss;
+    if (expr->instanceof <TypeExpression>())
+      ss << "(sizeof(" << expr->prettyPrint(0) << "))";
+    else
+      ss << "(sizeof " << expr->prettyPrint(0) << ")";
+    return ss.str();
+  }
+
+#if GRAPHVIZ
+  std::string graphWalker() override {
+    return walk(this, "sizeof-expression", {});
+  }
+#endif
+}; // namespace ccc
 
 // AST nodes for statements
 
@@ -220,7 +331,20 @@ protected:
   }
 #if GRAPHVIZ
   std::string walk(ASTNode *root, std::string name,
-                   std::vector<ASTNode *> children) override;
+                   std::vector<ASTNode *> children) override {
+    std::stringstream ss;
+    ss << (unsigned long)root << "[label=<" << name;
+    ss << "<br/><font point-size='10'>" << root->getLocation() << "</font>";
+    ss << "> shape=invhouse style=filled fillcolor=mediumaquamarine];\n";
+    for (ASTNode *child : children) {
+      if (child) {
+        ss << "subgraph cluster_" << (unsigned long)child << "{\n"
+           << child->graphWalker() << "}\n";
+        ss << (unsigned long)root << "--" << (unsigned long)child << ";\n";
+      }
+    }
+    return ss.str();
+  }
 #endif
 };
 
@@ -254,6 +378,7 @@ public:
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintBlock(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
+  std::string prettyPrintStruct(int lvl);
   ~CompoundStatement() override {
     for (Statement *stat : block)
       delete (stat);
@@ -385,6 +510,54 @@ public:
   }
 #endif
 };
+
+class DeclarationStatement : public Statement {
+private:
+  TypeExpression *type;
+  CompoundStatement *body;
+
+public:
+  DeclarationStatement(const Token &token, TypeExpression *type,
+                       CompoundStatement *body = nullptr)
+      : Statement(token.getLocation()), type(type), body(body) {}
+  std::string prettyPrint(int lvl) override;
+  ~DeclarationStatement() override {
+    delete (type);
+    delete (body);
+  }
+#if GRAPHVIZ
+  std::string graphWalker() override {
+    std::stringstream ss;
+    ss << (unsigned long)this << "[label=\""
+       << "declaration"
+       << "\" shape=box style=filled fillcolor=lightsalmon];\n";
+    return ss.str();
+  }
+#endif
+};
+
+class StructStatement : public Statement {
+private:
+  Identifier *name;
+  CompoundStatement *body;
+  Identifier *alias;
+
+public:
+  StructStatement(const Token &token, Identifier *name, CompoundStatement *body,
+                  Identifier *alias)
+      : Statement(token.getLocation()), name(name), body(body), alias(alias) {}
+  std::string prettyPrint(int lvl) override;
+  ~StructStatement() override {
+    delete (name);
+    delete (alias);
+    delete (body);
+  }
+#if GRAPHVIZ
+  std::string graphWalker() override {
+    return walk(this, "struct-statement", {name, body, alias});
+  }
+#endif
+}; // namespace ccc
 
 } // namespace ccc
 
