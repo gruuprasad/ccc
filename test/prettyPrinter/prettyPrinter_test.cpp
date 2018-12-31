@@ -4,7 +4,7 @@
 #include "utils/utils.hpp"
 #include <fstream>
 
-using namespace ccc;
+namespace ccc {
 bool compare(ASTNode *root, const std::string &expected) {
   std::string content = root->prettyPrint();
   if (expected != content) {
@@ -269,25 +269,27 @@ TEST_CASE("pretty print if else if") {
 }
 
 TEST_CASE("pretty print while") {
-  auto cond = new BinaryExpression(
-      Token(TokenType::PLUS), new Identifier(Token(TokenType::NUMBER, "1")),
-      new Identifier(Token(TokenType::NUMBER, "3")));
 
-  auto stat = new CompoundStatement(
+  auto root = new CompoundStatement(
       Token(),
-      {new ExpressionStatement(
-           Token(),
-           new BinaryExpression(Token(TokenType::PLUS),
+      {new WhileStatement(
+          Token(),
+          new BinaryExpression(Token(TokenType::PLUS),
+                               new Identifier(Token(TokenType::NUMBER, "1")),
+                               new Identifier(Token(TokenType::NUMBER, "3"))),
+          new CompoundStatement(
+              Token(),
+              {new ExpressionStatement(
+                   Token(), new BinaryExpression(
+                                Token(TokenType::PLUS),
                                 new Constant(Token(TokenType::NUMBER, "1")),
                                 new Constant(Token(TokenType::NUMBER, "3")))),
-       new ExpressionStatement(
-           Token(),
-           new BinaryExpression(Token(TokenType::STAR),
-                                new Constant(Token(TokenType::NUMBER, "0")),
-                                new Constant(Token(TokenType::NUMBER, "5"))))});
-
-  auto root =
-      new CompoundStatement(Token(), {new WhileStatement(Token(), cond, stat)});
+               new ExpressionStatement(
+                   Token(),
+                   new BinaryExpression(
+                       Token(TokenType::STAR),
+                       new Constant(Token(TokenType::NUMBER, "0")),
+                       new Constant(Token(TokenType::NUMBER, "5"))))}))});
 
   REQUIRE(compare(root, "{\n"
                         "\twhile ((1 + 3)) {\n"
@@ -386,7 +388,6 @@ TEST_CASE("pretty print while inline break continue blocks") {
                         "\t\tcontinue;\n"
                         "\t}\n"
                         "}\n"));
-  //  Utils::saveAST(root, "../../ast");
   delete root;
 }
 
@@ -452,6 +453,6 @@ TEST_CASE("pretty print if else if else goto label") {
                         "\tif (1)\n"
                         "\t\treturn;\n"
                         "}\n"));
-  //  Utils::saveAST(root, "../../ast");
   delete root;
 }
+} // namespace ccc
