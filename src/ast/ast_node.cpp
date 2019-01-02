@@ -24,36 +24,28 @@ std::string CallExpression::prettyPrint(int) {
   ss << "))";
   return ss.str();
 }
-std::string CompoundStatement::prettyPrint(int lvl) {
-  std::stringstream ss;
-  for (Statement *stat : this->block) {
-    ss << stat->prettyPrint(lvl + 1);
-  }
-  return indent(lvl) + "{\n" + ss.str() + indent(lvl) + "}\n";
-}
 
 std::string CompoundStatement::prettyPrintBlock(int lvl) {
   std::stringstream ss;
-  for (Statement *stat : this->block) {
-    ss << stat->prettyPrint(lvl);
-  }
-  return " {\n" + ss.str() + indent(lvl - 1) + "}\n";
+  for (Statement *stat : this->block)
+    ss << stat->prettyPrint(lvl + 1);
+  return "{\n" + ss.str() + indent(lvl) + "}";
+}
+
+std::string CompoundStatement::prettyPrint(int lvl) {
+  return indent(lvl) + prettyPrintBlock(lvl) + "\n";
+}
+
+std::string CompoundStatement::prettyPrintInline(int lvl) {
+  return " " + prettyPrintBlock(lvl - 1) + "\n";
 }
 
 std::string CompoundStatement::prettyPrintScopeIndent(int lvl) {
-  std::stringstream ss;
-  for (Statement *stat : this->block) {
-    ss << stat->prettyPrint(lvl);
-  }
-  return " {\n" + ss.str() + indent(lvl - 1) + "} ";
+  return " " + prettyPrintBlock(lvl - 1) + " ";
 }
 
 std::string CompoundStatement::prettyPrintStruct(int lvl) {
-  std::stringstream ss;
-  for (Statement *stat : this->block) {
-    ss << stat->prettyPrint(lvl + 1);
-  }
-  return "{\n" + ss.str() + indent(lvl) + "} ";
+  return prettyPrintBlock(lvl) + " ";
 }
 
 std::string ContinueStatement::prettyPrint(int lvl) {
@@ -61,20 +53,12 @@ std::string ContinueStatement::prettyPrint(int lvl) {
 }
 
 std::string DeclarationStatement::prettyPrint(int lvl) {
-  std::stringstream ss;
-  ss << indent(lvl) << type->prettyPrint(0);
-  if (body)
-    ss << "\n" << body->prettyPrint(lvl);
-  else
-    ss << ";\n";
-  return ss.str();
+  return indent(lvl) + type->prettyPrint(0) +
+         (body ? "\n" + body->prettyPrint(lvl) : ";\n");
 }
 
 std::string ExpressionStatement::prettyPrint(int lvl) {
-  if (this->expr)
-    return indent(lvl) + expr->prettyPrint(0) + ";\n";
-  else
-    return indent(lvl) + ";\n";
+  return indent(lvl) + (this->expr ? expr->prettyPrint(0) : "") + ";\n";
 }
 
 std::string GotoStatement::prettyPrint(int lvl) {
@@ -82,118 +66,92 @@ std::string GotoStatement::prettyPrint(int lvl) {
 }
 
 std::string IfElseStatement::prettyPrint(int lvl) {
-  std::stringstream ss;
-  if (this->elseStat) {
-    ss << indent(lvl) << "if (" << this->expr->prettyPrint(0) << ")"
-       << this->ifStat->prettyPrintScopeIndent(lvl + 1);
-    ss << "else" << this->elseStat->prettyPrintInlineIf(lvl + 1);
-  } else {
-    ss << indent(lvl) << "if (" << this->expr->prettyPrint(0) << ")"
-       << this->ifStat->prettyPrintBlock(lvl + 1);
-  }
-  return ss.str();
+  return indent(lvl) + "if (" + this->expr->prettyPrint(0) + ")" +
+         (this->elseStat
+              ? this->ifStat->prettyPrintScopeIndent(lvl + 1) + "else" +
+                    this->elseStat->prettyPrintInlineIf(lvl + 1)
+              : this->ifStat->prettyPrintInline(lvl + 1));
 }
 
-std::string IfElseStatement::prettyPrintBlock(int lvl) {
+std::string IfElseStatement::prettyPrintInline(int lvl) {
   return "\n" + this->prettyPrint(lvl);
 }
 
 std::string IfElseStatement::prettyPrintInlineIf(int lvl) {
-  std::stringstream ss;
-  if (this->elseStat) {
-    ss << " if (" << this->expr->prettyPrint(0) << ")"
-       << this->ifStat->prettyPrintScopeIndent(lvl);
-    ss << "else" << this->elseStat->prettyPrintBlock(lvl);
-  } else {
-    ss << " if (" << this->expr->prettyPrint(0) << ")"
-       << this->ifStat->prettyPrintBlock(lvl);
-  }
-  return ss.str();
+  return " if (" + this->expr->prettyPrint(0) + ")" +
+         (this->elseStat ? this->ifStat->prettyPrintScopeIndent(lvl) + "else" +
+                               this->elseStat->prettyPrintInlineIf(lvl)
+                         : this->ifStat->prettyPrintInline(lvl));
 }
 
 std::string LabeledStatement::prettyPrint(int lvl) {
-  std::stringstream ss;
-  ss << this->expr->prettyPrint(0) + ":\n";
-  if (this->stat)
-    ss << this->stat->prettyPrint(lvl);
-  return ss.str();
+  return this->expr->prettyPrint(0) + ":\n" +
+         (this->stat ? this->stat->prettyPrint(lvl) : "");
 }
 
 std::string ReturnStatement::prettyPrint(int lvl) {
-  if (expr)
-    return indent(lvl) + "return " + expr->prettyPrint(0) + ";\n";
-  else
-    return indent(lvl) + "return;\n";
+  return expr ? indent(lvl) + "return " + expr->prettyPrint(0) + ";\n"
+              : indent(lvl) + "return;\n";
 }
 
 std::string StructStatement::prettyPrint(int lvl) {
-  std::stringstream ss;
-  ss << indent(lvl) << "struct " << this->name->prettyPrint(0) << "\n";
-  ss << indent(lvl) << body->prettyPrintStruct(lvl);
-  ss << this->alias->prettyPrint(0) << ";\n";
-  return ss.str();
+  return indent(lvl) + "struct " + this->name->prettyPrint(0) + "\n" +
+         indent(lvl) + body->prettyPrintStruct(lvl) +
+         this->alias->prettyPrint(0) + ";\n";
 }
 
 std::string TranslationUnit::prettyPrint(int lvl) {
   std::stringstream ss;
-  for (ASTNode *node : this->children)
+  for (ASTNode *node : this->children) {
     ss << node->prettyPrint(lvl);
+    if (node != children.back())
+      ss << "\n";
+  }
   return ss.str();
 }
 
 std::string TypeExpression::prettyPrint(int) {
-  std::stringstream ss;
+  std::string tail =
+      (expr ? (expr->isTypeExpression() ? " (" + expr->prettyPrint(0) + ")"
+                                        : " " + expr->prettyPrint(0))
+            : "");
   switch (baseType) {
   case TypeSpec::VOID:
-    ss << "void";
-    break;
+    return "void" + tail;
   case TypeSpec::CHAR:
-    ss << "char";
-    break;
+    return "char" + tail;
   case TypeSpec::INT:
-    ss << "int";
-    break;
-  case TypeSpec::POINTER:
-    ss << "*";
-    if (expr) {
-      ss << "(" << expr->prettyPrint(0) << ")";
-    } else if (iden) {
-      ss << iden->prettyPrint(0);
-    }
-    return ss.str();
-  case TypeSpec::STRUCT:
-    ss << "struct ";
-    ss << iden->prettyPrint(0);
-    if (expr) {
-      ss << " (" << expr->prettyPrint(0) << ")";
-    }
-    return ss.str();
-  case TypeSpec::FUNCTION:
-    if (expr)
-      ss << "(" << expr->prettyPrint(0) << ")(";
-    else if (iden)
-      ss << iden->prettyPrint(0) << "(";
-    for (TypeExpression *arg : args) {
-      ss << arg->prettyPrint(0);
-      if (arg != args.back())
-        ss << ", ";
-    }
-    ss << ")";
-    return ss.str();
+    return "int" + tail;
+  default:
+    return "?";
   }
-  if (expr) {
-    ss << " (" << expr->prettyPrint(0) << ")";
-  } else if (iden) {
-    ss << " " << iden->prettyPrint(0);
+}
+
+std::string PointerTypeExpression::prettyPrint(int) {
+  return "*" + (expr->isTypeExpression() ? "(" + expr->prettyPrint(0) + ")"
+                                         : expr->prettyPrint(0));
+}
+
+std::string StructTypeExpression::prettyPrint(int) {
+  return "struct " + iden->prettyPrint(0) +
+         (expr ? " (" + expr->prettyPrint(0) + ")" : "");
+}
+
+std::string FunctionTypeExpression::prettyPrint(int) {
+  std::stringstream ss;
+  for (TypeExpression *arg : args) {
+    ss << arg->prettyPrint(0);
+    if (arg != args.back())
+      ss << ", ";
   }
-  return ss.str();
+  return (expr->isTypeExpression() ? "(" + expr->prettyPrint(0) + ")("
+                                   : expr->prettyPrint(0) + "(") +
+         ss.str() + ")";
 }
 
 std::string WhileStatement::prettyPrint(int lvl) {
-  std::stringstream ss;
-  ss << indent(lvl) << "while (" << this->expr->prettyPrint(0) << ")"
-     << this->stat->prettyPrintBlock(lvl + 1);
-  return ss.str();
+  return indent(lvl) + "while (" + this->expr->prettyPrint(0) + ")" +
+         this->stat->prettyPrintInline(lvl + 1);
 }
 
 } // namespace ccc

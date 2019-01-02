@@ -55,10 +55,11 @@ TEST_CASE("pretty print block") {
       Token(),
       {
           new ExpressionStatement(
-              Token(), new BinaryExpression(
-                           Token(TokenType::ASSIGN),
-                           new Identifier(Token(TokenType::IDENTIFIER, "b")),
-                           new Constant(Token(TokenType::NUMBER, "2")))),
+              Token(),
+              new BinaryExpression(
+                  Token(TokenType::ASSIGN),
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "b")),
+                  new ConstantExpression(Token(TokenType::NUMBER, "2")))),
       });
 
   REQUIRE(compare(root, "{\n"
@@ -75,17 +76,18 @@ TEST_CASE("pretty print if") {
               Token(),
               new BinaryExpression(
                   Token(TokenType::EQUAL),
-                  new Identifier(Token(TokenType::IDENTIFIER, "a")),
-                  new Constant(Token(TokenType::NUMBER, "1"))),
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
+                  new ConstantExpression(Token(TokenType::NUMBER, "1"))),
               new CompoundStatement(
                   Token(),
                   {
                       new ExpressionStatement(
-                          Token(),
-                          new BinaryExpression(
-                              Token(TokenType::PLUS_ASSIGN),
-                              new Identifier(Token(TokenType::IDENTIFIER, "b")),
-                              new Constant(Token(TokenType::NUMBER, "2")))),
+                          Token(), new BinaryExpression(
+                                       Token(TokenType::PLUS_ASSIGN),
+                                       new IdentifierExpression(
+                                           Token(TokenType::IDENTIFIER, "b")),
+                                       new ConstantExpression(
+                                           Token(TokenType::NUMBER, "2")))),
                   })),
       });
 
@@ -105,14 +107,15 @@ TEST_CASE("pretty print if inline") {
               Token(),
               new BinaryExpression(
                   Token(TokenType::EQUAL),
-                  new Identifier(Token(TokenType::IDENTIFIER, "a")),
-                  new Constant(Token(TokenType::NUMBER, "1"))),
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
+                  new ConstantExpression(Token(TokenType::NUMBER, "1"))),
               new ExpressionStatement(
                   Token(),
                   new BinaryExpression(
                       Token(TokenType::PLUS_ASSIGN),
-                      new Identifier(Token(TokenType::IDENTIFIER, "b")),
-                      new Constant(Token(TokenType::NUMBER, "2"))))),
+                      new IdentifierExpression(
+                          Token(TokenType::IDENTIFIER, "b")),
+                      new ConstantExpression(Token(TokenType::NUMBER, "2"))))),
       });
 
   REQUIRE(compare(root, "{\n"
@@ -130,27 +133,29 @@ TEST_CASE("pretty print if else") {
               Token(),
               new BinaryExpression(
                   Token(TokenType::EQUAL),
-                  new Identifier(Token(TokenType::IDENTIFIER, "a")),
-                  new Constant(Token(TokenType::NUMBER, "1"))),
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
+                  new ConstantExpression(Token(TokenType::NUMBER, "1"))),
               new CompoundStatement(
                   Token(),
                   {
                       new ExpressionStatement(
-                          Token(),
-                          new BinaryExpression(
-                              Token(TokenType::PLUS_ASSIGN),
-                              new Identifier(Token(TokenType::IDENTIFIER, "b")),
-                              new Constant(Token(TokenType::NUMBER, "2")))),
+                          Token(), new BinaryExpression(
+                                       Token(TokenType::PLUS_ASSIGN),
+                                       new IdentifierExpression(
+                                           Token(TokenType::IDENTIFIER, "b")),
+                                       new ConstantExpression(
+                                           Token(TokenType::NUMBER, "2")))),
                   }),
               new CompoundStatement(
                   Token(TokenType::BRACE_OPEN),
                   {
                       new ExpressionStatement(
-                          Token(),
-                          new BinaryExpression(
-                              Token(TokenType::PLUS_ASSIGN),
-                              new Identifier(Token(TokenType::IDENTIFIER, "b")),
-                              new Constant(Token(TokenType::NUMBER, "2")))),
+                          Token(), new BinaryExpression(
+                                       Token(TokenType::PLUS_ASSIGN),
+                                       new IdentifierExpression(
+                                           Token(TokenType::IDENTIFIER, "b")),
+                                       new ConstantExpression(
+                                           Token(TokenType::NUMBER, "2")))),
                   })),
       });
 
@@ -172,20 +177,22 @@ TEST_CASE("pretty print if else inline") {
               Token(),
               new BinaryExpression(
                   Token(TokenType::EQUAL),
-                  new Identifier(Token(TokenType::IDENTIFIER, "a")),
-                  new Constant(Token(TokenType::NUMBER, "1"))),
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
+                  new ConstantExpression(Token(TokenType::NUMBER, "1"))),
               new ExpressionStatement(
                   Token(),
                   new BinaryExpression(
                       Token(TokenType::PLUS_ASSIGN),
-                      new Identifier(Token(TokenType::IDENTIFIER, "b")),
-                      new Constant(Token(TokenType::NUMBER, "2")))),
+                      new IdentifierExpression(
+                          Token(TokenType::IDENTIFIER, "b")),
+                      new ConstantExpression(Token(TokenType::NUMBER, "2")))),
               new ExpressionStatement(
                   Token(),
                   new BinaryExpression(
                       Token(TokenType::DIV),
-                      new Identifier(Token(TokenType::IDENTIFIER, "a")),
-                      new Constant(Token(TokenType::NUMBER, "3"))))),
+                      new IdentifierExpression(
+                          Token(TokenType::IDENTIFIER, "a")),
+                      new ConstantExpression(Token(TokenType::NUMBER, "3"))))),
       });
 
   REQUIRE(compare(root, "{\n"
@@ -202,22 +209,24 @@ TEST_CASE("pretty print if else if else inline") {
       Token(),
       {
           new IfElseStatement(
-              Token(), new Constant(Token(TokenType::NUMBER, "1")),
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
               new ReturnStatement(
-                  Token(), new BinaryExpression(
-                               Token(TokenType::PLUS),
-                               new Constant(Token(TokenType::NUMBER, "1")),
-                               new Constant(Token(TokenType::NUMBER, "3")))),
+                  Token(),
+                  new BinaryExpression(
+                      Token(TokenType::PLUS),
+                      new ConstantExpression(Token(TokenType::NUMBER, "1")),
+                      new ConstantExpression(Token(TokenType::NUMBER, "3")))),
               new IfElseStatement(
-                  Token(), new Constant(Token(TokenType::NUMBER, "0")),
-                  new ReturnStatement(
-                      Token(), new Identifier(Token(TokenType::NUMBER, "1"))),
+                  Token(),
+                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
+                  new ReturnStatement(Token(), new IdentifierExpression(Token(
+                                                   TokenType::NUMBER, "1"))),
                   new CompoundStatement(
                       Token(),
                       {
                           new ReturnStatement(
-                              Token(),
-                              new Identifier(Token(TokenType::NUMBER, "0"))),
+                              Token(), new IdentifierExpression(
+                                           Token(TokenType::NUMBER, "0"))),
                       }))),
       });
 
@@ -238,28 +247,32 @@ TEST_CASE("pretty print if else if else") {
       Token(),
       {
           new IfElseStatement(
-              Token(), new Constant(Token(TokenType::NUMBER, "1")),
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
               new ReturnStatement(
-                  Token(), new BinaryExpression(
-                               Token(TokenType::PLUS),
-                               new Constant(Token(TokenType::NUMBER, "1")),
-                               new Constant(Token(TokenType::NUMBER, "3")))),
+                  Token(),
+                  new BinaryExpression(
+                      Token(TokenType::PLUS),
+                      new ConstantExpression(Token(TokenType::NUMBER, "1")),
+                      new ConstantExpression(Token(TokenType::NUMBER, "3")))),
               new IfElseStatement(
-                  Token(), new Constant(Token(TokenType::NUMBER, "0")),
+                  Token(),
+                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
                   new CompoundStatement(
                       Token(),
                       {
                           new ReturnStatement(
-                              Token(),
-                              new Identifier(Token(TokenType::NUMBER, "1"))),
+                              Token(), new IdentifierExpression(
+                                           Token(TokenType::NUMBER, "1"))),
                       }),
-                  new CompoundStatement(
+                  new IfElseStatement(
                       Token(),
-                      {
-                          new ReturnStatement(
-                              Token(),
-                              new Identifier(Token(TokenType::NUMBER, "0"))),
-                      }))),
+                      new ConstantExpression(Token(TokenType::NUMBER, "0")),
+                      new ReturnStatement(Token(),
+                                          new IdentifierExpression(
+                                              Token(TokenType::NUMBER, "1"))),
+                      new ReturnStatement(
+                          Token(), new IdentifierExpression(
+                                       Token(TokenType::NUMBER, "0")))))),
       });
 
   REQUIRE(compare(root, "{\n"
@@ -267,9 +280,10 @@ TEST_CASE("pretty print if else if else") {
                         "\t\treturn (1 + 3);\n"
                         "\telse if (0) {\n"
                         "\t\treturn 1;\n"
-                        "\t} else {\n"
+                        "\t} else if (0)\n"
+                        "\t\treturn 1;\n"
+                        "\telse\n"
                         "\t\treturn 0;\n"
-                        "\t}\n"
                         "}\n"));
   delete root;
 }
@@ -279,20 +293,22 @@ TEST_CASE("pretty print if else if") {
       Token(),
       {
           new IfElseStatement(
-              Token(), new Constant(Token(TokenType::NUMBER, "1")),
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
               new ReturnStatement(
-                  Token(), new BinaryExpression(
-                               Token(TokenType::PLUS),
-                               new Constant(Token(TokenType::NUMBER, "1")),
-                               new Constant(Token(TokenType::NUMBER, "3")))),
+                  Token(),
+                  new BinaryExpression(
+                      Token(TokenType::PLUS),
+                      new ConstantExpression(Token(TokenType::NUMBER, "1")),
+                      new ConstantExpression(Token(TokenType::NUMBER, "3")))),
               new IfElseStatement(
-                  Token(), new Constant(Token(TokenType::NUMBER, "0")),
+                  Token(),
+                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
                   new CompoundStatement(
                       Token(),
                       {
                           new ReturnStatement(
-                              Token(),
-                              new Identifier(Token(TokenType::NUMBER, "1"))),
+                              Token(), new IdentifierExpression(
+                                           Token(TokenType::NUMBER, "1"))),
                       }))),
       });
 
@@ -315,23 +331,25 @@ TEST_CASE("pretty print while") {
               Token(),
               new BinaryExpression(
                   Token(TokenType::PLUS),
-                  new Identifier(Token(TokenType::NUMBER, "1")),
-                  new Identifier(Token(TokenType::NUMBER, "3"))),
+                  new IdentifierExpression(Token(TokenType::NUMBER, "1")),
+                  new IdentifierExpression(Token(TokenType::NUMBER, "3"))),
               new CompoundStatement(
                   Token(),
                   {
                       new ExpressionStatement(
-                          Token(),
-                          new BinaryExpression(
-                              Token(TokenType::PLUS),
-                              new Constant(Token(TokenType::NUMBER, "1")),
-                              new Constant(Token(TokenType::NUMBER, "3")))),
+                          Token(), new BinaryExpression(
+                                       Token(TokenType::PLUS),
+                                       new ConstantExpression(
+                                           Token(TokenType::NUMBER, "1")),
+                                       new ConstantExpression(
+                                           Token(TokenType::NUMBER, "3")))),
                       new ExpressionStatement(
-                          Token(),
-                          new BinaryExpression(
-                              Token(TokenType::STAR),
-                              new Constant(Token(TokenType::NUMBER, "0")),
-                              new Constant(Token(TokenType::NUMBER, "5")))),
+                          Token(), new BinaryExpression(
+                                       Token(TokenType::STAR),
+                                       new ConstantExpression(
+                                           Token(TokenType::NUMBER, "0")),
+                                       new ConstantExpression(
+                                           Token(TokenType::NUMBER, "5")))),
                   })),
       });
 
@@ -349,11 +367,12 @@ TEST_CASE("pretty print while inline") {
       Token(),
       {
           new WhileStatement(
-              Token(), new Constant(Token(TokenType::NUMBER, "3")),
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
               new IfElseStatement(
-                  Token(), new Constant(Token(TokenType::NUMBER, "1")),
-                  new ReturnStatement(
-                      Token(), new Identifier(Token(TokenType::NUMBER, "1"))),
+                  Token(),
+                  new ConstantExpression(Token(TokenType::NUMBER, "1")),
+                  new ReturnStatement(Token(), new IdentifierExpression(Token(
+                                                   TokenType::NUMBER, "1"))),
                   new ReturnStatement(Token(),
                                       new StringLiteral(Token(TokenType::STRING,
                                                               "\"test\""))))),
@@ -374,9 +393,10 @@ TEST_CASE("pretty print while inline if else break continue") {
       Token(),
       {
           new WhileStatement(
-              Token(), new Constant(Token(TokenType::NUMBER, "3")),
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
               new IfElseStatement(
-                  Token(), new Constant(Token(TokenType::NUMBER, "1")),
+                  Token(),
+                  new ConstantExpression(Token(TokenType::NUMBER, "1")),
                   new BreakStatement(Token()), new ContinueStatement(Token()))),
       });
 
@@ -394,12 +414,12 @@ TEST_CASE("pretty print while inline break continue") {
   auto *root = new CompoundStatement(
       Token(),
       {
-          new WhileStatement(Token(),
-                             new Constant(Token(TokenType::NUMBER, "3")),
-                             new BreakStatement(Token())),
-          new WhileStatement(Token(),
-                             new Constant(Token(TokenType::NUMBER, "1")),
-                             new ContinueStatement(Token())),
+          new WhileStatement(
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
+              new BreakStatement(Token())),
+          new WhileStatement(
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
+              new ContinueStatement(Token())),
       });
 
   REQUIRE(compare(root, "{\n"
@@ -415,14 +435,15 @@ TEST_CASE("conditional") {
   auto *root = new CompoundStatement(
       Token(),
       {new ExpressionStatement(
-          Token(), new ConditionalExpression(
-                       Token(),
-                       new BinaryExpression(
-                           Token(TokenType::LESS),
-                           new Identifier(Token(TokenType::IDENTIFIER, "a")),
-                           new Constant(Token(TokenType::NUMBER, "0"))),
-                       new Constant(Token(TokenType::NUMBER, "1")),
-                       new Constant(Token(TokenType::NUMBER, "3"))))});
+          Token(),
+          new ConditionalExpression(
+              Token(),
+              new BinaryExpression(
+                  Token(TokenType::LESS),
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
+                  new ConstantExpression(Token(TokenType::NUMBER, "0"))),
+              new ConstantExpression(Token(TokenType::NUMBER, "1")),
+              new ConstantExpression(Token(TokenType::NUMBER, "3"))))});
 
   REQUIRE(compare(root, "{\n"
                         "\t((a < 0) ? 1 : 3);\n"
@@ -435,13 +456,13 @@ TEST_CASE("pretty print while inline break continue blocks") {
       Token(),
       {
           new WhileStatement(
-              Token(), new Constant(Token(TokenType::NUMBER, "3")),
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
               new CompoundStatement(Token(),
                                     {
                                         new BreakStatement(Token()),
                                     })),
           new WhileStatement(
-              Token(), new Constant(Token(TokenType::NUMBER, "2")),
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "2")),
               new CompoundStatement(
                   Token(),
                   {
@@ -452,7 +473,7 @@ TEST_CASE("pretty print while inline break continue blocks") {
                                             }),
                   })),
           new WhileStatement(
-              Token(), new Constant(Token(TokenType::NUMBER, "1")),
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
               new CompoundStatement(Token(),
                                     {
                                         new ContinueStatement(Token()),
@@ -478,15 +499,16 @@ TEST_CASE("pretty print while inline break continue blocks") {
 
 TEST_CASE("pretty print goto label") {
   auto *root = new CompoundStatement(
-      Token(), {
-                   new WhileStatement(
-                       Token(), new Constant(Token(TokenType::NUMBER, "1")),
-                       new LabeledStatement(
-                           new Identifier(Token(TokenType::IDENTIFIER, "foo")),
-                           new BreakStatement(Token()))),
-                   new GotoStatement(
-                       new Identifier(Token(TokenType::IDENTIFIER, "foo"))),
-               });
+      Token(),
+      {
+          new WhileStatement(
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
+              new LabeledStatement(
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "foo")),
+                  new BreakStatement(Token()))),
+          new GotoStatement(
+              new IdentifierExpression(Token(TokenType::IDENTIFIER, "foo"))),
+      });
 
   REQUIRE(compare(root, "{\n"
                         "\twhile (1)\n"
@@ -498,38 +520,41 @@ TEST_CASE("pretty print goto label") {
 }
 TEST_CASE("pretty print if else if else goto label") {
   auto root = new CompoundStatement(
-      Token(), {
-                   new IfElseStatement(
-                       Token(), new Constant(Token(TokenType::NUMBER, "1")),
-                       new LabeledStatement(
-                           new Identifier(Token(TokenType::IDENTIFIER, "foo")),
-                           new GotoStatement(new Identifier(
-                               Token(TokenType::IDENTIFIER, "empty")))),
-                       new IfElseStatement(
-                           Token(), new Constant(Token(TokenType::NUMBER, "0")),
-                           new CompoundStatement(
-                               Token(),
-                               {
-                                   new GotoStatement(new Identifier(
-                                       Token(TokenType::IDENTIFIER, "end"))),
-                                   new LabeledStatement(new Identifier(
-                                       Token(TokenType::IDENTIFIER, "bar"))),
-                               }),
-                           new CompoundStatement(
-                               Token(),
-                               {
-                                   new GotoStatement(new Identifier(
-                                       Token(TokenType::IDENTIFIER, "foo"))),
-                               }))),
-                   new LabeledStatement(
-                       new Identifier(Token(TokenType::IDENTIFIER, "empty")),
-                       new ExpressionStatement(Token())),
-                   new LabeledStatement(
-                       new Identifier(Token(TokenType::IDENTIFIER, "end")),
-                       new IfElseStatement(
-                           Token(), new Constant(Token(TokenType::NUMBER, "1")),
-                           new ReturnStatement(Token()))),
-               });
+      Token(),
+      {
+          new IfElseStatement(
+              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
+              new LabeledStatement(
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "foo")),
+                  new GotoStatement(new IdentifierExpression(
+                      Token(TokenType::IDENTIFIER, "empty")))),
+              new IfElseStatement(
+                  Token(),
+                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
+                  new CompoundStatement(
+                      Token(),
+                      {
+                          new GotoStatement(new IdentifierExpression(
+                              Token(TokenType::IDENTIFIER, "end"))),
+                          new LabeledStatement(new IdentifierExpression(
+                              Token(TokenType::IDENTIFIER, "bar"))),
+                      }),
+                  new CompoundStatement(
+                      Token(),
+                      {
+                          new GotoStatement(new IdentifierExpression(
+                              Token(TokenType::IDENTIFIER, "foo"))),
+                      }))),
+          new LabeledStatement(
+              new IdentifierExpression(Token(TokenType::IDENTIFIER, "empty")),
+              new ExpressionStatement(Token())),
+          new LabeledStatement(
+              new IdentifierExpression(Token(TokenType::IDENTIFIER, "end")),
+              new IfElseStatement(
+                  Token(),
+                  new ConstantExpression(Token(TokenType::NUMBER, "1")),
+                  new ReturnStatement(Token()))),
+      });
 
   REQUIRE(compare(root, "{\n"
                         "\tif (1)\n"
@@ -555,71 +580,55 @@ TEST_CASE("declaration") {
       Token(),
       {
           new DeclarationStatement(
+              Token(), new TypeExpression(TypeSpec::INT,
+                                          new IdentifierExpression(Token(
+                                              TokenType::IDENTIFIER, "a")))),
+          new DeclarationStatement(
               Token(), new TypeExpression(
                            TypeSpec::INT,
-                           new Identifier(Token(TokenType::IDENTIFIER, "a")))),
+                           new PointerTypeExpression(new IdentifierExpression(
+                               Token(TokenType::IDENTIFIER, "b"))))),
           new DeclarationStatement(
-              Token(),
-              new TypeExpression(
-                  TypeSpec::INT,
-                  new TypeExpression(
-                      TypeSpec::POINTER,
-                      new Identifier(Token(TokenType::IDENTIFIER, "b"))))),
+              Token(), new TypeExpression(
+                           TypeSpec::VOID,
+                           new PointerTypeExpression(new PointerTypeExpression(
+                               new IdentifierExpression(
+                                   Token(TokenType::IDENTIFIER, "c")))))),
           new DeclarationStatement(
               Token(),
               new TypeExpression(
                   TypeSpec::VOID,
-                  new TypeExpression(
-                      TypeSpec::POINTER,
-                      new TypeExpression(
-                          TypeSpec::POINTER,
-                          new Identifier(Token(TokenType::IDENTIFIER, "c")))))),
-          new DeclarationStatement(
-              Token(), new TypeExpression(
-                           TypeSpec::VOID,
-                           new TypeExpression(
-                               TypeSpec::POINTER,
-                               new TypeExpression(
-                                   TypeSpec::FUNCTION,
-                                   new TypeExpression(
-                                       TypeSpec::POINTER,
-                                       new TypeExpression(
-                                           TypeSpec::POINTER,
-                                           new Identifier(Token(
-                                               TokenType::IDENTIFIER, "d")))),
-                                   {
-                                       new TypeExpression(TypeSpec::INT),
-                                   })))),
-          new DeclarationStatement(
-              Token(),
-              new TypeExpression(
-                  TypeSpec::INT,
-                  new TypeExpression(
-                      TypeSpec::FUNCTION,
-                      new Identifier(Token(TokenType::IDENTIFIER, "main")),
-                      std::vector<TypeExpression *>({
-                          new TypeExpression(TypeSpec::VOID),
+                  new PointerTypeExpression(new FunctionTypeExpression(
+                      new PointerTypeExpression(
+                          new PointerTypeExpression(new IdentifierExpression(
+                              Token(TokenType::IDENTIFIER, "d")))),
+                      {
+                          new TypeExpression(TypeSpec::INT),
                       })))),
           new DeclarationStatement(
               Token(),
-              new TypeExpression(
-                  TypeSpec::STRUCT,
-                  new Identifier(Token(TokenType::IDENTIFIER, "S")),
-                  new TypeExpression(
-                      TypeSpec::POINTER,
-                      new Identifier(Token(TokenType::IDENTIFIER, "p"))))),
+              new TypeExpression(TypeSpec::INT,
+                                 new FunctionTypeExpression(
+                                     new IdentifierExpression(
+                                         Token(TokenType::IDENTIFIER, "main")),
+                                     std::vector<TypeExpression *>({
+                                         new TypeExpression(TypeSpec::VOID),
+                                     })))),
           new DeclarationStatement(
               Token(),
-              new TypeExpression(
-                  TypeSpec::INT,
-                  new TypeExpression(
-                      TypeSpec::POINTER,
-                      new TypeExpression(
-                          TypeSpec::FUNCTION,
-                          new Identifier(Token(TokenType::IDENTIFIER, "test")),
-                          std::vector<TypeExpression *>({
-                              new TypeExpression(TypeSpec::CHAR),
-                          }))))),
+              new StructTypeExpression(
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "S")),
+                  new PointerTypeExpression(new IdentifierExpression(
+                      Token(TokenType::IDENTIFIER, "p"))))),
+          new DeclarationStatement(
+              Token(), new TypeExpression(
+                           TypeSpec::INT,
+                           new PointerTypeExpression(new FunctionTypeExpression(
+                               new IdentifierExpression(
+                                   Token(TokenType::IDENTIFIER, "test")),
+                               std::vector<TypeExpression *>({
+                                   new TypeExpression(TypeSpec::CHAR),
+                               }))))),
       });
   REQUIRE(compare(root, "{\n"
                         "\tint a;\n"
@@ -638,19 +647,18 @@ TEST_CASE("declaration init") {
       Token(),
       {new DeclarationStatement(
           Token(),
-          new TypeExpression(
-              TypeSpec::INT,
-              new TypeExpression(
-                  TypeSpec::FUNCTION,
-                  new Identifier(Token(TokenType::IDENTIFIER, "main")),
-                  std::vector<TypeExpression *>(
-                      {new TypeExpression(TypeSpec::VOID),
-                       new TypeExpression(TypeSpec::INT)}))),
+          new TypeExpression(TypeSpec::INT,
+                             new FunctionTypeExpression(
+                                 new IdentifierExpression(
+                                     Token(TokenType::IDENTIFIER, "main")),
+                                 std::vector<TypeExpression *>(
+                                     {new TypeExpression(TypeSpec::VOID),
+                                      new TypeExpression(TypeSpec::INT)}))),
           new CompoundStatement(
               Token(), {new DeclarationStatement(
                            Token(), new TypeExpression(
                                         TypeSpec::INT,
-                                        new Identifier(Token(
+                                        new IdentifierExpression(Token(
                                             TokenType::IDENTIFIER, "d"))))}))
 
       });
@@ -669,18 +677,19 @@ TEST_CASE("sizeof") {
       {
           new ExpressionStatement(
               Token(),
-              new SizeOfExpression(
-                  Token(), new Identifier(Token(TokenType::IDENTIFIER, "b")))),
+              new SizeOfExpression(Token(), new IdentifierExpression(Token(
+                                                TokenType::IDENTIFIER, "b")))),
           new ExpressionStatement(
               Token(),
               new SizeOfExpression(Token(), new TypeExpression(TypeSpec::INT))),
           new ExpressionStatement(
               Token(),
               new SizeOfExpression(
-                  Token(), new BinaryExpression(
-                               Token(TokenType::PLUS),
-                               new Constant(Token(TokenType::NUMBER, "0")),
-                               new Constant(Token(TokenType::NUMBER, "0"))))),
+                  Token(),
+                  new BinaryExpression(
+                      Token(TokenType::PLUS),
+                      new ConstantExpression(Token(TokenType::NUMBER, "0")),
+                      new ConstantExpression(Token(TokenType::NUMBER, "0"))))),
       });
   REQUIRE(compare(root, "{\n"
                         "\t(sizeof b);\n"
@@ -694,14 +703,14 @@ TEST_CASE("struct") {
   auto root = new CompoundStatement(
       Token(),
       {new StructStatement(
-          Token(), new Identifier(Token(TokenType::IDENTIFIER, "S")),
+          Token(), new IdentifierExpression(Token(TokenType::IDENTIFIER, "S")),
           new CompoundStatement(
               Token(), {new DeclarationStatement(
                            Token(), new TypeExpression(
                                         TypeSpec::INT,
-                                        new Identifier(Token(
+                                        new IdentifierExpression(Token(
                                             TokenType::IDENTIFIER, "x"))))}),
-          new Identifier(Token(TokenType::IDENTIFIER, "s")))});
+          new IdentifierExpression(Token(TokenType::IDENTIFIER, "s")))});
   REQUIRE(compare(root, "{\n"
                         "\tstruct S\n"
                         "\t{\n"
@@ -715,30 +724,33 @@ TEST_CASE("postfix") {
   auto root = new CompoundStatement(
       Token(),
       {new ExpressionStatement(
-           Token(), new PostfixExpression(
-                        Token(TokenType::DOT),
-                        new Identifier(Token(TokenType::IDENTIFIER, "s")),
-                        new Identifier(Token(TokenType::IDENTIFIER, "x")))),
+           Token(),
+           new PostfixExpression(
+               Token(TokenType::DOT),
+               new IdentifierExpression(Token(TokenType::IDENTIFIER, "s")),
+               new IdentifierExpression(Token(TokenType::IDENTIFIER, "x")))),
        new ExpressionStatement(
            Token(),
            new PostfixExpression(
                Token(TokenType::ARROW),
                new PostfixExpression(
                    Token(TokenType::DOT),
-                   new PostfixExpression(
-                       Token(TokenType::ARROW),
-                       new Identifier(Token(TokenType::IDENTIFIER, "a")),
-                       new Identifier(Token(TokenType::IDENTIFIER, "s"))),
-                   new Identifier(Token(TokenType::IDENTIFIER, "x"))),
-               new Identifier(Token(TokenType::IDENTIFIER, "b")))),
+                   new PostfixExpression(Token(TokenType::ARROW),
+                                         new IdentifierExpression(
+                                             Token(TokenType::IDENTIFIER, "a")),
+                                         new IdentifierExpression(Token(
+                                             TokenType::IDENTIFIER, "s"))),
+                   new IdentifierExpression(Token(TokenType::IDENTIFIER, "x"))),
+               new IdentifierExpression(Token(TokenType::IDENTIFIER, "b")))),
        new ExpressionStatement(
-           Token(), new BinaryExpression(
-                        Token(TokenType::ASSIGN),
-                        new PostfixExpression(
-                            Token(TokenType::DOT),
-                            new Identifier(Token(TokenType::IDENTIFIER, "s")),
-                            new Identifier(Token(TokenType::IDENTIFIER, "x"))),
-                        new Identifier(Token(TokenType::IDENTIFIER, "x"))))});
+           Token(),
+           new BinaryExpression(
+               Token(TokenType::ASSIGN),
+               new PostfixExpression(
+                   Token(TokenType::DOT),
+                   new IdentifierExpression(Token(TokenType::IDENTIFIER, "s")),
+                   new IdentifierExpression(Token(TokenType::IDENTIFIER, "x"))),
+               new IdentifierExpression(Token(TokenType::IDENTIFIER, "x"))))});
   REQUIRE(compare(root, "{\n"
                         "\t(s.x);\n"
                         "\t(((a->s).x)->b);\n"
@@ -752,22 +764,22 @@ TEST_CASE("unary") {
       Token(),
       {
           new ExpressionStatement(
-              Token(), new UnaryExpression(
-                           Token(TokenType::AMPERSAND),
-                           new Identifier(Token(TokenType::IDENTIFIER, "s")))),
+              Token(), new UnaryExpression(Token(TokenType::AMPERSAND),
+                                           new IdentifierExpression(Token(
+                                               TokenType::IDENTIFIER, "s")))),
           new ReturnStatement(
-              Token(),
-              new UnaryExpression(
-                  Token(TokenType::MINUS),
-                  new UnaryExpression(
-                      Token(TokenType::STAR),
-                      new UnaryExpression(
-                          Token(TokenType::AMPERSAND),
-                          new PostfixExpression(
-                              Token(TokenType::DOT),
-                              new Identifier(Token(TokenType::IDENTIFIER, "s")),
-                              new Identifier(
-                                  Token(TokenType::IDENTIFIER, "x"))))))),
+              Token(), new UnaryExpression(
+                           Token(TokenType::MINUS),
+                           new UnaryExpression(
+                               Token(TokenType::STAR),
+                               new UnaryExpression(
+                                   Token(TokenType::AMPERSAND),
+                                   new PostfixExpression(
+                                       Token(TokenType::DOT),
+                                       new IdentifierExpression(
+                                           Token(TokenType::IDENTIFIER, "s")),
+                                       new IdentifierExpression(Token(
+                                           TokenType::IDENTIFIER, "x"))))))),
       });
   REQUIRE(compare(root, "{\n"
                         "\t(&s);\n"
@@ -783,11 +795,12 @@ TEST_CASE("call") {
           new ExpressionStatement(
               Token(),
               new CallExpression(
-                  Token(), new Identifier(Token(TokenType::IDENTIFIER, "f")),
-                  {new UnaryExpression(
-                       Token(TokenType::MINUS),
-                       new Identifier(Token(TokenType::IDENTIFIER, "s"))),
-                   new Identifier(Token(TokenType::NUMBER, "1"))})),
+                  Token(),
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "f")),
+                  {new UnaryExpression(Token(TokenType::MINUS),
+                                       new IdentifierExpression(
+                                           Token(TokenType::IDENTIFIER, "s"))),
+                   new IdentifierExpression(Token(TokenType::NUMBER, "1"))})),
       });
   REQUIRE(compare(root, "{\n"
                         "\t(f((-s), 1));\n"
