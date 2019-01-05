@@ -4,8 +4,12 @@
 #define C4_ASTNODE_HPP
 
 #include "../lexer/token.hpp"
+#include "scope_handler.hpp"
+#include <algorithm>
+#include <iostream>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -23,8 +27,8 @@ protected:
 public:
   virtual std::string prettyPrint(int) { return "?"; };
   const Location getLocation() { return location; }
-  //  bool checkSemantic() { return true; };
-  //  template <class C> C *cast() { return dynamic_cast<C *>(this); }
+  template <class C> C *cast() { return dynamic_cast<C *>(this); }
+  virtual bool checkType() { return true; }
   virtual ~ASTNode() = default;
   virtual bool isTypeExpression() { return false; }
 #if GRAPHVIZ
@@ -45,6 +49,7 @@ protected:
   explicit Expression(Location loc = Location(0, 0)) : ASTNode(loc) {}
 
 public:
+  virtual std::string getIdentifier() { return ""; }
 #if GRAPHVIZ
   std::string walk(ASTNode *root, std::string name,
                    std::vector<ASTNode *> children) override {
@@ -87,6 +92,8 @@ class IdentifierExpression : public PrimaryExpression {
 public:
   explicit IdentifierExpression(const Token &token)
       : PrimaryExpression(token) {}
+  std::string getIdentifier() { return this->prettyPrint(0); }
+
 #if GRAPHVIZ
   std::string graphWalker() override { return walk(this, "identifier", {}); }
 #endif
@@ -239,6 +246,12 @@ public:
       : Expression(), baseType(baseType), expr(expr) {}
   std::string prettyPrint(int) override;
   bool isTypeExpression() override { return true; }
+  std::string getIdentifier() override {
+    if (expr) {
+      return expr->getIdentifier();
+    } else
+      return "";
+  }
   ~TypeExpression() override { delete expr; }
 #if GRAPHVIZ
   std::string graphWalker() override {
@@ -257,6 +270,7 @@ public:
   explicit PointerTypeExpression(IdentifierExpression *expr)
       : TypeExpression(TypeSpec::POINTER), expr(expr) {}
   std::string prettyPrint(int) override;
+  std::string getIdentifier() { return expr->getIdentifier(); }
   ~PointerTypeExpression() override { delete (expr); }
 #if GRAPHVIZ
   std::string graphWalker() override {
@@ -300,6 +314,7 @@ public:
                                   std::vector<TypeExpression *> args)
       : TypeExpression(TypeSpec::FUNCTION), expr(expr), args(std::move(args)) {}
   std::string prettyPrint(int) override;
+  std::string getIdentifier() { return expr->getIdentifier(); }
   ~FunctionTypeExpression() override {
     delete expr;
     for (TypeExpression *arg : args)
@@ -347,6 +362,11 @@ public:
   }
   virtual std::string prettyPrintInlineIf(int lvl) {
     return this->prettyPrintInline(lvl);
+  }
+
+  virtual bool checkType(ScopeHandler<TypeExpression> *) {
+    new ScopeHandler<TypeExpression>;
+    return true;
   }
 
 protected:
@@ -547,12 +567,18 @@ class DeclarationStatement : public Statement {
 private:
   TypeExpression *type;
   CompoundStatement *body;
+  std::string identifier;
 
 public:
   DeclarationStatement(const Token &token, TypeExpression *type,
                        CompoundStatement *body = nullptr)
-      : Statement(token.getLocation()), type(type), body(body) {}
+      : Statement(token.getLocation()), type(type), body(body),
+        identifier(type->getIdentifier()) {}
   std::string prettyPrint(int lvl) override;
+  bool checkType(ScopeHandler<TypeExpression> *scope) {
+    scope->insertDeclaration(identifier, type);
+    return true;
+  }
   ~DeclarationStatement() override {
     delete (type);
     delete (body);
@@ -593,20 +619,36 @@ public:
 
 class TranslationUnit : public ASTNode {
 private:
-  std::vector<ASTNode *> children;
+  std::vector<Statement *> children;
 
 public:
   explicit TranslationUnit(
-      std::vector<ASTNode *> children = std::vector<ASTNode *>())
+      std::vector<Statement *> children = std::vector<Statement *>())
       : ASTNode(), children(std::move(children)) {}
 
   std::string prettyPrint(int lvl) override;
+
+  bool checkType() override {
+    auto *scope = new ScopeHandler<TypeExpression>();
+    for (Statement *child : children) {
+      if (!child->checkType(scope))
+        return false;
+      scope->printScopes();
+    }
+    return true;
+  }
+
   ~TranslationUnit() override {
-    for (ASTNode *child : children)
+    for (Statement *child : children)
       delete (child);
   }
 #if GRAPHVIZ
-  std::string graphWalker() override { return walk(this, "", children); }
+  std::string graphWalker() override {
+    std::vector<ASTNode *> nodes;
+    for (Statement *child : children)
+      nodes.push_back(child);
+    return walk(this, "", nodes);
+  }
   std::string walk(ASTNode *, std::string,
                    std::vector<ASTNode *> children) override {
     std::stringstream ss;

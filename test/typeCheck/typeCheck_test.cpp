@@ -1,23 +1,25 @@
 #include "../catch.hpp"
-#include "ast/scope_handler.hpp"
+#include "ast/ast_node.hpp"
 #include <iostream>
 
 namespace ccc {
 
 TEST_CASE("scope test") {
-  ScopeHandler *scope = new ScopeHandler();
-  scope->insertDeclaration("a", "test");
-  scope->printScope();
-  scope->openScope();
-  scope->insertDeclaration("a", "test");
-  scope->insertDeclaration("b", "test");
-  scope->printScope();
-  scope->closeScope();
-  scope->printScope();
-  scope->openScope();
-  scope->insertDeclaration("c", "test");
-  scope->insertDeclaration("d", "test");
-  scope->printScope();
-}
+  auto root = new TranslationUnit({
+      new DeclarationStatement(
+          Token(),
+          new TypeExpression(TypeSpec::INT, new IdentifierExpression(Token(
+                                                TokenType::IDENTIFIER, "a")))),
+      new DeclarationStatement(
+          Token(),
+          new TypeExpression(TypeSpec::INT, new IdentifierExpression(Token(
+                                                TokenType::IDENTIFIER, "b")))),
+      new DeclarationStatement(
+          Token(),
+          new TypeExpression(TypeSpec::INT, new IdentifierExpression(Token(
+                                                TokenType::IDENTIFIER, "c")))),
+  });
+  root->checkType();
+} // namespace ccc
 
 } // namespace ccc

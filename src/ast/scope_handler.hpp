@@ -3,31 +3,36 @@
 #ifndef C4_SCOPE_HPP
 #define C4_SCOPE_HPP
 
+#include "ast_node.hpp"
 #include <algorithm>
 #include <iostream>
 #include <unordered_map>
 #include <vector>
 
-class ScopeHandler {
+namespace ccc {
+
+template <class T> class ScopeHandler {
 private:
-  std::vector<std::unordered_map<std::string, std::string>> scopes;
+  std::vector<std::unordered_map<std::string, T *>> scopes;
   unsigned long lvl;
 
 public:
-  ScopeHandler()
-      : scopes({std::unordered_map<std::string, std::string>()}), lvl(0){};
+  ScopeHandler() : scopes({std::unordered_map<std::string, T *>()}), lvl(0){};
 
-  void insertDeclaration(const std::string &key, std::string val) {
-    scopes[lvl][key] = std::move(val);
+  void insertDeclaration(const std::string &key, T *val) {
+    scopes[lvl][key] = val;
   }
 
-  void printScope() {
-    for (unsigned long i = 0; i <= lvl; i++)
+  void printScopes() {
+    std::cout << std::endl;
+    for (unsigned long i = 0; i <= lvl; i++) {
       for (const auto &kv : scopes[i]) {
         for (unsigned long j = 0; j < i; j++)
           std::cout << "\t";
-        std::cout << kv.first << " : " << kv.second << std::endl;
+        std::cout << kv.first << " : " << kv.second->prettyPrint(0)
+                  << std::endl;
       }
+    }
   }
 
   void openScope() {
@@ -39,5 +44,7 @@ public:
 
   void closeScope() { lvl--; }
 };
+
+} // namespace ccc
 
 #endif // C4_SCOPE_HPP
