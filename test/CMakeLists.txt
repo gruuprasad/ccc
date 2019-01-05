@@ -35,6 +35,13 @@ target_link_libraries(test_prettyPrinter test_LLIB)
 add_dependencies(check test_prettyPrinter)
 add_test(NAME prettyPrinter COMMAND test_prettyPrinter)
 
+add_executable(test_typeCheck
+        typeCheck/typeCheck_test.cpp
+        )
+target_link_libraries(test_typeCheck test_LLIB)
+add_dependencies(check test_typeCheck)
+add_test(NAME typeCheck COMMAND test_typeCheck)
+
 add_executable(test_all
         lexer/lexer_test.cpp
         lexer/lexer_punctuation_test.cpp
@@ -46,5 +53,6 @@ add_executable(test_all
         ast/ast_test.cpp
         prettyPrinter/prettyPrinter_test.cpp
         prettyPrinter/prettyPrinter_entry_test.cpp
+        typeCheck/typeCheck_test.cpp
         )
 target_link_libraries(test_all test_LLIB)
