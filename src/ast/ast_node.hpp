@@ -18,16 +18,15 @@ enum class TypeSpec { VOID, CHAR, INT, STRUCT, POINTER, FUNCTION };
 
 class ASTNode {
 private:
-  Location location;
+  Token token;
 
 protected:
-  explicit ASTNode(Location location = Location(0, 0)) : location(location) {}
+  explicit ASTNode(Token token = Token()) : token(token) {}
 
 public:
   virtual std::string prettyPrint(int) { return "?"; };
-  const Location getLocation() { return location; }
+  const Location getLocation() { return token.getLocation(); }
   template <class C> C *cast() { return dynamic_cast<C *>(this); }
-  virtual bool checkType() { return true; }
   virtual ~ASTNode() = default;
   virtual bool isTypeExpression() { return false; }
 #if GRAPHVIZ
@@ -45,7 +44,7 @@ public:
 // AST nodes for expression
 class Expression : public ASTNode {
 protected:
-  explicit Expression(Location loc = Location(0, 0)) : ASTNode(loc) {}
+  explicit Expression(Token token = Token()) : ASTNode(token) {}
 
 public:
   virtual std::string getIdentifier() { return ""; }
@@ -73,7 +72,7 @@ private:
 
 public:
   explicit PrimaryExpression(const Token &token)
-      : Expression(token.getLocation()), extra(token.getExtra()){};
+      : Expression(token), extra(token.getExtra()){};
   std::string prettyPrint(int) override { return extra; }
 #if GRAPHVIZ
   std::string walk(ASTNode *root, std::string name,
@@ -124,7 +123,7 @@ private:
 public:
   explicit CallExpression(const Token &token, Expression *call,
                           std::vector<Expression *> args)
-      : Expression(token.getLocation()), call(call), args(std::move(args)) {}
+      : Expression(token), call(call), args(std::move(args)) {}
   std::string prettyPrint(int) override;
   ~CallExpression() override {
     delete (call);
@@ -145,7 +144,7 @@ private:
 
 public:
   UnaryExpression(const Token &token, Expression *expr)
-      : Expression(token.getLocation()), expr(expr), op(token.name()) {}
+      : Expression(token), expr(expr), op(token.name()) {}
   std::string prettyPrint(int) override {
     return "(" + op + expr->prettyPrint(0) + ")";
   }
@@ -165,8 +164,7 @@ private:
 
 public:
   PostfixExpression(const Token &token, Expression *expr, Expression *post)
-      : Expression(token.getLocation()), expr(expr), post(post),
-        op(token.name()) {}
+      : Expression(token), expr(expr), post(post), op(token.name()) {}
   std::string prettyPrint(int) override {
     return "(" + expr->prettyPrint(0) + op + post->prettyPrint(0) + ")";
   }
@@ -189,8 +187,8 @@ private:
 
 public:
   BinaryExpression(const Token &token, Expression *expr1, Expression *expr2)
-      : Expression(token.getLocation()), leftExpr(expr1), rightExpr(expr2),
-        op(token.name()) {}
+      : Expression(token), leftExpr(expr1), rightExpr(expr2), op(token.name()) {
+  }
   std::string prettyPrint(int) override;
 
   ~BinaryExpression() override {
@@ -213,8 +211,7 @@ private:
 public:
   ConditionalExpression(const Token &token, Expression *expr1,
                         Expression *expr2, Expression *expr3)
-      : Expression(token.getLocation()), condExpr(expr1), ifExpr(expr2),
-        elseExpr(expr3) {}
+      : Expression(token), condExpr(expr1), ifExpr(expr2), elseExpr(expr3) {}
   std::string prettyPrint(int) override {
     std::stringstream ss;
     ss << "(" << condExpr->prettyPrint(0) << " ? " << ifExpr->prettyPrint(0)
@@ -332,7 +329,7 @@ private:
 
 public:
   explicit SizeOfExpression(const Token &token, Expression *expr)
-      : Expression(token.getLocation()), expr(expr) {}
+      : Expression(token), expr(expr) {}
   std::string prettyPrint(int) override {
     std::stringstream ss;
     if (expr->isTypeExpression())
@@ -348,19 +345,6 @@ public:
   }
 #endif
 };
-
-void printScopes(
-    std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes) {
-  std::cout << std::endl;
-  std::string pre = "";
-  for (std::unordered_map<std::string, TypeExpression *> scope : *scopes) {
-    for (const auto &kv : scope) {
-      std::cout << pre << kv.first << " : " << kv.second->prettyPrint(0)
-                << std::endl;
-    }
-    pre += "\t";
-  }
-}
 
 // AST nodes for statements
 
@@ -382,7 +366,7 @@ public:
   }
 
 protected:
-  explicit Statement(Location loc = Location(0, 0)) : ASTNode(loc) {}
+  explicit Statement(Token token = Token()) : ASTNode(token) {}
   std::string indent(int n) {
     if (n >= 0) {
       std::stringstream ss;
@@ -391,6 +375,18 @@ protected:
       return ss.str();
     } else
       return "";
+  }
+  void printScopes(
+      std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes) {
+    std::cout << std::endl;
+    std::string pre = "";
+    for (std::unordered_map<std::string, TypeExpression *> scope : *scopes) {
+      for (const auto &kv : scope) {
+        std::cout << pre << kv.first << " : " << kv.second->prettyPrint(0)
+                  << std::endl;
+      }
+      pre += "\t";
+    }
   }
 #if GRAPHVIZ
   std::string walk(ASTNode *root, std::string name,
@@ -438,7 +434,7 @@ private:
 
 public:
   CompoundStatement(const Token &token, std::vector<Statement *> block)
-      : Statement(token.getLocation()), block(std::move(block)) {}
+      : Statement(token), block(std::move(block)) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
@@ -472,7 +468,7 @@ private:
 
 public:
   explicit ExpressionStatement(const Token &token, Expression *expr = nullptr)
-      : Statement(token.getLocation()), expr(expr) {}
+      : Statement(token), expr(expr) {}
   std::string prettyPrint(int lvl) override;
   ~ExpressionStatement() override { delete (expr); }
 #if GRAPHVIZ
@@ -491,8 +487,7 @@ private:
 public:
   IfElseStatement(const Token &token, Expression *expr, Statement *ifStat,
                   Statement *elseStat = nullptr)
-      : Statement(token.getLocation()), expr(expr), ifStat(ifStat),
-        elseStat(elseStat) {}
+      : Statement(token), expr(expr), ifStat(ifStat), elseStat(elseStat) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
@@ -518,7 +513,7 @@ private:
 
 public:
   WhileStatement(const Token &token, Expression *expr, Statement *stat)
-      : Statement(token.getLocation()), expr(expr), stat(stat) {}
+      : Statement(token), expr(expr), stat(stat) {}
   ~WhileStatement() override {
     delete (expr);
     delete (stat);
@@ -548,8 +543,7 @@ public:
 
 class BreakStatement : public Statement {
 public:
-  explicit BreakStatement(const Token &token)
-      : Statement(token.getLocation()) {}
+  explicit BreakStatement(const Token &token) : Statement(token) {}
   std::string prettyPrint(int lvl) override;
 #if GRAPHVIZ
   std::string graphWalker() override {
@@ -560,8 +554,7 @@ public:
 
 class ContinueStatement : public Statement {
 public:
-  explicit ContinueStatement(const Token &token)
-      : Statement(token.getLocation()) {}
+  explicit ContinueStatement(const Token &token) : Statement(token) {}
   std::string prettyPrint(int lvl) override;
 #if GRAPHVIZ
   std::string graphWalker() override {
@@ -576,7 +569,7 @@ private:
 
 public:
   explicit ReturnStatement(const Token &token, Expression *expr = nullptr)
-      : Statement(token.getLocation()), expr(expr) {}
+      : Statement(token), expr(expr) {}
   std::string prettyPrint(int lvl) override;
   ~ReturnStatement() override { delete (expr); }
 #if GRAPHVIZ
@@ -595,7 +588,7 @@ private:
 public:
   DeclarationStatement(const Token &token, TypeExpression *type,
                        CompoundStatement *body = nullptr)
-      : Statement(token.getLocation()), type(type), body(body),
+      : Statement(token), type(type), body(body),
         identifier(type->getIdentifier()) {}
   std::string prettyPrint(int lvl) override;
   bool checkType(std::vector<std::unordered_map<std::string, TypeExpression *>>
@@ -628,7 +621,7 @@ private:
 public:
   StructStatement(const Token &token, IdentifierExpression *name,
                   CompoundStatement *body, IdentifierExpression *alias)
-      : Statement(token.getLocation()), name(name), body(body), alias(alias) {}
+      : Statement(token), name(name), body(body), alias(alias) {}
   std::string prettyPrint(int lvl) override;
   ~StructStatement() override {
     delete (name);
@@ -653,7 +646,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
-  bool checkType() override {
+  bool checkType() {
     std::vector<std::unordered_map<std::string, TypeExpression *>> scopes = {
         std::unordered_map<std::string, TypeExpression *>(children.size() /
                                                           .75)};
