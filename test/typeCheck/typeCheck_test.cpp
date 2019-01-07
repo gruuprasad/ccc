@@ -10,10 +10,15 @@ TEST_CASE("scope test") {
           Token(),
           new TypeExpression(TypeSpec::INT, new IdentifierExpression(Token(
                                                 TokenType::IDENTIFIER, "a")))),
-      new DeclarationStatement(
+      new CompoundStatement(
           Token(),
-          new TypeExpression(TypeSpec::INT, new IdentifierExpression(Token(
-                                                TokenType::IDENTIFIER, "b")))),
+          {
+              new DeclarationStatement(
+                  Token(),
+                  new TypeExpression(TypeSpec::INT,
+                                     new IdentifierExpression(
+                                         Token(TokenType::IDENTIFIER, "b")))),
+          }),
       new DeclarationStatement(
           Token(),
           new TypeExpression(TypeSpec::INT, new IdentifierExpression(Token(

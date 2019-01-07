@@ -19,21 +19,7 @@ private:
 public:
   ScopeHandler() : scopes({std::unordered_map<std::string, T *>()}), lvl(0){};
 
-  void insertDeclaration(const std::string &key, T *val) {
-    scopes[lvl][key] = val;
-  }
-
-  void printScopes() {
-    std::cout << std::endl;
-    for (unsigned long i = 0; i <= lvl; i++) {
-      for (const auto &kv : scopes[i]) {
-        for (unsigned long j = 0; j < i; j++)
-          std::cout << "\t";
-        std::cout << kv.first << " : " << kv.second->prettyPrint(0)
-                  << std::endl;
-      }
-    }
-  }
+  void insertDeclaration(const std::string &key, T *val) {}
 
   void openScope() {
     if (scopes.size() < ++lvl + 1)

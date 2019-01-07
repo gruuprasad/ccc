@@ -348,7 +348,20 @@ public:
     return walk(this, "sizeof-expression", {});
   }
 #endif
-}; // namespace ccc
+};
+
+void printScopes(
+    std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes) {
+  std::cout << std::endl;
+  std::string pre = "";
+  for (std::unordered_map<std::string, TypeExpression *> scope : *scopes) {
+    for (const auto &kv : scope) {
+      std::cout << pre << kv.first << " : " << kv.second->prettyPrint(0)
+                << std::endl;
+    }
+    pre += "\t";
+  }
+}
 
 // AST nodes for statements
 
@@ -364,8 +377,8 @@ public:
     return this->prettyPrintInline(lvl);
   }
 
-  virtual bool checkType(ScopeHandler<TypeExpression> *) {
-    new ScopeHandler<TypeExpression>;
+  virtual bool
+  checkType(std::vector<std::unordered_map<std::string, TypeExpression *>> *) {
     return true;
   }
 
@@ -431,6 +444,17 @@ public:
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
   std::string prettyPrintStruct(int lvl);
+  bool checkType(std::vector<std::unordered_map<std::string, TypeExpression *>>
+                     *scopes) override {
+    scopes->push_back(
+        std::unordered_map<std::string, TypeExpression *>(block.size() / .75));
+    for (Statement *stat : block) {
+      if (!stat->checkType(scopes))
+        return false;
+    }
+    scopes->pop_back();
+    return true;
+  }
   ~CompoundStatement() override {
     for (Statement *stat : block)
       delete (stat);
@@ -575,8 +599,10 @@ public:
       : Statement(token.getLocation()), type(type), body(body),
         identifier(type->getIdentifier()) {}
   std::string prettyPrint(int lvl) override;
-  bool checkType(ScopeHandler<TypeExpression> *scope) {
-    scope->insertDeclaration(identifier, type);
+  bool checkType(std::vector<std::unordered_map<std::string, TypeExpression *>>
+                     *scopes) override {
+    scopes->back()[type->getIdentifier()] = type;
+    printScopes(scopes);
     return true;
   }
   ~DeclarationStatement() override {
@@ -629,11 +655,12 @@ public:
   std::string prettyPrint(int lvl) override;
 
   bool checkType() override {
-    auto *scope = new ScopeHandler<TypeExpression>();
+    std::vector<std::unordered_map<std::string, TypeExpression *>> scopes = {
+        std::unordered_map<std::string, TypeExpression *>(children.size() /
+                                                          .75)};
     for (Statement *child : children) {
-      if (!child->checkType(scope))
+      if (!child->checkType(&scopes))
         return false;
-      scope->printScopes();
     }
     return true;
   }
