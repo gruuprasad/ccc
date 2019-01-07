@@ -4,7 +4,6 @@
 #define C4_ASTNODE_HPP
 
 #include "../lexer/token.hpp"
-#include "scope_handler.hpp"
 #include <algorithm>
 #include <iostream>
 #include <sstream>
