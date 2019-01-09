@@ -21,6 +21,10 @@
   std::to_string(line) + ":" + std::to_string(column) + ": error: '" + msg +   \
       "'. Parsing Stopped!"
 
+#define SEMANTIC_ERROR(line, column, msg)                                      \
+  std::to_string(line) + ":" + std::to_string(column) + ": error: '" + msg +   \
+      "'. Compiling Stopped!"
+
 #define UNUSED(var) (void)var
 
 template <class DstType, class SrcType> bool instanceof (const SrcType *src) {

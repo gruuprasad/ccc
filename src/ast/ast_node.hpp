@@ -6,12 +6,14 @@
 #define C4_ASTNODE_HPP
 
 #include "../lexer/token.hpp"
+#include "utils/macros.hpp"
 #include <algorithm>
 #include <iostream>
 #include <math.h>
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -20,18 +22,31 @@ namespace ccc {
 enum class TypeSpec { VOID, CHAR, INT, STRUCT, POINTER, FUNCTION };
 
 class ASTNode {
-private:
-  Token token;
-
 protected:
   explicit ASTNode(Token token = Token()) : token(std::move(token)) {}
+  Token token;
 
 public:
+  virtual bool nameAnalysis(std::vector<std::unordered_set<std::string>> *) {
+    return true;
+  }
+
   virtual std::string prettyPrint(int) { return "?"; };
   //  const Location getLocation() { return token.getLocation(); }
   //  template <class C> C *cast() { return dynamic_cast<C *>(this); }
   virtual ~ASTNode() = default;
   virtual bool isTypeExpression() { return false; }
+
+  void printScopes(std::vector<std::unordered_set<std::string>> *scopes) {
+    std::cout << std::endl;
+    std::string pre;
+    for (const std::unordered_set<std::string> &scope : *scopes) {
+      for (const auto &kv : scope) {
+        std::cout << pre << kv << std::endl;
+      }
+      pre += "\t";
+    }
+  }
 };
 
 // AST nodes for expression
@@ -44,13 +59,16 @@ public:
 };
 
 class PrimaryExpression : public Expression {
-private:
+protected:
   std::string extra;
 
 public:
   explicit PrimaryExpression(const Token &token)
       : Expression(token), extra(token.getExtra()){};
   std::string prettyPrint(int) override { return extra; }
+  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *) override {
+    return true;
+  }
 };
 
 class IdentifierExpression : public PrimaryExpression {
@@ -58,6 +76,20 @@ public:
   explicit IdentifierExpression(const Token &token)
       : PrimaryExpression(token) {}
   std::string getIdentifier() override { return this->prettyPrint(0); }
+
+  bool
+  nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override {
+    printScopes(scopes);
+    for (std::unordered_set<std::string> scope : *scopes) {
+      if (scope.find(extra) != scope.end()) {
+        return true;
+      }
+    }
+    std::cerr << SEMANTIC_ERROR(token.getLine(), token.getColumn(),
+                                extra + " undefined in this scope")
+              << std::endl;
+    return false;
+  }
 };
 
 class StringLiteral : public PrimaryExpression {
@@ -95,6 +127,12 @@ private:
 public:
   UnaryExpression(const Token &token, Expression *expr)
       : Expression(token), expr(expr), op(token.name()) {}
+
+  bool
+  nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override {
+    return expr->nameAnalysis(scopes);
+  }
+
   std::string prettyPrint(int) override {
     return "(" + op + expr->prettyPrint(0) + ")";
   }
@@ -129,6 +167,12 @@ public:
   BinaryExpression(const Token &token, Expression *expr1, Expression *expr2)
       : Expression(token), leftExpr(expr1), rightExpr(expr2), op(token.name()) {
   }
+
+  bool
+  nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override {
+    return leftExpr->nameAnalysis(scopes) && rightExpr->nameAnalysis(scopes);
+  }
+
   std::string prettyPrint(int) override;
 
   ~BinaryExpression() override {
@@ -183,7 +227,7 @@ public:
 
 class PointerTypeExpression : public TypeExpression {
 private:
-  Expression *expr;
+  Expression *expr; // TODO lvl of pointer
 
 public:
   explicit PointerTypeExpression(TypeExpression *expr)
@@ -265,8 +309,8 @@ public:
     return this->prettyPrintInline(lvl);
   }
 
-  virtual bool
-  checkType(std::vector<std::unordered_map<std::string, TypeExpression *>> *) {
+  virtual bool typeAnalysis(
+      std::vector<std::unordered_map<std::string, TypeExpression *>> *) {
     return true;
   }
 
@@ -281,7 +325,7 @@ protected:
     } else
       return "";
   }
-  void printScopes(
+  void printTypes(
       std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes) {
     std::cout << std::endl;
     std::string pre;
@@ -323,12 +367,26 @@ public:
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
   std::string prettyPrintStruct(int lvl);
-  bool checkType(std::vector<std::unordered_map<std::string, TypeExpression *>>
-                     *scopes) override {
+
+  bool
+  nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override {
+    scopes->push_back(
+        std::unordered_set<std::string>(std::ceil(block.size() / .75)));
+    for (Statement *stat : block) {
+      if (!stat->nameAnalysis(scopes))
+        return false;
+    }
+    scopes->pop_back();
+    return true;
+  }
+
+  bool typeAnalysis(
+      std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes)
+      override {
     scopes->push_back(std::unordered_map<std::string, TypeExpression *>(
         std::ceil(block.size() / .75)));
     for (Statement *stat : block) {
-      if (!stat->checkType(scopes))
+      if (!stat->typeAnalysis(scopes))
         return false;
     }
     scopes->pop_back();
@@ -348,6 +406,12 @@ public:
   explicit ExpressionStatement(const Token &token, Expression *expr = nullptr)
       : Statement(token), expr(expr) {}
   std::string prettyPrint(int lvl) override;
+
+  bool
+  nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override {
+    return expr->nameAnalysis(scopes);
+  }
+
   ~ExpressionStatement() override { delete (expr); }
 };
 
@@ -431,22 +495,31 @@ public:
       : Statement(token), type(type), body(body),
         identifier(type->getIdentifier()) {}
   std::string prettyPrint(int lvl) override;
-  bool checkType(std::vector<std::unordered_map<std::string, TypeExpression *>>
-                     *scopes) override {
-    scopes->back()[type->getIdentifier()] = type;
+
+  bool
+  nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override {
+    scopes->back().insert(type->getIdentifier());
     printScopes(scopes);
+    return true;
+  }
+
+  bool typeAnalysis(
+      std::vector<std::unordered_map<std::string, TypeExpression *>> *types)
+      override {
+    types->back()[type->getIdentifier()] = type;
+    printTypes(types);
     return true;
   }
   ~DeclarationStatement() override {
     delete (type);
     delete (body);
   }
-};
+}; // namespace ccc
 
 class StructStatement : public Statement {
 private:
   IdentifierExpression *name;
-  CompoundStatement *body;
+  CompoundStatement *body; // TODO own block
   IdentifierExpression *alias;
 
 public:
@@ -472,12 +545,28 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
-  bool checkType() {
-    std::vector<std::unordered_map<std::string, TypeExpression *>> scopes = {
+  bool runAnalysis() {
+    std::vector<std::unordered_set<std::string>> scopes = {
+        std::unordered_set<std::string>(std::ceil(children.size() / .75))};
+    std::vector<std::unordered_map<std::string, TypeExpression *>> types = {
         std::unordered_map<std::string, TypeExpression *>(
             std::ceil(children.size() / .75))};
+    return nameAnalysis(&scopes) && typeAnalysis(&types);
+  }
+
+  bool
+  nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override {
     for (Statement *child : children) {
-      if (!child->checkType(&scopes))
+      if (!child->nameAnalysis(scopes))
+        return false;
+    }
+    return true;
+  }
+
+  bool typeAnalysis(
+      std::vector<std::unordered_map<std::string, TypeExpression *>> *types) {
+    for (Statement *child : children) {
+      if (!child->typeAnalysis(types))
         return false;
     }
     return true;

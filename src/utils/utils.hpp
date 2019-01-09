@@ -4,6 +4,7 @@
 #include "ast/ast_node.hpp"
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 namespace ccc {
 
