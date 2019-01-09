@@ -16,18 +16,13 @@
 
 namespace ccc {
 
+class TypeExpression;
+
 using Scope_list_type = std::vector<std::unordered_set<std::string>>;
 using Type_list_type = std::vector<
-    std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>
+    std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>;
 
-    enum class TypeSpec {
-      VOID,
-      CHAR,
-      INT,
-      STRUCT,
-      POINTER,
-      FUNCTION
-    };
+enum class TypeSpec { VOID, CHAR, INT, STRUCT, POINTER, FUNCTION };
 
 class ASTNode {
 protected:
@@ -73,7 +68,8 @@ public:
 
 class StringLiteralExpression : public PrimaryExpression {
 public:
-  explicit StringLiteral(const Token &token) : PrimaryExpression(token) {}
+  explicit StringLiteralExpression(const Token &token)
+      : PrimaryExpression(token) {}
 };
 
 class ConstantExpression : public PrimaryExpression {
@@ -236,7 +232,7 @@ public:
     return this->prettyPrintInline(lvl);
   }
 
-  virtual bool typeAnalysis(Type_list_type *) = 0;
+  virtual bool typeAnalysis(Type_list_type *);
 
 protected:
   explicit Statement(Token token = Token()) : ASTNode(std::move(token)) {}
@@ -279,8 +275,8 @@ public:
   explicit ExpressionStatement(const Token &token,
                                std::unique_ptr<Expression> expr = nullptr)
       : Statement(token), expr(std::move(expr)) {}
-  std::string prettyPrint(int lvl) override;
 
+  std::string prettyPrint(int lvl) override;
   bool nameAnalysis(Scope_list_type *scopes) override;
 };
 
