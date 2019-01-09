@@ -1,7 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "ast/ast_node.hpp"
+#include "../ast/ast_node.hpp"
 #include <cstddef>
 #include <fstream>
 #include <memory>
