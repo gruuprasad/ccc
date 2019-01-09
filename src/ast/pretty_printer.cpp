@@ -20,7 +20,7 @@ std::string BreakStatement::prettyPrint(int lvl) {
 std::string CallExpression::prettyPrint(int) {
   std::stringstream ss;
   ss << "(" << call->prettyPrint(0) << "(";
-  for (auto arg : args) {
+  for (const auto &arg : args) {
     ss << arg->prettyPrint(0);
     if (arg != args.back())
       ss << ", ";
@@ -51,7 +51,7 @@ std::string SizeOfExpression::prettyPrint(int) {
 
 std::string CompoundStatement::prettyPrintBlock(int lvl) {
   std::stringstream ss;
-  for (auto stat : this->block)
+  for (const auto &stat : this->block)
     ss << stat->prettyPrint(lvl + 1);
   return "{\n" + ss.str() + indent(lvl) + "}";
 }
@@ -126,7 +126,7 @@ std::string StructStatement::prettyPrint(int lvl) {
 
 std::string TranslationUnit::prettyPrint(int lvl) {
   std::stringstream ss;
-  for (auto node : this->children) {
+  for (const auto &node : this->children) {
     ss << node->prettyPrint(lvl);
     if (node != children.back())
       ss << "\n";
@@ -163,7 +163,7 @@ std::string StructTypeExpression::prettyPrint(int) {
 
 std::string FunctionTypeExpression::prettyPrint(int) {
   std::stringstream ss;
-  for (auto arg : args) {
+  for (const auto &arg : args) {
     ss << arg->prettyPrint(0);
     if (arg != args.back())
       ss << ", ";

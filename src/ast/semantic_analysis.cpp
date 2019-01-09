@@ -102,7 +102,7 @@ bool CompoundStatement::typeAnalysis(
   bool DeclarationStatement::typeAnalysis(
       std::vector<std::unordered_map<std::string,
                                      std::unique_ptr<TypeExpression>>> *types) {
-    types->back()[type->getIdentifier()] = type;
+    types->back()[type->getIdentifier()] = std::move(type);
     printTypes(types);
     return true;
   }
@@ -121,9 +121,9 @@ bool CompoundStatement::typeAnalysis(
 bool TranslationUnit::runAnalysis() {
   std::vector<std::unordered_set<std::string>> scopes = {
     std::unordered_set<std::string>(std::ceil(children.size() / .75))};
+  // TODO Preallocate once unique_ptr issue solved
   std::vector<std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>
-      types = {std::unordered_map<std::string, std::unique_ptr<TypeExpression>>(
-          std::ceil(children.size() / .75))};
+      types;
   return nameAnalysis(&scopes) && typeAnalysis(&types);
 }
 }

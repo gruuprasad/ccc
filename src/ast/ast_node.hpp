@@ -402,8 +402,7 @@ private:
   std::vector<std::unique_ptr<Statement>> children;
 
 public:
-  explicit TranslationUnit(std::vector<std::unique_ptr<Statement>> children =
-                               std::vector<std::unique_ptr<Statement>>())
+  TranslationUnit(std::vector<std::unique_ptr<Statement>> children)
       : ASTNode(), children(std::move(children)) {}
 
   std::string prettyPrint(int lvl) override;
