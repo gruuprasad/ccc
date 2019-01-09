@@ -27,13 +27,9 @@ public:
   virtual bool nameAnalysis(std::vector<std::unordered_set<std::string>> *) {
     return true;
   }
-
   virtual std::string prettyPrint(int) { return "?"; };
-  //  const Location getLocation() { return token.getLocation(); }
-  //  template <class C> C *cast() { return dynamic_cast<C *>(this); }
   virtual ~ASTNode() = default;
   virtual bool isTypeExpression() { return false; }
-
   void printScopes(std::vector<std::unordered_set<std::string>> *scopes); 
 };
 
@@ -77,7 +73,6 @@ public:
 };
 
 class CallExpression : public Expression {
-private:
   std::unique_ptr<Expression> call;
   std::vector<std::unique_ptr<Expression>> args;
 
@@ -89,7 +84,6 @@ public:
 };
 
 class UnaryExpression : public Expression {
-private:
   std::unique_ptr<Expression> expr;
   std::string op;
 
@@ -104,7 +98,6 @@ public:
 };
 
 class PostfixExpression : public Expression {
-private:
   std::unique_ptr<Expression> expr;
   std::unique_ptr<Expression> post;
   std::string op;
@@ -118,7 +111,6 @@ public:
 };
 
 class BinaryExpression : public Expression {
-private:
   std::unique_ptr<Expression> leftExpr;
   std::unique_ptr<Expression> rightExpr;
   std::string op;
@@ -134,7 +126,6 @@ public:
 };
 
 class ConditionalExpression : public Expression {
-private:
   std::unique_ptr<Expression> condExpr;
   std::unique_ptr<Expression> ifExpr;
   std::unique_ptr<Expression> elseExpr;
@@ -149,7 +140,6 @@ public:
 };
 
 class TypeExpression : public Expression {
-private:
   TypeSpec baseType;
   std::unique_ptr<Expression> expr;
 
@@ -171,7 +161,6 @@ public:
 };
 
 class PointerTypeExpression : public TypeExpression {
-private:
   std::unique_ptr<Expression> expr; // TODO lvl of pointer
 
 public:
@@ -184,7 +173,6 @@ public:
 };
 
 class StructTypeExpression : public TypeExpression {
-private:
   std::unique_ptr<TypeExpression> expr;
   std::unique_ptr<IdentifierExpression> iden;
 
@@ -198,7 +186,6 @@ public:
 };
 
 class FunctionTypeExpression : public TypeExpression {
-private:
   std::unique_ptr<Expression> expr;
   std::vector<std::unique_ptr<TypeExpression>> args;
 
@@ -218,7 +205,6 @@ public:
 };
 
 class SizeOfExpression : public Expression {
-private:
   std::unique_ptr<Expression> expr;
 
 public:
@@ -254,7 +240,6 @@ protected:
 };
 
 class LabeledStatement : public Statement {
-private:
   std::unique_ptr<Expression> expr;
   std::unique_ptr<Statement> stat;
 
@@ -266,7 +251,6 @@ public:
 };
 
 class CompoundStatement : public Statement {
-private:
   std::vector<std::unique_ptr<Statement>> block;
   std::string prettyPrintBlock(int lvl);
 
@@ -287,7 +271,6 @@ public:
 };
 
 class ExpressionStatement : public Statement {
-private:
   std::unique_ptr<Expression> expr;
 
 public:
@@ -300,7 +283,6 @@ public:
 };
 
 class IfElseStatement : public Statement {
-private:
   std::unique_ptr<Expression> expr;
   std::unique_ptr<Statement> ifStat;
   std::unique_ptr<Statement> elseStat;
@@ -317,7 +299,6 @@ public:
 };
 
 class WhileStatement : public Statement {
-private:
   std::unique_ptr<Expression> expr;
   std::unique_ptr<Statement> stat;
 
@@ -329,7 +310,6 @@ public:
 };
 
 class GotoStatement : public Statement {
-private:
   std::unique_ptr<Expression> expr;
 
 public:
@@ -351,7 +331,6 @@ public:
 };
 
 class ReturnStatement : public Statement {
-private:
   std::unique_ptr<Expression> expr;
 
 public:
@@ -362,7 +341,6 @@ public:
 };
 
 class DeclarationStatement : public Statement {
-private:
   std::unique_ptr<TypeExpression> type;
   std::unique_ptr<CompoundStatement> body;
   std::string identifier;
@@ -382,7 +360,6 @@ public:
 }; // namespace ccc
 
 class StructStatement : public Statement {
-private:
   std::unique_ptr<IdentifierExpression> name;
   std::unique_ptr<CompoundStatement> body; // TODO own block
   std::unique_ptr<IdentifierExpression> alias;
@@ -398,7 +375,6 @@ public:
 };
 
 class TranslationUnit : public ASTNode {
-private:
   std::vector<std::unique_ptr<Statement>> children;
 
 public:
