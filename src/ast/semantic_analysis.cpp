@@ -2,10 +2,10 @@
 
 namespace ccc {
 
-void ASTNode::printScopes(std::vector<std::unordered_set<std::string>> *scopes) {
+void ASTNode::printScopes(Scope_list_type *scopes) {
   std::cout << std::endl;
   std::string pre;
-  for (const std::unordered_set<std::string> &scope : *scopes) {
+  for (const auto &scope : *scopes) {
     for (const auto &kv : scope) {
       std::cout << pre << kv << std::endl;
     }
@@ -13,11 +13,9 @@ void ASTNode::printScopes(std::vector<std::unordered_set<std::string>> *scopes) 
   }
 }
 
-bool PrimaryExpression::nameAnalysis(std::vector<std::unordered_set<std::string>> *) {
-  return true;
-}
+bool PrimaryExpression::nameAnalysis(Scope_list_type *) { return true; }
 
-bool IdentifierExpression::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
+bool IdentifierExpression::nameAnalysis(Scope_list_type *scopes) {
   printScopes(scopes);
   for (const auto &scope : (*scopes)) {
     if (scope.find(extra) != scope.end()) {
@@ -30,15 +28,15 @@ bool IdentifierExpression::nameAnalysis(std::vector<std::unordered_set<std::stri
   return false;
 }
 
-bool UnaryExpression::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
+bool UnaryExpression::nameAnalysis(Scope_list_type *scopes) {
   return expr->nameAnalysis(scopes);
 }
 
-bool BinaryExpression::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
+bool BinaryExpression::nameAnalysis(Scope_list_type *scopes) {
   return leftExpr->nameAnalysis(scopes) && rightExpr->nameAnalysis(scopes);
 }
 
-bool CompoundStatement::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
+bool CompoundStatement::nameAnalysis(Scope_list_type *scopes) {
   scopes->push_back(
       std::unordered_set<std::string>(std::ceil(block.size() / .75)));
   for (const auto &stat : block) {
@@ -48,46 +46,39 @@ bool CompoundStatement::nameAnalysis(std::vector<std::unordered_set<std::string>
   scopes->pop_back();
   return true;
 }
-bool ExpressionStatement::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
+bool ExpressionStatement::nameAnalysis(Scope_list_type *scopes) {
   return expr->nameAnalysis(scopes);
 }
 
-bool DeclarationStatement::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
+bool DeclarationStatement::nameAnalysis(Scope_list_type *scopes) {
   scopes->back().insert(type->getIdentifier());
   printScopes(scopes);
   return true;
 }
 
-bool TranslationUnit::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
+bool TranslationUnit::nameAnalysis(Scope_list_type *scopes) {
   for (const auto &child : children) {
     if (!child->nameAnalysis(scopes))
       return false;
   }
   return true;
 }
-void Statement::printTypes(
-    std::vector<std::unordered_map<std::string,
-                                   std::unique_ptr<TypeExpression>>> *scopes) {
+
+void Statement::printTypes(Type_list_type *scopes) {
   std::cout << std::endl;
   std::string pre;
-  for (const std::unordered_map<std::string, std::unique_ptr<TypeExpression>>
-           &scope : *scopes) {
+  for (const auto &scope : *scopes) {
     for (const auto &kv : scope) {
       std::cout << pre << kv.first << " : " << kv.second->prettyPrint(0)
-        << std::endl;
+                << "\n";
     }
     pre += "\t";
   }
 }
-bool Statement::typeAnalysis(
-    std::vector<
-        std::unordered_map<std::string, std::unique_ptr<TypeExpression>>> *) {
-  return true;
-}
 
-bool CompoundStatement::typeAnalysis(
-    std::vector<std::unordered_map<std::string,
-                                   std::unique_ptr<TypeExpression>>> *scopes) {
+bool Statement::typeAnalysis(Type_list_type *) { return true; }
+
+bool CompoundStatement::typeAnalysis(Type_list_type *scopes) {
   scopes->push_back(
       std::unordered_map<std::string, std::unique_ptr<TypeExpression>>(
           std::ceil(block.size() / .75)));
@@ -99,17 +90,13 @@ bool CompoundStatement::typeAnalysis(
   return true;
   }
 
-  bool DeclarationStatement::typeAnalysis(
-      std::vector<std::unordered_map<std::string,
-                                     std::unique_ptr<TypeExpression>>> *types) {
+  bool DeclarationStatement::typeAnalysis(Type_list_type *types) {
     types->back()[type->getIdentifier()] = std::move(type);
     printTypes(types);
     return true;
   }
 
-  bool TranslationUnit::typeAnalysis(
-      std::vector<std::unordered_map<std::string,
-                                     std::unique_ptr<TypeExpression>>> *types) {
+  bool TranslationUnit::typeAnalysis(Type_list_type *types) {
     for (const auto &child : children) {
       if (!child->typeAnalysis(types))
         return false;
@@ -117,13 +104,10 @@ bool CompoundStatement::typeAnalysis(
     return true;
 }
 
-
 bool TranslationUnit::runAnalysis() {
-  std::vector<std::unordered_set<std::string>> scopes = {
-    std::unordered_set<std::string>(std::ceil(children.size() / .75))};
   // TODO Preallocate once unique_ptr issue solved
-  std::vector<std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>
-      types;
+  Scope_list_type scopes;
+  Type_list_type types;
   return nameAnalysis(&scopes) && typeAnalysis(&types);
 }
 }

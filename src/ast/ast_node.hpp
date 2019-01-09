@@ -16,7 +16,18 @@
 
 namespace ccc {
 
-enum class TypeSpec { VOID, CHAR, INT, STRUCT, POINTER, FUNCTION };
+using Scope_list_type = std::vector<std::unordered_set<std::string>>;
+using Type_list_type = std::vector<
+    std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>
+
+    enum class TypeSpec {
+      VOID,
+      CHAR,
+      INT,
+      STRUCT,
+      POINTER,
+      FUNCTION
+    };
 
 class ASTNode {
 protected:
@@ -24,13 +35,11 @@ protected:
   Token token;
 
 public:
-  virtual bool nameAnalysis(std::vector<std::unordered_set<std::string>> *) {
-    return true;
-  }
+  virtual bool nameAnalysis(Scope_list_type *) { return true; }
   virtual std::string prettyPrint(int) { return "?"; };
   virtual ~ASTNode() = default;
   virtual bool isTypeExpression() { return false; }
-  void printScopes(std::vector<std::unordered_set<std::string>> *scopes); 
+  void printScopes(Scope_list_type *scopes);
 };
 
 // AST nodes for expression
@@ -50,7 +59,7 @@ public:
   explicit PrimaryExpression(const Token &token)
       : Expression(token), extra(token.getExtra()){};
   std::string prettyPrint(int) override;
-  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *) override;
+  bool nameAnalysis(Scope_list_type *) override;
 };
 
 class IdentifierExpression : public PrimaryExpression {
@@ -59,10 +68,10 @@ public:
       : PrimaryExpression(token) {}
   std::string getIdentifier() override { return this->prettyPrint(0); }
 
-  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override; 
+  bool nameAnalysis(Scope_list_type *scopes) override;
 };
 
-class StringLiteral : public PrimaryExpression {
+class StringLiteralExpression : public PrimaryExpression {
 public:
   explicit StringLiteral(const Token &token) : PrimaryExpression(token) {}
 };
@@ -91,8 +100,7 @@ public:
   UnaryExpression(const Token &token, std::unique_ptr<Expression> expr)
       : Expression(token), expr(std::move(expr)), op(token.name()) {}
 
-  bool
-  nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
+  bool nameAnalysis(Scope_list_type *scopes) override;
 
   std::string prettyPrint(int) override;   
 };
@@ -121,7 +129,7 @@ public:
       : Expression(token), leftExpr(std::move(expr1)),
         rightExpr(std::move(expr2)), op(token.name()) {}
 
-  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
+  bool nameAnalysis(Scope_list_type *scopes) override;
   std::string prettyPrint(int) override;
 };
 
@@ -146,7 +154,7 @@ class TypeExpression : public Expression {
 public:
   explicit TypeExpression(TypeSpec baseType,
                           std::unique_ptr<TypeExpression> expr = nullptr)
-      : Expression(), baseType(baseType), expr(std::move(expr)) {}
+      : baseType(baseType), expr(std::move(expr)) {}
   explicit TypeExpression(TypeSpec baseType,
                           std::unique_ptr<IdentifierExpression> expr)
       : Expression(), baseType(baseType), expr(std::move(expr)) {}
@@ -228,15 +236,12 @@ public:
     return this->prettyPrintInline(lvl);
   }
 
-  virtual bool typeAnalysis(
-      std::vector<
-          std::unordered_map<std::string, std::unique_ptr<TypeExpression>>> *);
+  virtual bool typeAnalysis(Type_list_type *) = 0;
 
 protected:
   explicit Statement(Token token = Token()) : ASTNode(std::move(token)) {}
   std::string indent(int n);
-  void printTypes(std::vector<std::unordered_map<
-                      std::string, std::unique_ptr<TypeExpression>>> *scopes);
+  void printTypes(Type_list_type *scopes);
 };
 
 class LabeledStatement : public Statement {
@@ -246,7 +251,7 @@ class LabeledStatement : public Statement {
 public:
   explicit LabeledStatement(std::unique_ptr<Expression> expr,
                             std::unique_ptr<Statement> stat = nullptr)
-      : Statement(), expr(std::move(expr)), stat(std::move(stat)) {}
+      : expr(std::move(expr)), stat(std::move(stat)) {}
   std::string prettyPrint(int lvl) override;
 };
 
@@ -258,16 +263,13 @@ public:
   CompoundStatement(const Token &token,
                     std::vector<std::unique_ptr<Statement>> block)
       : Statement(token), block(std::move(block)) {}
+
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
   std::string prettyPrintStruct(int lvl);
-
-  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
-  bool
-  typeAnalysis(std::vector<
-               std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>
-                   *scopes) override;
+  bool nameAnalysis(Scope_list_type *scopes) override;
+  bool typeAnalysis(Type_list_type *scopes) override;
 };
 
 class ExpressionStatement : public Statement {
@@ -279,7 +281,7 @@ public:
       : Statement(token), expr(std::move(expr)) {}
   std::string prettyPrint(int lvl) override;
 
-  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override; 
+  bool nameAnalysis(Scope_list_type *scopes) override;
 };
 
 class IfElseStatement : public Statement {
@@ -314,7 +316,7 @@ class GotoStatement : public Statement {
 
 public:
   explicit GotoStatement(std::unique_ptr<Expression> expr)
-      : Statement(), expr(std::move(expr)) {}
+      : expr(std::move(expr)) {}
   std::string prettyPrint(int lvl) override;
 };
 
@@ -350,13 +352,10 @@ public:
                        std::unique_ptr<CompoundStatement> body = nullptr)
       : Statement(token), type(std::move(type)), body(std::move(body)),
         identifier(type->getIdentifier()) {}
-  std::string prettyPrint(int lvl) override;
 
-  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
-  bool
-  typeAnalysis(std::vector<
-               std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>
-                   *types) override;
+  std::string prettyPrint(int lvl) override;
+  bool nameAnalysis(Scope_list_type *scopes) override;
+  bool typeAnalysis(Type_list_type *types) override;
 }; // namespace ccc
 
 class StructStatement : public Statement {
@@ -378,15 +377,14 @@ class TranslationUnit : public ASTNode {
   std::vector<std::unique_ptr<Statement>> children;
 
 public:
+  TranslationUnit() = default;
   TranslationUnit(std::vector<std::unique_ptr<Statement>> children)
-      : ASTNode(), children(std::move(children)) {}
+      : children(std::move(children)) {}
 
   std::string prettyPrint(int lvl) override;
-
-  bool runAnalysis(); 
-  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
-  bool typeAnalysis(std::vector<std::unordered_map<
-                        std::string, std::unique_ptr<TypeExpression>>> *types);
+  bool runAnalysis();
+  bool nameAnalysis(Scope_list_type *scopes) override;
+  bool typeAnalysis(Type_list_type *types);
 };
 
 } // namespace ccc
