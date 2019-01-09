@@ -19,7 +19,7 @@ bool PrimaryExpression::nameAnalysis(std::vector<std::unordered_set<std::string>
 
 bool IdentifierExpression::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
   printScopes(scopes);
-  for (std::unordered_set<std::string> scope : *scopes) {
+  for (const auto &scope : (*scopes)) {
     if (scope.find(extra) != scope.end()) {
       return true;
     }
@@ -41,7 +41,7 @@ bool BinaryExpression::nameAnalysis(std::vector<std::unordered_set<std::string>>
 bool CompoundStatement::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
   scopes->push_back(
       std::unordered_set<std::string>(std::ceil(block.size() / .75)));
-  for (Statement *stat : block) {
+  for (const auto &stat : block) {
     if (!stat->nameAnalysis(scopes))
       return false;
   }
@@ -59,18 +59,19 @@ bool DeclarationStatement::nameAnalysis(std::vector<std::unordered_set<std::stri
 }
 
 bool TranslationUnit::nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) {
-  for (Statement *child : children) {
+  for (const auto &child : children) {
     if (!child->nameAnalysis(scopes))
       return false;
   }
   return true;
 }
 void Statement::printTypes(
-    std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes) {
+    std::vector<std::unordered_map<std::string,
+                                   std::unique_ptr<TypeExpression>>> *scopes) {
   std::cout << std::endl;
   std::string pre;
-  for (const std::unordered_map<std::string, TypeExpression *> &scope :
-      *scopes) {
+  for (const std::unordered_map<std::string, std::unique_ptr<TypeExpression>>
+           &scope : *scopes) {
     for (const auto &kv : scope) {
       std::cout << pre << kv.first << " : " << kv.second->prettyPrint(0)
         << std::endl;
@@ -79,47 +80,50 @@ void Statement::printTypes(
   }
 }
 bool Statement::typeAnalysis(
-    std::vector<std::unordered_map<std::string, TypeExpression *>> *) {
+    std::vector<
+        std::unordered_map<std::string, std::unique_ptr<TypeExpression>>> *) {
   return true;
 }
 
 bool CompoundStatement::typeAnalysis(
-    std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes)
-  {
-    scopes->push_back(std::unordered_map<std::string, TypeExpression *>(
+    std::vector<std::unordered_map<std::string,
+                                   std::unique_ptr<TypeExpression>>> *scopes) {
+  scopes->push_back(
+      std::unordered_map<std::string, std::unique_ptr<TypeExpression>>(
           std::ceil(block.size() / .75)));
-    for (Statement *stat : block) {
-      if (!stat->typeAnalysis(scopes))
-        return false;
-    }
-    scopes->pop_back();
-    return true;
+  for (const auto &stat : block) {
+    if (!stat->typeAnalysis(scopes))
+      return false;
+  }
+  scopes->pop_back();
+  return true;
   }
 
-bool DeclarationStatement::typeAnalysis(
-    std::vector<std::unordered_map<std::string, TypeExpression *>> *types)
-  {
+  bool DeclarationStatement::typeAnalysis(
+      std::vector<std::unordered_map<std::string,
+                                     std::unique_ptr<TypeExpression>>> *types) {
     types->back()[type->getIdentifier()] = type;
     printTypes(types);
     return true;
   }
 
-bool TranslationUnit::typeAnalysis(
-    std::vector<std::unordered_map<std::string, TypeExpression *>> *types) {
-  for (Statement *child : children) {
-    if (!child->typeAnalysis(types))
-      return false;
-  }
-  return true;
+  bool TranslationUnit::typeAnalysis(
+      std::vector<std::unordered_map<std::string,
+                                     std::unique_ptr<TypeExpression>>> *types) {
+    for (const auto &child : children) {
+      if (!child->typeAnalysis(types))
+        return false;
+    }
+    return true;
 }
 
 
 bool TranslationUnit::runAnalysis() {
   std::vector<std::unordered_set<std::string>> scopes = {
     std::unordered_set<std::string>(std::ceil(children.size() / .75))};
-  std::vector<std::unordered_map<std::string, TypeExpression *>> types = {
-    std::unordered_map<std::string, TypeExpression *>(
-        std::ceil(children.size() / .75))};
+  std::vector<std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>
+      types = {std::unordered_map<std::string, std::unique_ptr<TypeExpression>>(
+          std::ceil(children.size() / .75))};
   return nameAnalysis(&scopes) && typeAnalysis(&types);
 }
 }

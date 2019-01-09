@@ -4,8 +4,9 @@
 #include "../lexer/token.hpp"
 #include "../utils/macros.hpp"
 #include <algorithm>
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -77,102 +78,88 @@ public:
 
 class CallExpression : public Expression {
 private:
-  Expression *call;
-  std::vector<Expression *> args;
+  std::unique_ptr<Expression> call;
+  std::vector<std::unique_ptr<Expression>> args;
 
 public:
-  explicit CallExpression(const Token &token, Expression *call,
-                          std::vector<Expression *> args)
-      : Expression(token), call(call), args(std::move(args)) {}
+  explicit CallExpression(const Token &token, std::unique_ptr<Expression> call,
+                          std::vector<std::unique_ptr<Expression>> args)
+      : Expression(token), call(std::move(call)), args(std::move(args)) {}
   std::string prettyPrint(int) override;
-  ~CallExpression() override {
-    delete (call);
-    for (Expression *arg : args)
-      delete (arg);
-  }
 };
 
 class UnaryExpression : public Expression {
 private:
-  Expression *expr;
+  std::unique_ptr<Expression> expr;
   std::string op;
 
 public:
-  UnaryExpression(const Token &token, Expression *expr)
-      : Expression(token), expr(expr), op(token.name()) {}
+  UnaryExpression(const Token &token, std::unique_ptr<Expression> expr)
+      : Expression(token), expr(std::move(expr)), op(token.name()) {}
 
   bool
   nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
 
   std::string prettyPrint(int) override;   
-  ~UnaryExpression() override { delete (expr); }
 };
 
 class PostfixExpression : public Expression {
 private:
-  Expression *expr;
-  Expression *post;
+  std::unique_ptr<Expression> expr;
+  std::unique_ptr<Expression> post;
   std::string op;
 
 public:
-  PostfixExpression(const Token &token, Expression *expr, Expression *post)
-      : Expression(token), expr(expr), post(post), op(token.name()) {}
+  PostfixExpression(const Token &token, std::unique_ptr<Expression> expr,
+                    std::unique_ptr<Expression> post)
+      : Expression(token), expr(std::move(expr)), post(std::move(post)),
+        op(token.name()) {}
   std::string prettyPrint(int) override;
-  ~PostfixExpression() override {
-    delete (expr);
-    delete (post);
-  }
 };
 
 class BinaryExpression : public Expression {
 private:
-  Expression *leftExpr;
-  Expression *rightExpr;
+  std::unique_ptr<Expression> leftExpr;
+  std::unique_ptr<Expression> rightExpr;
   std::string op;
 
 public:
-  BinaryExpression(const Token &token, Expression *expr1, Expression *expr2)
-      : Expression(token), leftExpr(expr1), rightExpr(expr2), op(token.name()) {
-  }
+  BinaryExpression(const Token &token, std::unique_ptr<Expression> expr1,
+                   std::unique_ptr<Expression> expr2)
+      : Expression(token), leftExpr(std::move(expr1)),
+        rightExpr(std::move(expr2)), op(token.name()) {}
 
   bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
-
   std::string prettyPrint(int) override;
-
-  ~BinaryExpression() override {
-    delete (leftExpr);
-    delete (rightExpr);
-  }
 };
 
 class ConditionalExpression : public Expression {
 private:
-  Expression *condExpr;
-  Expression *ifExpr;
-  Expression *elseExpr;
+  std::unique_ptr<Expression> condExpr;
+  std::unique_ptr<Expression> ifExpr;
+  std::unique_ptr<Expression> elseExpr;
 
 public:
-  ConditionalExpression(const Token &token, Expression *expr1,
-                        Expression *expr2, Expression *expr3)
-      : Expression(token), condExpr(expr1), ifExpr(expr2), elseExpr(expr3) {}
+  ConditionalExpression(const Token &token, std::unique_ptr<Expression> expr1,
+                        std::unique_ptr<Expression> expr2,
+                        std::unique_ptr<Expression> expr3)
+      : Expression(token), condExpr(std::move(expr1)), ifExpr(std::move(expr2)),
+        elseExpr(std::move(expr3)) {}
   std::string prettyPrint(int) override; 
-  ~ConditionalExpression() override {
-    delete (condExpr);
-    delete (ifExpr);
-    delete (elseExpr);
-  }
 };
 
 class TypeExpression : public Expression {
 private:
   TypeSpec baseType;
-  Expression *expr;
+  std::unique_ptr<Expression> expr;
 
 public:
-  explicit TypeExpression(TypeSpec baseType, TypeExpression *expr = nullptr)
-      : Expression(), baseType(baseType), expr(expr) {}
-  explicit TypeExpression(TypeSpec baseType, IdentifierExpression *expr)
-      : Expression(), baseType(baseType), expr(expr) {}
+  explicit TypeExpression(TypeSpec baseType,
+                          std::unique_ptr<TypeExpression> expr = nullptr)
+      : Expression(), baseType(baseType), expr(std::move(expr)) {}
+  explicit TypeExpression(TypeSpec baseType,
+                          std::unique_ptr<IdentifierExpression> expr)
+      : Expression(), baseType(baseType), expr(std::move(expr)) {}
   std::string prettyPrint(int) override;
   bool isTypeExpression() override { return true; }
   std::string getIdentifier() override {
@@ -181,70 +168,64 @@ public:
     } else
       return "";
   }
-  ~TypeExpression() override { delete expr; }
 };
 
 class PointerTypeExpression : public TypeExpression {
 private:
-  Expression *expr; // TODO lvl of pointer
+  std::unique_ptr<Expression> expr; // TODO lvl of pointer
 
 public:
-  explicit PointerTypeExpression(TypeExpression *expr)
-      : TypeExpression(TypeSpec::POINTER), expr(expr) {}
-  explicit PointerTypeExpression(IdentifierExpression *expr)
-      : TypeExpression(TypeSpec::POINTER), expr(expr) {}
+  explicit PointerTypeExpression(std::unique_ptr<TypeExpression> expr)
+      : TypeExpression(TypeSpec::POINTER), expr(std::move(expr)) {}
+  explicit PointerTypeExpression(std::unique_ptr<IdentifierExpression> expr)
+      : TypeExpression(TypeSpec::POINTER), expr(std::move(expr)) {}
   std::string prettyPrint(int) override;
   std::string getIdentifier() override { return expr->getIdentifier(); }
-  ~PointerTypeExpression() override { delete (expr); }
 };
 
 class StructTypeExpression : public TypeExpression {
 private:
-  TypeExpression *expr;
-  IdentifierExpression *iden;
+  std::unique_ptr<TypeExpression> expr;
+  std::unique_ptr<IdentifierExpression> iden;
 
 public:
-  explicit StructTypeExpression(IdentifierExpression *iden,
-                                TypeExpression *expr = nullptr)
-      : TypeExpression(TypeSpec::STRUCT), expr(expr), iden(iden) {}
+  explicit StructTypeExpression(std::unique_ptr<IdentifierExpression> iden,
+                                std::unique_ptr<TypeExpression> expr = nullptr)
+      : TypeExpression(TypeSpec::STRUCT), expr(std::move(expr)),
+        iden(std::move(iden)) {}
   std::string prettyPrint(int) override;
   bool isTypeExpression() override { return true; }
-  ~StructTypeExpression() override {
-    delete expr;
-    delete iden;
-  }
 };
 
 class FunctionTypeExpression : public TypeExpression {
 private:
-  Expression *expr;
-  std::vector<TypeExpression *> args;
+  std::unique_ptr<Expression> expr;
+  std::vector<std::unique_ptr<TypeExpression>> args;
 
 public:
-  explicit FunctionTypeExpression(TypeExpression *expr,
-                                  std::vector<TypeExpression *> args)
-      : TypeExpression(TypeSpec::FUNCTION), expr(expr), args(std::move(args)) {}
-  explicit FunctionTypeExpression(IdentifierExpression *expr,
-                                  std::vector<TypeExpression *> args)
-      : TypeExpression(TypeSpec::FUNCTION), expr(expr), args(std::move(args)) {}
+  explicit FunctionTypeExpression(
+      std::unique_ptr<TypeExpression> expr,
+      std::vector<std::unique_ptr<TypeExpression>> args)
+      : TypeExpression(TypeSpec::FUNCTION), expr(std::move(expr)),
+        args(std::move(args)) {}
+  explicit FunctionTypeExpression(
+      std::unique_ptr<IdentifierExpression> expr,
+      std::vector<std::unique_ptr<TypeExpression>> args)
+      : TypeExpression(TypeSpec::FUNCTION), expr(std::move(expr)),
+        args(std::move(args)) {}
   std::string prettyPrint(int) override;
   std::string getIdentifier() override { return expr->getIdentifier(); }
-  ~FunctionTypeExpression() override {
-    delete expr;
-    for (TypeExpression *arg : args)
-      delete arg;
-  }
 };
 
 class SizeOfExpression : public Expression {
 private:
-  Expression *expr;
+  std::unique_ptr<Expression> expr;
 
 public:
-  explicit SizeOfExpression(const Token &token, Expression *expr)
-      : Expression(token), expr(expr) {}
+  explicit SizeOfExpression(const Token &token,
+                            std::unique_ptr<Expression> expr)
+      : Expression(token), expr(std::move(expr)) {}
   std::string prettyPrint(int) override; 
-  ~SizeOfExpression() override { delete expr; }
 };
 
 // AST nodes for statements
@@ -261,36 +242,37 @@ public:
     return this->prettyPrintInline(lvl);
   }
 
-  virtual bool typeAnalysis(std::vector<std::unordered_map<std::string, TypeExpression *>> *);
+  virtual bool typeAnalysis(
+      std::vector<
+          std::unordered_map<std::string, std::unique_ptr<TypeExpression>>> *);
 
 protected:
   explicit Statement(Token token = Token()) : ASTNode(std::move(token)) {}
-  std::string indent(int n); 
-  void printTypes(std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes);
+  std::string indent(int n);
+  void printTypes(std::vector<std::unordered_map<
+                      std::string, std::unique_ptr<TypeExpression>>> *scopes);
 };
 
 class LabeledStatement : public Statement {
 private:
-  Expression *expr;
-  Statement *stat;
+  std::unique_ptr<Expression> expr;
+  std::unique_ptr<Statement> stat;
 
 public:
-  explicit LabeledStatement(Expression *expr, Statement *stat = nullptr)
-      : Statement(), expr(expr), stat(stat) {}
+  explicit LabeledStatement(std::unique_ptr<Expression> expr,
+                            std::unique_ptr<Statement> stat = nullptr)
+      : Statement(), expr(std::move(expr)), stat(std::move(stat)) {}
   std::string prettyPrint(int lvl) override;
-  ~LabeledStatement() override {
-    delete (expr);
-    delete (stat);
-  }
 };
 
 class CompoundStatement : public Statement {
 private:
-  std::vector<Statement *> block;
+  std::vector<std::unique_ptr<Statement>> block;
   std::string prettyPrintBlock(int lvl);
 
 public:
-  CompoundStatement(const Token &token, std::vector<Statement *> block)
+  CompoundStatement(const Token &token,
+                    std::vector<std::unique_ptr<Statement>> block)
       : Statement(token), block(std::move(block)) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintInline(int lvl) override;
@@ -298,71 +280,62 @@ public:
   std::string prettyPrintStruct(int lvl);
 
   bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
-  bool typeAnalysis(std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes) override;
-
-  ~CompoundStatement() override {
-    for (Statement *stat : block)
-      delete (stat);
-  }
+  bool
+  typeAnalysis(std::vector<
+               std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>
+                   *scopes) override;
 };
 
 class ExpressionStatement : public Statement {
 private:
-  Expression *expr;
+  std::unique_ptr<Expression> expr;
 
 public:
-  explicit ExpressionStatement(const Token &token, Expression *expr = nullptr)
-      : Statement(token), expr(expr) {}
+  explicit ExpressionStatement(const Token &token,
+                               std::unique_ptr<Expression> expr = nullptr)
+      : Statement(token), expr(std::move(expr)) {}
   std::string prettyPrint(int lvl) override;
 
   bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override; 
-
-  ~ExpressionStatement() override { delete (expr); }
 };
 
 class IfElseStatement : public Statement {
 private:
-  Expression *expr;
-  Statement *ifStat;
-  Statement *elseStat;
+  std::unique_ptr<Expression> expr;
+  std::unique_ptr<Statement> ifStat;
+  std::unique_ptr<Statement> elseStat;
 
 public:
-  IfElseStatement(const Token &token, Expression *expr, Statement *ifStat,
-                  Statement *elseStat = nullptr)
-      : Statement(token), expr(expr), ifStat(ifStat), elseStat(elseStat) {}
+  IfElseStatement(const Token &token, std::unique_ptr<Expression> expr,
+                  std::unique_ptr<Statement> ifStat,
+                  std::unique_ptr<Statement> elseStat = nullptr)
+      : Statement(token), expr(std::move(expr)), ifStat(std::move(ifStat)),
+        elseStat(std::move(elseStat)) {}
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
-  ~IfElseStatement() override {
-    delete (expr);
-    delete (ifStat);
-    delete (elseStat);
-  }
 };
 
 class WhileStatement : public Statement {
 private:
-  Expression *expr;
-  Statement *stat;
+  std::unique_ptr<Expression> expr;
+  std::unique_ptr<Statement> stat;
 
 public:
-  WhileStatement(const Token &token, Expression *expr, Statement *stat)
-      : Statement(token), expr(expr), stat(stat) {}
-  ~WhileStatement() override {
-    delete (expr);
-    delete (stat);
-  }
+  WhileStatement(const Token &token, std::unique_ptr<Expression> expr,
+                 std::unique_ptr<Statement> stat)
+      : Statement(token), expr(std::move(expr)), stat(std::move(stat)) {}
   std::string prettyPrint(int lvl) override;
 };
 
 class GotoStatement : public Statement {
 private:
-  Expression *expr;
+  std::unique_ptr<Expression> expr;
 
 public:
-  explicit GotoStatement(Expression *expr) : Statement(), expr(expr) {}
+  explicit GotoStatement(std::unique_ptr<Expression> expr)
+      : Statement(), expr(std::move(expr)) {}
   std::string prettyPrint(int lvl) override;
-  ~GotoStatement() override { delete (expr); }
 };
 
 class BreakStatement : public Statement {
@@ -379,74 +352,66 @@ public:
 
 class ReturnStatement : public Statement {
 private:
-  Expression *expr;
+  std::unique_ptr<Expression> expr;
 
 public:
-  explicit ReturnStatement(const Token &token, Expression *expr = nullptr)
-      : Statement(token), expr(expr) {}
+  explicit ReturnStatement(const Token &token,
+                           std::unique_ptr<Expression> expr = nullptr)
+      : Statement(token), expr(std::move(expr)) {}
   std::string prettyPrint(int lvl) override;
-  ~ReturnStatement() override { delete (expr); }
 };
 
 class DeclarationStatement : public Statement {
 private:
-  TypeExpression *type;
-  CompoundStatement *body;
+  std::unique_ptr<TypeExpression> type;
+  std::unique_ptr<CompoundStatement> body;
   std::string identifier;
 
 public:
-  DeclarationStatement(const Token &token, TypeExpression *type,
-                       CompoundStatement *body = nullptr)
-      : Statement(token), type(type), body(body),
+  DeclarationStatement(const Token &token, std::unique_ptr<TypeExpression> type,
+                       std::unique_ptr<CompoundStatement> body = nullptr)
+      : Statement(token), type(std::move(type)), body(std::move(body)),
         identifier(type->getIdentifier()) {}
   std::string prettyPrint(int lvl) override;
 
-  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override; 
-  bool typeAnalysis(std::vector<std::unordered_map<std::string, TypeExpression *>> *types) override;
-
-  ~DeclarationStatement() override {
-    delete (type);
-    delete (body);
-  }
+  bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
+  bool
+  typeAnalysis(std::vector<
+               std::unordered_map<std::string, std::unique_ptr<TypeExpression>>>
+                   *types) override;
 }; // namespace ccc
 
 class StructStatement : public Statement {
 private:
-  IdentifierExpression *name;
-  CompoundStatement *body; // TODO own block
-  IdentifierExpression *alias;
+  std::unique_ptr<IdentifierExpression> name;
+  std::unique_ptr<CompoundStatement> body; // TODO own block
+  std::unique_ptr<IdentifierExpression> alias;
 
 public:
-  StructStatement(const Token &token, IdentifierExpression *name,
-                  CompoundStatement *body, IdentifierExpression *alias)
-      : Statement(token), name(name), body(body), alias(alias) {}
+  StructStatement(const Token &token,
+                  std::unique_ptr<IdentifierExpression> name,
+                  std::unique_ptr<CompoundStatement> body,
+                  std::unique_ptr<IdentifierExpression> alias)
+      : Statement(token), name(std::move(name)), body(std::move(body)),
+        alias(std::move(alias)) {}
   std::string prettyPrint(int lvl) override;
-  ~StructStatement() override {
-    delete (name);
-    delete (alias);
-    delete (body);
-  }
 };
 
 class TranslationUnit : public ASTNode {
 private:
-  std::vector<Statement *> children;
+  std::vector<std::unique_ptr<Statement>> children;
 
 public:
-  explicit TranslationUnit(
-      std::vector<Statement *> children = std::vector<Statement *>())
+  explicit TranslationUnit(std::vector<std::unique_ptr<Statement>> children =
+                               std::vector<std::unique_ptr<Statement>>())
       : ASTNode(), children(std::move(children)) {}
 
   std::string prettyPrint(int lvl) override;
 
   bool runAnalysis(); 
   bool nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
-  bool typeAnalysis(std::vector<std::unordered_map<std::string, TypeExpression *>> *types);
-
-  ~TranslationUnit() override {
-    for (Statement *child : children)
-      delete (child);
-  }
+  bool typeAnalysis(std::vector<std::unordered_map<
+                        std::string, std::unique_ptr<TypeExpression>>> *types);
 };
 
 } // namespace ccc
