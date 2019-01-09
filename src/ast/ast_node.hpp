@@ -2,7 +2,7 @@
 #define C4_ASTNODE_HPP
 
 #include "../lexer/token.hpp"
-#include "utils/macros.hpp"
+#include "../utils/macros.hpp"
 #include <algorithm>
 #include <iostream>
 #include <cmath>
