@@ -52,7 +52,7 @@ protected:
 public:
   explicit PrimaryExpression(const Token &token)
       : Expression(token), extra(token.getExtra()){};
-  std::string prettyPrint(int) override { return extra; }
+  std::string prettyPrint(int) override;
   bool nameAnalysis(std::vector<std::unordered_set<std::string>> *) override;
 };
 
@@ -104,9 +104,7 @@ public:
   bool
   nameAnalysis(std::vector<std::unordered_set<std::string>> *scopes) override;
 
-  std::string prettyPrint(int) override {
-    return "(" + op + expr->prettyPrint(0) + ")";
-  }
+  std::string prettyPrint(int) override;   
   ~UnaryExpression() override { delete (expr); }
 };
 
@@ -119,9 +117,7 @@ private:
 public:
   PostfixExpression(const Token &token, Expression *expr, Expression *post)
       : Expression(token), expr(expr), post(post), op(token.name()) {}
-  std::string prettyPrint(int) override {
-    return "(" + expr->prettyPrint(0) + op + post->prettyPrint(0) + ")";
-  }
+  std::string prettyPrint(int) override;
   ~PostfixExpression() override {
     delete (expr);
     delete (post);
@@ -159,12 +155,7 @@ public:
   ConditionalExpression(const Token &token, Expression *expr1,
                         Expression *expr2, Expression *expr3)
       : Expression(token), condExpr(expr1), ifExpr(expr2), elseExpr(expr3) {}
-  std::string prettyPrint(int) override {
-    std::stringstream ss;
-    ss << "(" << condExpr->prettyPrint(0) << " ? " << ifExpr->prettyPrint(0)
-       << " : " << elseExpr->prettyPrint(0) << ")";
-    return ss.str();
-  }
+  std::string prettyPrint(int) override; 
   ~ConditionalExpression() override {
     delete (condExpr);
     delete (ifExpr);
@@ -252,14 +243,7 @@ private:
 public:
   explicit SizeOfExpression(const Token &token, Expression *expr)
       : Expression(token), expr(expr) {}
-  std::string prettyPrint(int) override {
-    std::stringstream ss;
-    if (expr->isTypeExpression())
-      ss << "(sizeof(" << expr->prettyPrint(0) << "))";
-    else
-      ss << "(sizeof " << expr->prettyPrint(0) << ")";
-    return ss.str();
-  }
+  std::string prettyPrint(int) override; 
   ~SizeOfExpression() override { delete expr; }
 };
 
@@ -281,15 +265,7 @@ public:
 
 protected:
   explicit Statement(Token token = Token()) : ASTNode(std::move(token)) {}
-  std::string indent(int n) {
-    if (n >= 0) {
-      std::stringstream ss;
-      for (int i = 0; i < n; i++)
-        ss << "\t";
-      return ss.str();
-    } else
-      return "";
-  }
+  std::string indent(int n); 
   void printTypes(std::vector<std::unordered_map<std::string, TypeExpression *>> *scopes);
 };
 
