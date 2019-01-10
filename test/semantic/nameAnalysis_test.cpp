@@ -3,7 +3,7 @@
 #include <iostream>
 
 namespace ccc {
-
+/*
 TEST_CASE("scope test") {
   auto root = new TranslationUnit(
       {new DeclarationStatement(
@@ -36,5 +36,6 @@ TEST_CASE("scope test") {
   std::cout << root->prettyPrint(0) << std::endl;
   root->runAnalysis();
 } // namespace ccc
+*/
 
 } // namespace ccc

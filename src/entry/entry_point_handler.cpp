@@ -1,6 +1,7 @@
 #include "entry_point_handler.hpp"
 #include "../lexer/fast_lexer.hpp"
 #include "../parser/fast_parser.hpp"
+#include "../utils/utils.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -40,10 +41,12 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       }
       return EXIT_SUCCESS;
     } else if (flagName == "--print-ast") {
-      ASTNode *root = new TranslationUnit(
-          {new CompoundStatement(Token(TokenType::BRACE_OPEN), {})});
+      std::vector<std::unique_ptr<Statement>> stmt_list;
+      stmt_list.emplace_back(
+          new CompoundStatement(Token(TokenType::BRACE_OPEN), {}));
+      std::unique_ptr<TranslationUnit> root{
+          new TranslationUnit(std::move(stmt_list))};
       std::cout << root->prettyPrint(0);
-      delete root;
       return EXIT_SUCCESS;
     }
   }
