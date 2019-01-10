@@ -74,10 +74,14 @@ void FastParser::parseDeclarator() {
   }
   if (peek().is(TokenType::PARENTHESIS_OPEN)) {
     if (peek().is(C_TYPES)) {
-      parseParenthesizedFn([&]() { parseParameterList(); });
+      mustExpect(TokenType::PARENTHESIS_OPEN);
+      parseParameterList();
+      mustExpect(TokenType::PARENTHESIS_CLOSE);
       return; // based on existIdent value create AST.
     }
-    parseParenthesizedFn([&]() { parseDeclarator(); });
+    mustExpect(TokenType::PARENTHESIS_OPEN);
+    parseDeclarator();
+    mustExpect(TokenType::PARENTHESIS_CLOSE);
     return; // based on existIdent value create AST.
   }
 
@@ -234,7 +238,10 @@ void FastParser::parseIterationStatement() {
 
 // Expressions
 // (6.5.17) expression: assignment
-void FastParser::parseExpression() { parseAssignmentExpression(); }
+std::unique_ptr<Expression> FastParser::parseExpression() {
+  parseAssignmentExpression();
+  return std::unique_ptr<PrimaryExpression>();
+}
 
 // (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op
 // assignment-expr (6.5.15) conditional-expr: logical-OR | logical-OR ?
@@ -337,21 +344,28 @@ void FastParser::parsePostfixExpression() {
 }
 
 // (6.5.1) primary: identifer | constant | string-literal | ( expression )
-void FastParser::parsePrimaryExpression() {
+std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
+  std::unique_ptr<Expression> ret;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
+    return make_unique<IdentifierExpression>(nextToken());
   case TokenType::NUMBER:
+    return make_unique<ConstantExpression>(nextToken());
   case TokenType::CHARACTER:
+    return make_unique<StringLiteralExpression>(
+        nextToken()); // XXX CharacterExpression AST necessary?
   case TokenType::STRING:
-    nextToken();
-    return;
+    return make_unique<StringLiteralExpression>(nextToken());
   case TokenType::PARENTHESIS_OPEN:
-    parseParenthesizedFn([&]() { parseExpression(); });
-    return;
+    mustExpect(TokenType::PARENTHESIS_OPEN);
+    ret = parseExpression();
+    mustExpect(TokenType::PARENTHESIS_CLOSE);
+    return std::move(ret);
   default:
     error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
                          "Unexpected Token: \"" + peek().name() +
                              "\", in primary expression.");
+    return std::unique_ptr<PrimaryExpression>();
   }
 }
 

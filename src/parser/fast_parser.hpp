@@ -6,6 +6,7 @@
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
 #include "../utils/macros.hpp"
+#include "../utils/utils.hpp"
 
 #include <algorithm>
 #include <array>
@@ -30,7 +31,8 @@ public:
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
     case PARSE_TYPE::EXPRESSION:
-      return parseExpression();
+      parseExpression();
+      return;
     case PARSE_TYPE::STATEMENT:
       return parseStatement();
     case PARSE_TYPE::DECLARATION:
@@ -100,12 +102,12 @@ private:
   void parseStructDeclaration();
 
   // Expressions
-  void parseExpression();
+  std::unique_ptr<Expression> parseExpression();
   void parseAssignmentExpression();
   void parseBinOpWithRHS(/* LHS ,*/ Precedence minPrec);
   void parseUnaryExpression();
   void parsePostfixExpression();
-  void parsePrimaryExpression();
+  std::unique_ptr<Expression> parsePrimaryExpression();
   void parseArgumentExpressionList();
 
   // Statements
