@@ -3,6 +3,7 @@
 
 #include "../utils/macros.hpp"
 #include "token.hpp"
+#include <utility>
 #include <vector>
 
 namespace ccc {
@@ -33,6 +34,9 @@ public:
   Token lex_valid();
   bool fail() const { return !error.empty(); }
   const std::string &getError() const { return error; }
+  std::pair<unsigned long, unsigned long> getLexerLocation() const {
+    return std::make_pair(line, column);
+  }
 };
 
 } // namespace ccc

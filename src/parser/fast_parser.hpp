@@ -43,6 +43,10 @@ public:
     }
   }
 
+  std::pair<unsigned long, unsigned long> getParserLocation() const {
+    return lexer.getLexerLocation();
+  }
+
   bool fail() const { return !error.empty(); }
   std::string getError() { return error; }
 
@@ -68,6 +72,8 @@ private:
       return true;
     }
     // Set error
+    error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
+                         "Unexpected Token: \"" + peek().name());
     return false;
   }
 
@@ -103,12 +109,13 @@ private:
 
   // Expressions
   std::unique_ptr<Expression> parseExpression();
-  void parseAssignmentExpression();
-  void parseBinOpWithRHS(/* LHS ,*/ Precedence minPrec);
-  void parseUnaryExpression();
-  void parsePostfixExpression();
+  std::unique_ptr<Expression> parseAssignmentExpression();
+  std::unique_ptr<Expression> parseBinOpWithRHS(std::unique_ptr<Expression>,
+                                                Precedence minPrec);
+  std::unique_ptr<Expression> parseUnaryExpression();
+  std::unique_ptr<Expression> parsePostfixExpression();
   std::unique_ptr<Expression> parsePrimaryExpression();
-  void parseArgumentExpressionList();
+  std::unique_ptr<Expression> parseArgumentExpressionList();
 
   // Statements
   void parseStatement();

@@ -23,6 +23,8 @@ public:
   Token(const TokenType type, const Location loc,
         std::string extra = std::string())
       : type(type), loc(loc), extra(std::move(extra)) {}
+  Token(const TokenType type, std::pair<unsigned long, unsigned long> loc)
+      : type(type), loc(loc.first, loc.second) {}
   Token(const Token &t) = default;
   Token &operator=(const Token &t) = default;
   Token(Token &&t) = default;

@@ -101,17 +101,35 @@ public:
   std::string prettyPrint(int) override;   
 };
 
+// Member parameter "op" represents "[" (subscript op) or "(" (function call)
+// or "." (member access) or "->" (member access for pointer type)
 class PostfixExpression : public Expression {
   std::unique_ptr<Expression> expr;
   std::unique_ptr<Expression> post;
   std::string op;
 
 public:
-  PostfixExpression(const Token &token, std::unique_ptr<Expression> expr,
-                    std::unique_ptr<Expression> post)
+  PostfixExpression(
+      const Token &token, std::unique_ptr<Expression> expr,
+      std::unique_ptr<Expression> post = std::unique_ptr<Expression>())
       : Expression(token), expr(std::move(expr)), post(std::move(post)),
         op(token.name()) {}
   std::string prettyPrint(int) override;
+};
+
+class ArgumentExpressionList : public Expression {
+public:
+  ArgumentExpressionList() = default;
+};
+
+class AssignmentExpression : public Expression {
+  std::unique_ptr<Expression> lhs;
+  std::unique_ptr<Expression> rhs;
+
+public:
+  AssignmentExpression(const Token &token, std::unique_ptr<Expression> lhs,
+                       std::unique_ptr<Expression> rhs)
+      : Expression(token), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
 };
 
 class BinaryExpression : public Expression {
@@ -148,12 +166,13 @@ class TypeExpression : public Expression {
   std::unique_ptr<Expression> expr;
 
 public:
-  explicit TypeExpression(TypeSpec baseType,
-                          std::unique_ptr<TypeExpression> expr = nullptr)
+  explicit TypeExpression(TypeSpec baseType, std::unique_ptr<Expression> expr =
+                                                 std::unique_ptr<Expression>())
       : baseType(baseType), expr(std::move(expr)) {}
   explicit TypeExpression(TypeSpec baseType,
                           std::unique_ptr<IdentifierExpression> expr)
       : Expression(), baseType(baseType), expr(std::move(expr)) {}
+
   std::string prettyPrint(int) override;
   bool isTypeExpression() override { return true; }
   std::string getIdentifier() override {
