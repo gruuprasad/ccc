@@ -54,11 +54,10 @@ TEST_CASE("pretty print block block") {
 TEST_CASE("pretty print block") {
   std::vector<std::unique_ptr<Statement>> stmt_list;
   stmt_list.emplace_back(make_unique<ExpressionStatement>(
-      Token(),
-      make_unique<BinaryExpression>(
-          Token(TokenType::ASSIGN),
-          make_unique<IdentifierExpression>(Token(TokenType::IDENTIFIER, "b")),
-          make_unique<ConstantExpression>(Token(TokenType::NUMBER, "2")))));
+      Token(), make_unique<BinaryExpression>(
+                   Token(TokenType::ASSIGN),
+                   make_unique<Identifier>(Token(TokenType::IDENTIFIER, "b")),
+                   make_unique<Constant>(Token(TokenType::NUMBER, "2")))));
   auto root = make_unique<CompoundStatement>(Token(), std::move(stmt_list));
 
   REQUIRE(compare(std::move(root), "{\n"
@@ -69,15 +68,13 @@ TEST_CASE("pretty print block") {
 TEST_CASE("pretty print if") {
   std::vector<std::unique_ptr<Statement>> stmt_list;
 
-  auto id_a =
-      make_unique<IdentifierExpression>(Token(TokenType::IDENTIFIER, "a"));
-  auto nr_1 = make_unique<ConstantExpression>(Token(TokenType::NUMBER, "1"));
+  auto id_a = make_unique<Identifier>(Token(TokenType::IDENTIFIER, "a"));
+  auto nr_1 = make_unique<Constant>(Token(TokenType::NUMBER, "1"));
   auto bin_exp1 = make_unique<BinaryExpression>(
       Token(TokenType::EQUAL), std::move(id_a), std::move(nr_1));
 
-  auto id_b =
-      make_unique<IdentifierExpression>(Token(TokenType::IDENTIFIER, "b"));
-  auto nr_2 = make_unique<ConstantExpression>(Token(TokenType::NUMBER, "2"));
+  auto id_b = make_unique<Identifier>(Token(TokenType::IDENTIFIER, "b"));
+  auto nr_2 = make_unique<Constant>(Token(TokenType::NUMBER, "2"));
   auto bin_exp2 = make_unique<BinaryExpression>(
       Token(TokenType::PLUS_ASSIGN), std::move(id_b), std::move(nr_2));
 

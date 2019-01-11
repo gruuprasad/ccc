@@ -86,11 +86,11 @@ std::string ExpressionStatement::prettyPrint(int lvl) {
 }
 
 std::string GotoStatement::prettyPrint(int lvl) {
-  return indent(lvl) + "goto " + this->expr->prettyPrint(0) + ";\n";
+  return indent(lvl) + "goto " + this->label->prettyPrint(0) + ";\n";
 }
 
 std::string IfElseStatement::prettyPrint(int lvl) {
-  return indent(lvl) + "if (" + this->expr->prettyPrint(0) + ")" +
+  return indent(lvl) + "if (" + this->cond->prettyPrint(0) + ")" +
          (this->elseStat
               ? this->ifStat->prettyPrintScopeIndent(lvl + 1) + "else" +
                     this->elseStat->prettyPrintInlineIf(lvl + 1)
@@ -102,14 +102,14 @@ std::string IfElseStatement::prettyPrintInline(int lvl) {
 }
 
 std::string IfElseStatement::prettyPrintInlineIf(int lvl) {
-  return " if (" + this->expr->prettyPrint(0) + ")" +
+  return " if (" + this->cond->prettyPrint(0) + ")" +
          (this->elseStat ? this->ifStat->prettyPrintScopeIndent(lvl) + "else" +
                                this->elseStat->prettyPrintInlineIf(lvl)
                          : this->ifStat->prettyPrintInline(lvl));
 }
 
 std::string LabeledStatement::prettyPrint(int lvl) {
-  return this->expr->prettyPrint(0) + ":\n" +
+  return this->label->prettyPrint(0) + ":\n" +
          (this->stat ? this->stat->prettyPrint(lvl) : "");
 }
 
@@ -174,7 +174,7 @@ std::string FunctionTypeDeclaration::prettyPrint(int) {
 }
 
 std::string WhileStatement::prettyPrint(int lvl) {
-  return indent(lvl) + "while (" + this->expr->prettyPrint(0) + ")" +
+  return indent(lvl) + "while (" + this->cond->prettyPrint(0) + ")" +
          this->stat->prettyPrintInline(lvl + 1);
 }
 

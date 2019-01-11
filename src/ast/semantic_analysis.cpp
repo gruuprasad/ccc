@@ -15,7 +15,7 @@ void ASTNode::printScopes(Scope_list_type *scopes) {
 
 bool PrimaryExpression::nameAnalysis(Scope_list_type *) { return true; }
 
-bool IdentifierExpression::nameAnalysis(Scope_list_type *scopes) {
+bool Identifier::nameAnalysis(Scope_list_type *scopes) {
   printScopes(scopes);
   for (const auto &scope : (*scopes)) {
     if (scope.find(extra) != scope.end()) {
