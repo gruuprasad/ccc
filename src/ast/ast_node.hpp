@@ -441,7 +441,7 @@ public:
                        std::unique_ptr<TypeDeclaration> type,
                        std::unique_ptr<CompoundStatement> body = nullptr)
       : Statement(token), type(std::move(type)), body(std::move(body)),
-        identifier(type->getIdentifier()) {}
+        identifier(this->type->getIdentifier()) {}
 
   std::string prettyPrint(int lvl) override;
   bool nameAnalysis(Scope_list_type *scopes) override;
