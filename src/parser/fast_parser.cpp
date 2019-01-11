@@ -161,6 +161,7 @@ void FastParser::parseStructDeclaration() {
 }
 
 void FastParser::parseCompoundStatement() {
+  std::vector<std::unique_ptr<Statement>> stmt_list;
   mustExpect(TokenType::BRACE_OPEN);
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is(C_TYPES)) {
@@ -174,24 +175,27 @@ void FastParser::parseCompoundStatement() {
   mustExpect(TokenType::BRACE_CLOSE);
 }
 
-void FastParser::parseStatement() {
+std::unique_ptr<Statement> FastParser::parseStatement() {
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
-    parseLabeledStatement();
-    return;
+    return parseLabeledStatement();
   case TokenType::BRACE_OPEN:
     parseCompoundStatement();
-    return;
+    return std::unique_ptr<CompoundStatement>(); // FIXME
   case TokenType::IF:
-    parseSelectionStatement();
-    return;
+    return parseSelectionStatement();
   case TokenType::WHILE:
-    parseIterationStatement();
-    return;
+    return parseIterationStatement();
   case TokenType::GOTO:
     nextToken();
-    mustExpect(TokenType::IDENTIFIER);
-    break;
+    if (peek().is(TokenType::IDENTIFIER)) {
+      return make_unique<GotoStatement>(
+          make_unique<IdentifierExpression>(nextToken()));
+    }
+    error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
+                         "Unexpected Token: \"" + peek().name() +
+                             "\", expecting identifer");
+    return std::unique_ptr<GotoStatement>();
   case TokenType::CONTINUE:
     nextToken();
     break;
@@ -209,31 +213,46 @@ void FastParser::parseStatement() {
     break;
   }
   mustExpect(TokenType::SEMICOLON);
+  return std::unique_ptr<ExpressionStatement>(); // FIXME
 }
 
-void FastParser::parseLabeledStatement() {
-  mustExpect(TokenType::IDENTIFIER);
+std::unique_ptr<Statement> FastParser::parseLabeledStatement() {
+  Token src_mark(peek());
+  auto label = make_unique<IdentifierExpression>(nextToken());
   mustExpect(TokenType::COLON);
-  parseStatement();
+  auto stmt = parseStatement();
+  return make_unique<LabeledStatement>(src_mark, std::move(label),
+                                       std::move(stmt));
 }
 
-void FastParser::parseSelectionStatement() {
+std::unique_ptr<Statement> FastParser::parseSelectionStatement() {
+  Token src_mark(peek());
   mustExpect(TokenType::IF);
   mustExpect(TokenType::PARENTHESIS_OPEN);
-  parseExpression();
+  auto ifPredicate = parseExpression();
   mustExpect(TokenType::PARENTHESIS_CLOSE);
-  peek().is(TokenType::IF) ? parseSelectionStatement() : parseStatement();
-  if (mayExpect(TokenType::ELSE))
-    parseStatement();
-  return;
+  auto ifBranch =
+      peek().is(TokenType::IF) ? parseSelectionStatement() : parseStatement();
+  if (mayExpect(TokenType::ELSE)) {
+    auto elseBranch = parseStatement();
+    return make_unique<IfElseStatement>(src_mark, std::move(ifPredicate),
+                                        std::move(ifBranch),
+                                        std::move(elseBranch));
+  }
+
+  return make_unique<IfElseStatement>(src_mark, std::move(ifPredicate),
+                                      std::move(ifBranch));
 }
 
-void FastParser::parseIterationStatement() {
+std::unique_ptr<Statement> FastParser::parseIterationStatement() {
+  Token src_mark(peek());
   mustExpect(TokenType::WHILE);
   mustExpect(TokenType::PARENTHESIS_OPEN);
-  parseExpression();
+  auto whilePredicate = parseExpression();
   mustExpect(TokenType::PARENTHESIS_CLOSE);
-  parseStatement();
+  auto whileBody = parseStatement();
+  return make_unique<WhileStatement>(src_mark, std::move(whilePredicate),
+                                     std::move(whileBody));
 }
 
 // Expressions

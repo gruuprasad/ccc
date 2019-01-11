@@ -200,9 +200,9 @@ class StructTypeDeclaration : public TypeDeclaration {
   std::unique_ptr<IdentifierExpression> iden;
 
 public:
-  explicit StructTypeDeclaration(
-      std::unique_ptr<IdentifierExpression> iden,
-      std::unique_ptr<TypeDeclaration> expr = nullptr)
+  explicit StructTypeDeclaration(std::unique_ptr<IdentifierExpression> iden,
+                                 std::unique_ptr<TypeDeclaration> expr =
+                                     std::unique_ptr<TypeDeclaration>())
       : TypeDeclaration(TypeSpec::STRUCT), expr(std::move(expr)),
         iden(std::move(iden)) {}
   std::string prettyPrint(int) override;
@@ -265,9 +265,10 @@ class LabeledStatement : public Statement {
   std::unique_ptr<Statement> stat;
 
 public:
-  explicit LabeledStatement(std::unique_ptr<Expression> expr,
-                            std::unique_ptr<Statement> stat = nullptr)
-      : expr(std::move(expr)), stat(std::move(stat)) {}
+  explicit LabeledStatement(
+      const Token &token, std::unique_ptr<Expression> expr,
+      std::unique_ptr<Statement> stat = std::unique_ptr<Statement>())
+      : Statement(token), expr(std::move(expr)), stat(std::move(stat)) {}
   std::string prettyPrint(int lvl) override;
 };
 
@@ -292,8 +293,9 @@ class ExpressionStatement : public Statement {
   std::unique_ptr<Expression> expr;
 
 public:
-  explicit ExpressionStatement(const Token &token,
-                               std::unique_ptr<Expression> expr = nullptr)
+  explicit ExpressionStatement(
+      const Token &token,
+      std::unique_ptr<Expression> expr = std::unique_ptr<Expression>())
       : Statement(token), expr(std::move(expr)) {}
 
   std::string prettyPrint(int lvl) override;
@@ -306,9 +308,10 @@ class IfElseStatement : public Statement {
   std::unique_ptr<Statement> elseStat;
 
 public:
-  IfElseStatement(const Token &token, std::unique_ptr<Expression> expr,
-                  std::unique_ptr<Statement> ifStat,
-                  std::unique_ptr<Statement> elseStat = nullptr)
+  IfElseStatement(
+      const Token &token, std::unique_ptr<Expression> expr,
+      std::unique_ptr<Statement> ifStat,
+      std::unique_ptr<Statement> elseStat = std::unique_ptr<Statement>())
       : Statement(token), expr(std::move(expr)), ifStat(std::move(ifStat)),
         elseStat(std::move(elseStat)) {}
   std::string prettyPrint(int lvl) override;

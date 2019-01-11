@@ -34,7 +34,8 @@ public:
       parseExpression();
       return;
     case PARSE_TYPE::STATEMENT:
-      return parseStatement();
+      parseStatement();
+      return;
     case PARSE_TYPE::DECLARATION:
       return parseDeclaration();
     default:
@@ -118,12 +119,12 @@ private:
   std::unique_ptr<Expression> parseArgumentExpressionList();
 
   // Statements
-  void parseStatement();
+  std::unique_ptr<Statement> parseStatement();
   void parseCompoundStatement();
   void parseBlockItemList();
-  void parseLabeledStatement();
-  void parseSelectionStatement();
-  void parseIterationStatement();
+  std::unique_ptr<Statement> parseLabeledStatement();
+  std::unique_ptr<Statement> parseSelectionStatement();
+  std::unique_ptr<Statement> parseIterationStatement();
 
   FastLexer lexer;
   std::array<Token, N> la_buffer;
