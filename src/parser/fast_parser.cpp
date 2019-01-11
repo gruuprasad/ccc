@@ -196,8 +196,7 @@ std::unique_ptr<Statement> FastParser::parseStatement() {
   case TokenType::GOTO:
     nextToken();
     if (peek().is(TokenType::IDENTIFIER)) {
-      return make_unique<GotoStatement>(
-          make_unique<IdentifierExpression>(nextToken()));
+      return make_unique<GotoStatement>(make_unique<Identifier>(nextToken()));
     }
     error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
                          "Unexpected Token: \"" + peek().name() +
@@ -229,7 +228,7 @@ std::unique_ptr<Statement> FastParser::parseStatement() {
 
 std::unique_ptr<Statement> FastParser::parseLabeledStatement() {
   Token src_mark(peek());
-  auto label = make_unique<IdentifierExpression>(nextToken());
+  auto label = make_unique<Identifier>(nextToken());
   mustExpect(TokenType::COLON);
   auto stmt = parseStatement();
   return make_unique<LabeledStatement>(src_mark, std::move(label),
@@ -345,7 +344,7 @@ std::unique_ptr<Expression> FastParser::parseUnaryExpression() {
     if (mayExpect(TokenType::PARENTHESIS_OPEN)) {
       // Parse type
       // FIXME Parsing type-expression
-      unary = make_unique<IdentifierExpression>(nextToken());
+      unary = make_unique<Identifier>(nextToken());
       mustExpect(TokenType::PARENTHESIS_CLOSE);
       return make_unique<UnaryExpression>(op, std::move(unary));
     }
@@ -384,8 +383,7 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
     op = nextToken();
     if (peek().is(TokenType::IDENTIFIER)) {
       return make_unique<PostfixExpression>(
-          op, std::move(primary),
-          make_unique<IdentifierExpression>(nextToken()));
+          op, std::move(primary), make_unique<Identifier>(nextToken()));
     }
     error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
                          "Unexpected Token: \"" + peek().name() +
@@ -402,14 +400,14 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
   std::unique_ptr<Expression> ret;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
-    return make_unique<IdentifierExpression>(nextToken());
+    return make_unique<Identifier>(nextToken());
   case TokenType::NUMBER:
-    return make_unique<ConstantExpression>(nextToken());
+    return make_unique<Constant>(nextToken());
   case TokenType::CHARACTER:
-    return make_unique<StringLiteralExpression>(
+    return make_unique<StringLiteral>(
         nextToken()); // XXX CharacterExpression AST necessary?
   case TokenType::STRING:
-    return make_unique<StringLiteralExpression>(nextToken());
+    return make_unique<StringLiteral>(nextToken());
   case TokenType::PARENTHESIS_OPEN:
     mustExpect(TokenType::PARENTHESIS_OPEN);
     ret = parseExpression();
