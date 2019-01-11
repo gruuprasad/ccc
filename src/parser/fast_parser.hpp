@@ -121,7 +121,7 @@ private:
   // Statements
   std::unique_ptr<Statement> parseStatement();
   void parseCompoundStatement();
-  void parseBlockItemList();
+  void parseBlockItemList(); // XXX What is this?
   std::unique_ptr<Statement> parseLabeledStatement();
   std::unique_ptr<Statement> parseSelectionStatement();
   std::unique_ptr<Statement> parseIterationStatement();

@@ -176,6 +176,8 @@ void FastParser::parseCompoundStatement() {
 }
 
 std::unique_ptr<Statement> FastParser::parseStatement() {
+  Token src_mark;
+  std::unique_ptr<Expression> expr;
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
     return parseLabeledStatement();
@@ -197,23 +199,27 @@ std::unique_ptr<Statement> FastParser::parseStatement() {
                              "\", expecting identifer");
     return std::unique_ptr<GotoStatement>();
   case TokenType::CONTINUE:
-    nextToken();
-    break;
+    src_mark = nextToken();
+    mustExpect(TokenType::SEMICOLON);
+    return make_unique<ContinueStatement>(src_mark);
   case TokenType::BREAK:
-    nextToken();
-    break;
+    src_mark = nextToken();
+    mustExpect(TokenType::SEMICOLON);
+    return make_unique<BreakStatement>(src_mark);
   case TokenType::RETURN:
-    nextToken();
+    src_mark = nextToken();
     if (peek().is_not(TokenType::SEMICOLON))
-      parseExpression();
-    break;
+      expr = parseExpression();
+    mustExpect(TokenType::SEMICOLON);
+    return make_unique<ReturnStatement>(src_mark, std::move(expr));
   default:
-    if (peek().is_not(TokenType::SEMICOLON))
-      parseExpression();
-    break;
+    if (peek().is_not(TokenType::SEMICOLON)) {
+      src_mark = peek();
+      expr = parseExpression();
+    }
+    mustExpect(TokenType::SEMICOLON);
+    return make_unique<ExpressionStatement>(src_mark, std::move(expr)); // FIXME
   }
-  mustExpect(TokenType::SEMICOLON);
-  return std::unique_ptr<ExpressionStatement>(); // FIXME
 }
 
 std::unique_ptr<Statement> FastParser::parseLabeledStatement() {
