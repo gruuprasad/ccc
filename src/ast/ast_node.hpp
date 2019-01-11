@@ -161,16 +161,23 @@ public:
   std::string prettyPrint(int) override; 
 };
 
+// Class to represent type declaration.
+//  baseType : supported types (including pointer and function types)
+//  expr : ?
+//  Example:
+//  int a;
+//  baseType = int
+//  expr = a?
 class TypeDeclaration : public Expression {
   TypeSpec baseType;
   std::unique_ptr<Expression> expr;
 
 public:
   explicit TypeDeclaration(TypeSpec baseType, std::unique_ptr<Expression> expr =
-                                                  std::unique_ptr<Expression>())
+                                                 std::unique_ptr<Expression>())
       : baseType(baseType), expr(std::move(expr)) {}
   explicit TypeDeclaration(TypeSpec baseType,
-                           std::unique_ptr<IdentifierExpression> expr)
+                          std::unique_ptr<IdentifierExpression> expr)
       : Expression(), baseType(baseType), expr(std::move(expr)) {}
 
   std::string prettyPrint(int) override;
@@ -195,20 +202,27 @@ public:
   std::string getIdentifier() override { return expr->getIdentifier(); }
 };
 
+// Class to represent Struct type declaration (no member declaration)
+// Example:
+// struct A a;
 class StructTypeDeclaration : public TypeDeclaration {
   std::unique_ptr<TypeDeclaration> expr;
   std::unique_ptr<IdentifierExpression> iden;
 
 public:
   explicit StructTypeDeclaration(std::unique_ptr<IdentifierExpression> iden,
-                                 std::unique_ptr<TypeDeclaration> expr =
-                                     std::unique_ptr<TypeDeclaration>())
+                                std::unique_ptr<TypeDeclaration> expr = std::unique_ptr<TypeDeclaration>())
       : TypeDeclaration(TypeSpec::STRUCT), expr(std::move(expr)),
         iden(std::move(iden)) {}
   std::string prettyPrint(int) override;
   bool isTypeDeclaration() override { return true; }
 };
 
+// Class to represent function prototype.
+// Example:
+// int funcA(int a, int b);
+// args - holds list of arguments
+// expr - holds the name of the function (declarator)
 class FunctionTypeDeclaration : public TypeDeclaration {
   std::unique_ptr<Expression> expr;
   std::vector<std::unique_ptr<TypeDeclaration>> args;
@@ -265,9 +279,9 @@ class LabeledStatement : public Statement {
   std::unique_ptr<Statement> stat;
 
 public:
-  explicit LabeledStatement(
-      const Token &token, std::unique_ptr<Expression> expr,
-      std::unique_ptr<Statement> stat = std::unique_ptr<Statement>())
+  explicit LabeledStatement(const Token &token,
+                            std::unique_ptr<Expression> expr,
+                            std::unique_ptr<Statement> stat = std::unique_ptr<Statement>())
       : Statement(token), expr(std::move(expr)), stat(std::move(stat)) {}
   std::string prettyPrint(int lvl) override;
 };
@@ -293,9 +307,8 @@ class ExpressionStatement : public Statement {
   std::unique_ptr<Expression> expr;
 
 public:
-  explicit ExpressionStatement(
-      const Token &token,
-      std::unique_ptr<Expression> expr = std::unique_ptr<Expression>())
+  explicit ExpressionStatement(const Token &token,
+                               std::unique_ptr<Expression> expr = std::unique_ptr<Expression>())
       : Statement(token), expr(std::move(expr)) {}
 
   std::string prettyPrint(int lvl) override;
@@ -308,10 +321,9 @@ class IfElseStatement : public Statement {
   std::unique_ptr<Statement> elseStat;
 
 public:
-  IfElseStatement(
-      const Token &token, std::unique_ptr<Expression> expr,
-      std::unique_ptr<Statement> ifStat,
-      std::unique_ptr<Statement> elseStat = std::unique_ptr<Statement>())
+  IfElseStatement(const Token &token, std::unique_ptr<Expression> expr,
+                  std::unique_ptr<Statement> ifStat,
+                  std::unique_ptr<Statement> elseStat = std::unique_ptr<Statement>())
       : Statement(token), expr(std::move(expr)), ifStat(std::move(ifStat)),
         elseStat(std::move(elseStat)) {}
   std::string prettyPrint(int lvl) override;
@@ -367,8 +379,7 @@ class DeclarationStatement : public Statement {
   std::string identifier;
 
 public:
-  DeclarationStatement(const Token &token,
-                       std::unique_ptr<TypeDeclaration> type,
+  DeclarationStatement(const Token &token, std::unique_ptr<TypeDeclaration> type,
                        std::unique_ptr<CompoundStatement> body = nullptr)
       : Statement(token), type(std::move(type)), body(std::move(body)),
         identifier(type->getIdentifier()) {}
