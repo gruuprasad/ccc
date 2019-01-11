@@ -85,21 +85,22 @@ public:
   explicit Constant(const Token &token) : PrimaryExpression(token) {}
 };
 
-// Class for method calls
+// Class for method calls replaced by PostfixExpression.
 // Example:
 //  (foo(a, b))
 //  - call = foo
 //  - args = [a, b]
-class CallExpression : public Expression {
-  std::unique_ptr<Expression> call;
-  std::vector<std::unique_ptr<Expression>> args;
-
-public:
-  explicit CallExpression(const Token &token, std::unique_ptr<Expression> call,
-                          std::vector<std::unique_ptr<Expression>> args)
-      : Expression(token), call(std::move(call)), args(std::move(args)) {}
-  std::string prettyPrint(int) override;
-};
+// class CallExpression : public Expression {
+//  std::unique_ptr<Expression> call;
+//  std::vector<std::unique_ptr<Expression>> args;
+//
+// public:
+//  explicit CallExpression(const Token &token, std::unique_ptr<Expression>
+//  call,
+//                          std::vector<std::unique_ptr<Expression>> args)
+//      : Expression(token), call(std::move(call)), args(std::move(args)) {}
+//  std::string prettyPrint(int) override;
+//};
 
 // Class for unary prefix Expressions like "(&a)";
 class UnaryExpression : public Expression {
@@ -131,11 +132,13 @@ public:
   std::string prettyPrint(int) override;
 };
 
+// Class for storing vector of arguments as expressions.
 class ArgumentExpressionList : public Expression {
 public:
   ArgumentExpressionList() = default;
 };
 
+// Class for assignments. Similar to binary expression with assign token.
 class AssignmentExpression : public Expression {
   std::unique_ptr<Expression> lhs;
   std::unique_ptr<Expression> rhs;
@@ -178,14 +181,14 @@ public:
 };
 
 // Class to represent type declaration.
-//  baseType : supported types (including pointer and function types)
+//  baseType : supported types void, int or char
 //  expr : either an identifier or an nested type expression
 // Example:
-//  (int a)
+//  int a
 //  - baseType = int
 //  - expr = a of Identifier
 // or
-//  (int (*a))
+//  int (*a)
 //  - baseType = int
 //  - expr = (*a) of PointerTypeDeclaration
 class TypeDeclaration : public Expression {
@@ -209,7 +212,8 @@ public:
   }
 };
 
-// Class to represent pointer to type declaration.
+// Class to represent pointer to type declaration. Calls super constructor
+// with dummy TypeSpec::POINTER.
 class PointerTypeDeclaration : public TypeDeclaration {
   std::unique_ptr<Expression> expr; // TODO lvl of pointer
 
@@ -222,8 +226,8 @@ public:
   std::string getIdentifier() override { return expr->getIdentifier(); }
 };
 
-// Class to represent Struct type declaration (no member declaration)
-// Example:
+// Class to represent Struct type declaration (no member declaration). Calls
+// super constructor with dummy TypeSpec::STRUCT. Example:
 //  (struct A a)
 class StructTypeDeclaration : public TypeDeclaration {
   std::unique_ptr<TypeDeclaration> expr;
@@ -239,9 +243,11 @@ public:
   bool isTypeDeclaration() override { return true; }
 };
 
-// Class to represent function prototype.
+// Class to represent function prototype. Must be wrapped in type declaration to
+// save return type. Calls super constructor
+// with dummy TypeSpec::FUNCTION.
 // Example:
-//  int foo(int a, int b);
+//  (foo(int a, int b))
 //  - expr = foo
 //  - args = [int a, int b] list of arguments
 class FunctionTypeDeclaration : public TypeDeclaration {
