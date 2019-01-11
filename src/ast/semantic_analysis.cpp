@@ -80,7 +80,7 @@ bool Statement::typeAnalysis(Type_list_type *) { return true; }
 
 bool CompoundStatement::typeAnalysis(Type_list_type *scopes) {
   scopes->push_back(
-      std::unordered_map<std::string, std::unique_ptr<TypeExpression>>(
+      std::unordered_map<std::string, std::unique_ptr<TypeDeclaration>>(
           std::ceil(block.size() / .75)));
   for (const auto &stat : block) {
     if (!stat->typeAnalysis(scopes))

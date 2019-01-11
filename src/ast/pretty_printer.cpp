@@ -42,7 +42,7 @@ std::string ConditionalExpression::prettyPrint(int) {
 
 std::string SizeOfExpression::prettyPrint(int) {
   std::stringstream ss;
-  if (expr->isTypeExpression())
+  if (expr->isTypeDeclaration())
     ss << "(sizeof(" << expr->prettyPrint(0) << "))";
   else
     ss << "(sizeof " << expr->prettyPrint(0) << ")";
@@ -134,11 +134,11 @@ std::string TranslationUnit::prettyPrint(int lvl) {
   return ss.str();
 }
 
-std::string TypeExpression::prettyPrint(int) {
+std::string TypeDeclaration::prettyPrint(int) {
   std::string tail =
-    (expr ? (expr->isTypeExpression() ? " (" + expr->prettyPrint(0) + ")"
-             : " " + expr->prettyPrint(0))
-     : "");
+      (expr ? (expr->isTypeDeclaration() ? " (" + expr->prettyPrint(0) + ")"
+                                         : " " + expr->prettyPrint(0))
+            : "");
   switch (baseType) {
     case TypeSpec::VOID:
       return "void" + tail;
@@ -151,26 +151,26 @@ std::string TypeExpression::prettyPrint(int) {
   }
 }
 
-std::string PointerTypeExpression::prettyPrint(int) {
-  return "*" + (expr->isTypeExpression() ? "(" + expr->prettyPrint(0) + ")"
-      : expr->prettyPrint(0));
+std::string PointerTypeDeclaration::prettyPrint(int) {
+  return "*" + (expr->isTypeDeclaration() ? "(" + expr->prettyPrint(0) + ")"
+                                          : expr->prettyPrint(0));
 }
 
-std::string StructTypeExpression::prettyPrint(int) {
+std::string StructTypeDeclaration::prettyPrint(int) {
   return "struct " + iden->prettyPrint(0) +
     (expr ? " (" + expr->prettyPrint(0) + ")" : "");
 }
 
-std::string FunctionTypeExpression::prettyPrint(int) {
+std::string FunctionTypeDeclaration::prettyPrint(int) {
   std::stringstream ss;
   for (const auto &arg : args) {
     ss << arg->prettyPrint(0);
     if (arg != args.back())
       ss << ", ";
   }
-  return (expr->isTypeExpression() ? "(" + expr->prettyPrint(0) + ")("
-      : expr->prettyPrint(0) + "(") +
-    ss.str() + ")";
+  return (expr->isTypeDeclaration() ? "(" + expr->prettyPrint(0) + ")("
+                                    : expr->prettyPrint(0) + "(") +
+         ss.str() + ")";
 }
 
 std::string WhileStatement::prettyPrint(int lvl) {
