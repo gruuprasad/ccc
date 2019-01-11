@@ -23,8 +23,8 @@ bool IdentifierExpression::nameAnalysis(Scope_list_type *scopes) {
     }
   }
   std::cerr << SEMANTIC_ERROR(token.getLine(), token.getColumn(),
-      extra + " undefined in this scope")
-    << std::endl;
+                              extra + " undefined in this scope")
+            << std::endl;
   return false;
 }
 
@@ -88,20 +88,20 @@ bool CompoundStatement::typeAnalysis(Type_list_type *scopes) {
   }
   scopes->pop_back();
   return true;
-  }
+}
 
-  bool DeclarationStatement::typeAnalysis(Type_list_type *types) {
-    types->back()[type->getIdentifier()] = std::move(type);
-    printTypes(types);
-    return true;
-  }
+bool DeclarationStatement::typeAnalysis(Type_list_type *types) {
+  types->back()[type->getIdentifier()] = std::move(type);
+  printTypes(types);
+  return true;
+}
 
-  bool TranslationUnit::typeAnalysis(Type_list_type *types) {
-    for (const auto &child : children) {
-      if (!child->typeAnalysis(types))
-        return false;
-    }
-    return true;
+bool TranslationUnit::typeAnalysis(Type_list_type *types) {
+  for (const auto &child : children) {
+    if (!child->typeAnalysis(types))
+      return false;
+  }
+  return true;
 }
 
 bool TranslationUnit::runAnalysis() {
@@ -110,4 +110,4 @@ bool TranslationUnit::runAnalysis() {
   Type_list_type types;
   return nameAnalysis(&scopes) && typeAnalysis(&types);
 }
-}
+} // namespace ccc

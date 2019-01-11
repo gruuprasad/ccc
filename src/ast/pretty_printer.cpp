@@ -10,7 +10,7 @@ std::string UnaryExpression::prettyPrint(int) {
 
 std::string BinaryExpression::prettyPrint(int) {
   return "(" + this->leftExpr->prettyPrint(0) + " " + this->op + " " +
-    this->rightExpr->prettyPrint(0) + ")";
+         this->rightExpr->prettyPrint(0) + ")";
 }
 
 std::string BreakStatement::prettyPrint(int lvl) {
@@ -36,7 +36,7 @@ std::string PostfixExpression::prettyPrint(int) {
 std::string ConditionalExpression::prettyPrint(int) {
   std::stringstream ss;
   ss << "(" << condExpr->prettyPrint(0) << " ? " << ifExpr->prettyPrint(0)
-    << " : " << elseExpr->prettyPrint(0) << ")";
+     << " : " << elseExpr->prettyPrint(0) << ")";
   return ss.str();
 }
 
@@ -78,7 +78,7 @@ std::string ContinueStatement::prettyPrint(int lvl) {
 
 std::string DeclarationStatement::prettyPrint(int lvl) {
   return indent(lvl) + type->prettyPrint(0) +
-    (body ? "\n" + body->prettyPrint(lvl) : ";\n");
+         (body ? "\n" + body->prettyPrint(lvl) : ";\n");
 }
 
 std::string ExpressionStatement::prettyPrint(int lvl) {
@@ -91,10 +91,10 @@ std::string GotoStatement::prettyPrint(int lvl) {
 
 std::string IfElseStatement::prettyPrint(int lvl) {
   return indent(lvl) + "if (" + this->expr->prettyPrint(0) + ")" +
-    (this->elseStat
-     ? this->ifStat->prettyPrintScopeIndent(lvl + 1) + "else" +
-     this->elseStat->prettyPrintInlineIf(lvl + 1)
-     : this->ifStat->prettyPrintInline(lvl + 1));
+         (this->elseStat
+              ? this->ifStat->prettyPrintScopeIndent(lvl + 1) + "else" +
+                    this->elseStat->prettyPrintInlineIf(lvl + 1)
+              : this->ifStat->prettyPrintInline(lvl + 1));
 }
 
 std::string IfElseStatement::prettyPrintInline(int lvl) {
@@ -103,25 +103,25 @@ std::string IfElseStatement::prettyPrintInline(int lvl) {
 
 std::string IfElseStatement::prettyPrintInlineIf(int lvl) {
   return " if (" + this->expr->prettyPrint(0) + ")" +
-    (this->elseStat ? this->ifStat->prettyPrintScopeIndent(lvl) + "else" +
-     this->elseStat->prettyPrintInlineIf(lvl)
-     : this->ifStat->prettyPrintInline(lvl));
+         (this->elseStat ? this->ifStat->prettyPrintScopeIndent(lvl) + "else" +
+                               this->elseStat->prettyPrintInlineIf(lvl)
+                         : this->ifStat->prettyPrintInline(lvl));
 }
 
 std::string LabeledStatement::prettyPrint(int lvl) {
   return this->expr->prettyPrint(0) + ":\n" +
-    (this->stat ? this->stat->prettyPrint(lvl) : "");
+         (this->stat ? this->stat->prettyPrint(lvl) : "");
 }
 
 std::string ReturnStatement::prettyPrint(int lvl) {
   return expr ? indent(lvl) + "return " + expr->prettyPrint(0) + ";\n"
-    : indent(lvl) + "return;\n";
+              : indent(lvl) + "return;\n";
 }
 
 std::string StructStatement::prettyPrint(int lvl) {
   return indent(lvl) + "struct " + this->name->prettyPrint(0) + "\n" +
-    indent(lvl) + body->prettyPrintStruct(lvl) +
-    this->alias->prettyPrint(0) + ";\n";
+         indent(lvl) + body->prettyPrintStruct(lvl) +
+         this->alias->prettyPrint(0) + ";\n";
 }
 
 std::string TranslationUnit::prettyPrint(int lvl) {
@@ -140,14 +140,14 @@ std::string TypeDeclaration::prettyPrint(int) {
                                          : " " + expr->prettyPrint(0))
             : "");
   switch (baseType) {
-    case TypeSpec::VOID:
-      return "void" + tail;
-    case TypeSpec::CHAR:
-      return "char" + tail;
-    case TypeSpec::INT:
-      return "int" + tail;
-    default:
-      return "?";
+  case TypeSpec::VOID:
+    return "void" + tail;
+  case TypeSpec::CHAR:
+    return "char" + tail;
+  case TypeSpec::INT:
+    return "int" + tail;
+  default:
+    return "?";
   }
 }
 
@@ -158,7 +158,7 @@ std::string PointerTypeDeclaration::prettyPrint(int) {
 
 std::string StructTypeDeclaration::prettyPrint(int) {
   return "struct " + iden->prettyPrint(0) +
-    (expr ? " (" + expr->prettyPrint(0) + ")" : "");
+         (expr ? " (" + expr->prettyPrint(0) + ")" : "");
 }
 
 std::string FunctionTypeDeclaration::prettyPrint(int) {
@@ -175,9 +175,8 @@ std::string FunctionTypeDeclaration::prettyPrint(int) {
 
 std::string WhileStatement::prettyPrint(int lvl) {
   return indent(lvl) + "while (" + this->expr->prettyPrint(0) + ")" +
-    this->stat->prettyPrintInline(lvl + 1);
+         this->stat->prettyPrintInline(lvl + 1);
 }
-
 
 std::string Statement::indent(int n) {
   if (n >= 0) {
