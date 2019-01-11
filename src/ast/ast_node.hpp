@@ -227,8 +227,11 @@ public:
 };
 
 // Class to represent Struct type declaration (no member declaration). Calls
-// super constructor with dummy TypeSpec::STRUCT. Example:
-//  (struct A a)
+// super constructor with dummy TypeSpec::STRUCT.
+// Example:
+//  (struct A (*p))
+//  - iden = A
+//  - expr = (*p)
 class StructTypeDeclaration : public TypeDeclaration {
   std::unique_ptr<TypeDeclaration> expr;
   std::unique_ptr<Identifier> iden;
