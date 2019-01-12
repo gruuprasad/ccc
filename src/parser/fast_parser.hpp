@@ -52,6 +52,7 @@ public:
   std::string getError() { return error_stream.str(); }
 
   void parser_error(const Token &tok) {
+    error_count++;
     error_stream << std::to_string(tok.getLine()) << ":"
                  << std::to_string(tok.getColumn()) << ": error:"
                  << "Unexpected token " << tok.getExtra()
