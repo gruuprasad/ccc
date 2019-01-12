@@ -181,6 +181,9 @@ public:
       : Expression(), baseType(baseType), expr(std::move(expr)) {}
 
   std::string prettyPrint(int) override;
+  void addDeclaratorExpression(std::unique_ptr<Expression> expr) {
+    expr = std::move(expr);
+  }
   bool isTypeDeclaration() override { return true; }
   std::string getIdentifier() override {
     if (expr) {
@@ -212,13 +215,18 @@ public:
 // struct A a;
 class StructTypeDeclaration : public TypeDeclaration {
   std::unique_ptr<TypeDeclaration> expr;
-  std::unique_ptr<IdentifierExpression> iden;
+  std::unique_ptr<Expression> iden;
 
 public:
-  explicit StructTypeDeclaration(std::unique_ptr<IdentifierExpression> iden,
-                                std::unique_ptr<TypeDeclaration> expr = std::unique_ptr<TypeDeclaration>())
+  explicit StructTypeDeclaration(std::unique_ptr<Expression> iden,
+                                 std::unique_ptr<TypeDeclaration> expr =
+                                     std::unique_ptr<TypeDeclaration>())
       : TypeDeclaration(TypeSpec::STRUCT), expr(std::move(expr)),
         iden(std::move(iden)) {}
+
+  void addDeclaratorExpression(std::unique_ptr<Expression> expr) {
+    iden = std::move(expr);
+  }
   std::string prettyPrint(int) override;
   bool isTypeDeclaration() override { return true; }
 };

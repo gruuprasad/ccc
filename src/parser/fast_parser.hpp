@@ -105,7 +105,8 @@ private:
 
   // Declarations
   std::unique_ptr<Statement> parseDeclaration();
-  std::unique_ptr<TypeDeclaration> parseStructTypeDeclaration();
+  std::unique_ptr<TypeDeclaration> parseTypeSpecifier();
+  std::unique_ptr<StructTypeDeclaration> parseStructTypeDeclaration();
   std::unique_ptr<CompoundStatement> parseStructDefinition();
   std::unique_ptr<Expression> parseDeclarator();
   void parseParameterList();

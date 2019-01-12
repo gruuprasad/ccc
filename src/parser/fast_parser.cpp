@@ -40,13 +40,14 @@ std::unique_ptr<Statement> FastParser::parseFuncDefOrDeclaration() {
   // function-definition
   Token src_mark;
   bool is_scalar_type;
-  TypeSpec scalar_type;
-  std::unique_ptr<TypeDeclaration> struct_type;
+  std::unique_ptr<TypeDeclaration> scalar_type;
+  std::unique_ptr<StructTypeDeclaration> struct_type;
+  std::unique_ptr<Expression> var_name;
 
   if (peek().is(SCALAR_TYPES)) {
     is_scalar_type = true;
     src_mark = peek();
-    scalar_type = type_map[nextToken().getType()];
+    scalar_type = make_unique<TypeDeclaration>(type_map[nextToken().getType()]);
   } else if (peek().is(TokenType::STRUCT)) {
     src_mark = peek();
     struct_type = parseStructTypeDeclaration();
@@ -58,29 +59,36 @@ std::unique_ptr<Statement> FastParser::parseFuncDefOrDeclaration() {
   std::unique_ptr<CompoundStatement> struct_body;
   if (peek().is(TokenType::BRACE_OPEN)) {
     struct_body = parseStructDefinition();
+    if (peek().is_not(TokenType::SEMICOLON)) {
+      var_name = parseDeclarator();
+      mustExpect(TokenType::SEMICOLON);
+      return make_unique<StructStatement>(src_mark, std::move(struct_type),
+                                          std::move(struct_body),
+                                          std::move(var_name));
+    }
   }
 
   if (mayExpect(TokenType::SEMICOLON)) {
-    if (is_scalar_type)
+    if (is_scalar_type) {
       return make_unique<DeclarationStatement>(src_mark,
-                                make_unique<TypeDeclaration>(scalar_type));
-    return make_unique<StructStatement>(src_mark, std::move(struct_type), std::move(struct_body));
+                                               std::move(scalar_type));
+    }
+    return make_unique<DeclarationStatement>(src_mark, std::move(struct_type));
   }
 
-  // variable name in case of scalar type
-  // or alias in case of struct type
-  auto var_name = parseDeclarator();
+  var_name = parseDeclarator();
   if (fail()) {
     return std::unique_ptr<Statement>();
   }
 
   if (mayExpect(TokenType::SEMICOLON)) {
     if (is_scalar_type) {
+      scalar_type->addDeclaratorExpression(std::move(var_name));
       return make_unique<DeclarationStatement>(src_mark,
-          make_unique<TypeDeclaration>(scalar_type, std::move(var_name)));
+                                               std::move(scalar_type));
     }
-    return make_unique<StructStatement>(src_mark,
-        std::move(struct_type), std::move(struct_body), std::move(var_name));
+    struct_type->addDeclaratorExpression(std::move(var_name));
+    return make_unique<DeclarationStatement>(src_mark, std::move(struct_type));
   }
 
   // Function definition
@@ -97,7 +105,8 @@ std::unique_ptr<Statement> FastParser::parseFuncDefOrDeclaration() {
 }
 
 // (6.7.2.1) struct-or-union-specifier :: struct identifier
-std::unique_ptr<TypeDeclaration> FastParser::parseStructTypeDeclaration() {
+std::unique_ptr<StructTypeDeclaration>
+FastParser::parseStructTypeDeclaration() {
   auto type_decl = make_unique<TypeDeclaration>(type_map[nextToken().getType()]);
   if (peek().is(TokenType::IDENTIFIER)) {
     return make_unique<StructTypeDeclaration>(make_unique<IdentifierExpression>(nextToken()),
@@ -183,6 +192,16 @@ void FastParser::parseParameterList() {
   parseList([&]() { parseParameterDeclaration(); }, TokenType::COMMA);
 }
 
+std::unique_ptr<TypeDeclaration> FastParser::parseTypeSpecifier() {
+  if (peek().is(SCALAR_TYPES)) {
+    return make_unique<TypeDeclaration>(type_map[nextToken().getType()]);
+  } else if (peek().is(TokenType::STRUCT)) {
+    return parseStructTypeDeclaration();
+  }
+  parser_error(peek(), "type specifier");
+  return std::unique_ptr<TypeDeclaration>();
+}
+
 // (6.7.5) parameter-declaration :: type-specifier declarator | type-specifier
 // abstract-declarator(opt)
 void FastParser::parseParameterDeclaration() {
@@ -196,7 +215,7 @@ void FastParser::parseParameterDeclaration() {
 
 // (6.7)  declaration :: type-specifier declarator(opt) ;
 std::unique_ptr<Statement> FastParser::parseDeclaration() {
-  // FIXME auto type = parseTypeSpecifier();
+  auto type = parseTypeSpecifier();
   if (peek().is_not(TokenType::SEMICOLON))
     auto identifer = parseDeclarator();
   mustExpect(TokenType::SEMICOLON);
