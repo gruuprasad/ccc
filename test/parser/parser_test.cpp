@@ -17,12 +17,19 @@ template <typename T> void print(const T &t) {
 #define PARSE_VALID(language)                                                  \
   {                                                                            \
     auto fp = FastParser(language);                                            \
-    fp.parse();                                                                \
+    auto root = fp.parse();                                                                \
     REQUIRE(fp.fail() == false);                                               \
   }
 
+#define PARSE_INVALID(language)                                                  \
+  {                                                                            \
+    auto fp = FastParser(language);                                            \
+    auto root = fp.parse();                                                                \
+    REQUIRE(fp.fail() == true);                                               \
+  }
+
 #define DECLARATION_TESTS(type)                                                \
-  TEST_CASE("Fast Parser:empty declaration test " #type) {                     \
+  SECTION("Fast Parser:empty declaration test " #type) {                     \
     PARSE_VALID(type " ;");                                                    \
     PARSE_VALID(type " a;");                                                   \
     PARSE_VALID(type " (a);");                                                 \
@@ -43,12 +50,18 @@ template <typename T> void print(const T &t) {
                 " a, void b, char c, short e);")                               \
   }
 
-TEST_CASE("debug") {
-  auto fp = FastParser("int a;");
-  fp.parse();
+TEST_CASE("empty source file") {
+  auto fp = FastParser("");
+  auto root = fp.parse();
   REQUIRE(fp.fail() == false);
 }
 
+TEST_CASE("declaration tests") {
+  PARSE_VALID("");
+  PARSE_VALID("void;");
+  PARSE_INVALID("void");
+}
+/*
 // TEST_CASE("Fast Parser: Struct declaration test") {
 //  PARSE_VALID("struct { int; };");
 //  PARSE_VALID("struct { int a; };");
@@ -196,3 +209,4 @@ TEST_CASE("Fast Parser: Jump statement") {
 TEST_CASE("Fast Parser: loop statement test") {
   PARSE_VALID_STATEMENT("{ while (10) { 1000; } }")
 }
+*/

@@ -2,23 +2,24 @@
 
 namespace ccc {
 
-static std::unordered_map<TokenType, TypeSpec> type_map{
-    {TokenType::VOID, TypeSpec::VOID},
-    {TokenType::CHAR, TypeSpec::CHAR},
-    {TokenType::INT, TypeSpec::INT},
-    {TokenType::STRUCT, TypeSpec::STRUCT}};
+static std::unordered_map<TokenType, TypeSpec> type_map { 
+  {TokenType::VOID, TypeSpec::VOID},
+  {TokenType::CHAR, TypeSpec::CHAR},
+  {TokenType::INT, TypeSpec::INT},
+  {TokenType::STRUCT, TypeSpec::STRUCT}
+};
 
 // (6.9) translationUnit :: external-declaration+
 std::unique_ptr<ASTNode> FastParser::parseTranslationUnit() {
   std::vector<std::unique_ptr<Statement>> stmt_list;
   while (peek().is_not(TokenType::ENDOFFILE)) {
     auto stmt = parseExternalDeclaration();
-    if (!stmt) {
+    if (fail()) {
       // nullptr means, encounted error while parsing, hence we stop.
       // Invariant for error-free parsing - AST object pointer is non null.
-      // XXX This doesn't hold for all classes, but that is deeply nested AST
-      // classes.. check this statement again.
-      break;
+      // XXX This doesn't hold for all classes, but that is deeply nested AST classes..
+      // check this statement again. 
+      return std::unique_ptr<TranslationUnit>();
     }
     stmt_list.emplace_back(std::move(stmt));
   }
@@ -29,14 +30,11 @@ std::unique_ptr<ASTNode> FastParser::parseTranslationUnit() {
 // Both non-terminals (func-def and declaration) on rhs has same terms upto
 // declaration (see below), hence we parse upto that, then find out which type
 // of AST node to be created.
-std::unique_ptr<Statement> FastParser::parseExternalDeclaration() {
-  return parseFuncDefOrDeclaration();
-}
+std::unique_ptr<Statement> FastParser::parseExternalDeclaration() { return parseFuncDefOrDeclaration(); }
 
 // (6.9.1) function-definition :: type-specifier declarator declaration+(opt)
 // compound-statement (6.7)  declaration :: type-specifier declarator(opt) ;
-// (6.7.2) type-specifier :: void | char | short | int |
-// struct-or-union-specifier
+// (6.7.2) type-specifier :: void | char | short | int | struct-or-union-specifier
 std::unique_ptr<Statement> FastParser::parseFuncDefOrDeclaration() {
   // Presence or absence of SEMICOLON determines whether declaration or
   // function-definition
@@ -64,24 +62,25 @@ std::unique_ptr<Statement> FastParser::parseFuncDefOrDeclaration() {
 
   if (mayExpect(TokenType::SEMICOLON)) {
     if (is_scalar_type)
-      return make_unique<DeclarationStatement>(
-          src_mark, make_unique<TypeDeclaration>(scalar_type));
-    return make_unique<StructStatement>(src_mark, std::move(struct_type),
-                                        std::move(struct_body));
+      return make_unique<DeclarationStatement>(src_mark,
+                                make_unique<TypeDeclaration>(scalar_type));
+    return make_unique<StructStatement>(src_mark, std::move(struct_type), std::move(struct_body));
   }
 
   // variable name in case of scalar type
   // or alias in case of struct type
   auto var_name = parseDeclarator();
+  if (fail()) {
+    return std::unique_ptr<Statement>();
+  }
+
   if (mayExpect(TokenType::SEMICOLON)) {
     if (is_scalar_type) {
-      return make_unique<DeclarationStatement>(
-          src_mark,
+      return make_unique<DeclarationStatement>(src_mark,
           make_unique<TypeDeclaration>(scalar_type, std::move(var_name)));
     }
-    return make_unique<StructStatement>(src_mark, std::move(struct_type),
-                                        std::move(struct_body),
-                                        std::move(var_name));
+    return make_unique<StructStatement>(src_mark,
+        std::move(struct_type), std::move(struct_body), std::move(var_name));
   }
 
   // Function definition
@@ -89,35 +88,33 @@ std::unique_ptr<Statement> FastParser::parseFuncDefOrDeclaration() {
     parseDeclaration();
   }
   auto function_body = parseCompoundStatement();
-  return std::unique_ptr<
-      DeclarationStatement>(); // XXX Why not have functionStatement like struct
+  return std::unique_ptr<DeclarationStatement>(); // XXX Why not have functionStatement like struct
 }
 
 // (6.7.2.1) struct-or-union-specifier :: struct identifier
 std::unique_ptr<TypeDeclaration> FastParser::parseStructTypeDeclaration() {
-  auto type_decl =
-      make_unique<TypeDeclaration>(type_map[nextToken().getType()]);
+  auto type_decl = make_unique<TypeDeclaration>(type_map[nextToken().getType()]);
   if (peek().is(TokenType::IDENTIFIER)) {
-    return make_unique<StructTypeDeclaration>(
-        make_unique<IdentifierExpression>(nextToken()), std::move(type_decl));
+    return make_unique<StructTypeDeclaration>(make_unique<IdentifierExpression>(nextToken()),
+        std::move(type_decl));
   }
   parser_error(peek());
-  return std::unique_ptr<StructTypeDeclaration>();
+ return std::unique_ptr<StructTypeDeclaration>();
 }
 
 /// struct body parsing
 // (6.7.2.1) struct-or-union-specifier :: struct identifer(opt) {
-// struct-declaration+ }
+// struct-declaration+ } 
 std::unique_ptr<CompoundStatement> FastParser::parseStructDefinition() {
   mustExpect(TokenType::BRACE_OPEN);
   do {
-    parseStructMemberDeclaration(); // FIXME
-  } while (peek().is_not(TokenType::BRACE_CLOSE));
-
+      parseStructMemberDeclaration(); // FIXME
+    } while (peek().is_not(TokenType::BRACE_CLOSE));
+ 
   if (mustExpect(TokenType::BRACE_CLOSE)) {
     return std::unique_ptr<CompoundStatement>();
   }
-
+  
   parser_error(peek());
   return std::unique_ptr<CompoundStatement>();
 }
@@ -132,8 +129,10 @@ std::unique_ptr<Expression> FastParser::parseDeclarator() {
   int ptrCount = 0;        // > 0 means declarator is ptr type
   bool existIdent = false; // decides whether declarator is abstract or not.
   Token var_name;
-  parseList([&]() { ++ptrCount; },
-            TokenType::STAR); // consume  0 or more pointers
+  if (peek().is(TokenType::STAR)) {
+    parseList([&]() { ++ptrCount; },
+        TokenType::STAR); // consume  0 or more pointers
+  }
   if (peek().is(TokenType::IDENTIFIER)) {
     var_name = nextToken();
     existIdent = true;
@@ -145,22 +144,19 @@ std::unique_ptr<Expression> FastParser::parseDeclarator() {
       mustExpect(TokenType::PARENTHESIS_OPEN);
       parseParameterList();
       mustExpect(TokenType::PARENTHESIS_CLOSE);
-      return std::unique_ptr<IdentifierExpression>(); // FIXME based on
-                                                      // existIdent value create
-                                                      // AST.
+      return std::unique_ptr<IdentifierExpression>(); // FIXME based on existIdent value create AST.
     }
     mustExpect(TokenType::PARENTHESIS_OPEN);
     parseDeclarator();
     mustExpect(TokenType::PARENTHESIS_CLOSE);
-    return std::unique_ptr<IdentifierExpression>(); // FIXME based on existIdent
-                                                    // value create AST.
+    return std::unique_ptr<IdentifierExpression>(); // FIXME based on existIdent value create AST.
   }
 
   if (existIdent) {
     if (ptrCount != 0) {
       // pointer-type
-      return make_unique<PointerTypeDeclaration>(
-          ptrCount, make_unique<IdentifierExpression>(var_name));
+      return make_unique<PointerTypeDeclaration>(ptrCount,
+                          make_unique<IdentifierExpression>(var_name));
     }
 
     // non-pointer declarator type.
@@ -211,7 +207,7 @@ void FastParser::parseStructMemberDeclaration() {
 }
 
 std::unique_ptr<Statement> FastParser::parseCompoundStatement() {
-  Token src_mark(peek());
+  Token src_mark (peek());
   std::vector<std::unique_ptr<Statement>> stmt_list;
   mustExpect(TokenType::BRACE_OPEN);
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
@@ -259,8 +255,7 @@ std::unique_ptr<Statement> FastParser::parseStatement() {
     src_mark = nextToken();
     if (peek().is_not(TokenType::SEMICOLON)) {
       expr = parseExpression();
-      if (!expr)
-        break;
+      if (!expr) break;
     }
     stmt = make_unique<ReturnStatement>(src_mark, std::move(expr));
     break;
@@ -268,8 +263,7 @@ std::unique_ptr<Statement> FastParser::parseStatement() {
     src_mark = peek();
     if (peek().is_not(TokenType::SEMICOLON)) {
       expr = parseExpression();
-      if (!expr)
-        break;
+      if (!expr) break;
     }
     stmt = make_unique<ExpressionStatement>(src_mark, std::move(expr)); // FIXME
     break;
@@ -284,8 +278,7 @@ std::unique_ptr<Statement> FastParser::parseLabeledStatement() {
   auto label = make_unique<IdentifierExpression>(nextToken());
   if (mustExpect(TokenType::COLON)) {
     auto label_body = parseStatement();
-    stmt = make_unique<LabeledStatement>(src_mark, std::move(label),
-                                         std::move(label_body));
+    stmt = make_unique<LabeledStatement>(src_mark, std::move(label), std::move(label_body));
   }
   return std::move(stmt);
 }
@@ -299,16 +292,13 @@ std::unique_ptr<Statement> FastParser::parseSelectionStatement() {
   auto ifPredicate = parseExpression();
   if (!fail() && ifPredicate) {
     mustExpect(TokenType::PARENTHESIS_CLOSE);
-    ifBranch =
-        peek().is(TokenType::IF) ? parseSelectionStatement() : parseStatement();
+    ifBranch = peek().is(TokenType::IF) ? parseSelectionStatement() : parseStatement();
     if (!fail() && mayExpect(TokenType::ELSE)) {
       elseBranch = parseStatement();
     }
   }
-  return fail() ? std::unique_ptr<IfElseStatement>()
-                : make_unique<IfElseStatement>(src_mark, std::move(ifPredicate),
-                                               std::move(ifBranch),
-                                               std::move(elseBranch));
+  return fail() ? std::unique_ptr<IfElseStatement>() :
+    make_unique<IfElseStatement>(src_mark, std::move(ifPredicate), std::move(ifBranch), std::move(elseBranch));
 }
 
 std::unique_ptr<Statement> FastParser::parseIterationStatement() {

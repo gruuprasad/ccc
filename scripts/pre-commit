@@ -1,6 +1,6 @@
 #!/bin/bash
 
-git clang-format --extensions cpp,hpp --style=llvm
-git add -u
-exit 0
+#git clang-format --extensions cpp,hpp --style=llvm
+#git add -u
+#exit 0
 
