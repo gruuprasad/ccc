@@ -50,10 +50,10 @@ public:
   bool fail() const { return error_count != 0; }
   std::string getError() { return error_stream.str(); }
   
-  void parser_error(const Token &tok) {
+  void parser_error(const Token &tok, const std::string & msg = std::string()) {
   error_count++;
   std::cerr << std::to_string(tok.getLine()) << ":" << std::to_string(tok.getColumn()) 
-    << ": error:" << "Unexpected token " << tok.getExtra()  << ". Parsing Stopped!"
+    << ": error:" << "Expecting " << msg << "but found " << tok.getExtra()  << ". Parsing Stopped!"
     << std::endl;
 }
 

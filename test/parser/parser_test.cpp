@@ -60,6 +60,8 @@ TEST_CASE("declaration tests") {
   PARSE_VALID("");
   PARSE_VALID("void;");
   PARSE_INVALID("void");
+  PARSE_VALID("void a;");
+  PARSE_INVALID("void a");
 }
 /*
 // TEST_CASE("Fast Parser: Struct declaration test") {

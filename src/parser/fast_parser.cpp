@@ -87,8 +87,13 @@ std::unique_ptr<Statement> FastParser::parseFuncDefOrDeclaration() {
   while (peek().is(C_TYPES)) {
     parseDeclaration();
   }
-  auto function_body = parseCompoundStatement();
-  return std::unique_ptr<DeclarationStatement>(); // XXX Why not have functionStatement like struct
+  if (peek().is(TokenType::BRACE_OPEN)) {
+    auto function_body = parseCompoundStatement();
+    return std::unique_ptr<DeclarationStatement>(); // XXX Why not have functionStatement like struct
+  }
+
+  parser_error(peek());
+  return std::unique_ptr<DeclarationStatement>();
 }
 
 // (6.7.2.1) struct-or-union-specifier :: struct identifier
