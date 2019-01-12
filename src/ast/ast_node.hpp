@@ -191,13 +191,18 @@ public:
 };
 
 class PointerTypeDeclaration : public TypeDeclaration {
-  std::unique_ptr<Expression> expr; // TODO lvl of pointer
+  unsigned int indirection_count;
+  std::unique_ptr<Expression> expr;
 
 public:
   explicit PointerTypeDeclaration(std::unique_ptr<TypeDeclaration> expr)
-      : TypeDeclaration(TypeSpec::POINTER), expr(std::move(expr)) {}
-  explicit PointerTypeDeclaration(std::unique_ptr<IdentifierExpression> expr)
-      : TypeDeclaration(TypeSpec::POINTER), expr(std::move(expr)) {}
+      : TypeDeclaration(TypeSpec::POINTER), indirection_count(1),
+        expr(std::move(expr)) {}
+  explicit PointerTypeDeclaration(unsigned int star_count,
+                                  std::unique_ptr<IdentifierExpression> expr =
+                                      std::unique_ptr<IdentifierExpression>())
+      : TypeDeclaration(TypeSpec::POINTER), indirection_count(star_count),
+        expr(std::move(expr)) {}
   std::string prettyPrint(int) override;
   std::string getIdentifier() override { return expr->getIdentifier(); }
 };
@@ -379,8 +384,10 @@ class DeclarationStatement : public Statement {
   std::string identifier;
 
 public:
-  DeclarationStatement(const Token &token, std::unique_ptr<TypeDeclaration> type,
-                       std::unique_ptr<CompoundStatement> body = nullptr)
+  DeclarationStatement(const Token &token,
+                       std::unique_ptr<TypeDeclaration> type,
+                       std::unique_ptr<CompoundStatement> body =
+                           std::unique_ptr<CompoundStatement>())
       : Statement(token), type(std::move(type)), body(std::move(body)),
         identifier(type->getIdentifier()) {}
 
@@ -390,16 +397,16 @@ public:
 }; // namespace ccc
 
 class StructStatement : public Statement {
-  std::unique_ptr<IdentifierExpression> name;
+  std::unique_ptr<TypeDeclaration> type;
   std::unique_ptr<CompoundStatement> body; // TODO own block
-  std::unique_ptr<IdentifierExpression> alias;
+  std::unique_ptr<Expression> alias;
 
 public:
-  StructStatement(const Token &token,
-                  std::unique_ptr<IdentifierExpression> name,
-                  std::unique_ptr<CompoundStatement> body,
-                  std::unique_ptr<IdentifierExpression> alias)
-      : Statement(token), name(std::move(name)), body(std::move(body)),
+  StructStatement(
+      const Token &token, std::unique_ptr<TypeDeclaration> type,
+      std::unique_ptr<CompoundStatement> body,
+      std::unique_ptr<Expression> alias = std::unique_ptr<Expression>())
+      : Statement(token), type(std::move(type)), body(std::move(body)),
         alias(std::move(alias)) {}
   std::string prettyPrint(int lvl) override;
 };

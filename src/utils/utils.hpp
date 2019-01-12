@@ -3,6 +3,7 @@
 
 #include "../ast/ast_node.hpp"
 #include <cstddef>
+#include <cstdlib>
 #include <fstream>
 #include <memory>
 #include <sstream>

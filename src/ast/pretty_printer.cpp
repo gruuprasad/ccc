@@ -119,9 +119,9 @@ std::string ReturnStatement::prettyPrint(int lvl) {
 }
 
 std::string StructStatement::prettyPrint(int lvl) {
-  return indent(lvl) + "struct " + this->name->prettyPrint(0) + "\n" +
-    indent(lvl) + body->prettyPrintStruct(lvl) +
-    this->alias->prettyPrint(0) + ";\n";
+  return indent(lvl) + "struct " + this->type->prettyPrint(0) + "\n" +
+         indent(lvl) + body->prettyPrintStruct(lvl) +
+         this->alias->prettyPrint(0) + ";\n";
 }
 
 std::string TranslationUnit::prettyPrint(int lvl) {

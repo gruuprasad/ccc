@@ -26,21 +26,21 @@ public:
       elem = lexer.lex_valid();
   }
 
-  void parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  std::unique_ptr<ASTNode>
+  parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
     case PARSE_TYPE::EXPRESSION:
-      parseExpression();
-      return;
+      return parseExpression();
     case PARSE_TYPE::STATEMENT:
-      parseStatement();
-      return;
+      return parseStatement();
     case PARSE_TYPE::DECLARATION:
       return parseDeclaration();
     default:
-      error = "Unknown parse type";
-      return;
+      error_stream
+          << "Unknown parse type [error appears only for unit testing]";
+      return std::unique_ptr<TranslationUnit>();
     }
   }
 
@@ -48,8 +48,15 @@ public:
     return lexer.getLexerLocation();
   }
 
-  bool fail() const { return !error.empty(); }
-  std::string getError() { return error; }
+  bool fail() const { return error_count != 0; }
+  std::string getError() { return error_stream.str(); }
+
+  void parser_error(const Token &tok) {
+    error_stream << std::to_string(tok.getLine()) << ":"
+                 << std::to_string(tok.getColumn()) << ": error:"
+                 << "Unexpected token " << tok.getExtra()
+                 << ". Parsing Stopped!" << std::endl;
+  }
 
 private:
   Token nextToken() {
@@ -72,9 +79,7 @@ private:
       nextToken(); // Token is not used by parser
       return true;
     }
-    // Set error
-    error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
-                         "Unexpected Token: \"" + peek().name());
+    parser_error(peek());
     return false;
   }
 
@@ -95,18 +100,18 @@ private:
     mustExpect(TokenType::PARENTHESIS_CLOSE);
   }
 
-  void parseTranslationUnit();
-  void parseExternalDeclaration();
-  void parseFuncDefOrDeclaration();
+  std::unique_ptr<ASTNode> parseTranslationUnit();
+  std::unique_ptr<Statement> parseExternalDeclaration();
+  std::unique_ptr<Statement> parseFuncDefOrDeclaration();
 
   // Declarations
-  void parseDeclaration();
-  void parseTypeSpecifier();
-  void parseDeclarator();
+  std::unique_ptr<Statement> parseDeclaration();
+  std::unique_ptr<TypeDeclaration> parseStructTypeDeclaration();
+  std::unique_ptr<CompoundStatement> parseStructDefinition();
+  std::unique_ptr<Expression> parseDeclarator();
   void parseParameterList();
   void parseParameterDeclaration();
-  void parseStructOrUnionSpecifier();
-  void parseStructDeclaration();
+  void parseStructMemberDeclaration();
 
   // Expressions
   std::unique_ptr<Expression> parseExpression();
@@ -120,7 +125,7 @@ private:
 
   // Statements
   std::unique_ptr<Statement> parseStatement();
-  void parseCompoundStatement();
+  std::unique_ptr<Statement> parseCompoundStatement();
   void parseBlockItemList(); // XXX What is this?
   std::unique_ptr<Statement> parseLabeledStatement();
   std::unique_ptr<Statement> parseSelectionStatement();
@@ -128,7 +133,8 @@ private:
 
   FastLexer lexer;
   std::array<Token, N> la_buffer;
-  std::string error = "";
+  unsigned int error_count = 0;
+  std::stringstream error_stream;
 };
 
 } // namespace ccc
