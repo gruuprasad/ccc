@@ -115,7 +115,7 @@ FastParser::parseStructTypeDeclaration() {
       make_unique<TypeDeclaration>(type_map[nextToken().getType()]);
   if (peek().is(TokenType::IDENTIFIER)) {
     return make_unique<StructTypeDeclaration>(
-        make_unique<IdentifierExpression>(nextToken()), std::move(type_decl));
+        make_unique<Identifier>(nextToken()), std::move(type_decl));
   }
   parser_error(peek());
   return std::unique_ptr<StructTypeDeclaration>();
@@ -163,26 +163,26 @@ std::unique_ptr<Expression> FastParser::parseDeclarator() {
       mustExpect(TokenType::PARENTHESIS_OPEN);
       parseParameterList();
       mustExpect(TokenType::PARENTHESIS_CLOSE);
-      return std::unique_ptr<IdentifierExpression>(); // FIXME based on
-                                                      // existIdent value create
-                                                      // AST.
+      return std::unique_ptr<Identifier>(); // FIXME based on
+                                            // existIdent value create
+                                            // AST.
     }
     mustExpect(TokenType::PARENTHESIS_OPEN);
     parseDeclarator();
     mustExpect(TokenType::PARENTHESIS_CLOSE);
-    return std::unique_ptr<IdentifierExpression>(); // FIXME based on existIdent
-                                                    // value create AST.
+    return std::unique_ptr<Identifier>(); // FIXME based on existIdent
+                                          // value create AST.
   }
 
   if (existIdent) {
     if (ptrCount != 0) {
       // pointer-type
       return make_unique<PointerTypeDeclaration>(
-          ptrCount, make_unique<IdentifierExpression>(var_name));
+          ptrCount, make_unique<Identifier>(var_name));
     }
 
     // non-pointer declarator type.
-    return make_unique<IdentifierExpression>(var_name);
+    return make_unique<Identifier>(var_name);
   }
 
   if (ptrCount != 0) {
@@ -192,7 +192,7 @@ std::unique_ptr<Expression> FastParser::parseDeclarator() {
   // TODO Abstract parameter-list
 
   parser_error(peek());
-  return std::unique_ptr<IdentifierExpression>();
+  return std::unique_ptr<Identifier>();
 }
 
 // (6.7.6)  parameter-list :: parameter-declaration (comma-separated)
@@ -309,7 +309,7 @@ std::unique_ptr<Statement> FastParser::parseStatement() {
 std::unique_ptr<Statement> FastParser::parseLabeledStatement() {
   Token src_mark(peek());
   std::unique_ptr<LabeledStatement> stmt;
-  auto label = make_unique<IdentifierExpression>(nextToken());
+  auto label = make_unique<Identifier>(nextToken());
   if (mustExpect(TokenType::COLON)) {
     auto label_body = parseStatement();
     stmt = make_unique<LabeledStatement>(src_mark, std::move(label),

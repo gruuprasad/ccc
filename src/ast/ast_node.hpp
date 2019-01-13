@@ -225,9 +225,9 @@ public:
   explicit PointerTypeDeclaration(std::unique_ptr<TypeDeclaration> expr)
       : TypeDeclaration(TypeSpec::POINTER), indirection_count(1),
         expr(std::move(expr)) {}
-  explicit PointerTypeDeclaration(unsigned int star_count,
-                                  std::unique_ptr<IdentifierExpression> expr =
-                                      std::unique_ptr<IdentifierExpression>())
+  explicit PointerTypeDeclaration(
+      unsigned int star_count,
+      std::unique_ptr<Identifier> expr = std::unique_ptr<Identifier>())
       : TypeDeclaration(TypeSpec::POINTER), indirection_count(star_count),
         expr(std::move(expr)) {}
   std::string prettyPrint(int) override;

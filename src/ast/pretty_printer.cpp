@@ -17,17 +17,17 @@ std::string BreakStatement::prettyPrint(int lvl) {
   return indent(lvl) + "break;\n";
 }
 
-std::string CallExpression::prettyPrint(int) {
-  std::stringstream ss;
-  ss << "(" << call->prettyPrint(0) << "(";
-  for (const auto &arg : args) {
-    ss << arg->prettyPrint(0);
-    if (arg != args.back())
-      ss << ", ";
-  }
-  ss << "))";
-  return ss.str();
-}
+// std::string CallExpression::prettyPrint(int) {
+//  std::stringstream ss;
+//  ss << "(" << call->prettyPrint(0) << "(";
+//  for (const auto &arg : args) {
+//    ss << arg->prettyPrint(0);
+//    if (arg != args.back())
+//      ss << ", ";
+//  }
+//  ss << "))";
+//  return ss.str();
+//}
 
 std::string PostfixExpression::prettyPrint(int) {
   return "(" + expr->prettyPrint(0) + op + post->prettyPrint(0) + ")";
