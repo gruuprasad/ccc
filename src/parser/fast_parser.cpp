@@ -363,14 +363,16 @@ std::unique_ptr<Statement> FastParser::parseSelectionStatement() {
   mustExpect(TokenType::IF);
   mustExpect(TokenType::PARENTHESIS_OPEN);
   auto ifPredicate = parseExpression();
-  if (!fail() && ifPredicate) {
-    mustExpect(TokenType::PARENTHESIS_CLOSE);
-    ifBranch =
-        peek().is(TokenType::IF) ? parseSelectionStatement() : parseStatement();
-    if (!fail() && mayExpect(TokenType::ELSE)) {
-      elseBranch = parseStatement();
-    }
+  mustExpect(TokenType::PARENTHESIS_CLOSE);
+  if (fail()) {
+    return std::unique_ptr<IfElseStatement>();
   }
+
+  ifBranch = parseStatement();
+  if (!fail() && mayExpect(TokenType::ELSE)) {
+    elseBranch = parseStatement();
+  }
+
   return fail() ? std::unique_ptr<IfElseStatement>()
                 : make_unique<IfElseStatement>(src_mark, std::move(ifPredicate),
                                                std::move(ifBranch),
@@ -401,8 +403,8 @@ std::unique_ptr<Expression> FastParser::parseAssignmentExpression() {
   Token src_mark{TokenType::ASSIGN, getParserLocation()};
   auto lhs = parseUnaryExpression();               // LHS
   auto rhs = parseBinOpWithRHS(std::move(lhs), 1); // BinOpLeft + RHS
-  return make_unique<AssignmentExpression>(src_mark, std::move(lhs),
-                                           std::move(rhs));
+  return make_unique<BinaryExpression>(src_mark, std::move(lhs),
+      std::move(rhs));
 }
 
 std::unique_ptr<Expression>
