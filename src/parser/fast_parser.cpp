@@ -129,7 +129,7 @@ FastParser::parseStructTypeDeclaration() {
   return make_unique<StructTypeDeclaration>(std::move(type_decl));
 }
 
-/// struct body parsing
+// struct body parsing
 // (6.7.2.1) struct-or-union-specifier :: struct identifer(opt) {
 // struct-declaration+ }
 std::unique_ptr<CompoundStatement> FastParser::parseStructDefinition() {

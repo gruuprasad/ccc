@@ -71,6 +71,11 @@ TEST_CASE("declaration tests") {
 }
 */
 TEST_CASE("Fast Parser: Struct declaration test") {
+  DECLARATION_TESTS("void");
+  DECLARATION_TESTS("char");
+  DECLARATION_TESTS("short");
+  DECLARATION_TESTS("int");
+  DECLARATION_TESTS("struct A");
   PARSE_VALID("struct { int; };");
   PARSE_VALID("struct { int a; };");
   PARSE_VALID("struct { void a; short b; int c; "
@@ -104,11 +109,8 @@ TEST_CASE("Fast Parser: Struct declaration test") {
 //  PARSE_VALID("char * ((*callA)) (int a, char * b);")
 }
 /*
-// DECLARATION_TESTS("void")
-// DECLARATION_TESTS("char")
-// DECLARATION_TESTS("short")
-// DECLARATION_TESTS("int")
-// DECLARATION_TESTS("struct A")
+*/
+
 
 #define PARSE_VALID_EXPRESSION(language)                                       \
   {                                                                            \
@@ -150,15 +152,15 @@ TEST_CASE("Fast Parser:binary expression test") {
   PARSE_VALID_EXPRESSION("a[100] + b[100]");
   PARSE_VALID_EXPRESSION("a[100] - b[100]");
   PARSE_VALID_EXPRESSION("a[100] * b[100]");
-  PARSE_VALID_EXPRESSION("a[100] && b[100]");
-  PARSE_VALID_EXPRESSION("a[100] || b[100]");
-  PARSE_VALID_EXPRESSION("a[100] == b[100]");
-  PARSE_VALID_EXPRESSION("a[100] != b[100]");
+  //PARSE_VALID_EXPRESSION("a[100] && b[100]");
+  //PARSE_VALID_EXPRESSION("a[100] || b[100]");
+  //PARSE_VALID_EXPRESSION("a[100] == b[100]");
+  //PARSE_VALID_EXPRESSION("a[100] != b[100]");
   PARSE_VALID_EXPRESSION("a[100] = b[100]");
   PARSE_VALID_EXPRESSION("a + b + d - c + (e * f)");
-  //  PARSE_VALID_EXPRESSION("a + (b + d) - c + (e * f)");
+  //PARSE_VALID_EXPRESSION("a + (b + d) - c + (e * f)");
   //  PARSE_VALID_EXPRESSION("a && (b + d) && c || (e() * -f)");
-  PARSE_VALID_EXPRESSION("a + b * c")
+ // PARSE_VALID_EXPRESSION("a + b * c")
 }
 
 #define PARSE_VALID_STATEMENT(language)                                        \
@@ -178,17 +180,17 @@ TEST_CASE("Fast Parser:binary expression test") {
 TEST_CASE("Fast Parser: simple statement test") {
   PARSE_VALID_STATEMENT("{ 1;}");    // expression-statement
   PARSE_VALID_STATEMENT("{ a: 1;}"); // labeled-statement
-  //  PARSE_VALID_STATEMENT("{ int a;}"); // declaration in compound statement
+  PARSE_VALID_STATEMENT("{ int a;}"); // declaration in compound statement
   PARSE_VALID_STATEMENT("{}");
-  //  PARSE_INVALID_STATEMENT("{ 1;");
-  //  PARSE_INVALID_STATEMENT("{ a: 1;");
-  //  PARSE_INVALID_STATEMENT("{ int a;");
-  //  PARSE_INVALID_STATEMENT("{ ")
+  PARSE_INVALID_STATEMENT("{ 1;");
+  PARSE_INVALID_STATEMENT("{ a: 1;");
+  PARSE_INVALID_STATEMENT("{ int a;");
+  PARSE_INVALID_STATEMENT("{ ")
 }
 
 TEST_CASE("Fast Parser: IF-ELSE statement test") {
   PARSE_VALID_STATEMENT("if (\"true\") ; ");
-  //  PARSE_VALID_STATEMENT("if (1) { if (2) return; else return; }");
+  PARSE_VALID_STATEMENT("if (1) { return; } else return;");
   //  PARSE_VALID_STATEMENT("if (1) { if (2) return; else return; } else
   //  return;");
   //  PARSE_VALID_STATEMENT("if (1) { if (2) return; else return; }"
@@ -216,4 +218,3 @@ TEST_CASE("Fast Parser: Jump statement") {
 TEST_CASE("Fast Parser: loop statement test") {
   PARSE_VALID_STATEMENT("{ while (10) { 1000; } }")
 }
-*/
