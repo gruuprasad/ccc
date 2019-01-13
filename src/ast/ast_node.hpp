@@ -227,7 +227,7 @@ public:
         expr(std::move(expr)) {}
   explicit PointerTypeDeclaration(
       unsigned int star_count,
-      std::unique_ptr<Identifier> expr = std::unique_ptr<Identifier>())
+      std::unique_ptr<Expression> expr = std::unique_ptr<Expression>())
       : TypeDeclaration(TypeSpec::POINTER), indirection_count(star_count),
         expr(std::move(expr)) {}
   std::string prettyPrint(int) override;
@@ -250,6 +250,8 @@ public:
                                      std::unique_ptr<TypeDeclaration>())
       : TypeDeclaration(TypeSpec::STRUCT), expr(std::move(expr)),
         iden(std::move(iden)) {}
+  explicit StructTypeDeclaration(std::unique_ptr<TypeDeclaration> expr)
+      : TypeDeclaration(TypeSpec::STRUCT), expr(std::move(expr)) {}
 
   void addDeclaratorExpression(std::unique_ptr<Expression> expr) {
     iden = std::move(expr);
@@ -276,7 +278,7 @@ public:
       : TypeDeclaration(TypeSpec::FUNCTION), expr(std::move(expr)),
         args(std::move(args)) {}
   explicit FunctionTypeDeclaration(
-      std::unique_ptr<Identifier> expr,
+      std::unique_ptr<Expression> expr,
       std::vector<std::unique_ptr<TypeDeclaration>> args)
       : TypeDeclaration(TypeSpec::FUNCTION), expr(std::move(expr)),
         args(std::move(args)) {}

@@ -126,21 +126,25 @@ FastParser::parseStructTypeDeclaration() {
     return make_unique<StructTypeDeclaration>(
         make_unique<Identifier>(nextToken()), std::move(type_decl));
   }
-  parser_error(peek());
-  return std::unique_ptr<StructTypeDeclaration>();
+  return make_unique<StructTypeDeclaration>(std::move(type_decl));
 }
 
 /// struct body parsing
 // (6.7.2.1) struct-or-union-specifier :: struct identifer(opt) {
 // struct-declaration+ }
 std::unique_ptr<CompoundStatement> FastParser::parseStructDefinition() {
+  std::vector<std::unique_ptr<Statement>> stmt_list;
+  Token src_mark = peek();
   mustExpect(TokenType::BRACE_OPEN);
   do {
-    parseStructMemberDeclaration(); // FIXME
+    auto member = parseStructMemberDeclaration();
+    if (fail()) 
+      return std::unique_ptr<CompoundStatement>();
+    stmt_list.push_back(std::move(member));
   } while (peek().is_not(TokenType::BRACE_CLOSE));
 
   if (mustExpect(TokenType::BRACE_CLOSE)) {
-    return std::unique_ptr<CompoundStatement>();
+    return make_unique<CompoundStatement>(src_mark, std::move(stmt_list));
   }
 
   parser_error(peek());
@@ -149,64 +153,70 @@ std::unique_ptr<CompoundStatement> FastParser::parseStructDefinition() {
 
 // Function to handle all kinds of declarator.
 // (6.7.6)  declarator :: pointer(opt) direct-declarator
-// (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator
-// ( parameter-list ) (6.7.6) abstract-declarator :: pointer | pointer(opt)
+// (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator ( parameter-list ) 
+// (6.7.6) abstract-declarator :: pointer | pointer(opt)
 // direct-abstract-declarator (6.7.6) direct-abstract-declarator :: (
 // abstract-declarator ) | ( parameter-list(opt) )+
 std::unique_ptr<Expression> FastParser::parseDeclarator() {
   int ptrCount = 0;        // > 0 means declarator is ptr type
-  bool existIdent = false; // decides whether declarator is abstract or not.
-  Token var_name;
+  std::unique_ptr<Expression> var_name;
+
   if (peek().is(TokenType::STAR)) {
+    // Parse Pointer (*) symbols
     parseList([&]() { ++ptrCount; },
-              TokenType::STAR); // consume  0 or more pointers
-  }
-  if (peek().is(TokenType::IDENTIFIER)) {
-    var_name = nextToken();
-    existIdent = true;
+              TokenType::STAR);
   }
 
-  // Function type declarator magic happens here
+  // Parenthesized declarator
   if (peek().is(TokenType::PARENTHESIS_OPEN)) {
-    if (peek().is(C_TYPES)) {
-      mustExpect(TokenType::PARENTHESIS_OPEN);
-      parseParameterList();
-      mustExpect(TokenType::PARENTHESIS_CLOSE);
-      return std::unique_ptr<Identifier>(); // FIXME based on
-                                            // existIdent value create
-                                            // AST.
-    }
-    mustExpect(TokenType::PARENTHESIS_OPEN);
-    parseDeclarator();
+    nextToken(); // consume '('
+    auto paren_decl = parseDeclarator();
     mustExpect(TokenType::PARENTHESIS_CLOSE);
-    return std::unique_ptr<Identifier>(); // FIXME based on existIdent
-                                          // value create AST.
+    if (ptrCount != 0) {
+      return make_unique<PointerTypeDeclaration>(ptrCount, std::move(paren_decl));
+    }
+    return std::move(paren_decl);
   }
 
-  if (existIdent) {
+  if (peek().is(TokenType::IDENTIFIER)) {
+    var_name = make_unique<Identifier>(nextToken());
     if (ptrCount != 0) {
-      // pointer-type
-      return make_unique<PointerTypeDeclaration>(
-          ptrCount, make_unique<Identifier>(var_name));
+      var_name = make_unique<PointerTypeDeclaration>(ptrCount, std::move(var_name));
     }
 
-    // non-pointer declarator type.
-    return make_unique<Identifier>(var_name);
+    // Function type declarator magic happens here
+    std::vector<std::unique_ptr<TypeDeclaration>> param_list;
+    if (peek().is(TokenType::PARENTHESIS_OPEN)) {
+      mustExpect(TokenType::PARENTHESIS_OPEN);
+      if (peek().is(C_TYPES)) {
+        param_list = parseParameterList();
+      }
+      mustExpect(TokenType::PARENTHESIS_CLOSE);
+      if (!fail()) {
+        return make_unique<FunctionTypeDeclaration>(std::move(var_name), std::move(param_list));
+      }
+      return std::unique_ptr<FunctionTypeDeclaration>();
+    }
+    return std::move(var_name);
   }
 
-  if (ptrCount != 0) {
-    // abstract-pointer type.
-    return make_unique<PointerTypeDeclaration>(ptrCount);
-  }
+  // TODO abstract-pointer type, learn more about abstract type.
   // TODO Abstract parameter-list
 
-  parser_error(peek());
-  return std::unique_ptr<Identifier>();
+  return std::unique_ptr<Expression>();
 }
 
 // (6.7.6)  parameter-list :: parameter-declaration (comma-separated)
-void FastParser::parseParameterList() {
-  parseList([&]() { parseParameterDeclaration(); }, TokenType::COMMA);
+std::vector<std::unique_ptr<TypeDeclaration>> FastParser::parseParameterList() {
+  std::vector<std::unique_ptr<TypeDeclaration>> param_list;
+  do {
+    auto param_decl = parseParameterDeclaration();
+    if (fail()) {
+      return std::vector<std::unique_ptr<TypeDeclaration>>();
+    }
+    param_list.push_back(std::move(param_decl));
+  } while (mayExpect(TokenType::COMMA));
+  return std::move(param_list);
 }
 
 std::unique_ptr<TypeDeclaration> FastParser::parseTypeSpecifier() {
@@ -221,30 +231,45 @@ std::unique_ptr<TypeDeclaration> FastParser::parseTypeSpecifier() {
 
 // (6.7.5) parameter-declaration :: type-specifier declarator | type-specifier
 // abstract-declarator(opt)
-void FastParser::parseParameterDeclaration() {
-  // FIXME parseTypeSpecifier();
-  if (peek().is(TokenType::COMMA))
-    return;
-  if (peek().is(TokenType::PARENTHESIS_CLOSE))
-    return;
-  parseDeclarator();
+std::unique_ptr<TypeDeclaration> FastParser::parseParameterDeclaration() {
+  auto type_decl = parseTypeSpecifier();
+  if (peek().is(TokenType::COMMA) || peek().is(TokenType::PARENTHESIS_CLOSE))
+    return std::move(type_decl);    // Abstract-declaration
+  auto var_name = parseDeclarator();
+  type_decl->addDeclaratorExpression(std::move(var_name));
+  if (fail()) {
+    return std::unique_ptr<TypeDeclaration>();
+  }
+  return std::move(type_decl);
 }
 
 // (6.7)  declaration :: type-specifier declarator(opt) ;
 std::unique_ptr<Statement> FastParser::parseDeclaration() {
+  std::unique_ptr<Expression> identifier;
+  Token src_mark = peek();
   auto type = parseTypeSpecifier();
   if (peek().is_not(TokenType::SEMICOLON))
-    auto identifer = parseDeclarator();
+    identifier = parseDeclarator();
+  type->addDeclaratorExpression(std::move(identifier));
   mustExpect(TokenType::SEMICOLON);
-  return std::unique_ptr<DeclarationStatement>();
+  return make_unique<DeclarationStatement>(src_mark, std::move(type));
 }
 
 // (6.7.2.1) struct-declaration :: type-specifier declarator (opt) ;
-void FastParser::parseStructMemberDeclaration() {
-  // FIXME parseTypeSpecifier();
-  if (peek().is_not(TokenType::SEMICOLON))
-    parseList([&]() { parseDeclarator(); }, TokenType::COMMA);
+std::unique_ptr<Statement> FastParser::parseStructMemberDeclaration() {
+  // XXX support for only one member per declaration in struct:int a; not int a, b; 
+  std::unique_ptr<Expression> var_name;
+  Token src_mark = peek();
+  auto type_decl = parseTypeSpecifier();
+  if (peek().is_not(TokenType::SEMICOLON)) {
+    var_name = parseDeclarator();
+    type_decl->addDeclaratorExpression(std::move(var_name));
+  }
   mustExpect(TokenType::SEMICOLON);
+  if (fail()) {
+    return std::unique_ptr<DeclarationStatement>();
+  }
+  return make_unique<DeclarationStatement>(src_mark, std::move(type_decl));
 }
 
 std::unique_ptr<Statement> FastParser::parseCompoundStatement() {
@@ -253,13 +278,17 @@ std::unique_ptr<Statement> FastParser::parseCompoundStatement() {
   mustExpect(TokenType::BRACE_OPEN);
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is(C_TYPES)) {
-      // FIXME auto type = parseTypeSpecifier();
+      auto type = parseTypeSpecifier();
       auto var = parseDeclarator();
+      type->addDeclaratorExpression(std::move(var));
       mustExpect(TokenType::SEMICOLON);
-      stmt_list.emplace_back(std::unique_ptr<DeclarationStatement>());
+      stmt_list.emplace_back(make_unique<DeclarationStatement>(src_mark, std::move(type)));
     } else {
       auto stmt = parseStatement();
       stmt_list.emplace_back(std::move(stmt));
+    }
+    if (fail()) {
+      return std::unique_ptr<Statement>();
     }
   }
   mustExpect(TokenType::BRACE_CLOSE);

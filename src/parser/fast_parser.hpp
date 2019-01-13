@@ -17,6 +17,9 @@
 
 namespace ccc {
 
+class TypeDeclaration;
+using Param_list_type = std::vector<std::unique_ptr<TypeDeclaration>>;
+
 enum PARSE_TYPE { TRANSLATIONUNIT, EXPRESSION, STATEMENT, DECLARATION };
 constexpr static const std::size_t N = 3; // la_buffer size
 
@@ -55,9 +58,13 @@ public:
   void parser_error(const Token &tok, const std::string &msg = std::string()) {
     error_count++;
     std::cerr << std::to_string(tok.getLine()) << ":"
-              << std::to_string(tok.getColumn()) << ": error:"
-              << "Expecting " << msg << "but found " << tok.getExtra()
-              << ". Parsing Stopped!" << std::endl;
+              << std::to_string(tok.getColumn()) << ": error:";
+    if (msg.empty()) {
+      std::cerr << "Unexpected Token " << tok.getExtra() << "found.";
+    } else {
+      std::cerr << "Expected " << msg << " but found " << tok.getExtra();
+    }
+    std::cerr << " Parsing Stopped!" << std::endl;
   }
 
 private:
@@ -112,9 +119,9 @@ private:
   std::unique_ptr<StructTypeDeclaration> parseStructTypeDeclaration();
   std::unique_ptr<CompoundStatement> parseStructDefinition();
   std::unique_ptr<Expression> parseDeclarator();
-  void parseParameterList();
-  void parseParameterDeclaration();
-  void parseStructMemberDeclaration();
+  Param_list_type parseParameterList();
+  std::unique_ptr<TypeDeclaration> parseParameterDeclaration();
+  std::unique_ptr<Statement> parseStructMemberDeclaration();
 
   // Expressions
   std::unique_ptr<Expression> parseExpression();

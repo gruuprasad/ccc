@@ -50,6 +50,7 @@ template <typename T> void print(const T &t) {
                 " a, void b, char c, short e);")                               \
   }
 
+/*
 TEST_CASE("empty source file") {
   auto fp = FastParser("");
   auto root = fp.parse();
@@ -68,23 +69,22 @@ TEST_CASE("declaration tests") {
   PARSE_INVALID("str;");
   PARSE_VALID("");
 }
-/*
-// TEST_CASE("Fast Parser: Struct declaration test") {
-//  PARSE_VALID("struct { int; };");
-//  PARSE_VALID("struct { int a; };");
-//  PARSE_VALID("struct { void a; short b; int c; "
-//              "char name; };");
-//  PARSE_VALID("struct { void a; short b; int c; char name;  int * ptr; "
-//              "};");
-//  PARSE_VALID("struct A { void a; short b; int c; char "
-//              "name;  int * ptr; };");
-//  PARSE_VALID("struct A { void a; short b; int c; char name;  int * "
-//              "ptr; } list;");
-//  PARSE_VALID("struct A { void a; short b; int c; char name;  int * "
-//              "ptr; } * list;");
+*/
+TEST_CASE("Fast Parser: Struct declaration test") {
+  PARSE_VALID("struct { int; };");
+  PARSE_VALID("struct { int a; };");
+  PARSE_VALID("struct { void a; short b; int c; "
+              "char name; };");
+  PARSE_VALID("struct { void a; short b; int c; char name;  int * ptr; "
+              "};");
+  PARSE_VALID("struct A { void a; short b; int c; char "
+              "name;  int * ptr; };");
+  PARSE_VALID("struct A { void a; short b; int c; char name;  int * "
+              "ptr; } list;");
+  PARSE_VALID("struct A { void a; short b; int c; char name;  int * "
+              "ptr; } * list;");
 //  PARSE_VALID("struct A { struct B { int; "
-//              "}; } "
-//              "list;");
+//              "}; } list;");
 //  PARSE_VALID("struct A { struct B { int x; int y; struct C; "
 //              "struct { struct E { char z; void * p;}; }; }; } list;");
 //  PARSE_VALID("struct { int; }; struct A { int x; } a;");
@@ -102,8 +102,8 @@ TEST_CASE("declaration tests") {
 //              "char * b);") // dubious
 //  // pass
 //  PARSE_VALID("char * ((*callA)) (int a, char * b);")
-//}
-
+}
+/*
 // DECLARATION_TESTS("void")
 // DECLARATION_TESTS("char")
 // DECLARATION_TESTS("short")
