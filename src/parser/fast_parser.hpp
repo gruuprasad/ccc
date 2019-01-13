@@ -27,7 +27,8 @@ public:
       elem = lexer.lex_valid();
   }
 
-  std::unique_ptr<ASTNode> parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  std::unique_ptr<ASTNode>
+  parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -38,7 +39,8 @@ public:
     case PARSE_TYPE::DECLARATION:
       return parseDeclaration();
     default:
-      error_stream << "Unknown parse type [error appears only for unit testing]";
+      error_stream
+          << "Unknown parse type [error appears only for unit testing]";
       return std::unique_ptr<TranslationUnit>();
     }
   }
@@ -49,13 +51,14 @@ public:
 
   bool fail() const { return error_count != 0; }
   std::string getError() { return error_stream.str(); }
-  
-  void parser_error(const Token &tok, const std::string & msg = std::string()) {
-  error_count++;
-  std::cerr << std::to_string(tok.getLine()) << ":" << std::to_string(tok.getColumn()) 
-    << ": error:" << "Expecting " << msg << "but found " << tok.getExtra()  << ". Parsing Stopped!"
-    << std::endl;
-}
+
+  void parser_error(const Token &tok, const std::string &msg = std::string()) {
+    error_count++;
+    std::cerr << std::to_string(tok.getLine()) << ":"
+              << std::to_string(tok.getColumn()) << ": error:"
+              << "Expecting " << msg << "but found " << tok.getExtra()
+              << ". Parsing Stopped!" << std::endl;
+  }
 
 private:
   Token nextToken() {

@@ -1,3 +1,1 @@
-namespace ccc {
-
-} // namespace ccc
+namespace ccc {} // namespace ccc

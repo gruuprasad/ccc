@@ -17,19 +17,19 @@ template <typename T> void print(const T &t) {
 #define PARSE_VALID(language)                                                  \
   {                                                                            \
     auto fp = FastParser(language);                                            \
-    auto root = fp.parse();                                                                \
+    auto root = fp.parse();                                                    \
     REQUIRE(fp.fail() == false);                                               \
   }
 
-#define PARSE_INVALID(language)                                                  \
+#define PARSE_INVALID(language)                                                \
   {                                                                            \
     auto fp = FastParser(language);                                            \
-    auto root = fp.parse();                                                                \
-    REQUIRE(fp.fail() == true);                                               \
+    auto root = fp.parse();                                                    \
+    REQUIRE(fp.fail() == true);                                                \
   }
 
 #define DECLARATION_TESTS(type)                                                \
-  SECTION("Fast Parser:empty declaration test " #type) {                     \
+  SECTION("Fast Parser:empty declaration test " #type) {                       \
     PARSE_VALID(type " ;");                                                    \
     PARSE_VALID(type " a;");                                                   \
     PARSE_VALID(type " (a);");                                                 \
