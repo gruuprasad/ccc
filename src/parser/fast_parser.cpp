@@ -2,7 +2,16 @@
 
 namespace ccc {
 
-static std::unordered_map<TokenType, TypeSpec> type_map{
+struct EnumClassHash
+{
+  template <typename T>
+  std::size_t operator()(T t) const
+  {
+    return static_cast<std::size_t>(t);
+  }
+};
+
+static std::unordered_map<TokenType, TypeSpec, EnumClassHash> type_map{
     {TokenType::VOID, TypeSpec::VOID},
     {TokenType::CHAR, TypeSpec::CHAR},
     {TokenType::INT, TypeSpec::INT},
