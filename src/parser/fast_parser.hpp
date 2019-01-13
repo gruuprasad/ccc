@@ -17,9 +17,6 @@
 
 namespace ccc {
 
-class TypeDeclaration;
-using Param_list_type = std::vector<std::unique_ptr<TypeDeclaration>>;
-
 enum PARSE_TYPE { TRANSLATIONUNIT, EXPRESSION, STATEMENT, DECLARATION };
 constexpr static const std::size_t N = 3; // la_buffer size
 
@@ -30,8 +27,7 @@ public:
       elem = lexer.lex_valid();
   }
 
-  std::unique_ptr<ASTNode>
-  parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  void parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -109,37 +105,36 @@ private:
     mustExpect(TokenType::PARENTHESIS_CLOSE);
   }
 
-  std::unique_ptr<ASTNode> parseTranslationUnit();
-  std::unique_ptr<Statement> parseExternalDeclaration();
-  std::unique_ptr<Statement> parseFuncDefOrDeclaration();
+  void parseTranslationUnit();
+  void parseExternalDeclaration();
+  void parseFuncDefOrDeclaration();
 
   // Declarations
-  std::unique_ptr<Statement> parseDeclaration();
-  std::unique_ptr<TypeDeclaration> parseTypeSpecifier();
-  std::unique_ptr<StructTypeDeclaration> parseStructTypeDeclaration();
-  std::unique_ptr<CompoundStatement> parseStructDefinition();
-  std::unique_ptr<Expression> parseDeclarator();
-  Param_list_type parseParameterList();
-  std::unique_ptr<TypeDeclaration> parseParameterDeclaration();
-  std::unique_ptr<Statement> parseStructMemberDeclaration();
+  void parseDeclaration();
+  void parseTypeSpecifier();
+  void parseStructTypeDeclaration();
+  void parseStructDefinition();
+  void parseDeclarator();
+  void parseParameterList();
+  void parseParameterDeclaration();
+  void parseStructMemberDeclaration();
 
   // Expressions
-  std::unique_ptr<Expression> parseExpression();
-  std::unique_ptr<Expression> parseAssignmentExpression();
-  std::unique_ptr<Expression> parseBinOpWithRHS(std::unique_ptr<Expression>,
-                                                Precedence minPrec);
-  std::unique_ptr<Expression> parseUnaryExpression();
-  std::unique_ptr<Expression> parsePostfixExpression();
-  std::unique_ptr<Expression> parsePrimaryExpression();
-  std::unique_ptr<Expression> parseArgumentExpressionList();
+  void parseExpression();
+  void parseAssignmentExpression();
+  void parseBinOpWithRHS(Precedence minPrec);
+  void parseUnaryExpression();
+  void parsePostfixExpression();
+  void parsePrimaryExpression();
+  void parseArgumentExpressionList();
 
   // Statements
-  std::unique_ptr<Statement> parseStatement();
-  std::unique_ptr<Statement> parseCompoundStatement();
+  void parseStatement();
+  void parseCompoundStatement();
   void parseBlockItemList(); // XXX What is this?
-  std::unique_ptr<Statement> parseLabeledStatement();
-  std::unique_ptr<Statement> parseSelectionStatement();
-  std::unique_ptr<Statement> parseIterationStatement();
+  void parseLabeledStatement();
+  void parseSelectionStatement();
+  void parseIterationStatement();
 
   FastLexer lexer;
   std::array<Token, N> la_buffer;
