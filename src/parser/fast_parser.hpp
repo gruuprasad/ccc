@@ -118,7 +118,7 @@ private:
   std::unique_ptr<Type> parseTypeSpecifier(bool & structDefined);
   std::unique_ptr<StructType> parseStructType(bool & structDefined);
   std::unique_ptr<Declarator> parseDeclarator(bool within_paren=false);
-  std::unique_ptr<Declarator> parseDirectDeclarator(bool attachPtrType);
+  std::unique_ptr<Declarator> parseDirectDeclarator(bool in_paren, int ptrCount);
   ParamDeclarationListType parseParameterList();
   std::unique_ptr<ParamDeclaration> parseParameterDeclaration();
 

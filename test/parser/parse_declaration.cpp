@@ -3,6 +3,46 @@
 
 using namespace ccc;
 
+TEST_CASE("Multiple struct Declarations") {
+  std::string language { 
+    "struct vehicle {"
+    "  int n_wheels;"
+    "  void n_seats;"
+    "  int power;"
+    "  char model;"
+    " } vehicle_t;"
+    ""
+    " struct my_car {"
+    " void a;"
+    " void b;"
+    " void c;"
+    " void d;"
+    " void e;"
+    " int total_voids;"
+    " };"
+    "// Declare my_car variable"
+    " struct my_car car_g;"
+    " struct vehicle car_f;"
+    " vehicle_t car_h;"
+    " int total_cars;"
+    " // Forward declare new type"
+    " struct new_model;"
+  };
+
+  auto fp = FastParser(language);
+  auto root = fp.parse();
+  REQUIRE(fp.fail() == false);
+}
+
+TEST_CASE("Function definition") {
+  SECTION("simple variable declaration") {
+    std::string language { "void funcA() { }" };
+    auto fp = FastParser(language);
+    auto root = fp.parse();
+    REQUIRE(fp.fail() == false);
+  }
+}
+
 TEST_CASE("Valid Declaration Tests") {
 
   SECTION("simple variable declaration") {
@@ -69,6 +109,12 @@ TEST_CASE("Valid Declaration Tests") {
     }
     SECTION("function type pointers") {
       std::string language { "int (*a) (int a);" };
+      auto fp = FastParser(language);
+      auto root = fp.parse();
+      REQUIRE(fp.fail() == false);
+    }
+    SECTION("parenthesied pointer") {
+      std::string language { "int * (a); char (*c);" };
       auto fp = FastParser(language);
       auto root = fp.parse();
       REQUIRE(fp.fail() == false);

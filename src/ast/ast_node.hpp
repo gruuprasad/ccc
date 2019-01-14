@@ -184,10 +184,11 @@ public:
 
 class PointerDeclarator : public Declarator {
   std::unique_ptr<Declarator> identifer;
+  int indirection_level;
 
 public:
-  PointerDeclarator(const Token & tk, std::unique_ptr<Declarator> i)
-    : Declarator(tk), identifer(std::move(i)) {}
+  PointerDeclarator(const Token & tk, std::unique_ptr<Declarator> i, int l = 1)
+    : Declarator(tk), identifer(std::move(i)), indirection_level(l) {}
 };
 
 class FunctionDeclarator : public Declarator {

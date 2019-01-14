@@ -145,8 +145,7 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   // In the case of function type, if pointer is within parenthesis then it is grouped with
   // function id, otherwise it becomes part of return type parameter. (Outermost pointer belongs to
   // return type and that is handled below.
-  bool attachPtrType = within_paren && ptrCount != 0;
-  auto identifier = parseDirectDeclarator(attachPtrType);
+  auto identifier = parseDirectDeclarator(within_paren, ptrCount);
   if (fail()) {
     return unique_ptr<Declarator>();
   } else {
@@ -160,7 +159,7 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
 }
 
 // (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator ( parameter-list ) 
-unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool attachPtrType) {
+unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren, int ptrCount) {
   std::unique_ptr<Declarator> identifier;
   Token src_mark (peek());
   if (peek().is(TokenType::PARENTHESIS_OPEN)) {
@@ -178,10 +177,6 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool attachPtrType) {
     return unique_ptr<DirectDeclarator>();
   }
 
-  if (attachPtrType) {
-    identifier = make_unique<PointerDeclarator>(global_mark, std::move(identifier));
-  }
-
   ParamDeclarationListType param_list;
   if (peek().is(TokenType::PARENTHESIS_OPEN)) {
     consume(TokenType::PARENTHESIS_OPEN);
@@ -190,7 +185,14 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool attachPtrType) {
     }
     mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
     isIdentiferFuncType = true;
+    if (ptrCount != 0 && in_paren) {
+      identifier = make_unique<PointerDeclarator>(global_mark, std::move(identifier), ptrCount);
+    }
     return make_unique<FunctionDeclarator>(src_mark, move(identifier), move(param_list));
+  }
+
+  if (ptrCount != 0) {
+    identifier = make_unique<PointerDeclarator>(global_mark, std::move(identifier), ptrCount);
   }
 
   return std::move(identifier);
@@ -226,6 +228,7 @@ unique_ptr<ParamDeclaration> FastParser::parseParameterDeclaration() {
 }
 
 unique_ptr<Statement> FastParser::parseCompoundStatement() {
+  mustExpect(TokenType::BRACE_OPEN);
   /*
   mustExpect(TokenType::BRACE_OPEN);
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
@@ -243,6 +246,7 @@ unique_ptr<Statement> FastParser::parseCompoundStatement() {
   mustExpect(TokenType::BRACE_CLOSE);
   return;
   */
+  mustExpect(TokenType::BRACE_CLOSE);
   return unique_ptr<CompoundStmt>();
 }
 
