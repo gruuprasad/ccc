@@ -9,10 +9,10 @@
 #include "../utils/utils.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cassert>
-#include <execinfo.h>
+#include <array>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 namespace ccc {
@@ -27,7 +27,7 @@ public:
       elem = lexer.lex_valid();
   }
 
-  void parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  std::unique_ptr<ASTNode> parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -36,7 +36,7 @@ public:
     case PARSE_TYPE::STATEMENT:
       return parseStatement();
     case PARSE_TYPE::DECLARATION:
-      return parseDeclaration();
+      return parseFuncDefOrDeclaration();
     default:
       error_stream
           << "Unknown parse type [error appears only for unit testing]";
@@ -104,28 +104,19 @@ private:
     } while (mayExpect(delimit));
   }
 
-  template <typename Func> void parseParenthesizedFn(Func f) {
-    mustExpect(TokenType::PARENTHESIS_OPEN);
-    f();
-    mustExpect(TokenType::PARENTHESIS_CLOSE);
-  }
-
-  void parseTranslationUnit();
-  void parseExternalDeclaration();
-  void parseFuncDefOrDeclaration();
+  std::unique_ptr<TranslationUnit> parseTranslationUnit();
+  std::unique_ptr<ExternalDeclaration> parseExternalDeclaration();
+  std::unique_ptr<ExternalDeclaration> parseFuncDefOrDeclaration(bool parseOnlyDecl=false);
 
   // Declarations
-  void parseDeclaration();
-  void parseTypeSpecifier();
-  void parseStructTypeDeclaration();
-  void parseStructDefinition();
-  void parseDeclarator();
-  void parseParameterList();
-  void parseParameterDeclaration();
-  void parseStructMemberDeclaration();
+  std::unique_ptr<Type> parseTypeSpecifier(bool & structDefined);
+  std::unique_ptr<StructType> parseStructType(bool & structDefined);
+  std::unique_ptr<Declarator> parseDeclarator(bool within_paren=false);
+  ParamDeclarationListType parseParameterList();
+  std::unique_ptr<ParamDeclaration> parseParameterDeclaration();
 
   // Expressions
-  void parseExpression();
+  std::unique_ptr<Expression> parseExpression();
   void parseAssignmentExpression();
   void parseBinOpWithRHS(Precedence minPrec);
   void parseUnaryExpression();
@@ -134,9 +125,8 @@ private:
   void parseArgumentExpressionList();
 
   // Statements
-  void parseStatement();
-  void parseCompoundStatement();
-  void parseBlockItemList(); // XXX What is this?
+  std::unique_ptr<Statement> parseStatement();
+  std::unique_ptr<Statement> parseCompoundStatement();
   void parseLabeledStatement();
   void parseSelectionStatement();
   void parseIterationStatement();
