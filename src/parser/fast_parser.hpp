@@ -52,7 +52,7 @@ public:
   std::string getError() { return error_stream.str(); }
 
   void log_msg(const Token & tok, const std::string & msg = std::string()) {
-    std::cout << "peek() token info = ";
+    std::cout << msg << " peek() token info = ";
     std::cout << std::to_string(tok.getLine()) << ":"
               << std::to_string(tok.getColumn()) << ":" << tok.name() << ":\n";
   }
@@ -118,6 +118,7 @@ private:
   std::unique_ptr<Type> parseTypeSpecifier(bool & structDefined);
   std::unique_ptr<StructType> parseStructType(bool & structDefined);
   std::unique_ptr<Declarator> parseDeclarator(bool within_paren=false);
+  std::unique_ptr<Declarator> parseDirectDeclarator(bool attachPtrType);
   ParamDeclarationListType parseParameterList();
   std::unique_ptr<ParamDeclaration> parseParameterDeclaration();
 
@@ -143,6 +144,7 @@ private:
   std::stringstream error_stream;
   // Variables to hold certain states during parsing.
   bool isIdentiferFuncType;
+  Token global_mark;
 };
 
 } // namespace ccc

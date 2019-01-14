@@ -67,13 +67,11 @@ TEST_CASE("Valid Declaration Tests") {
       auto root = fp.parse();
       REQUIRE(fp.fail() == false);
     }
-    /* TODO Detected bug in parseDeclarator, need to fix.
     SECTION("function type pointers") {
       std::string language { "int (*a) (int a);" };
       auto fp = FastParser(language);
       auto root = fp.parse();
       REQUIRE(fp.fail() == false);
     }
-    */
   }
 }

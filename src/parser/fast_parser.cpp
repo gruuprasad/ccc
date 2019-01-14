@@ -134,57 +134,23 @@ unique_ptr<StructType> FastParser::parseStructType(bool & structDefined) {
 // direct-abstract-declarator (6.7.6) direct-abstract-declarator :: (
 // abstract-declarator ) | ( parameter-list(opt) )+
 unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
-  Token ptr_loc(peek());
-  Token src_mark (peek());
-  int ptrCount = 0;
+  global_mark = peek();
+  int ptrCount = 0; // XXX Support single pointer for now
   if (peek().is(TokenType::STAR)) {
     // Parse Pointer (*) symbols
     parseList([&]() { ++ptrCount; },
               TokenType::STAR);
   }
 
-  // Parenthesized declarator
-  if (peek().is(TokenType::PARENTHESIS_OPEN)) {
-    log_msg(peek());
-    consume(TokenType::PARENTHESIS_OPEN); // consume '('
-    auto identifier = parseDeclarator(true);
-    if (fail()) {
-      return move(identifier);
-    }
-    mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
-    if (ptrCount != 0) {
-      return make_unique<PointerDeclarator>(src_mark, move(identifier));
-    }
-    return move(identifier);
-  }
-
-  if (peek().is(TokenType::IDENTIFIER)) {
-    src_mark = peek();
-    auto var_expr = make_unique<VariableName>(nextToken(), src_mark.getExtra());
-    auto var_name = make_unique<DirectDeclarator>(src_mark, move(var_expr));
-
-    // Function type declarator magic happens here
-    ParamDeclarationListType param_list;
-    if (peek().is(TokenType::PARENTHESIS_OPEN)) {
-      consume(TokenType::PARENTHESIS_OPEN);
-      if (peek().is(C_TYPES)) {
-        param_list = parseParameterList();
-      }
-      mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
-      isIdentiferFuncType = true;
-      if (ptrCount != 0) {
-        if (within_paren) {
-          auto fn_id = make_unique<PointerDeclarator>(src_mark, move(var_name));
-          return make_unique<FunctionDeclarator>(ptr_loc, move(fn_id), move(param_list), false);
-        }
-      }
-      return make_unique<FunctionDeclarator>(src_mark, move(var_name), move(param_list));
-    }
-
-    if (ptrCount != 0) {
-      return make_unique<PointerDeclarator>(ptr_loc, move(var_name));
-    }
-    return move(var_name);
+  // In the case of function type, if pointer is within parenthesis then it is grouped with
+  // function id, otherwise it becomes part of return type parameter. (Outermost pointer belongs to
+  // return type and that is handled below.
+  bool attachPtrType = within_paren && ptrCount != 0;
+  auto identifier = parseDirectDeclarator(attachPtrType);
+  if (fail()) {
+    return unique_ptr<Declarator>();
+  } else {
+    return std::move(identifier);
   }
 
   // TODO Abstract Declarator
@@ -192,6 +158,44 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   parser_error(peek(), " declarator (identifer or pointer symbol or \"(\") "); 
   return unique_ptr<Declarator>();
 }
+
+// (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator ( parameter-list ) 
+unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool attachPtrType) {
+  std::unique_ptr<Declarator> identifier;
+  Token src_mark (peek());
+  if (peek().is(TokenType::PARENTHESIS_OPEN)) {
+    consume(TokenType::PARENTHESIS_OPEN); // consume '('
+    identifier = parseDeclarator(true);
+    if (fail()) {
+      return move(identifier);
+    }
+    mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
+  } else if (peek().is(TokenType::IDENTIFIER)) {
+    identifier = make_unique<DirectDeclarator>(src_mark,
+                                          make_unique<VariableName>(nextToken(), src_mark.getExtra()));
+  } else {
+    parser_error(peek(), "identifier or parenthesized declarator");
+    return unique_ptr<DirectDeclarator>();
+  }
+
+  if (attachPtrType) {
+    identifier = make_unique<PointerDeclarator>(global_mark, std::move(identifier));
+  }
+
+  ParamDeclarationListType param_list;
+  if (peek().is(TokenType::PARENTHESIS_OPEN)) {
+    consume(TokenType::PARENTHESIS_OPEN);
+    if (peek().is(C_TYPES)) {
+      param_list = parseParameterList();
+    }
+    mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
+    isIdentiferFuncType = true;
+    return make_unique<FunctionDeclarator>(src_mark, move(identifier), move(param_list));
+  }
+
+  return std::move(identifier);
+}
+// NOTE:: Function return type is abstract declarator?
 
 // (6.7.6)  parameter-list :: parameter-declaration (comma-separated)
 ParamDeclarationListType FastParser::parseParameterList() {
