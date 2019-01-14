@@ -51,7 +51,8 @@ unique_ptr<ExternalDeclaration> FastParser::parseFuncDefOrDeclaration(bool parse
     if (structDefined) {
       return make_unique<StructDeclaration>(src_mark, move(type_node), move(identifier_node));
     }
-    if (identifier_node->getDeclaratorType() == DeclaratorType::Function) {
+    if (isIdentiferFuncType) {
+      isIdentiferFuncType = false;
       return make_unique<FunctionDeclaration>(src_mark, move(type_node), move(identifier_node));
     }
     return make_unique<DataDeclaration>(src_mark, move(type_node), move(identifier_node));
@@ -118,6 +119,10 @@ unique_ptr<StructType> FastParser::parseStructType(bool & structDefined) {
         move(member_list));
   }
 
+  if (!struct_name.empty()) {
+    return make_unique<StructType>(src_mark, move(struct_name));
+  }
+
   parser_error(peek(), "struct identifier or struct-brace-open");
   return unique_ptr<StructType>();
 }
@@ -140,6 +145,7 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
 
   // Parenthesized declarator
   if (peek().is(TokenType::PARENTHESIS_OPEN)) {
+    log_msg(peek());
     consume(TokenType::PARENTHESIS_OPEN); // consume '('
     auto identifier = parseDeclarator(true);
     if (fail()) {
@@ -165,6 +171,7 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
         param_list = parseParameterList();
       }
       mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
+      isIdentiferFuncType = true;
       if (ptrCount != 0) {
         if (within_paren) {
           auto fn_id = make_unique<PointerDeclarator>(src_mark, move(var_name));
@@ -180,7 +187,9 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
     return move(var_name);
   }
 
-  parser_error(peek(), " declarator (identifer or pointer symbol or ()"); 
+  // TODO Abstract Declarator
+
+  parser_error(peek(), " declarator (identifer or pointer symbol or \"(\") "); 
   return unique_ptr<Declarator>();
 }
 

@@ -51,16 +51,22 @@ public:
   bool fail() const { return error_count != 0; }
   std::string getError() { return error_stream.str(); }
 
+  void log_msg(const Token & tok, const std::string & msg = std::string()) {
+    std::cout << "peek() token info = ";
+    std::cout << std::to_string(tok.getLine()) << ":"
+              << std::to_string(tok.getColumn()) << ":" << tok.name() << ":\n";
+  }
+
   void parser_error(const Token &tok, const std::string &msg = std::string()) {
     error_count++;
     std::cerr << std::to_string(tok.getLine()) << ":"
-              << std::to_string(tok.getColumn()) << ": error:";
+              << std::to_string(tok.getColumn()) << ":error:";
     if (msg.empty()) {
-      std::cerr << "Unexpected Token " << tok.getExtra() << "found.";
+      std::cerr << "Unexpected Token " << tok.name() << "found.";
     } else {
-      std::cerr << "Expected " << msg << " but found " << tok.getExtra();
+      std::cerr << "Expected " << msg << " found \"" << tok.name();
     }
-    std::cerr << " Parsing Stopped!" << std::endl;
+    std::cerr << "\" Parsing Stopped!" << std::endl;
   }
 
 private:
@@ -135,6 +141,8 @@ private:
   std::array<Token, N> la_buffer;
   unsigned int error_count = 0;
   std::stringstream error_stream;
+  // Variables to hold certain states during parsing.
+  bool isIdentiferFuncType;
 };
 
 } // namespace ccc

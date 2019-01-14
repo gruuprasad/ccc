@@ -157,25 +157,23 @@ class StructType : public Type {
   ExternalDeclarationListType member_list;
 
 public:
+  StructType(const Token & tk, std::string n)
+    : Type(tk),
+      struct_name(std::move(n)) {}
   StructType(const Token & tk, std::string n, ExternalDeclarationListType m)
     : Type(tk),
       struct_name(std::move(n)), member_list(std::move(m)) {}
   bool isStructType() override { return true; }
 };
 
-enum class DeclaratorType { Base, Direct, Pointer, Function };
-
 class Declarator : public ASTNode {
-  DeclaratorType node_kind = DeclaratorType::Base;
 
 public:
   Declarator(const Token & tk)
     : ASTNode(tk) {}
-  DeclaratorType getDeclaratorType() { return node_kind; }
 };
 
 class DirectDeclarator : public Declarator {
-  DeclaratorType node_kind = DeclaratorType::Direct;
   std::unique_ptr<VariableName> identifer;
 
 public:
@@ -185,7 +183,6 @@ public:
 };
 
 class PointerDeclarator : public Declarator {
-  DeclaratorType node_kind = DeclaratorType::Pointer;
   std::unique_ptr<Declarator> identifer;
 
 public:
@@ -194,7 +191,6 @@ public:
 };
 
 class FunctionDeclarator : public Declarator {
-  DeclaratorType node_kind  = DeclaratorType::Function;
   std::unique_ptr<Declarator> identifer;
   ParamDeclarationListType param_list;
   bool pointerIgnored = true;
