@@ -71,7 +71,12 @@ private:
     return ret;
   }
 
-  bool mayExpect(TokenType tok_type) {
+  void consume(const TokenType) {
+    nextToken();
+    return;
+  }
+
+  bool mayExpect(const TokenType tok_type) {
     if (peek().is(tok_type)) {
       nextToken();
       return true;
@@ -79,12 +84,12 @@ private:
     return false;
   }
 
-  bool mustExpect(TokenType tok_type) {
+  bool mustExpect(const TokenType tok_type, const std::string & msg = std::string()) {
     if (peek().is(tok_type)) {
       nextToken(); // Token is not used by parser
       return true;
     }
-    parser_error(peek());
+    parser_error(peek(), msg);
     return false;
   }
 
