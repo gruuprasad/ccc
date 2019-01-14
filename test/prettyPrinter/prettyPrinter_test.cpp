@@ -1,3 +1,4 @@
+/*
 #include "../catch.hpp"
 #include "lexer/fast_lexer.hpp"
 #include "parser/fast_parser.hpp"
@@ -37,7 +38,7 @@ bool compare(std::unique_ptr<ASTNode> root, const std::string &expected) {
   }
   return true;
 }
-/*
+
 TEST_CASE("pretty print block block") {
   auto root =
       new CompoundStatement(Token(), {
@@ -50,7 +51,7 @@ TEST_CASE("pretty print block block") {
                         "}\n"));
   delete root;
 }
-*/
+
 TEST_CASE("pretty print block") {
   std::vector<std::unique_ptr<Statement>> stmt_list;
   stmt_list.emplace_back(make_unique<ExpressionStatement>(
@@ -95,7 +96,7 @@ TEST_CASE("pretty print if") {
                                    "\t}\n"
                                    "}\n"));
 }
-/*
+
 TEST_CASE("pretty print if inline") {
   auto root = new CompoundStatement(
       Token(),
@@ -804,5 +805,5 @@ TEST_CASE("call") {
                         "}\n"));
   delete root;
 }
-*/
 } // namespace ccc
+*/

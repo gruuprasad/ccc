@@ -41,13 +41,14 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       }
       return EXIT_SUCCESS;
     } else if (flagName == "--print-ast") {
+      /*
       std::vector<std::unique_ptr<Statement>> stmt_list;
       stmt_list.emplace_back(
           new CompoundStatement(Token(TokenType::BRACE_OPEN), {}));
       std::unique_ptr<TranslationUnit> root{
           new TranslationUnit(std::move(stmt_list))};
-      std::cout << root->prettyPrint(0);
-      return EXIT_SUCCESS;
+          */
+      return EXIT_FAILURE;
     }
   }
   std::cerr << "?" << std::endl;

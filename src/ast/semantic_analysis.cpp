@@ -1,3 +1,4 @@
+/*
 #include "ast_node.hpp"
 
 namespace ccc {
@@ -111,3 +112,4 @@ bool TranslationUnit::runAnalysis() {
   return nameAnalysis(&scopes) && typeAnalysis(&types);
 }
 } // namespace ccc
+*/

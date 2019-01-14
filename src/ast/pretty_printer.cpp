@@ -1,3 +1,4 @@
+/*
 #include "ast_node.hpp"
 
 namespace ccc {
@@ -188,3 +189,4 @@ std::string Statement::indent(int n) {
     return "";
 }
 } // namespace ccc
+*/

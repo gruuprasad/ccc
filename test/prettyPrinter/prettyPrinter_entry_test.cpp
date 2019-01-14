@@ -1,3 +1,4 @@
+/*
 #include "../catch.hpp"
 #include "entry/entry_point_handler.hpp"
 #include "lexer/fast_lexer.hpp"
@@ -58,3 +59,4 @@ TEST_CASE("entry handler") {
   }
   REQUIRE(expected == content);
 }
+*/

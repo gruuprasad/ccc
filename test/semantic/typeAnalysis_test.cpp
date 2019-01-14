@@ -1,3 +1,4 @@
+/*
 #include "../catch.hpp"
 #include "ast/ast_node.hpp"
 #include <iostream>
@@ -31,3 +32,4 @@ TEST_CASE("type test") {
 } // namespace ccc
 
 } // namespace ccc
+*/
