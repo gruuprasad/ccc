@@ -48,6 +48,7 @@ protected:
 
 public:
   virtual ~ASTNode() = default;
+  virtual std::string prettyPrint(int lvl) = 0;
 };
 
 class TranslationUnit : public ASTNode {
@@ -56,6 +57,8 @@ class TranslationUnit : public ASTNode {
 public:
   explicit TranslationUnit(const Token & tk, ExternalDeclarationListType e)
     : ASTNode(tk), extern_list(std::move(e)) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class ExternalDeclaration : public ASTNode {
@@ -77,6 +80,8 @@ public:
                      std::unique_ptr<Statement> b)
     : ExternalDeclaration(tk),
       return_type(std::move(r)), fn_name(std::move(n)), fn_body(std::move(b)) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class Declaration : public ExternalDeclaration {
@@ -91,10 +96,12 @@ class FunctionDeclaration : public Declaration {
 
 public:
   FunctionDeclaration(const Token & tk,
-                      std::unique_ptr<Type> r,
+                      std::unique_ptr<Type> r, // XXX Change it to param type
                       std::unique_ptr<Declarator> n)
     : Declaration(tk),
       return_type(std::move(r)), fn_name(std::move(n)) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class DataDeclaration : public Declaration {
@@ -107,6 +114,8 @@ public:
                   std::unique_ptr<Declarator> n)
     : Declaration(tk),
       data_type(std::move(t)), data_name(std::move(n)) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class StructDeclaration : public Declaration {
@@ -119,6 +128,8 @@ public:
                     std::unique_ptr<Declarator> a)
     : Declaration(tk),
       struct_type(std::move(t)), struct_alias(std::move(a)) {}
+  
+  std::string prettyPrint(int lvl) override;
 };
 
 class ParamDeclaration : public Declaration {
@@ -131,6 +142,8 @@ public:
                    std::unique_ptr<Declarator> n)
     : Declaration(tk),
       param_type(std::move(t)), param_name(std::move(n)) {}
+  
+  std::string prettyPrint(int lvl) override;
 };
 
 class Type : public ASTNode {
@@ -150,6 +163,8 @@ public:
     : Type(tk),
       type_kind(v) {}
   bool isStructType() override { return false; }
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class StructType : public Type {
@@ -164,6 +179,8 @@ public:
     : Type(tk),
       struct_name(std::move(n)), member_list(std::move(m)) {}
   bool isStructType() override { return true; }
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class Declarator : public ASTNode {
@@ -180,6 +197,8 @@ public:
   DirectDeclarator(const Token & tk, std::unique_ptr<VariableName> i)
     : Declarator(tk),
       identifer(std::move(i)) {}
+  
+  std::string prettyPrint(int lvl) override;
 };
 
 class PointerDeclarator : public Declarator {
@@ -189,6 +208,8 @@ class PointerDeclarator : public Declarator {
 public:
   PointerDeclarator(const Token & tk, std::unique_ptr<Declarator> i, int l = 1)
     : Declarator(tk), identifer(std::move(i)), indirection_level(l) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class FunctionDeclarator : public Declarator {
@@ -203,6 +224,8 @@ public:
                      bool ptri = true)
     : Declarator(tk),
       identifer(std::move(i)), param_list(std::move(p)), pointerIgnored(ptri) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class Statement : public ASTNode {
@@ -215,6 +238,8 @@ class CompoundStmt : public Statement {
 public:
   CompoundStmt(const Token & tk)
     : Statement(tk) {}
+  
+  std::string prettyPrint(int lvl) override;
 };
 /*
 class IfElse: public Statement {
@@ -262,6 +287,8 @@ class VariableName : public Expression {
 public:
   VariableName(const Token & tk, std::string n)
     : Expression(tk), name(std::move(n)) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class Number : public Expression {
@@ -270,6 +297,8 @@ class Number : public Expression {
 public:
   Number(const Token & tk, int v)
     : Expression(tk), num_value(v) {}
+  
+  std::string prettyPrint(int lvl) override;
 };
 
 class Character : public Expression {
@@ -278,6 +307,8 @@ class Character : public Expression {
 public:
   Character(const Token & tk, char c)
     : Expression(tk), char_value(c) {}
+  
+  std::string prettyPrint(int lvl) override;
 };
 
 class String : public Expression {
@@ -286,6 +317,8 @@ class String : public Expression {
 public:
   String(const Token & tk, std::string v)
     : Expression(tk), str_value(std::move(v)) {}
+  
+  std::string prettyPrint(int lvl) override;
 };
 
 /*

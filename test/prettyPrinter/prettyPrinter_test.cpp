@@ -1,10 +1,50 @@
-/*
 #include "../catch.hpp"
 #include "lexer/fast_lexer.hpp"
 #include "parser/fast_parser.hpp"
 #include "utils/utils.hpp"
+#include "ast/ast_node.hpp"
 
 namespace ccc {
+
+static const Token tok_int = Token(TokenType::INT);
+static const Token tok_struct = Token(TokenType::STRUCT);
+static const Token tok_name1 = Token(TokenType::IDENTIFIER, 0, 0, "name1");
+static const Token tok_name2 = Token(TokenType::IDENTIFIER, 0, 0, "name2");
+static const Token tok_name3 = Token(TokenType::IDENTIFIER, 0, 0, "it");
+
+TEST_CASE("pretty_print - types") {
+  ExternalDeclarationListType decls;
+  auto type = make_unique<ScalarType>(tok_int, ScalarTypeValue::INT);
+  auto name_expr = make_unique<VariableName>(tok_name1, "name");
+  auto name = make_unique<DirectDeclarator>(tok_name1, std::move(name_expr));
+  decls.emplace_back(make_unique<DataDeclaration>(tok_int, std::move(type), std::move(name)));
+
+  SECTION("Simpleton") {
+    auto root = make_unique<ScalarType>(tok_int, ScalarTypeValue::INT);
+    std::string expected { "int " };
+    std::string output = root->prettyPrint(0);
+    REQUIRE(output == expected);
+  }
+
+  SECTION("Just struct name") {
+    auto root = make_unique<StructType>(tok_struct, "book");
+    std::string expected { "struct book " };
+    std::string output = root->prettyPrint(0);
+    REQUIRE(output == expected);
+  }
+
+  SECTION("Add member to struct book") {
+    // XXX Printing complete declaration not added yet
+    auto root = make_unique<StructType>(tok_struct, "book", std::move(decls));
+    std::string expected { "struct book \n{\n\t\n} " };
+    std::string output = root->prettyPrint(0);
+    REQUIRE(output == expected);
+  }
+}
+
+}
+
+/*
 bool compare(std::unique_ptr<ASTNode> root, const std::string &expected) {
   std::string content = root->prettyPrint(0);
   if (expected != content) {
