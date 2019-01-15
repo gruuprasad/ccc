@@ -5,6 +5,7 @@ cookie/
 venv/
 *.gv
 *.svg
+*.old
 
 # Created by https://www.gitignore.io/api/c,c++
 
