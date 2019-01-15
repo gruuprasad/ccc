@@ -415,30 +415,41 @@ void FastParser::parseUnaryExpression() {
 //                              postfix-expr ( argument-expr-list(opt) )
 //                              postfix-expr . identifier
 //                              postfix-expr -> identifier
-void FastParser::parsePostfixExpression() {
-  parsePrimaryExpression();
-  switch (peek().getType()) {
-  case TokenType::BRACKET_OPEN:
-    op = nextToken();
-    parseExpression();
-    mustExpect(TokenType::BRACKET_CLOSE);
-    return;
-  case TokenType::PARENTHESIS_OPEN:
-    op = nextToken();
-    parseArgumentExpressionList();
-    mustExpect(TokenType::PARENTHESIS_CLOSE);
-    return;
-  case TokenType::DOT:
-  case TokenType::ARROW:
-    op = nextToken();
-    if (peek().is(TokenType::IDENTIFIER)) {
-      nextToken();
-      return;
+std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
+  Token src_mark (peek());
+  auto postfix = parsePrimaryExpression();
+  if (fail()) {
+    return std::unique_ptr<Expression>();
+  }
+
+  while (true) {
+    switch (src_mark.getType()) {
+      case TokenType::BRACKET_OPEN:
+        op = nextToken();
+        index = parseExpression();
+        mustExpect(TokenType::BRACKET_CLOSE);
+        postfix = make_unique<ArraySubscriptOp>(src_mark, std::move(postfix), std::move(index));
+        break;
+      case TokenType::PARENTHESIS_OPEN:
+        op = nextToken();
+        auto arg_list = parseArgumentExpressionList();
+        mustExpect(TokenType::PARENTHESIS_CLOSE);
+        postfix = make_unique<FunctionCall>(src_mark, std::move(postfix), std::move(arg_list));
+        break;
+      case TokenType::DOT:
+      case TokenType::ARROW:
+        auto op = (nextToken().getType() == TokenType::DOT) ? PostFixOpValue::DOT : PostFixOpValue::ARROW; 
+        if (peek().is(TokenType::IDENTIFIER)) {
+          auto m_name = peek().getExtra();
+          auto identifer = make_unique<Identifier>(nextToken(), std::move(m_name));
+          postfix = make_unique<MemberAccessOp>(src_mark, std::move(postfix), std::move(identifer));
+          break;
+        }
+        parser_error(peek(), "identifier after member access operator (. or ->)");
+        return std::unique_ptr<Expression>();
+      default:
+        return std::move(postfix);
     }
-    parser_error(peek());
-    return;
-  default:
-    return;
   }
 }
 
@@ -465,9 +476,10 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
   }
 }
 
-void FastParser::parseArgumentExpressionList() {
+ArgumentExpressionList FastParser::parseArgumentExpressionList() {
   // TODO implement
-  return;
+  ArgumentExpressionList empty_list;
+  return empty_list;
 }
 
 } // namespace ccc
