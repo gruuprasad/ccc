@@ -58,6 +58,20 @@ public:
     }
     return split;
   }
+  template <class ListType, typename... Args>
+  static ListType vector(Args... args) {
+    return vector(ListType(), std::move(args)...);
+  }
+  template <class ListType, typename... Args>
+  static ListType vector(ListType block, Args... args) = delete;
+  template <class ListType, class T, typename... Args>
+  static ListType vector(ListType block, T t, Args... args) {
+    block.push_back(std::move(t));
+    return vector(std::move(block), std::move(args)...);
+  }
+  template <class ListType> static ListType vector(ListType block) {
+    return block;
+  }
 };
 } // namespace ccc
 #endif

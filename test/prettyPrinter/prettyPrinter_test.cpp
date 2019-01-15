@@ -1,8 +1,8 @@
 #include "../catch.hpp"
+#include "ast/ast_node.hpp"
 #include "lexer/fast_lexer.hpp"
 #include "parser/fast_parser.hpp"
 #include "utils/utils.hpp"
-#include "ast/ast_node.hpp"
 
 namespace ccc {
 
@@ -17,18 +17,19 @@ TEST_CASE("pretty_print - types") {
   auto type = make_unique<ScalarType>(tok_int, ScalarTypeValue::INT);
   auto name_expr = make_unique<VariableName>(tok_name1, "name");
   auto name = make_unique<DirectDeclarator>(tok_name1, std::move(name_expr));
-  decls.emplace_back(make_unique<DataDeclaration>(tok_int, std::move(type), std::move(name)));
+  decls.emplace_back(
+      make_unique<DataDeclaration>(tok_int, std::move(type), std::move(name)));
 
   SECTION("Simpleton") {
     auto root = make_unique<ScalarType>(tok_int, ScalarTypeValue::INT);
-    std::string expected { "int " };
+    std::string expected{"int "};
     std::string output = root->prettyPrint(0);
     REQUIRE(output == expected);
   }
 
   SECTION("Just struct name") {
     auto root = make_unique<StructType>(tok_struct, "book");
-    std::string expected { "struct book " };
+    std::string expected{"struct book "};
     std::string output = root->prettyPrint(0);
     REQUIRE(output == expected);
   }
@@ -36,15 +37,12 @@ TEST_CASE("pretty_print - types") {
   SECTION("Add member to struct book") {
     // XXX Printing complete declaration not added yet
     auto root = make_unique<StructType>(tok_struct, "book", std::move(decls));
-    std::string expected { "struct book \n{\n\t\n} " };
+    std::string expected{"struct book \n{\n\t\n} "};
     std::string output = root->prettyPrint(0);
     REQUIRE(output == expected);
   }
 }
 
-}
-
-/*
 bool compare(std::unique_ptr<ASTNode> root, const std::string &expected) {
   std::string content = root->prettyPrint(0);
   if (expected != content) {
@@ -80,55 +78,52 @@ bool compare(std::unique_ptr<ASTNode> root, const std::string &expected) {
 }
 
 TEST_CASE("pretty print block block") {
-  auto root =
-      new CompoundStatement(Token(), {
-                                         new CompoundStatement(Token(), {}),
-                                     });
-
-  REQUIRE(compare(root, "{\n"
-                        "\t{\n"
-                        "\t}\n"
-                        "}\n"));
-  delete root;
-}
-
-TEST_CASE("pretty print block") {
-  std::vector<std::unique_ptr<Statement>> stmt_list;
-  stmt_list.emplace_back(make_unique<ExpressionStatement>(
-      Token(), make_unique<BinaryExpression>(
-                   Token(TokenType::ASSIGN),
-                   make_unique<Identifier>(Token(TokenType::IDENTIFIER, "b")),
-                   make_unique<Constant>(Token(TokenType::NUMBER, "2")))));
-  auto root = make_unique<CompoundStatement>(Token(), std::move(stmt_list));
+  auto root = make_unique<CompoundStmt>(
+      Token(), Utils::vector<StatementListType>(make_unique<CompoundStmt>(
+                   Token(), Utils::vector<StatementListType>())));
 
   REQUIRE(compare(std::move(root), "{\n"
-                                   "\t(b = 2);\n"
+                                   "\t{\n"
+                                   "\t}\n"
                                    "}\n"));
 }
 
+TEST_CASE("pretty print block") {
+  auto root = make_unique<CompoundStmt>(
+      Token(),
+      Utils::vector<StatementListType>(make_unique<ExpressionStmt>(
+          Token(), make_unique<Binary>(Token(TokenType::PLUS),
+                                       make_unique<VariableName>(Token(), "b"),
+                                       make_unique<Number>(Token(), 2)))));
+
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\t(b + 2);\n"
+                                   "}\n"));
+}
+/*
 TEST_CASE("pretty print if") {
   std::vector<std::unique_ptr<Statement>> stmt_list;
 
-  auto id_a = make_unique<Identifier>(Token(TokenType::IDENTIFIER, "a"));
-  auto nr_1 = make_unique<Constant>(Token(TokenType::NUMBER, "1"));
-  auto bin_exp1 = make_unique<BinaryExpression>(
+  auto id_a = make_unique<VariableName>(Token(TokenType::IDENTIFIER, "a"));
+  auto nr_1 = make_unique<Number>(Token(TokenType::NUMBER, "1"));
+  auto bin_exp1 = make_unique<Binary>(
       Token(TokenType::EQUAL), std::move(id_a), std::move(nr_1));
 
-  auto id_b = make_unique<Identifier>(Token(TokenType::IDENTIFIER, "b"));
-  auto nr_2 = make_unique<Constant>(Token(TokenType::NUMBER, "2"));
-  auto bin_exp2 = make_unique<BinaryExpression>(
+  auto id_b = make_unique<VariableName>(Token(TokenType::IDENTIFIER, "b"));
+  auto nr_2 = make_unique<Number>(Token(TokenType::NUMBER, "2"));
+  auto bin_exp2 = make_unique<Binary>(
       Token(TokenType::PLUS_ASSIGN), std::move(id_b), std::move(nr_2));
 
   stmt_list.emplace_back(
       make_unique<ExpressionStatement>(Token(), std::move(bin_exp2)));
   auto comp_stmt1 =
-      make_unique<CompoundStatement>(Token(), std::move(stmt_list));
+      make_unique<CompoundStmt>(Token(), std::move(stmt_list));
   stmt_list.clear();
 
   stmt_list.emplace_back(make_unique<IfElseStatement>(
       Token(), std::move(bin_exp1), std::move(comp_stmt1)));
 
-  auto root = make_unique<CompoundStatement>(Token(), std::move(stmt_list));
+  auto root = make_unique<CompoundStmt>(Token(), std::move(stmt_list));
 
   REQUIRE(compare(std::move(root), "{\n"
                                    "\tif ((a == 1)) {\n"
@@ -138,712 +133,638 @@ TEST_CASE("pretty print if") {
 }
 
 TEST_CASE("pretty print if inline") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new IfElseStatement(
+      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+          Token(),
+          make_unique<Binary>(
+              Token(TokenType::EQUAL),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER, "a")),
+              make_unique<Number>(Token(TokenType::NUMBER, "1"))),
+          make_unique<ExpressionStatement>(
               Token(),
-              new BinaryExpression(
-                  Token(TokenType::EQUAL),
-                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
-                  new ConstantExpression(Token(TokenType::NUMBER, "1"))),
-              new ExpressionStatement(
-                  Token(),
-                  new BinaryExpression(
-                      Token(TokenType::PLUS_ASSIGN),
-                      new IdentifierExpression(
-                          Token(TokenType::IDENTIFIER, "b")),
-                      new ConstantExpression(Token(TokenType::NUMBER, "2"))))),
-      });
+              make_unique<Binary>(
+                  Token(TokenType::PLUS_ASSIGN),
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"b")), make_unique<Number>(Token(TokenType::NUMBER, "2")))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\tif ((a == 1))\n"
-                        "\t\t(b += 2);\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tif ((a == 1))\n"
+                                   "\t\t(b += 2);\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print if else") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new IfElseStatement(
+      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+          Token(),
+          make_unique<Binary>(
+              Token(TokenType::EQUAL),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER, "a")),
+              make_unique<Number>(Token(TokenType::NUMBER, "1"))),
+          make_unique<CompoundStmt>(
               Token(),
-              new BinaryExpression(
-                  Token(TokenType::EQUAL),
-                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
-                  new ConstantExpression(Token(TokenType::NUMBER, "1"))),
-              new CompoundStatement(
-                  Token(),
-                  {
-                      new ExpressionStatement(
-                          Token(), new BinaryExpression(
-                                       Token(TokenType::PLUS_ASSIGN),
-                                       new IdentifierExpression(
-                                           Token(TokenType::IDENTIFIER, "b")),
-                                       new ConstantExpression(
-                                           Token(TokenType::NUMBER, "2")))),
-                  }),
-              new CompoundStatement(
-                  Token(TokenType::BRACE_OPEN),
-                  {
-                      new ExpressionStatement(
-                          Token(), new BinaryExpression(
-                                       Token(TokenType::PLUS_ASSIGN),
-                                       new IdentifierExpression(
-                                           Token(TokenType::IDENTIFIER, "b")),
-                                       new ConstantExpression(
-                                           Token(TokenType::NUMBER, "2")))),
-                  })),
-      });
+Utils::vector<StatementListType>(make_unique<ExpressionStatement>( Token(),
+make_unique<Binary>( Token(TokenType::PLUS_ASSIGN),
+                                        make_unique<VariableName>(
+                                            Token(TokenType::IDENTIFIER,
+"b")), make_unique<Number>( Token(TokenType::NUMBER, "2")))))),
+          make_unique<CompoundStmt>(
+              Token(TokenType::BRACE_OPEN),
+              Utils::vector<StatementListType>(make_unique<ExpressionStatement>(
+                  Token(), make_unique<Binary>(
+                               Token(TokenType::PLUS_ASSIGN),
+                               make_unique<VariableName>(
+                                   Token(TokenType::IDENTIFIER, "b")),
+                               make_unique<Number>(
+                                   Token(TokenType::NUMBER, "2")))))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\tif ((a == 1)) {\n"
-                        "\t\t(b += 2);\n"
-                        "\t} else {\n"
-                        "\t\t(b += 2);\n"
-                        "\t}\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tif ((a == 1)) {\n"
+                                   "\t\t(b += 2);\n"
+                                   "\t} else {\n"
+                                   "\t\t(b += 2);\n"
+                                   "\t}\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print if else inline") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new IfElseStatement(
+      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+          Token(),
+          make_unique<Binary>(
+              Token(TokenType::EQUAL),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER, "a")),
+              make_unique<Number>(Token(TokenType::NUMBER, "1"))),
+          make_unique<ExpressionStatement>(
               Token(),
-              new BinaryExpression(
-                  Token(TokenType::EQUAL),
-                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
-                  new ConstantExpression(Token(TokenType::NUMBER, "1"))),
-              new ExpressionStatement(
-                  Token(),
-                  new BinaryExpression(
-                      Token(TokenType::PLUS_ASSIGN),
-                      new IdentifierExpression(
-                          Token(TokenType::IDENTIFIER, "b")),
-                      new ConstantExpression(Token(TokenType::NUMBER, "2")))),
-              new ExpressionStatement(
-                  Token(),
-                  new BinaryExpression(
-                      Token(TokenType::DIV),
-                      new IdentifierExpression(
-                          Token(TokenType::IDENTIFIER, "a")),
-                      new ConstantExpression(Token(TokenType::NUMBER, "3"))))),
-      });
+              make_unique<Binary>(
+                  Token(TokenType::PLUS_ASSIGN),
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"b")), make_unique<Number>(Token(TokenType::NUMBER, "2")))),
+          make_unique<ExpressionStatement>(
+              Token(),
+              make_unique<Binary>(
+                  Token(TokenType::DIV),
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"a")), make_unique<Number>(Token(TokenType::NUMBER, "3")))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\tif ((a == 1))\n"
-                        "\t\t(b += 2);\n"
-                        "\telse\n"
-                        "\t\t(a / 3);\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tif ((a == 1))\n"
+                                   "\t\t(b += 2);\n"
+                                   "\telse\n"
+                                   "\t\t(a / 3);\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print if else if else inline") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new IfElseStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new ReturnStatement(
+      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+          make_unique<ReturnStatement>(
+              Token(),
+              make_unique<Binary>(
+                  Token(TokenType::PLUS),
+                  make_unique<Number>(Token(TokenType::NUMBER, "1")),
+                  make_unique<Number>(Token(TokenType::NUMBER, "3")))),
+          make_unique<IfElseStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+              make_unique<ReturnStatement>(
                   Token(),
-                  new BinaryExpression(
-                      Token(TokenType::PLUS),
-                      new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                      new ConstantExpression(Token(TokenType::NUMBER, "3")))),
-              new IfElseStatement(
+                  make_unique<VariableName>(Token(TokenType::NUMBER, "1"))),
+              make_unique<CompoundStmt>(
                   Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
-                  new ReturnStatement(Token(), new IdentifierExpression(Token(
-                                                   TokenType::NUMBER, "1"))),
-                  new CompoundStatement(
-                      Token(),
-                      {
-                          new ReturnStatement(
-                              Token(), new IdentifierExpression(
-                                           Token(TokenType::NUMBER, "0"))),
-                      }))),
-      });
+Utils::vector<StatementListType>(make_unique<ReturnStatement>( Token(),
+make_unique<VariableName>(Token( TokenType::NUMBER, "0")))))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\tif (1)\n"
-                        "\t\treturn (1 + 3);\n"
-                        "\telse if (0)\n"
-                        "\t\treturn 1;\n"
-                        "\telse {\n"
-                        "\t\treturn 0;\n"
-                        "\t}\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tif (1)\n"
+                                   "\t\treturn (1 + 3);\n"
+                                   "\telse if (0)\n"
+                                   "\t\treturn 1;\n"
+                                   "\telse {\n"
+                                   "\t\treturn 0;\n"
+                                   "\t}\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print if else if else") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new IfElseStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new ReturnStatement(
+      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+          make_unique<ReturnStatement>(
+              Token(),
+              make_unique<Binary>(
+                  Token(TokenType::PLUS),
+                  make_unique<Number>(Token(TokenType::NUMBER, "1")),
+                  make_unique<Number>(Token(TokenType::NUMBER, "3")))),
+          make_unique<IfElseStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+              make_unique<CompoundStmt>(
                   Token(),
-                  new BinaryExpression(
-                      Token(TokenType::PLUS),
-                      new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                      new ConstantExpression(Token(TokenType::NUMBER, "3")))),
-              new IfElseStatement(
-                  Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
-                  new CompoundStatement(
+Utils::vector<StatementListType>(make_unique<ReturnStatement>( Token(),
+make_unique<VariableName>( Token(TokenType::NUMBER, "1"))))),
+              make_unique<IfElseStatement>(
+                  Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+                  make_unique<ReturnStatement>(
                       Token(),
-                      {
-                          new ReturnStatement(
-                              Token(), new IdentifierExpression(
-                                           Token(TokenType::NUMBER, "1"))),
-                      }),
-                  new IfElseStatement(
-                      Token(),
-                      new ConstantExpression(Token(TokenType::NUMBER, "0")),
-                      new ReturnStatement(Token(),
-                                          new IdentifierExpression(
-                                              Token(TokenType::NUMBER, "1"))),
-                      new ReturnStatement(
-                          Token(), new IdentifierExpression(
-                                       Token(TokenType::NUMBER, "0")))))),
-      });
+                      make_unique<VariableName>(Token(TokenType::NUMBER, "1"))),
+                  make_unique<ReturnStatement>(
+                      Token(), make_unique<VariableName>(
+                                   Token(TokenType::NUMBER, "0"))))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\tif (1)\n"
-                        "\t\treturn (1 + 3);\n"
-                        "\telse if (0) {\n"
-                        "\t\treturn 1;\n"
-                        "\t} else if (0)\n"
-                        "\t\treturn 1;\n"
-                        "\telse\n"
-                        "\t\treturn 0;\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tif (1)\n"
+                                   "\t\treturn (1 + 3);\n"
+                                   "\telse if (0) {\n"
+                                   "\t\treturn 1;\n"
+                                   "\t} else if (0)\n"
+                                   "\t\treturn 1;\n"
+                                   "\telse\n"
+                                   "\t\treturn 0;\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print if else if") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new IfElseStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new ReturnStatement(
+      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+          make_unique<ReturnStatement>(
+              Token(),
+              make_unique<Binary>(
+                  Token(TokenType::PLUS),
+                  make_unique<Number>(Token(TokenType::NUMBER, "1")),
+                  make_unique<Number>(Token(TokenType::NUMBER, "3")))),
+          make_unique<IfElseStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+              make_unique<CompoundStmt>(
                   Token(),
-                  new BinaryExpression(
-                      Token(TokenType::PLUS),
-                      new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                      new ConstantExpression(Token(TokenType::NUMBER, "3")))),
-              new IfElseStatement(
-                  Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
-                  new CompoundStatement(
-                      Token(),
-                      {
-                          new ReturnStatement(
-                              Token(), new IdentifierExpression(
-                                           Token(TokenType::NUMBER, "1"))),
-                      }))),
-      });
+Utils::vector<StatementListType>(make_unique<ReturnStatement>( Token(),
+make_unique<VariableName>(Token( TokenType::NUMBER, "1")))))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\tif (1)\n"
-                        "\t\treturn (1 + 3);\n"
-                        "\telse if (0) {\n"
-                        "\t\treturn 1;\n"
-                        "\t}\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tif (1)\n"
+                                   "\t\treturn (1 + 3);\n"
+                                   "\telse if (0) {\n"
+                                   "\t\treturn 1;\n"
+                                   "\t}\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print while") {
-
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new WhileStatement(
+      Utils::vector<StatementListType>(make_unique<WhileStatement>(
+          Token(),
+          make_unique<Binary>(
+              Token(TokenType::PLUS),
+              make_unique<VariableName>(Token(TokenType::NUMBER, "1")),
+              make_unique<VariableName>(Token(TokenType::NUMBER, "3"))),
+          make_unique<CompoundStmt>(
               Token(),
-              new BinaryExpression(
-                  Token(TokenType::PLUS),
-                  new IdentifierExpression(Token(TokenType::NUMBER, "1")),
-                  new IdentifierExpression(Token(TokenType::NUMBER, "3"))),
-              new CompoundStatement(
-                  Token(),
-                  {
-                      new ExpressionStatement(
-                          Token(), new BinaryExpression(
-                                       Token(TokenType::PLUS),
-                                       new ConstantExpression(
-                                           Token(TokenType::NUMBER, "1")),
-                                       new ConstantExpression(
-                                           Token(TokenType::NUMBER, "3")))),
-                      new ExpressionStatement(
-                          Token(), new BinaryExpression(
-                                       Token(TokenType::STAR),
-                                       new ConstantExpression(
-                                           Token(TokenType::NUMBER, "0")),
-                                       new ConstantExpression(
-                                           Token(TokenType::NUMBER, "5")))),
-                  })),
-      });
+              Utils::vector<StatementListType>(make_unique<ExpressionStatement>(
+                         Token(), make_unique<Binary>(
+                                      Token(TokenType::PLUS),
+                                      make_unique<Number>(
+                                          Token(TokenType::NUMBER, "1")),
+                                      make_unique<Number>(
+                                          Token(TokenType::NUMBER, "3")))),
+                     make_unique<ExpressionStatement>(
+                         Token(), make_unique<Binary>(
+                                      Token(TokenType::STAR),
+                                      make_unique<Number>(
+                                          Token(TokenType::NUMBER, "0")),
+                                      make_unique<Number>(
+                                          Token(TokenType::NUMBER, "5")))))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\twhile ((1 + 3)) {\n"
-                        "\t\t(1 + 3);\n"
-                        "\t\t(0 * 5);\n"
-                        "\t}\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\twhile ((1 + 3)) {\n"
+                                   "\t\t(1 + 3);\n"
+                                   "\t\t(0 * 5);\n"
+                                   "\t}\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print while inline") {
-  auto *root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
-              new IfElseStatement(
+      Utils::vector<StatementListType>(make_unique<WhileStatement>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
+          make_unique<IfElseStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+              make_unique<ReturnStatement>(
                   Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                  new ReturnStatement(Token(), new IdentifierExpression(Token(
-                                                   TokenType::NUMBER, "1"))),
-                  new ReturnStatement(Token(),
-                                      new StringLiteral(Token(TokenType::STRING,
-                                                              "\"test\""))))),
-      });
+                  make_unique<VariableName>(Token(TokenType::NUMBER, "1"))),
+              make_unique<ReturnStatement>(
+                  Token(), make_unique<StringLiteral>(
+                               Token(TokenType::STRING, "\"test\"")))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\twhile (3)\n"
-                        "\t\tif (1)\n"
-                        "\t\t\treturn 1;\n"
-                        "\t\telse\n"
-                        "\t\t\treturn \"test\";\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\twhile (3)\n"
+                                   "\t\tif (1)\n"
+                                   "\t\t\treturn 1;\n"
+                                   "\t\telse\n"
+                                   "\t\t\treturn \"test\";\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print while inline if else break continue") {
-  auto *root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
-              new IfElseStatement(
-                  Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                  new BreakStatement(Token()), new ContinueStatement(Token()))),
-      });
+      Utils::vector<StatementListType>(make_unique<WhileStatement>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
+          make_unique<IfElseStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+              make_unique<BreakStatement>(Token()),
+              make_unique<ContinueStatement>(Token())))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\twhile (3)\n"
-                        "\t\tif (1)\n"
-                        "\t\t\tbreak;\n"
-                        "\t\telse\n"
-                        "\t\t\tcontinue;\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\twhile (3)\n"
+                                   "\t\tif (1)\n"
+                                   "\t\t\tbreak;\n"
+                                   "\t\telse\n"
+                                   "\t\t\tcontinue;\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print while inline break continue") {
-  auto *root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
-              new BreakStatement(Token())),
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new ContinueStatement(Token())),
-      });
+      Utils::vector<StatementListType>(make_unique<WhileStatement>(
+                 Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
+                 make_unique<BreakStatement>(Token())),
+             make_unique<WhileStatement>(
+                 Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+                 make_unique<ContinueStatement>(Token()))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\twhile (3)\n"
-                        "\t\tbreak;\n"
-                        "\twhile (1)\n"
-                        "\t\tcontinue;\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\twhile (3)\n"
+                                   "\t\tbreak;\n"
+                                   "\twhile (1)\n"
+                                   "\t\tcontinue;\n"
+                                   "}\n"));
 }
 
 TEST_CASE("conditional") {
-  auto *root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {new ExpressionStatement(
+      Utils::vector<StatementListType>(make_unique<ExpressionStatement>(
           Token(),
-          new ConditionalExpression(
+          make_unique<ConditionalExpression>(
               Token(),
-              new BinaryExpression(
+              make_unique<Binary>(
                   Token(TokenType::LESS),
-                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
-                  new ConstantExpression(Token(TokenType::NUMBER, "0"))),
-              new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new ConstantExpression(Token(TokenType::NUMBER, "3"))))});
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"a")), make_unique<Number>(Token(TokenType::NUMBER, "0"))),
+              make_unique<Number>(Token(TokenType::NUMBER, "1")),
+              make_unique<Number>(Token(TokenType::NUMBER, "3"))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\t((a < 0) ? 1 : 3);\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\t((a < 0) ? 1 : 3);\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print while inline break continue blocks") {
-  auto *root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
-              new CompoundStatement(Token(),
-                                    {
-                                        new BreakStatement(Token()),
-                                    })),
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "2")),
-              new CompoundStatement(
+      Utils::vector<StatementListType>(
+          make_unique<WhileStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
+              make_unique<CompoundStmt>(
                   Token(),
-                  {
-                      new BreakStatement(Token()),
-                      new CompoundStatement(Token(),
-                                            {
-                                                new ContinueStatement(Token()),
-                                            }),
-                  })),
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new CompoundStatement(Token(),
-                                    {
-                                        new ContinueStatement(Token()),
-                                    })),
-      });
+Utils::vector<StatementListType>(make_unique<BreakStatement>(Token())))),
+          make_unique<WhileStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "2")),
+              make_unique<CompoundStmt>(
+                  Token(),
+                  Utils::vector<StatementListType>(make_unique<BreakStatement>(Token()),
+                         make_unique<CompoundStmt>(
+                             Token(),
+Utils::vector<StatementListType>(make_unique<ContinueStatement>( Token())))))),
+          make_unique<WhileStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+              make_unique<CompoundStmt>(
+                  Token(),
+Utils::vector<StatementListType>(make_unique<ContinueStatement>(Token()))))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\twhile (3) {\n"
-                        "\t\tbreak;\n"
-                        "\t}\n"
-                        "\twhile (2) {\n"
-                        "\t\tbreak;\n"
-                        "\t\t{\n"
-                        "\t\t\tcontinue;\n"
-                        "\t\t}\n"
-                        "\t}\n"
-                        "\twhile (1) {\n"
-                        "\t\tcontinue;\n"
-                        "\t}\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\twhile (3) {\n"
+                                   "\t\tbreak;\n"
+                                   "\t}\n"
+                                   "\twhile (2) {\n"
+                                   "\t\tbreak;\n"
+                                   "\t\t{\n"
+                                   "\t\t\tcontinue;\n"
+                                   "\t\t}\n"
+                                   "\t}\n"
+                                   "\twhile (1) {\n"
+                                   "\t\tcontinue;\n"
+                                   "\t}\n"
+                                   "}\n"));
 }
 
 TEST_CASE("pretty print goto label") {
-  auto *root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new LabeledStatement(
-                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "foo")),
-                  new BreakStatement(Token()))),
-          new GotoStatement(
-              new IdentifierExpression(Token(TokenType::IDENTIFIER, "foo"))),
-      });
+      Utils::vector<StatementListType>(
+          make_unique<WhileStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+              make_unique<LabeledStatement>(
+                  Token(),
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"foo")), make_unique<BreakStatement>(Token()))), make_unique<GotoStatement>(
+              Token(),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"foo")))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\twhile (1)\n"
-                        "foo:\n"
-                        "\t\tbreak;\n"
-                        "\tgoto foo;\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\twhile (1)\n"
+                                   "foo:\n"
+                                   "\t\tbreak;\n"
+                                   "\tgoto foo;\n"
+                                   "}\n"));
 }
 TEST_CASE("pretty print if else if else goto label") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new IfElseStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new LabeledStatement(
-                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "foo")),
-                  new GotoStatement(new IdentifierExpression(
-                      Token(TokenType::IDENTIFIER, "empty")))),
-              new IfElseStatement(
+      Utils::vector<StatementListType>(
+          make_unique<IfElseStatement>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+              make_unique<LabeledStatement>(
                   Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
-                  new CompoundStatement(
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"foo")), make_unique<GotoStatement>( Token(), make_unique<VariableName>(
+                                   Token(TokenType::IDENTIFIER, "empty")))),
+              make_unique<IfElseStatement>(
+                  Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+                  make_unique<CompoundStmt>(
                       Token(),
-                      {
-                          new GotoStatement(new IdentifierExpression(
-                              Token(TokenType::IDENTIFIER, "end"))),
-                          new LabeledStatement(new IdentifierExpression(
-                              Token(TokenType::IDENTIFIER, "bar"))),
-                      }),
-                  new CompoundStatement(
-                      Token(),
-                      {
-                          new GotoStatement(new IdentifierExpression(
-                              Token(TokenType::IDENTIFIER, "foo"))),
-                      }))),
-          new LabeledStatement(
-              new IdentifierExpression(Token(TokenType::IDENTIFIER, "empty")),
-              new ExpressionStatement(Token())),
-          new LabeledStatement(
-              new IdentifierExpression(Token(TokenType::IDENTIFIER, "end")),
-              new IfElseStatement(
-                  Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                  new ReturnStatement(Token()))),
-      });
+                      Utils::vector<StatementListType>(make_unique<GotoStatement>(
+                                 Token(), make_unique<VariableName>(Token(
+                                              TokenType::IDENTIFIER, "end"))),
+                             make_unique<LabeledStatement>(
+                                 Token(), make_unique<VariableName>(Token(
+                                              TokenType::IDENTIFIER,
+"bar"))))), make_unique<CompoundStmt>( Token(),
+                      Utils::vector<StatementListType>(make_unique<GotoStatement>(
+                          Token(), make_unique<VariableName>(Token(
+                                       TokenType::IDENTIFIER, "foo"))))))),
+          make_unique<LabeledStatement>(
+              Token(),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"empty")), make_unique<ExpressionStatement>(Token())),
+          make_unique<LabeledStatement>(
+              Token(),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER, "end")),
+              make_unique<IfElseStatement>(
+                  Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+                  make_unique<ReturnStatement>(Token())))));
 
-  REQUIRE(compare(root, "{\n"
-                        "\tif (1)\n"
-                        "foo:\n"
-                        "\t\tgoto empty;\n"
-                        "\telse if (0) {\n"
-                        "\t\tgoto end;\n"
-                        "bar:\n"
-                        "\t} else {\n"
-                        "\t\tgoto foo;\n"
-                        "\t}\n"
-                        "empty:\n"
-                        "\t;\n"
-                        "end:\n"
-                        "\tif (1)\n"
-                        "\t\treturn;\n"
-                        "}\n"));
-  delete root;
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tif (1)\n"
+                                   "foo:\n"
+                                   "\t\tgoto empty;\n"
+                                   "\telse if (0) {\n"
+                                   "\t\tgoto end;\n"
+                                   "bar:\n"
+                                   "\t} else {\n"
+                                   "\t\tgoto foo;\n"
+                                   "\t}\n"
+                                   "empty:\n"
+                                   "\t;\n"
+                                   "end:\n"
+                                   "\tif (1)\n"
+                                   "\t\treturn;\n"
+                                   "}\n"));
 }
 
 TEST_CASE("declaration") {
-  auto root = new CompoundStatement(
+  std::vector<std::unique_ptr<TypeExpression>> tmp0;
+  tmp0.push_back(std::move(make_unique<TypeExpression>(TypeSpec::INT)));
+  std::vector<std::unique_ptr<TypeExpression>> tmp1;
+  tmp1.push_back(std::move(make_unique<TypeExpression>(TypeSpec::VOID)));
+  std::vector<std::unique_ptr<TypeExpression>> tmp2;
+  tmp2.push_back(std::move(make_unique<TypeExpression>(TypeSpec::CHAR)));
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new DeclarationStatement(
-              Token(), new TypeExpression(TypeSpec::INT,
-                                          new IdentifierExpression(Token(
+      Utils::vector<StatementListType>(
+          make_unique<DeclarationStatement>(
+              Token(), make_unique<TypeExpression>(
+                           TypeSpec::INT, make_unique<VariableName>(Token(
                                               TokenType::IDENTIFIER, "a")))),
-          new DeclarationStatement(
-              Token(), new TypeExpression(
-                           TypeSpec::INT,
-                           new PointerTypeExpression(new IdentifierExpression(
-                               Token(TokenType::IDENTIFIER, "b"))))),
-          new DeclarationStatement(
-              Token(), new TypeExpression(
-                           TypeSpec::VOID,
-                           new PointerTypeExpression(new PointerTypeExpression(
-                               new IdentifierExpression(
-                                   Token(TokenType::IDENTIFIER, "c")))))),
-          new DeclarationStatement(
+          make_unique<DeclarationStatement>(
               Token(),
-              new TypeExpression(
-                  TypeSpec::VOID,
-                  new PointerTypeExpression(new FunctionTypeExpression(
-                      new PointerTypeExpression(
-                          new PointerTypeExpression(new IdentifierExpression(
-                              Token(TokenType::IDENTIFIER, "d")))),
-                      {
-                          new TypeExpression(TypeSpec::INT),
-                      })))),
-          new DeclarationStatement(
+              make_unique<TypeExpression>(
+                  TypeSpec::INT,
+                  make_unique<PointerTypeExpression>(make_unique<VariableName>(
+                      Token(TokenType::IDENTIFIER, "b"))))),
+          make_unique<DeclarationStatement>(
               Token(),
-              new TypeExpression(TypeSpec::INT,
-                                 new FunctionTypeExpression(
-                                     new IdentifierExpression(
-                                         Token(TokenType::IDENTIFIER, "main")),
-                                     std::vector<TypeExpression *>({
-                                         new TypeExpression(TypeSpec::VOID),
-                                     })))),
-          new DeclarationStatement(
+              make_unique<TypeExpression>(
+                  TypeSpec::VOID, make_unique<PointerTypeExpression>(
+                                      make_unique<PointerTypeExpression>(
+                                          make_unique<VariableName>(Token(
+                                              TokenType::IDENTIFIER,
+"c")))))), make_unique<DeclarationStatement>( Token(),
+make_unique<TypeExpression>( TypeSpec::VOID, make_unique<PointerTypeExpression>(
+                               make_unique<FunctionTypeExpression>(
+                                   make_unique<PointerTypeExpression>(
+                                       make_unique<PointerTypeExpression>(
+                                           make_unique<VariableName>(Token(
+                                               TokenType::IDENTIFIER, "d")))),
+                                   std::move(tmp0))))),
+          make_unique<DeclarationStatement>(
               Token(),
-              new StructTypeExpression(
-                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "S")),
-                  new PointerTypeExpression(new IdentifierExpression(
+              make_unique<TypeExpression>(
+                  TypeSpec::INT, make_unique<FunctionTypeExpression>(
+                                     make_unique<VariableName>(
+                                         Token(TokenType::IDENTIFIER,
+"main")), std::move(tmp1)))), make_unique<DeclarationStatement>( Token(),
+              make_unique<StructTypeExpression>(
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"S")), make_unique<PointerTypeExpression>(make_unique<VariableName>(
                       Token(TokenType::IDENTIFIER, "p"))))),
-          new DeclarationStatement(
-              Token(), new TypeExpression(
-                           TypeSpec::INT,
-                           new PointerTypeExpression(new FunctionTypeExpression(
-                               new IdentifierExpression(
-                                   Token(TokenType::IDENTIFIER, "test")),
-                               std::vector<TypeExpression *>({
-                                   new TypeExpression(TypeSpec::CHAR),
-                               }))))),
-      });
-  REQUIRE(compare(root, "{\n"
-                        "\tint a;\n"
-                        "\tint (*b);\n"
-                        "\tvoid (*(*c));\n"
-                        "\tvoid (*((*(*d))(int)));\n"
-                        "\tint (main(void));\n"
-                        "\tstruct S (*p);\n"
-                        "\tint (*(test(char)));\n"
-                        "}\n"));
-  delete root;
+          make_unique<DeclarationStatement>(
+              Token(),
+              make_unique<TypeExpression>(
+                  TypeSpec::INT, make_unique<PointerTypeExpression>(
+                                     make_unique<FunctionTypeExpression>(
+                                         make_unique<VariableName>(Token(
+                                             TokenType::IDENTIFIER, "test")),
+                                         std::move(tmp2)))))));
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tint a;\n"
+                                   "\tint (*b);\n"
+                                   "\tvoid (*(*c));\n"
+                                   "\tvoid (*((*(*d))(int)));\n"
+                                   "\tint (main(void));\n"
+                                   "\tstruct S (*p);\n"
+                                   "\tint (*(test(char)));\n"
+                                   "}\n"));
 }
 
 TEST_CASE("declaration init") {
-  auto root = new CompoundStatement(
+  std::vector<std::unique_ptr<TypeExpression>> tmp;
+  tmp.push_back(std::move(make_unique<TypeExpression>(TypeSpec::VOID)));
+  tmp.push_back(std::move(make_unique<TypeExpression>(TypeSpec::INT)));
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {new DeclarationStatement(
+      Utils::vector<StatementListType>(make_unique<DeclarationStatement>(
           Token(),
-          new TypeExpression(TypeSpec::INT,
-                             new FunctionTypeExpression(
-                                 new IdentifierExpression(
-                                     Token(TokenType::IDENTIFIER, "main")),
-                                 std::vector<TypeExpression *>(
-                                     {new TypeExpression(TypeSpec::VOID),
-                                      new TypeExpression(TypeSpec::INT)}))),
-          new CompoundStatement(
-              Token(), {new DeclarationStatement(
-                           Token(), new TypeExpression(
-                                        TypeSpec::INT,
-                                        new IdentifierExpression(Token(
-                                            TokenType::IDENTIFIER, "d"))))}))
+          make_unique<TypeExpression>(
+              TypeSpec::INT,
+              make_unique<FunctionTypeExpression>(
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"main")), std::move(tmp))), make_unique<CompoundStmt>( Token(),
+Utils::vector<StatementListType>(make_unique<DeclarationStatement>( Token(),
+make_unique<TypeExpression>( TypeSpec::INT, make_unique<VariableName>(Token(
+                                            TokenType::IDENTIFIER, "d"))))))))
 
-      });
-  REQUIRE(compare(root, "{\n"
-                        "\tint (main(void, int))\n"
-                        "\t{\n"
-                        "\t\tint d;\n"
-                        "\t}\n"
-                        "}\n"));
-  delete root;
+  );
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tint (main(void, int))\n"
+                                   "\t{\n"
+                                   "\t\tint d;\n"
+                                   "\t}\n"
+                                   "}\n"));
 }
 
 TEST_CASE("sizeof") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new ExpressionStatement(
+      Utils::vector<StatementListType>(
+          make_unique<ExpressionStatement>(
+              Token(), make_unique<SizeOfExpression>(
+                           Token(), make_unique<VariableName>(
+                                        Token(TokenType::IDENTIFIER, "b")))),
+          make_unique<ExpressionStatement>(
               Token(),
-              new SizeOfExpression(Token(), new IdentifierExpression(Token(
-                                                TokenType::IDENTIFIER, "b")))),
-          new ExpressionStatement(
+              make_unique<SizeOfExpression>(
+                  Token(), make_unique<TypeExpression>(TypeSpec::INT))),
+          make_unique<ExpressionStatement>(
               Token(),
-              new SizeOfExpression(Token(), new TypeExpression(TypeSpec::INT))),
-          new ExpressionStatement(
-              Token(),
-              new SizeOfExpression(
+              make_unique<SizeOfExpression>(
                   Token(),
-                  new BinaryExpression(
+                  make_unique<Binary>(
                       Token(TokenType::PLUS),
-                      new ConstantExpression(Token(TokenType::NUMBER, "0")),
-                      new ConstantExpression(Token(TokenType::NUMBER, "0"))))),
-      });
-  REQUIRE(compare(root, "{\n"
-                        "\t(sizeof b);\n"
-                        "\t(sizeof(int));\n"
-                        "\t(sizeof (0 + 0));\n"
-                        "}\n"));
-  delete root;
+                      make_unique<Number>(Token(TokenType::NUMBER, "0")),
+                      make_unique<Number>(Token(TokenType::NUMBER, "0")))))));
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\t(sizeof b);\n"
+                                   "\t(sizeof(int));\n"
+                                   "\t(sizeof (0 + 0));\n"
+                                   "}\n"));
 }
 
 TEST_CASE("struct") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {new StructStatement(
-          Token(), new IdentifierExpression(Token(TokenType::IDENTIFIER, "S")),
-          new CompoundStatement(
-              Token(), {new DeclarationStatement(
-                           Token(), new TypeExpression(
-                                        TypeSpec::INT,
-                                        new IdentifierExpression(Token(
-                                            TokenType::IDENTIFIER, "x"))))}),
-          new IdentifierExpression(Token(TokenType::IDENTIFIER, "s")))});
-  REQUIRE(compare(root, "{\n"
-                        "\tstruct S\n"
-                        "\t{\n"
-                        "\t\tint x;\n"
-                        "\t} s;\n"
-                        "}\n"));
-  delete root;
+      Utils::vector<StatementListType>(make_unique<StructStatement>(
+          Token(), make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"S")), make_unique<CompoundStmt>( Token(),
+Utils::vector<StatementListType>(make_unique<DeclarationStatement>( Token(),
+make_unique<TypeExpression>( TypeSpec::INT, make_unique<VariableName>(Token(
+                                            TokenType::IDENTIFIER, "x")))))),
+          make_unique<VariableName>(Token(TokenType::IDENTIFIER, "s")))));
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\tstruct S\n"
+                                   "\t{\n"
+                                   "\t\tint x;\n"
+                                   "\t} s;\n"
+                                   "}\n"));
 }
 
 TEST_CASE("postfix") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {new ExpressionStatement(
-           Token(),
-           new PostfixExpression(
-               Token(TokenType::DOT),
-               new IdentifierExpression(Token(TokenType::IDENTIFIER, "s")),
-               new IdentifierExpression(Token(TokenType::IDENTIFIER, "x")))),
-       new ExpressionStatement(
-           Token(),
-           new PostfixExpression(
-               Token(TokenType::ARROW),
-               new PostfixExpression(
-                   Token(TokenType::DOT),
-                   new PostfixExpression(Token(TokenType::ARROW),
-                                         new IdentifierExpression(
-                                             Token(TokenType::IDENTIFIER, "a")),
-                                         new IdentifierExpression(Token(
-                                             TokenType::IDENTIFIER, "s"))),
-                   new IdentifierExpression(Token(TokenType::IDENTIFIER, "x"))),
-               new IdentifierExpression(Token(TokenType::IDENTIFIER, "b")))),
-       new ExpressionStatement(
-           Token(),
-           new BinaryExpression(
-               Token(TokenType::ASSIGN),
-               new PostfixExpression(
-                   Token(TokenType::DOT),
-                   new IdentifierExpression(Token(TokenType::IDENTIFIER, "s")),
-                   new IdentifierExpression(Token(TokenType::IDENTIFIER, "x"))),
-               new IdentifierExpression(Token(TokenType::IDENTIFIER, "x"))))});
-  REQUIRE(compare(root, "{\n"
-                        "\t(s.x);\n"
-                        "\t(((a->s).x)->b);\n"
-                        "\t((s.x) = x);\n"
-                        "}\n"));
-  delete root;
+      Utils::vector<StatementListType>(
+          make_unique<ExpressionStatement>(
+              Token(),
+              make_unique<PostfixExpression>(
+                  Token(TokenType::DOT),
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"s")), make_unique<VariableName>(Token(TokenType::IDENTIFIER, "x")))),
+          make_unique<ExpressionStatement>(
+              Token(),
+              make_unique<PostfixExpression>(
+                  Token(TokenType::ARROW),
+                  make_unique<PostfixExpression>(
+                      Token(TokenType::DOT),
+                      make_unique<PostfixExpression>(
+                          Token(TokenType::ARROW),
+                          make_unique<VariableName>(
+                              Token(TokenType::IDENTIFIER, "a")),
+                          make_unique<VariableName>(
+                              Token(TokenType::IDENTIFIER, "s"))),
+                      make_unique<VariableName>(
+                          Token(TokenType::IDENTIFIER, "x"))),
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"b")))), make_unique<ExpressionStatement>( Token(), make_unique<Binary>(
+                           Token(TokenType::ASSIGN),
+                           make_unique<PostfixExpression>(
+                               Token(TokenType::DOT),
+                               make_unique<VariableName>(
+                                   Token(TokenType::IDENTIFIER, "s")),
+                               make_unique<VariableName>(
+                                   Token(TokenType::IDENTIFIER, "x"))),
+                           make_unique<VariableName>(
+                               Token(TokenType::IDENTIFIER, "x"))))));
+  REQUIRE(compare(std::move(root), "{\n"
+                                   "\t(s.x);\n"
+                                   "\t(((a->s).x)->b);\n"
+                                   "\t((s.x) = x);\n"
+                                   "}\n"));
 }
 
 TEST_CASE("unary") {
-  auto root = new CompoundStatement(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new ExpressionStatement(
-              Token(), new UnaryExpression(Token(TokenType::AMPERSAND),
-                                           new IdentifierExpression(Token(
-                                               TokenType::IDENTIFIER, "s")))),
-          new ReturnStatement(
-              Token(), new UnaryExpression(
+      Utils::vector<StatementListType>(
+          make_unique<ExpressionStatement>(
+              Token(),
+              make_unique<UnaryExpression>(
+                  Token(TokenType::AMPERSAND),
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"s")))), make_unique<ReturnStatement>( Token(), make_unique<UnaryExpression>(
                            Token(TokenType::MINUS),
-                           new UnaryExpression(
+                           make_unique<UnaryExpression>(
                                Token(TokenType::STAR),
-                               new UnaryExpression(
+                               make_unique<UnaryExpression>(
                                    Token(TokenType::AMPERSAND),
-                                   new PostfixExpression(
+                                   make_unique<PostfixExpression>(
                                        Token(TokenType::DOT),
-                                       new IdentifierExpression(
+                                       make_unique<VariableName>(
                                            Token(TokenType::IDENTIFIER, "s")),
-                                       new IdentifierExpression(Token(
-                                           TokenType::IDENTIFIER, "x"))))))),
-      });
-  REQUIRE(compare(root, "{\n"
-                        "\t(&s);\n"
-                        "\treturn (-(*(&(s.x))));\n"
-                        "}\n"));
-  delete root;
+                                       make_unique<VariableName>(Token(
+                                           TokenType::IDENTIFIER,
+"x"))))))))); REQUIRE(compare(std::move(root), "{\n"
+                                   "\t(&s);\n"
+                                   "\treturn (-(*(&(s.x))));\n"
+                                   "}\n"));
 }
 
 TEST_CASE("call") {
-  auto root = new CompoundStatement(
+  auto root = new CompoundStmt(
       Token(),
       {
           new ExpressionStatement(
               Token(),
               new CallExpression(
                   Token(),
-                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "f")),
-                  {new UnaryExpression(Token(TokenType::MINUS),
-                                       new IdentifierExpression(
-                                           Token(TokenType::IDENTIFIER, "s"))),
-                   new IdentifierExpression(Token(TokenType::NUMBER, "1"))})),
+                  new VariableNameExpression(Token(TokenType::IDENTIFIER,
+"f")), {new UnaryExpression(Token(TokenType::MINUS), new VariableNameExpression(
+                                           Token(TokenType::IDENTIFIER,
+"s"))), new VariableNameExpression(Token(TokenType::NUMBER, "1"))})),
       });
   REQUIRE(compare(root, "{\n"
                         "\t(f((-s), 1));\n"
                         "}\n"));
   delete root;
 }
+ */
 } // namespace ccc
-*/

@@ -29,7 +29,7 @@ std::string FunctionDefinition::prettyPrint(int) {
   return ss.str();
 }
 
-std::string FunctionDeclaration::prettyPrint(int ) {
+std::string FunctionDeclaration::prettyPrint(int) {
   std::stringstream ss;
 
   return ss.str();
@@ -55,16 +55,16 @@ std::string ParamDeclaration::prettyPrint(int) {
 
 std::string ScalarType::prettyPrint(int) {
   std::stringstream ss;
-  switch(type_kind) {
-    case ScalarTypeValue::VOID:
-      ss << "void ";
-      break;
-    case ScalarTypeValue::CHAR:
-      ss << "char ";
-      break;
-    case ScalarTypeValue::INT:
-      ss << "int ";
-      break;
+  switch (type_kind) {
+  case ScalarTypeValue::VOID:
+    ss << "void ";
+    break;
+  case ScalarTypeValue::CHAR:
+    ss << "char ";
+    break;
+  case ScalarTypeValue::INT:
+    ss << "int ";
+    break;
   };
   return ss.str();
 }
@@ -73,22 +73,22 @@ std::string StructType::prettyPrint(int lvl) {
   std::stringstream ss;
   ss << "struct ";
   ss << struct_name << " ";
-  
+
   if (member_list.empty()) {
     return ss.str();
   }
 
   // Go to next line and match current indent level
-  ss << "\n" << std::string(lvl, '\t'); 
+  ss << "\n" << std::string(lvl, '\t');
   ss << "{";
   lvl++;
 
-  for (const auto & member : member_list) {
-    ss <<  "\n" << std::string(lvl, '\t'); 
+  for (const auto &member : member_list) {
+    ss << "\n" << std::string(lvl, '\t');
     member->prettyPrint(lvl);
   }
   lvl--;
-  ss <<  "\n" << std::string(lvl, '\t'); 
+  ss << "\n" << std::string(lvl, '\t');
   ss << "} ";
 
   return ss.str();
@@ -118,6 +118,12 @@ std::string CompoundStmt::prettyPrint(int) {
   return ss.str();
 }
 
+std::string ExpressionStmt::prettyPrint(int) {
+  std::stringstream ss;
+
+  return ss.str();
+}
+
 std::string VariableName::prettyPrint(int) {
   std::stringstream ss;
 
@@ -137,6 +143,12 @@ std::string Character::prettyPrint(int) {
 }
 
 std::string String::prettyPrint(int) {
+  std::stringstream ss;
+
+  return ss.str();
+}
+
+std::string Binary::prettyPrint(int) {
   std::stringstream ss;
 
   return ss.str();

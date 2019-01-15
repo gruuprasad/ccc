@@ -37,14 +37,17 @@ class ExternalDeclaration;
 class ParamDeclaration;
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
-using ExternalDeclarationListType = std::vector<std::unique_ptr<ExternalDeclaration>>;
+using ExternalDeclarationListType =
+    std::vector<std::unique_ptr<ExternalDeclaration>>;
 using ParamDeclarationListType = std::vector<std::unique_ptr<ParamDeclaration>>;
+using StatementListType = std::vector<std::unique_ptr<Statement>>;
 
-// Base class for all nodes in AST. 
+// Base class for all nodes in AST.
 class ASTNode {
   Token tok;
+
 protected:
-  ASTNode(const Token & tk) : tok (tk) {}
+  explicit ASTNode(Token tk) : tok(std::move(tk)) {}
 
 public:
   virtual ~ASTNode() = default;
@@ -55,8 +58,8 @@ class TranslationUnit : public ASTNode {
   ExternalDeclarationListType extern_list;
 
 public:
-  explicit TranslationUnit(const Token & tk, ExternalDeclarationListType e)
-    : ASTNode(tk), extern_list(std::move(e)) {}
+  explicit TranslationUnit(const Token &tk, ExternalDeclarationListType e)
+      : ASTNode(tk), extern_list(std::move(e)) {}
 
   std::string prettyPrint(int lvl) override;
 };
@@ -64,8 +67,7 @@ public:
 class ExternalDeclaration : public ASTNode {
 
 public:
-  ExternalDeclaration(const Token & tk)
-    : ASTNode(tk) {}
+  explicit ExternalDeclaration(const Token &tk) : ASTNode(tk) {}
 };
 
 class FunctionDefinition : public ExternalDeclaration {
@@ -74,20 +76,18 @@ class FunctionDefinition : public ExternalDeclaration {
   std::unique_ptr<Statement> fn_body;
 
 public:
-  FunctionDefinition(const Token & tk,
-                     std::unique_ptr<Type> r, 
+  FunctionDefinition(const Token &tk, std::unique_ptr<Type> r,
                      std::unique_ptr<Declarator> n,
                      std::unique_ptr<Statement> b)
-    : ExternalDeclaration(tk),
-      return_type(std::move(r)), fn_name(std::move(n)), fn_body(std::move(b)) {}
+      : ExternalDeclaration(tk), return_type(std::move(r)),
+        fn_name(std::move(n)), fn_body(std::move(b)) {}
 
   std::string prettyPrint(int lvl) override;
 };
 
 class Declaration : public ExternalDeclaration {
 public:
-  Declaration(const Token & tk)
-    : ExternalDeclaration(tk) {}
+  explicit Declaration(const Token &tk) : ExternalDeclaration(tk) {}
 };
 
 class FunctionDeclaration : public Declaration {
@@ -95,11 +95,10 @@ class FunctionDeclaration : public Declaration {
   std::unique_ptr<Declarator> fn_name;
 
 public:
-  FunctionDeclaration(const Token & tk,
+  FunctionDeclaration(const Token &tk,
                       std::unique_ptr<Type> r, // XXX Change it to param type
                       std::unique_ptr<Declarator> n)
-    : Declaration(tk),
-      return_type(std::move(r)), fn_name(std::move(n)) {}
+      : Declaration(tk), return_type(std::move(r)), fn_name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
 };
@@ -109,11 +108,9 @@ class DataDeclaration : public Declaration {
   std::unique_ptr<Declarator> data_name;
 
 public:
-  DataDeclaration(const Token & tk,
-                  std::unique_ptr<Type> t,
+  DataDeclaration(const Token &tk, std::unique_ptr<Type> t,
                   std::unique_ptr<Declarator> n)
-    : Declaration(tk),
-      data_type(std::move(t)), data_name(std::move(n)) {}
+      : Declaration(tk), data_type(std::move(t)), data_name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
 };
@@ -123,12 +120,11 @@ class StructDeclaration : public Declaration {
   std::unique_ptr<Declarator> struct_alias;
 
 public:
-  StructDeclaration(const Token & tk,
-                    std::unique_ptr<Type> t,
+  StructDeclaration(const Token &tk, std::unique_ptr<Type> t,
                     std::unique_ptr<Declarator> a)
-    : Declaration(tk),
-      struct_type(std::move(t)), struct_alias(std::move(a)) {}
-  
+      : Declaration(tk), struct_type(std::move(t)), struct_alias(std::move(a)) {
+  }
+
   std::string prettyPrint(int lvl) override;
 };
 
@@ -137,31 +133,26 @@ class ParamDeclaration : public Declaration {
   std::unique_ptr<Declarator> param_name;
 
 public:
-  ParamDeclaration(const Token & tk,
-                   std::unique_ptr<Type> t,
+  ParamDeclaration(const Token &tk, std::unique_ptr<Type> t,
                    std::unique_ptr<Declarator> n)
-    : Declaration(tk),
-      param_type(std::move(t)), param_name(std::move(n)) {}
-  
+      : Declaration(tk), param_type(std::move(t)), param_name(std::move(n)) {}
+
   std::string prettyPrint(int lvl) override;
 };
 
 class Type : public ASTNode {
 public:
-  Type(const Token & tk)
-    : ASTNode(tk) {}
+  explicit Type(const Token &tk) : ASTNode(tk) {}
   virtual bool isStructType() = 0;
 };
 
-enum class ScalarTypeValue { VOID, CHAR, INT }; 
+enum class ScalarTypeValue { VOID, CHAR, INT };
 
 class ScalarType : public Type {
   ScalarTypeValue type_kind;
 
 public:
-  ScalarType(const Token & tk, ScalarTypeValue v)
-    : Type(tk),
-      type_kind(v) {}
+  ScalarType(const Token &tk, ScalarTypeValue v) : Type(tk), type_kind(v) {}
   bool isStructType() override { return false; }
 
   std::string prettyPrint(int lvl) override;
@@ -172,12 +163,10 @@ class StructType : public Type {
   ExternalDeclarationListType member_list;
 
 public:
-  StructType(const Token & tk, std::string n)
-    : Type(tk),
-      struct_name(std::move(n)) {}
-  StructType(const Token & tk, std::string n, ExternalDeclarationListType m)
-    : Type(tk),
-      struct_name(std::move(n)), member_list(std::move(m)) {}
+  StructType(const Token &tk, std::string n)
+      : Type(tk), struct_name(std::move(n)) {}
+  StructType(const Token &tk, std::string n, ExternalDeclarationListType m)
+      : Type(tk), struct_name(std::move(n)), member_list(std::move(m)) {}
   bool isStructType() override { return true; }
 
   std::string prettyPrint(int lvl) override;
@@ -186,18 +175,16 @@ public:
 class Declarator : public ASTNode {
 
 public:
-  Declarator(const Token & tk)
-    : ASTNode(tk) {}
+  explicit Declarator(const Token &tk) : ASTNode(tk) {}
 };
 
 class DirectDeclarator : public Declarator {
   std::unique_ptr<VariableName> identifer;
 
 public:
-  DirectDeclarator(const Token & tk, std::unique_ptr<VariableName> i)
-    : Declarator(tk),
-      identifer(std::move(i)) {}
-  
+  DirectDeclarator(const Token &tk, std::unique_ptr<VariableName> i)
+      : Declarator(tk), identifer(std::move(i)) {}
+
   std::string prettyPrint(int lvl) override;
 };
 
@@ -206,8 +193,8 @@ class PointerDeclarator : public Declarator {
   int indirection_level;
 
 public:
-  PointerDeclarator(const Token & tk, std::unique_ptr<Declarator> i, int l = 1)
-    : Declarator(tk), identifer(std::move(i)), indirection_level(l) {}
+  PointerDeclarator(const Token &tk, std::unique_ptr<Declarator> i, int l = 1)
+      : Declarator(tk), identifer(std::move(i)), indirection_level(l) {}
 
   std::string prettyPrint(int lvl) override;
 };
@@ -218,75 +205,79 @@ class FunctionDeclarator : public Declarator {
   bool pointerIgnored = true;
 
 public:
-  FunctionDeclarator(const Token & tk,
-                     std::unique_ptr<Declarator> i,
-                     ParamDeclarationListType p,
-                     bool ptri = true)
-    : Declarator(tk),
-      identifer(std::move(i)), param_list(std::move(p)), pointerIgnored(ptri) {}
+  FunctionDeclarator(const Token &tk, std::unique_ptr<Declarator> i,
+                     ParamDeclarationListType p, bool ptri = true)
+      : Declarator(tk), identifer(std::move(i)), param_list(std::move(p)),
+        pointerIgnored(ptri) {}
 
   std::string prettyPrint(int lvl) override;
 };
 
 class Statement : public ASTNode {
 public:
-  Statement(const Token & tk)
-    : ASTNode(tk) {}
+  explicit Statement(const Token &tk) : ASTNode(tk) {}
 };
 
 class CompoundStmt : public Statement {
+  StatementListType block;
+
 public:
-  CompoundStmt(const Token & tk)
-    : Statement(tk) {}
-  
+  CompoundStmt(const Token &tk, StatementListType block)
+      : Statement(tk), block(std::move(block)) {}
+
   std::string prettyPrint(int lvl) override;
 };
-/*
-class IfElse: public Statement {
 
-};
-
-class Label: public Statement {
-
-};
-
-class While : public Statement {
-
-};
-
-class Goto : public Statement {
-
-};
+// class IfElse: public Statement {
+//
+//};
+//
+// class Label: public Statement {
+//
+//};
+//
+// class While : public Statement {
+//
+//};
+//
+// class Goto : public Statement {
+//
+//};
 
 class ExpressionStmt : public Statement {
+  std::unique_ptr<Expression> expression;
 
+public:
+  explicit ExpressionStmt(const Token &tk, std::unique_ptr<Expression> expr)
+      : Statement(tk), expression(std::move(expr)) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
-class Break : public Statement {
+// class Break : public Statement {
+//
+//};
+//
+// class Return : public Statement {
+// std::string prettyPrint(int lvl) override;
+//};
+//
+// class Continue : public Statement {
+//
+//};
 
-};
-
-class Return : public Statement {
-
-};
-
-class Continue : public Statement {
-
-};
-*/
 class Expression : public ASTNode {
 
 public:
-  Expression(const Token & tk)
-    : ASTNode(tk) {}
+  explicit Expression(const Token &tk) : ASTNode(tk) {}
 };
 
 class VariableName : public Expression {
   std::string name;
 
 public:
-  VariableName(const Token & tk, std::string n)
-    : Expression(tk), name(std::move(n)) {}
+  VariableName(const Token &tk, std::string n)
+      : Expression(tk), name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
 };
@@ -295,9 +286,8 @@ class Number : public Expression {
   int num_value;
 
 public:
-  Number(const Token & tk, int v)
-    : Expression(tk), num_value(v) {}
-  
+  Number(const Token &tk, int v) : Expression(tk), num_value(v) {}
+
   std::string prettyPrint(int lvl) override;
 };
 
@@ -305,9 +295,8 @@ class Character : public Expression {
   char char_value;
 
 public:
-  Character(const Token & tk, char c)
-    : Expression(tk), char_value(c) {}
-  
+  Character(const Token &tk, char c) : Expression(tk), char_value(c) {}
+
   std::string prettyPrint(int lvl) override;
 };
 
@@ -315,25 +304,32 @@ class String : public Expression {
   std::string str_value;
 
 public:
-  String(const Token & tk, std::string v)
-    : Expression(tk), str_value(std::move(v)) {}
-  
+  String(const Token &tk, std::string v)
+      : Expression(tk), str_value(std::move(v)) {}
+
   std::string prettyPrint(int lvl) override;
 };
 
-/*
-class Unary : public Expression {
-
-};
+// class Unary : public Expression {
+//
+//};
 
 class Binary : public Expression {
+  std::unique_ptr<Expression> left_expression;
+  std::unique_ptr<Expression> right_expression;
 
+public:
+  Binary(const Token &tk, std::unique_ptr<Expression> l,
+         std::unique_ptr<Expression> r)
+      : Expression(tk), left_expression(std::move(l)),
+        right_expression(std::move(r)) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
-class PostFix : public Expression {
-
-};
-*/
+// class PostFix : public Expression {
+//
+//};
 
 } // namespace ccc
 
