@@ -23,135 +23,107 @@ std::string TranslationUnit::prettyPrint(int lvl) {
   return ss.str();
 }
 
-std::string FunctionDefinition::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+std::string FunctionDefinition::prettyPrint(int lvl) {
+  return indent(lvl) + return_type->prettyPrint(0) + fn_name->prettyPrint(0) +
+         fn_body->prettyPrint(0);
 }
 
-std::string FunctionDeclaration::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+std::string FunctionDeclaration::prettyPrint(int lvl) {
+  return indent(lvl) + return_type->prettyPrint(0) + fn_name->prettyPrint(0) +
+         ";\n";
 }
 
-std::string DataDeclaration::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+std::string DataDeclaration::prettyPrint(int lvl) {
+  return indent(lvl) + data_type->prettyPrint(0) + " " +
+         data_name->prettyPrint(0) + ";\n";
 }
 
 std::string StructDeclaration::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+  return struct_type->prettyPrint(0) + " " + struct_alias->prettyPrint(0);
 }
 
 std::string ParamDeclaration::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+  return param_type->prettyPrint(0) +
+         (param_name ? " " + param_name->prettyPrint(0) : "");
 }
 
 std::string ScalarType::prettyPrint(int) {
-  std::stringstream ss;
   switch (type_kind) {
   case ScalarTypeValue::VOID:
-    ss << "void ";
-    break;
+    return "void";
   case ScalarTypeValue::CHAR:
-    ss << "char ";
-    break;
+    return "char";
   case ScalarTypeValue::INT:
-    ss << "int ";
-    break;
+    return "int";
+  default:
+    return error;
   };
-  return ss.str();
 }
 
 std::string StructType::prettyPrint(int lvl) {
-  std::stringstream ss;
-  ss << "struct ";
-  ss << struct_name << " ";
-
   if (member_list.empty()) {
-    return ss.str();
+    return "struct " + struct_name;
   }
-
-  // Go to next line and match current indent level
-  ss << "\n" << std::string(lvl, '\t');
-  ss << "{";
-  lvl++;
-
+  std::stringstream ss;
   for (const auto &member : member_list) {
-    ss << "\n" << std::string(lvl, '\t');
-    member->prettyPrint(lvl);
+    ss << member->prettyPrint(lvl + 1);
   }
-  lvl--;
-  ss << "\n" << std::string(lvl, '\t');
-  ss << "} ";
-
-  return ss.str();
+  return "struct " + struct_name + "\n" + indent(lvl) + "{\n" + ss.str() +
+         indent(lvl) + "}";
 }
 
 std::string DirectDeclarator::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+  return identifer->prettyPrint(0);
 }
 
 std::string PointerDeclarator::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+  std::string pre, post;
+  for (int i = 0; i < indirection_level; i++) {
+    pre += "(*";
+    post += ")";
+  }
+  return pre + identifer->prettyPrint(0) + post;
 }
 
 std::string FunctionDeclarator::prettyPrint(int) {
   std::stringstream ss;
-
-  return ss.str();
+  for (const auto &p : param_list) {
+    ss << p->prettyPrint(0);
+    if (p != param_list.back())
+      ss << ", ";
+  }
+  return "(" + identifer->prettyPrint(0) + "(" + ss.str() + "))";
 }
 
-std::string CompoundStmt::prettyPrint(int) {
+std::string CompoundStmt::prettyPrint(int lvl) {
   std::stringstream ss;
-
-  return ss.str();
+  for (const auto &stat : block)
+    ss << stat->prettyPrint(lvl + 1);
+  return indent(lvl) + "{\n" + ss.str() + indent(lvl) + "}\n";
 }
 
-std::string ExpressionStmt::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+std::string IfElse::prettyPrint(int lvl) {
+  return indent(lvl) + "if (" + condition->prettyPrint(0) + ")\n" +
+         (elseStmt ? ifStmt->prettyPrint(lvl + 1) + "else" +
+                         elseStmt->prettyPrint(lvl + 1)
+                   : ifStmt->prettyPrint(lvl + 1));
 }
 
-std::string VariableName::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+std::string ExpressionStmt::prettyPrint(int lvl) {
+  return indent(lvl) + (expression ? expression->prettyPrint(0) : "") + ";\n";
 }
 
-std::string Number::prettyPrint(int) {
-  std::stringstream ss;
+std::string VariableName::prettyPrint(int) { return name; }
 
-  return ss.str();
-}
+std::string Number::prettyPrint(int) { return std::to_string(num_value); }
 
-std::string Character::prettyPrint(int) {
-  std::stringstream ss;
+std::string Character::prettyPrint(int) { return std::to_string(char_value); }
 
-  return ss.str();
-}
-
-std::string String::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
-}
+std::string String::prettyPrint(int) { return str_value; }
 
 std::string Binary::prettyPrint(int) {
-  std::stringstream ss;
-
-  return ss.str();
+  return "(" + left_expression->prettyPrint(0) + " " + tok.name() + " " +
+         right_expression->prettyPrint(0) + ")";
 }
 
 } // namespace ccc

@@ -6,43 +6,6 @@
 
 namespace ccc {
 
-static const Token tok_int = Token(TokenType::INT);
-static const Token tok_struct = Token(TokenType::STRUCT);
-static const Token tok_name1 = Token(TokenType::IDENTIFIER, 0, 0, "name1");
-static const Token tok_name2 = Token(TokenType::IDENTIFIER, 0, 0, "name2");
-static const Token tok_name3 = Token(TokenType::IDENTIFIER, 0, 0, "it");
-
-TEST_CASE("pretty_print - types") {
-  ExternalDeclarationListType decls;
-  auto type = make_unique<ScalarType>(tok_int, ScalarTypeValue::INT);
-  auto name_expr = make_unique<VariableName>(tok_name1, "name");
-  auto name = make_unique<DirectDeclarator>(tok_name1, std::move(name_expr));
-  decls.emplace_back(
-      make_unique<DataDeclaration>(tok_int, std::move(type), std::move(name)));
-
-  SECTION("Simpleton") {
-    auto root = make_unique<ScalarType>(tok_int, ScalarTypeValue::INT);
-    std::string expected{"int "};
-    std::string output = root->prettyPrint(0);
-    REQUIRE(output == expected);
-  }
-
-  SECTION("Just struct name") {
-    auto root = make_unique<StructType>(tok_struct, "book");
-    std::string expected{"struct book "};
-    std::string output = root->prettyPrint(0);
-    REQUIRE(output == expected);
-  }
-
-  SECTION("Add member to struct book") {
-    // XXX Printing complete declaration not added yet
-    auto root = make_unique<StructType>(tok_struct, "book", std::move(decls));
-    std::string expected{"struct book \n{\n\t\n} "};
-    std::string output = root->prettyPrint(0);
-    REQUIRE(output == expected);
-  }
-}
-
 bool compare(std::unique_ptr<ASTNode> root, const std::string &expected) {
   std::string content = root->prettyPrint(0);
   if (expected != content) {
@@ -77,6 +40,37 @@ bool compare(std::unique_ptr<ASTNode> root, const std::string &expected) {
   return true;
 }
 
+TEST_CASE("pretty_print - types") {
+
+  SECTION("Simpleton") {
+    auto root =
+        make_unique<ScalarType>(Token(TokenType::INT), ScalarTypeValue::INT);
+    REQUIRE(compare(std::move(root), "int"));
+  }
+
+  SECTION("Just struct name") {
+    auto root = make_unique<StructType>(Token(TokenType::STRUCT), "book");
+    REQUIRE(compare(std::move(root), "struct book"));
+  }
+
+  SECTION("Add member to struct book") {
+    auto root = make_unique<StructType>(
+        Token(TokenType::STRUCT), "book",
+        Utils::vector<ExternalDeclarationListType>(make_unique<DataDeclaration>(
+            Token(TokenType::INT),
+            make_unique<ScalarType>(Token(TokenType::INT),
+                                    ScalarTypeValue::INT),
+            make_unique<DirectDeclarator>(
+                Token(TokenType::IDENTIFIER, 0, 0, "name1"),
+                make_unique<VariableName>(
+                    Token(TokenType::IDENTIFIER, 0, 0, "name1"), "name")))));
+    REQUIRE(compare(std::move(root), "struct book\n"
+                                     "{\n"
+                                     "\tint name;\n"
+                                     "}"));
+  }
+}
+
 TEST_CASE("pretty print block block") {
   auto root = make_unique<CompoundStmt>(
       Token(), Utils::vector<StatementListType>(make_unique<CompoundStmt>(
@@ -100,30 +94,22 @@ TEST_CASE("pretty print block") {
                                    "\t(b + 2);\n"
                                    "}\n"));
 }
-/*
+
 TEST_CASE("pretty print if") {
-  std::vector<std::unique_ptr<Statement>> stmt_list;
-
-  auto id_a = make_unique<VariableName>(Token(TokenType::IDENTIFIER, "a"));
-  auto nr_1 = make_unique<Number>(Token(TokenType::NUMBER, "1"));
-  auto bin_exp1 = make_unique<Binary>(
-      Token(TokenType::EQUAL), std::move(id_a), std::move(nr_1));
-
-  auto id_b = make_unique<VariableName>(Token(TokenType::IDENTIFIER, "b"));
-  auto nr_2 = make_unique<Number>(Token(TokenType::NUMBER, "2"));
-  auto bin_exp2 = make_unique<Binary>(
-      Token(TokenType::PLUS_ASSIGN), std::move(id_b), std::move(nr_2));
-
-  stmt_list.emplace_back(
-      make_unique<ExpressionStatement>(Token(), std::move(bin_exp2)));
-  auto comp_stmt1 =
-      make_unique<CompoundStmt>(Token(), std::move(stmt_list));
-  stmt_list.clear();
-
-  stmt_list.emplace_back(make_unique<IfElseStatement>(
-      Token(), std::move(bin_exp1), std::move(comp_stmt1)));
-
-  auto root = make_unique<CompoundStmt>(Token(), std::move(stmt_list));
+  auto root = make_unique<CompoundStmt>(
+      Token(),
+      Utils::vector<StatementListType>(make_unique<IfElse>(
+          Token(),
+          make_unique<Binary>(Token(TokenType::EQUAL),
+                              make_unique<VariableName>(Token(), "a"),
+                              make_unique<Number>(Token(), 1)),
+          make_unique<CompoundStmt>(
+              Token(),
+              Utils::vector<StatementListType>(make_unique<ExpressionStmt>(
+                  Token(),
+                  make_unique<Binary>(Token(TokenType::PLUS_ASSIGN),
+                                      make_unique<VariableName>(Token(), "b"),
+                                      make_unique<Number>(Token(), 2))))))));
 
   REQUIRE(compare(std::move(root), "{\n"
                                    "\tif ((a == 1)) {\n"
@@ -131,11 +117,11 @@ TEST_CASE("pretty print if") {
                                    "\t}\n"
                                    "}\n"));
 }
-
+/*
 TEST_CASE("pretty print if inline") {
   auto root = make_unique<CompoundStmt>(
       Token(),
-      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+      Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(),
           make_unique<Binary>(
               Token(TokenType::EQUAL),
@@ -157,7 +143,7 @@ TEST_CASE("pretty print if inline") {
 TEST_CASE("pretty print if else") {
   auto root = make_unique<CompoundStmt>(
       Token(),
-      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+      Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(),
           make_unique<Binary>(
               Token(TokenType::EQUAL),
@@ -192,7 +178,7 @@ make_unique<Binary>( Token(TokenType::PLUS_ASSIGN),
 TEST_CASE("pretty print if else inline") {
   auto root = make_unique<CompoundStmt>(
       Token(),
-      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+      Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(),
           make_unique<Binary>(
               Token(TokenType::EQUAL),
@@ -222,7 +208,7 @@ TEST_CASE("pretty print if else inline") {
 TEST_CASE("pretty print if else if else inline") {
   auto root = make_unique<CompoundStmt>(
       Token(),
-      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+      Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
           make_unique<ReturnStatement>(
               Token(),
@@ -230,7 +216,7 @@ TEST_CASE("pretty print if else if else inline") {
                   Token(TokenType::PLUS),
                   make_unique<Number>(Token(TokenType::NUMBER, "1")),
                   make_unique<Number>(Token(TokenType::NUMBER, "3")))),
-          make_unique<IfElseStatement>(
+          make_unique<IfElse>(
               Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
               make_unique<ReturnStatement>(
                   Token(),
@@ -254,7 +240,7 @@ make_unique<VariableName>(Token( TokenType::NUMBER, "0")))))))));
 TEST_CASE("pretty print if else if else") {
   auto root = make_unique<CompoundStmt>(
       Token(),
-      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+      Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
           make_unique<ReturnStatement>(
               Token(),
@@ -262,13 +248,13 @@ TEST_CASE("pretty print if else if else") {
                   Token(TokenType::PLUS),
                   make_unique<Number>(Token(TokenType::NUMBER, "1")),
                   make_unique<Number>(Token(TokenType::NUMBER, "3")))),
-          make_unique<IfElseStatement>(
+          make_unique<IfElse>(
               Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
               make_unique<CompoundStmt>(
                   Token(),
 Utils::vector<StatementListType>(make_unique<ReturnStatement>( Token(),
 make_unique<VariableName>( Token(TokenType::NUMBER, "1"))))),
-              make_unique<IfElseStatement>(
+              make_unique<IfElse>(
                   Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
                   make_unique<ReturnStatement>(
                       Token(),
@@ -292,7 +278,7 @@ make_unique<VariableName>( Token(TokenType::NUMBER, "1"))))),
 TEST_CASE("pretty print if else if") {
   auto root = make_unique<CompoundStmt>(
       Token(),
-      Utils::vector<StatementListType>(make_unique<IfElseStatement>(
+      Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
           make_unique<ReturnStatement>(
               Token(),
@@ -300,7 +286,7 @@ TEST_CASE("pretty print if else if") {
                   Token(TokenType::PLUS),
                   make_unique<Number>(Token(TokenType::NUMBER, "1")),
                   make_unique<Number>(Token(TokenType::NUMBER, "3")))),
-          make_unique<IfElseStatement>(
+          make_unique<IfElse>(
               Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
               make_unique<CompoundStmt>(
                   Token(),
@@ -355,7 +341,7 @@ TEST_CASE("pretty print while inline") {
       Token(),
       Utils::vector<StatementListType>(make_unique<WhileStatement>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
-          make_unique<IfElseStatement>(
+          make_unique<IfElse>(
               Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
               make_unique<ReturnStatement>(
                   Token(),
@@ -378,7 +364,7 @@ TEST_CASE("pretty print while inline if else break continue") {
       Token(),
       Utils::vector<StatementListType>(make_unique<WhileStatement>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
-          make_unique<IfElseStatement>(
+          make_unique<IfElse>(
               Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
               make_unique<BreakStatement>(Token()),
               make_unique<ContinueStatement>(Token())))));
@@ -493,14 +479,14 @@ TEST_CASE("pretty print if else if else goto label") {
   auto root = make_unique<CompoundStmt>(
       Token(),
       Utils::vector<StatementListType>(
-          make_unique<IfElseStatement>(
+          make_unique<IfElse>(
               Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
               make_unique<LabeledStatement>(
                   Token(),
                   make_unique<VariableName>(Token(TokenType::IDENTIFIER,
 "foo")), make_unique<GotoStatement>( Token(), make_unique<VariableName>(
                                    Token(TokenType::IDENTIFIER, "empty")))),
-              make_unique<IfElseStatement>(
+              make_unique<IfElse>(
                   Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
                   make_unique<CompoundStmt>(
                       Token(),
@@ -521,7 +507,7 @@ TEST_CASE("pretty print if else if else goto label") {
           make_unique<LabeledStatement>(
               Token(),
               make_unique<VariableName>(Token(TokenType::IDENTIFIER, "end")),
-              make_unique<IfElseStatement>(
+              make_unique<IfElse>(
                   Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
                   make_unique<ReturnStatement>(Token())))));
 
