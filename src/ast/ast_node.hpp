@@ -1,6 +1,8 @@
 #ifndef C4_ASTNODE_HPP
 #define C4_ASTNODE_HPP
 
+#define TAB '\t'
+
 #include "../lexer/token.hpp"
 #include "../utils/macros.hpp"
 #include <algorithm>
@@ -43,9 +45,11 @@ using ExpressionListType = std::vector<std::unique_ptr<Expression>>;
 
 // Base class for all nodes in AST. 
 class ASTNode {
-  Token tok;
 protected:
-  ASTNode(const Token & tk) : tok (tk) {}
+  Token tok;
+  explicit ASTNode(Token tk) : tok(std::move(tk)) {}
+  std::string indent(int lvl) { return std::string(lvl, TAB); }
+  std::string error;
 
 public:
   virtual ~ASTNode() = default;
@@ -127,11 +131,11 @@ class ParamDeclaration : public Declaration {
   std::unique_ptr<Declarator> param_name;
 
 public:
-  ParamDeclaration(const Token & tk,
-                   std::unique_ptr<Type> t,
-                   std::unique_ptr<Declarator> n)
-    : Declaration(tk),
-      param_type(std::move(t)), param_name(std::move(n)) {}
+  ParamDeclaration(const Token &tk, std::unique_ptr<Type> t,
+                   std::unique_ptr<Declarator> n = nullptr)
+      : Declaration(tk), param_type(std::move(t)), param_name(std::move(n)) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class Type : public ASTNode {
@@ -195,13 +199,11 @@ public:
 class FunctionDeclarator : public Declarator {
   std::unique_ptr<Declarator> identifer;
   ParamDeclarationListType param_list;
-  bool pointerIgnored = true;
 
 public:
   FunctionDeclarator(const Token & tk,
                      std::unique_ptr<Declarator> i,
-                     ParamDeclarationListType p,
-                     bool ptri = true)
+                     ParamDeclarationListType p)
     : Declarator(tk),
       identifer(std::move(i)), param_list(std::move(p)), pointerIgnored(ptri) {}
 };
@@ -214,12 +216,24 @@ public:
 
 class CompoundStmt : public Statement {
 public:
-  CompoundStmt(const Token & tk)
-    : Statement(tk) {}
-};
-/*
-class IfElse: public Statement {
+  CompoundStmt(const Token &tk, StatementListType block)
+      : Statement(tk), block(std::move(block)) {}
 
+  std::string prettyPrint(int lvl) override;
+};
+
+class IfElse : public Statement {
+  std::unique_ptr<Expression> condition;
+  std::unique_ptr<Statement> ifStmt;
+  std::unique_ptr<Statement> elseStmt;
+
+public:
+  IfElse(const Token &tk, std::unique_ptr<Expression> c,
+         std::unique_ptr<Statement> i, std::unique_ptr<Statement> e = nullptr)
+      : Statement(tk), condition(std::move(c)), ifStmt(std::move(i)),
+        elseStmt(std::move(e)) {}
+
+  std::string prettyPrint(int lvl) override;
 };
 
 class Label: public Statement {

@@ -5,6 +5,7 @@
 #include "utils/utils.hpp"
 
 namespace ccc {
+
 bool compare(std::unique_ptr<ASTNode> root, const std::string &expected) {
   std::string content = root->prettyPrint(0);
   if (expected != content) {
@@ -39,6 +40,37 @@ bool compare(std::unique_ptr<ASTNode> root, const std::string &expected) {
   return true;
 }
 
+TEST_CASE("pretty_print - types") {
+
+  SECTION("Simpleton") {
+    auto root =
+        make_unique<ScalarType>(Token(TokenType::INT), ScalarTypeValue::INT);
+    REQUIRE(compare(std::move(root), "int"));
+  }
+
+  SECTION("Just struct name") {
+    auto root = make_unique<StructType>(Token(TokenType::STRUCT), "book");
+    REQUIRE(compare(std::move(root), "struct book"));
+  }
+
+  SECTION("Add member to struct book") {
+    auto root = make_unique<StructType>(
+        Token(TokenType::STRUCT), "book",
+        Utils::vector<ExternalDeclarationListType>(make_unique<DataDeclaration>(
+            Token(TokenType::INT),
+            make_unique<ScalarType>(Token(TokenType::INT),
+                                    ScalarTypeValue::INT),
+            make_unique<DirectDeclarator>(
+                Token(TokenType::IDENTIFIER, 0, 0, "name1"),
+                make_unique<VariableName>(
+                    Token(TokenType::IDENTIFIER, 0, 0, "name1"), "name")))));
+    REQUIRE(compare(std::move(root), "struct book\n"
+                                     "{\n"
+                                     "\tint name;\n"
+                                     "}"));
+  }
+}
+
 TEST_CASE("pretty print block block") {
   auto root =
       new CompoundStatement(Token(), {
@@ -67,28 +99,20 @@ TEST_CASE("pretty print block") {
 }
 
 TEST_CASE("pretty print if") {
-  std::vector<std::unique_ptr<Statement>> stmt_list;
-
-  auto id_a = make_unique<Identifier>(Token(TokenType::IDENTIFIER, "a"));
-  auto nr_1 = make_unique<Constant>(Token(TokenType::NUMBER, "1"));
-  auto bin_exp1 = make_unique<BinaryExpression>(
-      Token(TokenType::EQUAL), std::move(id_a), std::move(nr_1));
-
-  auto id_b = make_unique<Identifier>(Token(TokenType::IDENTIFIER, "b"));
-  auto nr_2 = make_unique<Constant>(Token(TokenType::NUMBER, "2"));
-  auto bin_exp2 = make_unique<BinaryExpression>(
-      Token(TokenType::PLUS_ASSIGN), std::move(id_b), std::move(nr_2));
-
-  stmt_list.emplace_back(
-      make_unique<ExpressionStatement>(Token(), std::move(bin_exp2)));
-  auto comp_stmt1 =
-      make_unique<CompoundStatement>(Token(), std::move(stmt_list));
-  stmt_list.clear();
-
-  stmt_list.emplace_back(make_unique<IfElseStatement>(
-      Token(), std::move(bin_exp1), std::move(comp_stmt1)));
-
-  auto root = make_unique<CompoundStatement>(Token(), std::move(stmt_list));
+  auto root = make_unique<CompoundStmt>(
+      Token(),
+      Utils::vector<StatementListType>(make_unique<IfElse>(
+          Token(),
+          make_unique<Binary>(Token(TokenType::EQUAL),
+                              make_unique<VariableName>(Token(), "a"),
+                              make_unique<Number>(Token(), 1)),
+          make_unique<CompoundStmt>(
+              Token(),
+              Utils::vector<StatementListType>(make_unique<ExpressionStmt>(
+                  Token(),
+                  make_unique<Binary>(Token(TokenType::PLUS_ASSIGN),
+                                      make_unique<VariableName>(Token(), "b"),
+                                      make_unique<Number>(Token(), 2))))))));
 
   REQUIRE(compare(std::move(root), "{\n"
                                    "\tif ((a == 1)) {\n"
@@ -100,8 +124,14 @@ TEST_CASE("pretty print if") {
 TEST_CASE("pretty print if inline") {
   auto root = new CompoundStatement(
       Token(),
-      {
-          new IfElseStatement(
+
+      Utils::vector<StatementListType>(make_unique<IfElse>(
+          Token(),
+          make_unique<Binary>(
+              Token(TokenType::EQUAL),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER, "a")),
+              make_unique<Number>(Token(TokenType::NUMBER, "1"))),
+          make_unique<ExpressionStatement>(
               Token(),
               new BinaryExpression(
                   Token(TokenType::EQUAL),
@@ -126,8 +156,14 @@ TEST_CASE("pretty print if inline") {
 TEST_CASE("pretty print if else") {
   auto root = new CompoundStatement(
       Token(),
-      {
-          new IfElseStatement(
+
+      Utils::vector<StatementListType>(make_unique<IfElse>(
+          Token(),
+          make_unique<Binary>(
+              Token(TokenType::EQUAL),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER, "a")),
+              make_unique<Number>(Token(TokenType::NUMBER, "1"))),
+          make_unique<CompoundStmt>(
               Token(),
               new BinaryExpression(
                   Token(TokenType::EQUAL),
@@ -170,8 +206,20 @@ TEST_CASE("pretty print if else") {
 TEST_CASE("pretty print if else inline") {
   auto root = new CompoundStatement(
       Token(),
-      {
-          new IfElseStatement(
+
+      Utils::vector<StatementListType>(make_unique<IfElse>(
+          Token(),
+          make_unique<Binary>(
+              Token(TokenType::EQUAL),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER, "a")),
+              make_unique<Number>(Token(TokenType::NUMBER, "1"))),
+          make_unique<ExpressionStatement>(
+              Token(),
+              make_unique<Binary>(
+                  Token(TokenType::PLUS_ASSIGN),
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"b")), make_unique<Number>(Token(TokenType::NUMBER, "2")))),
+          make_unique<ExpressionStatement>(
               Token(),
               new BinaryExpression(
                   Token(TokenType::EQUAL),
@@ -205,10 +253,18 @@ TEST_CASE("pretty print if else inline") {
 TEST_CASE("pretty print if else if else inline") {
   auto root = new CompoundStatement(
       Token(),
-      {
-          new IfElseStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new ReturnStatement(
+
+      Utils::vector<StatementListType>(make_unique<IfElse>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+          make_unique<ReturnStatement>(
+              Token(),
+              make_unique<Binary>(
+                  Token(TokenType::PLUS),
+                  make_unique<Number>(Token(TokenType::NUMBER, "1")),
+                  make_unique<Number>(Token(TokenType::NUMBER, "3")))),
+          make_unique<IfElse>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+              make_unique<ReturnStatement>(
                   Token(),
                   new BinaryExpression(
                       Token(TokenType::PLUS),
@@ -243,26 +299,24 @@ TEST_CASE("pretty print if else if else inline") {
 TEST_CASE("pretty print if else if else") {
   auto root = new CompoundStatement(
       Token(),
-      {
-          new IfElseStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new ReturnStatement(
+
+      Utils::vector<StatementListType>(make_unique<IfElse>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+          make_unique<ReturnStatement>(
+              Token(),
+              make_unique<Binary>(
+                  Token(TokenType::PLUS),
+                  make_unique<Number>(Token(TokenType::NUMBER, "1")),
+                  make_unique<Number>(Token(TokenType::NUMBER, "3")))),
+          make_unique<IfElse>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+              make_unique<CompoundStmt>(
                   Token(),
-                  new BinaryExpression(
-                      Token(TokenType::PLUS),
-                      new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                      new ConstantExpression(Token(TokenType::NUMBER, "3")))),
-              new IfElseStatement(
-                  Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
-                  new CompoundStatement(
-                      Token(),
-                      {
-                          new ReturnStatement(
-                              Token(), new IdentifierExpression(
-                                           Token(TokenType::NUMBER, "1"))),
-                      }),
-                  new IfElseStatement(
+Utils::vector<StatementListType>(make_unique<ReturnStatement>( Token(),
+make_unique<VariableName>( Token(TokenType::NUMBER, "1"))))),
+              make_unique<IfElse>(
+                  Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+                  make_unique<ReturnStatement>(
                       Token(),
                       new ConstantExpression(Token(TokenType::NUMBER, "0")),
                       new ReturnStatement(Token(),
@@ -289,16 +343,18 @@ TEST_CASE("pretty print if else if else") {
 TEST_CASE("pretty print if else if") {
   auto root = new CompoundStatement(
       Token(),
-      {
-          new IfElseStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new ReturnStatement(
-                  Token(),
-                  new BinaryExpression(
-                      Token(TokenType::PLUS),
-                      new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                      new ConstantExpression(Token(TokenType::NUMBER, "3")))),
-              new IfElseStatement(
+
+      Utils::vector<StatementListType>(make_unique<IfElse>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+          make_unique<ReturnStatement>(
+              Token(),
+              make_unique<Binary>(
+                  Token(TokenType::PLUS),
+                  make_unique<Number>(Token(TokenType::NUMBER, "1")),
+                  make_unique<Number>(Token(TokenType::NUMBER, "3")))),
+          make_unique<IfElse>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+              make_unique<CompoundStmt>(
                   Token(),
                   new ConstantExpression(Token(TokenType::NUMBER, "0")),
                   new CompoundStatement(
@@ -363,10 +419,12 @@ TEST_CASE("pretty print while") {
 TEST_CASE("pretty print while inline") {
   auto *root = new CompoundStatement(
       Token(),
-      {
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
-              new IfElseStatement(
+
+      Utils::vector<StatementListType>(make_unique<WhileStatement>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
+          make_unique<IfElse>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+              make_unique<ReturnStatement>(
                   Token(),
                   new ConstantExpression(Token(TokenType::NUMBER, "1")),
                   new ReturnStatement(Token(), new IdentifierExpression(Token(
@@ -389,14 +447,13 @@ TEST_CASE("pretty print while inline") {
 TEST_CASE("pretty print while inline if else break continue") {
   auto *root = new CompoundStatement(
       Token(),
-      {
-          new WhileStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "3")),
-              new IfElseStatement(
-                  Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                  new BreakStatement(Token()), new ContinueStatement(Token()))),
-      });
+
+      Utils::vector<StatementListType>(make_unique<WhileStatement>(
+          Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
+          make_unique<IfElse>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+              make_unique<BreakStatement>(Token()),
+              make_unique<ContinueStatement>(Token())))));
 
   REQUIRE(compare(root, "{\n"
                         "\twhile (3)\n"
@@ -519,40 +576,40 @@ TEST_CASE("pretty print goto label") {
 TEST_CASE("pretty print if else if else goto label") {
   auto root = new CompoundStatement(
       Token(),
-      {
-          new IfElseStatement(
-              Token(), new ConstantExpression(Token(TokenType::NUMBER, "1")),
-              new LabeledStatement(
-                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "foo")),
-                  new GotoStatement(new IdentifierExpression(
-                      Token(TokenType::IDENTIFIER, "empty")))),
-              new IfElseStatement(
+
+      Utils::vector<StatementListType>(
+          make_unique<IfElse>(
+              Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+              make_unique<LabeledStatement>(
                   Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
-                  new CompoundStatement(
+                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"foo")), make_unique<GotoStatement>( Token(), make_unique<VariableName>(
+                                   Token(TokenType::IDENTIFIER, "empty")))),
+              make_unique<IfElse>(
+                  Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
+                  make_unique<CompoundStmt>(
                       Token(),
-                      {
-                          new GotoStatement(new IdentifierExpression(
-                              Token(TokenType::IDENTIFIER, "end"))),
-                          new LabeledStatement(new IdentifierExpression(
-                              Token(TokenType::IDENTIFIER, "bar"))),
-                      }),
-                  new CompoundStatement(
-                      Token(),
-                      {
-                          new GotoStatement(new IdentifierExpression(
-                              Token(TokenType::IDENTIFIER, "foo"))),
-                      }))),
-          new LabeledStatement(
-              new IdentifierExpression(Token(TokenType::IDENTIFIER, "empty")),
-              new ExpressionStatement(Token())),
-          new LabeledStatement(
-              new IdentifierExpression(Token(TokenType::IDENTIFIER, "end")),
-              new IfElseStatement(
-                  Token(),
-                  new ConstantExpression(Token(TokenType::NUMBER, "1")),
-                  new ReturnStatement(Token()))),
-      });
+                      Utils::vector<StatementListType>(make_unique<GotoStatement>(
+                                 Token(), make_unique<VariableName>(Token(
+                                              TokenType::IDENTIFIER, "end"))),
+                             make_unique<LabeledStatement>(
+                                 Token(), make_unique<VariableName>(Token(
+                                              TokenType::IDENTIFIER,
+"bar"))))), make_unique<CompoundStmt>( Token(),
+                      Utils::vector<StatementListType>(make_unique<GotoStatement>(
+                          Token(), make_unique<VariableName>(Token(
+                                       TokenType::IDENTIFIER, "foo"))))))),
+          make_unique<LabeledStatement>(
+              Token(),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER,
+"empty")), make_unique<ExpressionStatement>(Token())),
+          make_unique<LabeledStatement>(
+              Token(),
+              make_unique<VariableName>(Token(TokenType::IDENTIFIER, "end")),
+              make_unique<IfElse>(
+                  Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
+                  make_unique<ReturnStatement>(Token())))));
+>>>>>>> f1c7734... added a lot of pretty print stuff
 
   REQUIRE(compare(root, "{\n"
                         "\tif (1)\n"
