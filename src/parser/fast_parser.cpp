@@ -335,7 +335,7 @@ void FastParser::parseIterationStatement() {
 unique_ptr<Expression> FastParser::parseExpression() {
   return unique_ptr<Expression>();
 }
-/*
+
 // (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op
 // assignment-expr (6.5.15) conditional-expr: logical-OR | logical-OR ?
 // expression : conditional-expr
@@ -443,28 +443,25 @@ void FastParser::parsePostfixExpression() {
 }
 
 // (6.5.1) primary: identifer | constant | string-literal | ( expression )
-void FastParser::parsePrimaryExpression() {
+std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
+  Token src_mark (peek());
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
-    nextToken();
-    return;
+    return make_unique<VariableName>(nextToken(), src_mark.getExtra());
   case TokenType::NUMBER:
-    nextToken();
-    return;
+    return make_unique<Number>(nextToken(), stoi(src_mark.getExtra()));;
   case TokenType::CHARACTER:
-    nextToken();
-    return; // XXX CharacterExpression AST necessary?
+    return make_unique<Character>(nextToken(), src_mark.getExtra());
   case TokenType::STRING:
-    nextToken();
-    return;
+    return make_unique<String>(nextToken(), src_mark.getExtra());
   case TokenType::PARENTHESIS_OPEN:
     mustExpect(TokenType::PARENTHESIS_OPEN);
-    parseExpression();
+    auto paren_expr = parseExpression();
     mustExpect(TokenType::PARENTHESIS_CLOSE);
-    return;
+    return std::move(paren_expr);
   default:
-    parser_error(peek());
-    return;
+    parser_error(peek(), "Expression or (");
+    return std::unique_ptr<Expression>();
   }
 }
 
@@ -472,7 +469,5 @@ void FastParser::parseArgumentExpressionList() {
   // TODO implement
   return;
 }
-*/
-
 
 } // namespace ccc
