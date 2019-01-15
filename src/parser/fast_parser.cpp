@@ -135,7 +135,7 @@ unique_ptr<StructType> FastParser::parseStructType(bool & structDefined) {
 // abstract-declarator ) | ( parameter-list(opt) )+
 unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   global_mark = peek();
-  int ptrCount = 0; // XXX Support single pointer for now
+  int ptrCount = 0; 
   if (peek().is(TokenType::STAR)) {
     // Parse Pointer (*) symbols
     parseList([&]() { ++ptrCount; },

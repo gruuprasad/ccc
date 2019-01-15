@@ -39,6 +39,7 @@ class ParamDeclaration;
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType = std::vector<std::unique_ptr<ExternalDeclaration>>;
 using ParamDeclarationListType = std::vector<std::unique_ptr<ParamDeclaration>>;
+using ExpressionListType = std::vector<std::unique_ptr<Expression>>;
 
 // Base class for all nodes in AST. 
 class ASTNode {
@@ -256,6 +257,7 @@ public:
     : ASTNode(tk) {}
 };
 
+
 class VariableName : public Expression {
   std::string name;
 
@@ -288,19 +290,95 @@ public:
     : Expression(tk), str_value(std::move(v)) {}
 };
 
-/*
-class Unary : public Expression {
+enum class PostFixOpValue { DOT, ARROW };
 
+class MemberAccessOp : public Expression {
+  PostFixOpValue op_kind;
+  std::unique_ptr<Expression> struct_name;
+  std::unique_ptr<Expression> member_name;
+
+public:
+  MemberAccessOp(const Token & tk, std::unique_ptr<Expression> s, std::unique_ptr<Expression> m)
+    : Expression(tk),
+      struct_name(std::move(s)), member_name(std::move(m)) {}
 };
+
+class ArraySubscriptOp : public Expression {
+  std::unique_ptr<Expression> array_name;
+  std::unique_ptr<Expression> index_value;
+
+public:
+  ArraySubscriptOp(const Token & tk, std::unique_ptr<Expression> a, std::unique_ptr<Expression> i)
+    : Expression(tk),
+      array_name(std::move(a)), index_value(std::move(i)) {}
+};
+
+// Function call
+class FunctionCall : public Expression {
+  std::unique_ptr<Expression> callee_name;
+  ExpressionListType callee_args;
+
+public:
+  FunctionCall(const Token & tk, std::unique_ptr<Expression> n, ExpressionListType a)
+    : Expression(tk),
+      callee_name(std::move(n)), callee_args(std::move(a)) {}
+};
+
+enum class UnaryOpValue { ADDRESS_OF, DEREFERENCE, MINUS, NOT };
+
+class Unary : public Expression {
+  UnaryOpValue op_kind;
+  std::unique_ptr<Expression> operand;
+
+public:
+  Unary(const Token & tk, UnaryOpValue v, std::unique_ptr<Expression> o)
+    : Expression(tk), 
+      op_kind(v), operand(std::move(o)) {}
+};
+
+class SizeOf : public Expression {
+  std::unique_ptr<Type> type_name;
+  std::unique_ptr<Expression> operand;
+
+public:
+  SizeOf(const Token & tk, std::unique_ptr<Type> n, std::unique_ptr<Expression> o)
+    : Expression(tk),
+      type_name(std::move(n)), operand(std::move(o)) {}
+};
+
+enum class BinaryOpValue { MULTIPLY, ADD, SUBTRACT, LESS_THAN, EQUAL, NOT_EQUAL, LOGICAL_AND, LOGICAL_OR, ASSIGN };
 
 class Binary : public Expression {
+  BinaryOpValue op_kind;
+  std::unique_ptr<Expression> left_operand;
+  std::unique_ptr<Expression> right_operand;
 
+public:
+  Binary(const Token & tk, BinaryOpValue v, std::unique_ptr<Expression> l, std::unique_ptr<Expression> r)
+    : Expression(tk), 
+      op_kind(v), left_operand(std::move(l)), right_operand(std::move(r)) {}
 };
 
-class PostFix : public Expression {
+class Ternary : public Expression {
+  std::unique_ptr<Expression> predicate;
+  std::unique_ptr<Expression> left_branch;
+  std::unique_ptr<Expression> right_branch;
 
+public:
+  Ternary(const Token & tk, std::unique_ptr<Expression> c, std::unique_ptr<Expression> l, std::unique_ptr<Expression> r)
+    : Expression(tk), 
+      predicate(std::move(c)), left_branch(std::move(l)), right_branch(std::move(r)) {}
 };
-*/
+
+class Assignment : public Expression {
+  std::unique_ptr<Expression> left_operand;
+  std::unique_ptr<Expression> right_operand;
+
+public:
+  Assignment(const Token & tk, std::unique_ptr<Expression> l, std::unique_ptr<Expression> r)
+    : Expression(tk),
+      left_operand(std::move(l)), right_operand(std::move(r)) {}
+};
 
 } // namespace ccc
 
