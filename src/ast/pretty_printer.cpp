@@ -1,17 +1,48 @@
+#include "../utils/utils.hpp"
 #include "ast_node.hpp"
+
+#include <sstream>
+#include <string>
 
 namespace ccc {
 
-std::string TranslationUnit::prettyPrint(int) { return std::string(); }
+static std::unordered_map<BinaryOpValue, std::string, EnumClassHash>
+    BinaryOpValueToString{
+        {BinaryOpValue::MULTIPLY, " * "},
+        {BinaryOpValue::ADD, " + "},
+        {BinaryOpValue::SUBTRACT, " - "},
+        {BinaryOpValue::LESS_THAN, " < "},
+        {BinaryOpValue::EQUAL, " == "},
+        {BinaryOpValue::NOT_EQUAL, " != "},
+        {BinaryOpValue::LOGICAL_AND, " && "},
+        {BinaryOpValue::LOGICAL_OR, " || "},
+        //                          {BinaryOpValue::ASSIGN, " = "}
+    };
+
+static std::unordered_map<UnaryOpValue, std::string, EnumClassHash>
+    UnaryOpValueToString{{UnaryOpValue::ADDRESS_OF, "&"},
+                         {UnaryOpValue::DEREFERENCE, "*"},
+                         {UnaryOpValue::MINUS, "-"},
+                         {UnaryOpValue::NOT, "!"}};
+
+std::string TranslationUnit::prettyPrint(int) {
+  std::stringstream ss;
+  for (const auto &p : extern_list) {
+    ss << p->prettyPrint(0);
+    if (p != extern_list.back())
+      ss << "\n";
+  }
+  return ss.str();
+}
 
 std::string FunctionDefinition::prettyPrint(int lvl) {
-  return indent(lvl) + return_type->prettyPrint(0) + fn_name->prettyPrint(0) +
-         fn_body->prettyPrint(0);
+  return indent(lvl) + return_type->prettyPrint(0) + " " +
+         fn_name->prettyPrint(0) + "\n" + fn_body->prettyPrint(lvl);
 }
 
 std::string FunctionDeclaration::prettyPrint(int lvl) {
-  return indent(lvl) + return_type->prettyPrint(0) + fn_name->prettyPrint(0) +
-         ";\n";
+  return indent(lvl) + return_type->prettyPrint(0) + " " +
+         fn_name->prettyPrint(0) + ";\n";
 }
 
 std::string DataDeclaration::prettyPrint(int lvl) {
@@ -19,8 +50,9 @@ std::string DataDeclaration::prettyPrint(int lvl) {
          data_name->prettyPrint(0) + ";\n";
 }
 
-std::string StructDeclaration::prettyPrint(int) {
-  return struct_type->prettyPrint(0) + " " + struct_alias->prettyPrint(0);
+std::string StructDeclaration::prettyPrint(int lvl) {
+  return indent(lvl) + struct_type->prettyPrint(lvl) +
+         (struct_alias ? " " + struct_alias->prettyPrint(0) : error) + ";\n";
 }
 
 std::string ParamDeclaration::prettyPrint(int) {
@@ -63,7 +95,7 @@ std::string PointerDeclarator::prettyPrint(int) {
     pre += "(*";
     post += ")";
   }
-  return pre + identifer->prettyPrint(0) + post;
+  return pre + (identifer ? identifer->prettyPrint(0) : error) + post;
 }
 
 std::string FunctionDeclarator::prettyPrint(int) {
@@ -76,72 +108,126 @@ std::string FunctionDeclarator::prettyPrint(int) {
   return "(" + identifer->prettyPrint(0) + "(" + ss.str() + "))";
 }
 
-std::string CompoundStmt::prettyPrint(int lvl) {
+std::string CompoundStmt::prettyPrintBlock(int lvl) {
   std::stringstream ss;
   for (const auto &stat : block_items)
     ss << stat->prettyPrint(lvl + 1);
-  return indent(lvl) + "{\n" + ss.str() + indent(lvl) + "}\n";
+  return "{\n" + ss.str() + indent(lvl) + "}";
+}
+
+std::string CompoundStmt::prettyPrint(int lvl) {
+  return indent(lvl) + prettyPrintBlock(lvl) + "\n";
+}
+
+std::string CompoundStmt::prettyPrintInline(int lvl) {
+  return " " + prettyPrintBlock(lvl - 1) + "\n";
+}
+
+std::string CompoundStmt::prettyPrintScopeIndent(int lvl) {
+  return " " + prettyPrintBlock(lvl - 1) + " ";
 }
 
 std::string IfElse::prettyPrint(int lvl) {
-  return indent(lvl) + "if (" + condition->prettyPrint(0) + ")\n" +
-         (elseStmt ? ifStmt->prettyPrint(lvl + 1) + "else" +
-                         elseStmt->prettyPrint(lvl + 1)
-                   : ifStmt->prettyPrint(lvl + 1));
+  return indent(lvl) + "if (" + condition->prettyPrint(0) + ")" +
+         (elseStmt ? ifStmt->prettyPrintScopeIndent(lvl + 1) + "else" +
+                         elseStmt->prettyPrintInlineIf(lvl + 1)
+                   : ifStmt->prettyPrintInline(lvl + 1));
 }
 
-std::string Label::prettyPrint(int) { return std::string(); }
+std::string IfElse::prettyPrintInline(int lvl) {
+  return "\n" + prettyPrint(lvl);
+}
 
-std::string While::prettyPrint(int) { return std::string(); }
+std::string IfElse::prettyPrintInlineIf(int lvl) {
+  return " if (" + condition->prettyPrint(0) + ")" +
+         (elseStmt ? ifStmt->prettyPrintScopeIndent(lvl) + "else" +
+                         elseStmt->prettyPrintInlineIf(lvl)
+                   : ifStmt->prettyPrintInline(lvl));
+}
 
-std::string Goto::prettyPrint(int) { return std::string(); }
+std::string Label::prettyPrint(int lvl) {
+  return label_name->prettyPrint(0) + ":\n" + stmt->prettyPrint(lvl);
+}
+
+std::string While::prettyPrint(int lvl) {
+  return indent(lvl) + "while (" + predicate->prettyPrint(0) + ")" +
+         block->prettyPrintInline(lvl + 1);
+}
+
+std::string Goto::prettyPrint(int lvl) {
+  return indent(lvl) + "goto " + label_name->prettyPrint(0) + ";\n";
+}
 
 std::string ExpressionStmt::prettyPrint(int lvl) {
-  return indent(lvl) + (expr ? expr->prettyPrint(0) : "") + ";\n";
+  return indent(lvl) + expr->prettyPrint(0) + ";\n";
 }
 
-std::string Break::prettyPrint(int) { return std::string(); }
+std::string Break::prettyPrint(int lvl) { return indent(lvl) + "break;\n"; }
 
-std::string Return::prettyPrint(int) { return std::string(); }
+std::string Return::prettyPrint(int lvl) {
+  return indent(lvl) + "return" + (expr ? " " + expr->prettyPrint(0) : "") +
+         ";\n";
+}
 
-std::string Continue::prettyPrint(int) { return std::string(); }
+std::string Continue::prettyPrint(int lvl) {
+  return indent(lvl) + "continue;\n";
+}
 
 std::string VariableName::prettyPrint(int) { return name; }
 
 std::string Number::prettyPrint(int) { return std::to_string(num_value); }
 
-std::string Character::prettyPrint(int) { return std::to_string(char_value); }
-
-std::string String::prettyPrint(int) { return str_value; }
-
-std::string MemberAccessOp::prettyPrint(int) { return std::string(); }
-
-std::string ArraySubscriptOp::prettyPrint(int) { return std::string(); }
-
-std::string FunctionCall::prettyPrint(int) { return std::string(); }
-
-std::string Unary::prettyPrint(int) {
-  return "(" + getTokenRef().name() + operand->prettyPrint(0) + ")";
+std::string Character::prettyPrint(int) {
+  return "\'" + std::string(1, char_value) + "\'";
 }
 
-std::string SizeOf::prettyPrint(int) { return std::string(); }
+std::string String::prettyPrint(int) { return "\"" + str_value + "\""; }
+
+std::string MemberAccessOp::prettyPrint(int) {
+  return "(" + struct_name->prettyPrint(0) +
+         (op_kind == PostFixOpValue::DOT ? "." : "->") +
+         member_name->prettyPrint(0) + ")";
+}
+
+std::string ArraySubscriptOp::prettyPrint(int) {
+  return "(" + array_name->prettyPrint(0) + "[" + index_value->prettyPrint(0) +
+         "])";
+}
+
+std::string FunctionCall::prettyPrint(int) {
+  std::stringstream ss;
+  for (const auto &p : callee_args) {
+    ss << p->prettyPrint(0);
+    if (p != callee_args.back())
+      ss << ", ";
+  }
+  return "(" + callee_name->prettyPrint(0) + "(" + ss.str() + "))";
+}
+
+std::string Unary::prettyPrint(int) {
+  return "(" + UnaryOpValueToString[op_kind] + operand->prettyPrint(0) + ")";
+}
+
+std::string SizeOf::prettyPrint(int) {
+  return "(sizeof" +
+         (type_name ? "(" + type_name->prettyPrint(0) + ")"
+                    : " " + operand->prettyPrint(0)) +
+         ")";
+}
 
 std::string Binary::prettyPrint(int) {
-  return "(" + left_operand->prettyPrint(0) + " " + getTokenRef().name() + " " +
+  return "(" + left_operand->prettyPrint(0) + BinaryOpValueToString[op_kind] +
          right_operand->prettyPrint(0) + ")";
 }
 
-std::string Ternary::prettyPrint(int) { return std::string(); }
-
-std::string Assignment::prettyPrint(int) { return std::string(); }
-
-std::string Statement::indent(int n) {
-  if (n >= 0) {
-    std::stringstream ss;
-    for (int i = 0; i < n; i++)
-      ss << "\t";
-    return ss.str();
-  } else
-    return "";
+std::string Ternary::prettyPrint(int) {
+  return "(" + predicate->prettyPrint(0) + " ? " + left_branch->prettyPrint(0) +
+         " : " + right_branch->prettyPrint(0) + ")";
 }
+
+std::string Assignment::prettyPrint(int) {
+  return "(" + left_operand->prettyPrint(0) + " = " +
+         right_operand->prettyPrint(0) + ")";
+}
+
 } // namespace ccc

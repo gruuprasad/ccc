@@ -18,6 +18,7 @@
 
 namespace ccc {
 
+class ASTNode;
 class ScalarType;
 class Expression;
 class CompoundStmt;
@@ -44,19 +45,19 @@ using ExternalDeclarationListType =
 using ParamDeclarationListType = std::vector<std::unique_ptr<ParamDeclaration>>;
 using ExpressionListType = std::vector<std::unique_ptr<Expression>>;
 using StatementListType = std::vector<std::unique_ptr<Statement>>;
-
+using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
 // Base class for all nodes in AST.
 class ASTNode {
   Token tok;
 
 protected:
+  std::string error;
   explicit ASTNode(Token tk) : tok(std::move(tk)) {}
   std::string indent(int lvl) { return std::string(lvl, TAB); }
-  std::string error;
 
 public:
   virtual ~ASTNode() = default;
-  virtual std::string prettyPrint(int lvl) = 0;
+  virtual std::string prettyPrint(int) = 0;
   Token &getTokenRef() { return tok; }
 };
 
@@ -73,7 +74,7 @@ public:
 class ExternalDeclaration : public ASTNode {
 
 public:
-  ExternalDeclaration(const Token &tk) : ASTNode(tk) {}
+  explicit ExternalDeclaration(const Token &tk) : ASTNode(tk) {}
 };
 
 class FunctionDefinition : public ExternalDeclaration {
@@ -93,7 +94,7 @@ public:
 
 class Declaration : public ExternalDeclaration {
 public:
-  Declaration(const Token &tk) : ExternalDeclaration(tk) {}
+  explicit Declaration(const Token &tk) : ExternalDeclaration(tk) {}
 };
 
 class FunctionDeclaration : public Declaration {
@@ -126,7 +127,7 @@ class StructDeclaration : public Declaration {
 
 public:
   StructDeclaration(const Token &tk, std::unique_ptr<Type> t,
-                    std::unique_ptr<Declarator> a)
+                    std::unique_ptr<Declarator> a = nullptr)
       : Declaration(tk), struct_type(std::move(t)), struct_alias(std::move(a)) {
   }
 
@@ -147,7 +148,7 @@ public:
 
 class Type : public ASTNode {
 public:
-  Type(const Token &tk) : ASTNode(tk) {}
+  explicit Type(const Token &tk) : ASTNode(tk) {}
   virtual bool isStructType() = 0;
 };
 
@@ -180,7 +181,7 @@ public:
 class Declarator : public ASTNode {
 
 public:
-  Declarator(const Token &tk) : ASTNode(tk) {}
+  explicit Declarator(const Token &tk) : ASTNode(tk) {}
 };
 
 class DirectDeclarator : public Declarator {
@@ -198,7 +199,8 @@ class PointerDeclarator : public Declarator {
   int indirection_level;
 
 public:
-  PointerDeclarator(const Token &tk, std::unique_ptr<Declarator> i, int l = 1)
+  explicit PointerDeclarator(const Token &tk,
+                             std::unique_ptr<Declarator> i = nullptr, int l = 1)
       : Declarator(tk), identifer(std::move(i)), indirection_level(l) {}
 
   std::string prettyPrint(int lvl) override;
@@ -218,18 +220,29 @@ public:
 
 class Statement : public ASTNode {
 public:
-  Statement(const Token &tk) : ASTNode(tk) {}
-  std::string indent(int n);
+  explicit Statement(const Token &tk) : ASTNode(tk) {}
+  virtual std::string prettyPrintInline(int lvl) {
+    return "\n" + this->prettyPrint(lvl);
+  }
+  virtual std::string prettyPrintScopeIndent(int lvl) {
+    return this->prettyPrintInline(lvl) + indent(lvl - 1);
+  }
+  virtual std::string prettyPrintInlineIf(int lvl) {
+    return this->prettyPrintInline(lvl);
+  }
 };
 
 class CompoundStmt : public Statement {
-  std::vector<std::unique_ptr<ASTNode>> block_items;
+  ASTNodeListType block_items;
+  std::string prettyPrintBlock(int lvl);
 
 public:
-  CompoundStmt(const Token &tk, std::vector<std::unique_ptr<ASTNode>> block)
+  CompoundStmt(const Token &tk, ASTNodeListType block)
       : Statement(tk), block_items(std::move(block)) {}
 
   std::string prettyPrint(int lvl) override;
+  std::string prettyPrintInline(int lvl) override;
+  std::string prettyPrintScopeIndent(int lvl) override;
 };
 
 class IfElse : public Statement {
@@ -244,6 +257,8 @@ public:
         elseStmt(std::move(e)) {}
 
   std::string prettyPrint(int lvl) override;
+  std::string prettyPrintInline(int lvl) override;
+  std::string prettyPrintInlineIf(int lvl) override;
 };
 
 class Label : public Statement {
@@ -297,7 +312,7 @@ class Return : public Statement {
   std::unique_ptr<Expression> expr;
 
 public:
-  explicit Return(const Token &tk, std::unique_ptr<Expression> e)
+  explicit Return(const Token &tk, std::unique_ptr<Expression> e = nullptr)
       : Statement(tk), expr(std::move(e)) {}
 
   std::string prettyPrint(int lvl) override;
@@ -313,7 +328,7 @@ public:
 
 class Expression : public ASTNode {
 public:
-  Expression(const Token &tk) : ASTNode(tk) {}
+  explicit Expression(const Token &tk) : ASTNode(tk) {}
 };
 
 class VariableName : public Expression {
@@ -430,7 +445,7 @@ enum class BinaryOpValue {
   NOT_EQUAL,
   LOGICAL_AND,
   LOGICAL_OR,
-  ASSIGN
+  //  ASSIGN XXX replaced by Assignment?
 };
 
 class Binary : public Expression {

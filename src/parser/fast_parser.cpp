@@ -4,12 +4,6 @@ using namespace std;
 
 namespace ccc {
 
-struct EnumClassHash {
-  template <typename T> std::size_t operator()(T t) const {
-    return static_cast<std::size_t>(t);
-  }
-};
-
 static std::unordered_map<TokenType, UnaryOpValue, EnumClassHash>
     TokenToUnaryOpValue{{TokenType::AMPERSAND, UnaryOpValue::ADDRESS_OF},
                         {TokenType::STAR, UnaryOpValue::DEREFERENCE},
@@ -17,25 +11,27 @@ static std::unordered_map<TokenType, UnaryOpValue, EnumClassHash>
                         {TokenType::NOT, UnaryOpValue::NOT}};
 
 static std::unordered_map<TokenType, BinaryOpValue, EnumClassHash>
-    TokenToBinaryOpValue{{TokenType::STAR, BinaryOpValue::MULTIPLY},
-                         {TokenType::PLUS, BinaryOpValue::ADD},
-                         {TokenType::MINUS, BinaryOpValue::SUBTRACT},
-                         {TokenType::LESS, BinaryOpValue::LESS_THAN},
-                         {TokenType::EQUAL, BinaryOpValue::EQUAL},
-                         {TokenType::NOT_EQUAL, BinaryOpValue::NOT_EQUAL},
-                         {TokenType::AND, BinaryOpValue::LOGICAL_AND},
-                         {TokenType::OR, BinaryOpValue::LOGICAL_OR},
-                         {TokenType::ASSIGN, BinaryOpValue::ASSIGN}};
+    TokenToBinaryOpValue{
+        {TokenType::STAR, BinaryOpValue::MULTIPLY},
+        {TokenType::PLUS, BinaryOpValue::ADD},
+        {TokenType::MINUS, BinaryOpValue::SUBTRACT},
+        {TokenType::LESS, BinaryOpValue::LESS_THAN},
+        {TokenType::EQUAL, BinaryOpValue::EQUAL},
+        {TokenType::NOT_EQUAL, BinaryOpValue::NOT_EQUAL},
+        {TokenType::AND, BinaryOpValue::LOGICAL_AND},
+        {TokenType::OR, BinaryOpValue::LOGICAL_OR},
+        //                         {TokenType::ASSIGN, BinaryOpValue::ASSIGN}
+    };
 
 // (6.9) translationUnit :: external-declaration+
 unique_ptr<TranslationUnit> FastParser::parseTranslationUnit() {
-  ExternalDeclarationListType external_decls;
+  ExternalDeclarationListType external_decls = ExternalDeclarationListType();
   Token src_mark(peek());
   while (!fail() && peek().is_not(TokenType::ENDOFFILE)) {
     auto external_decl = parseExternalDeclaration();
     external_decls.push_back(move(external_decl));
   }
-  return make_unique<TranslationUnit>(src_mark, move(external_decls));
+  return make_unique<TranslationUnit>(src_mark, std::move(external_decls));
 }
 
 // (6.9) external-declaration :: function-definition | declaration
@@ -127,12 +123,12 @@ unique_ptr<Type> FastParser::parseTypeSpecifier(bool &structDefined) {
 unique_ptr<StructType> FastParser::parseStructType(bool &structDefined) {
   Token src_mark(peek());
   string struct_name;
-  ExternalDeclarationListType member_list;
+  ExternalDeclarationListType member_list = ExternalDeclarationListType();
   structDefined = false;
 
   consume(TokenType::STRUCT); // STRUCT keyword
   if (peek().is(TokenType::IDENTIFIER)) {
-    struct_name = move(nextToken().getExtra());
+    struct_name = nextToken().getExtra();
   }
 
   if (peek().is(TokenType::BRACE_OPEN)) {
@@ -177,7 +173,7 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   if (fail()) {
     return unique_ptr<Declarator>();
   } else {
-    return std::move(identifier);
+    return identifier;
   }
 
   // TODO Abstract Declarator
@@ -196,7 +192,7 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
     consume(TokenType::PARENTHESIS_OPEN); // consume '('
     identifier = parseDeclarator(true);
     if (fail()) {
-      return move(identifier);
+      return identifier;
     }
     mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
   } else if (peek().is(TokenType::IDENTIFIER)) {
@@ -207,7 +203,7 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
     return unique_ptr<DirectDeclarator>();
   }
 
-  ParamDeclarationListType param_list;
+  ParamDeclarationListType param_list = ParamDeclarationListType();
   if (peek().is(TokenType::PARENTHESIS_OPEN)) {
     consume(TokenType::PARENTHESIS_OPEN);
     if (peek().is(C_TYPES)) {
@@ -228,21 +224,21 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
         global_mark, std::move(identifier), ptrCount);
   }
 
-  return std::move(identifier);
+  return identifier;
 }
 // NOTE:: Function return type is abstract declarator?
 
 // (6.7.6)  parameter-list :: parameter-declaration (comma-separated)
 ParamDeclarationListType FastParser::parseParameterList() {
-  ParamDeclarationListType param_list;
+  ParamDeclarationListType param_list = ParamDeclarationListType();
   do {
     auto param = parseParameterDeclaration();
     if (fail()) {
-      return move(param_list);
+      return param_list;
     }
     param_list.push_back(move(param));
   } while (mayExpect(TokenType::COMMA));
-  return move(param_list);
+  return param_list;
 }
 
 // (6.7.5) parameter-declaration :: type-specifier declarator | type-specifier
@@ -265,7 +261,8 @@ unique_ptr<ParamDeclaration> FastParser::parseParameterDeclaration() {
 
 unique_ptr<Statement> FastParser::parseCompoundStatement() {
   auto src_mark(peek());
-  std::vector<std::unique_ptr<ASTNode>> stmts;
+  std::vector<std::unique_ptr<ASTNode>> stmts =
+      std::vector<std::unique_ptr<ASTNode>>();
   std::unique_ptr<Statement> stmt;
   std::unique_ptr<ExternalDeclaration> decl;
   mustExpect(TokenType::BRACE_OPEN, " open brace ({) ");
@@ -416,7 +413,7 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
     if (nextTokenPrec < minPrec) {
       if (fail())
         return std::unique_ptr<Expression>();
-      return std::move(lhs); // LHS
+      return lhs; // LHS
     }
 
     auto binOpLeft = nextToken();
@@ -537,7 +534,7 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
       parser_error(peek(), "identifier after member access operator (. or ->)");
       return std::unique_ptr<Expression>();
     default:
-      return std::move(postfix);
+      return postfix;
     }
   }
 }
@@ -560,7 +557,7 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
     mustExpect(TokenType::PARENTHESIS_OPEN, " open-parenthesis ");
     paren_expr = parseExpression();
     mustExpect(TokenType::PARENTHESIS_CLOSE, " close parenthesis ");
-    return std::move(paren_expr);
+    return paren_expr;
   default:
     parser_error(peek(), "Expression or (");
     return std::unique_ptr<Expression>();
@@ -568,7 +565,7 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
 }
 
 ExpressionListType FastParser::parseArgumentExpressionList() {
-  ExpressionListType arg_list;
+  ExpressionListType arg_list = ExpressionListType();
   mustExpect(TokenType::PARENTHESIS_OPEN);
   if (peek().is_not(TokenType::PARENTHESIS_CLOSE)) {
     while (true) {
@@ -576,15 +573,15 @@ ExpressionListType FastParser::parseArgumentExpressionList() {
       arg_list.push_back(std::move(arg_i));
       if (peek().is(TokenType::PARENTHESIS_CLOSE)) {
         consume(TokenType::PARENTHESIS_CLOSE);
-        return std::move(arg_list);
+        return arg_list;
       }
       mustExpect(TokenType::COMMA);
       if (fail()) {
-        return std::move(arg_list);
+        return arg_list;
       }
     }
   }
-  return std::move(arg_list);
+  return arg_list;
 }
 
 } // namespace ccc

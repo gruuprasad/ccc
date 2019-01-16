@@ -29,7 +29,7 @@ TEST_CASE("Multiple struct Declarations") {
 
   auto fp = FastParser(language);
   auto root = fp.parse();
-  REQUIRE(fp.fail() == false);
+  REQUIRE(!fp.fail());
 }
 
 TEST_CASE("Function definition") {
@@ -37,7 +37,7 @@ TEST_CASE("Function definition") {
     std::string language{"void funcA() { }"};
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE(!fp.fail());
   }
 }
 
@@ -47,7 +47,7 @@ TEST_CASE("Valid Declaration Tests") {
     std::string language{"int a; void b; struct C list;"};
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE(!fp.fail());
   }
 
   SECTION("struct declaration test") {
@@ -55,20 +55,20 @@ TEST_CASE("Valid Declaration Tests") {
       std::string language{"struct C { void a; int b; char c; };"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
     SECTION("struct with alias") {
       std::string language{"struct C { void a; int b; char c; } list_t;"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
     SECTION("nested struct member") {
       std::string language{"struct C { void a; int b; char c; struct D { int "
                            "a; int b; }; } list_t;"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
   }
 
@@ -77,25 +77,25 @@ TEST_CASE("Valid Declaration Tests") {
       std::string language{"void funcA();"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
     SECTION("prototype with parameters") {
       std::string language{"void funcA(int a);"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
     SECTION("prototype with multiple parameters") {
       std::string language{"void funcA(int a, char c);"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
     SECTION("prototype with multiple parameters (struct)") {
       std::string language{"void funcA(int a, char c, struct A d);"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
   }
 
@@ -104,19 +104,19 @@ TEST_CASE("Valid Declaration Tests") {
       std::string language{"int *a; char **c;"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
     SECTION("function type pointers") {
       std::string language{"int (*a) (int a);"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
     SECTION("parenthesied pointer") {
       std::string language{"int * (a); char (*c);"};
       auto fp = FastParser(language);
       auto root = fp.parse();
-      REQUIRE(fp.fail() == false);
+      REQUIRE(!fp.fail());
     }
   }
 }
