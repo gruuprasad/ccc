@@ -60,14 +60,14 @@ public:
 
   void parser_error(const Token &tok, const std::string &msg = std::string()) {
     error_count++;
-    std::cerr << std::to_string(tok.getLine()) << ":"
-              << std::to_string(tok.getColumn()) << ":error:";
+    error_stream << std::to_string(tok.getLine()) << ":"
+                 << std::to_string(tok.getColumn()) << ":error:";
     if (msg.empty()) {
-      std::cerr << "Unexpected Token " << tok.name() << "found.";
+      error_stream << "Unexpected Token " << tok.name() << "found.";
     } else {
-      std::cerr << "Expected " << msg << " found \"" << tok.name();
+      error_stream << "Expected " << msg << " found \"" << tok.name();
     }
-    std::cerr << "\" Parsing Stopped!" << std::endl;
+    error_stream << "\" Parsing Stopped!";
   }
 
 private:
@@ -78,10 +78,7 @@ private:
     return ret;
   }
 
-  void consume(const TokenType) {
-    nextToken();
-    return;
-  }
+  void consume(const TokenType) { nextToken(); }
 
   bool mayExpect(const TokenType tok_type) {
     if (peek().is(tok_type)) {
@@ -148,7 +145,7 @@ private:
   unsigned int error_count = 0;
   std::stringstream error_stream;
   // Variables to hold certain states during parsing.
-  bool isIdentiferFuncType;
+  bool isIdentiferFuncType = false;
   Token global_mark;
 };
 

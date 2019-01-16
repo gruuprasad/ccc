@@ -8,7 +8,6 @@
 
 using namespace ccc;
 TEST_CASE("entry handler") {
-  std::string name = "c4";
   std::string flag = "--print-ast";
   std::string input = "../../examples/easy.c";
 
@@ -22,7 +21,6 @@ TEST_CASE("entry handler") {
   std::cout.rdbuf(ss.rdbuf());
 
   char **ppArgs = new char *[3];
-  ppArgs[0] = &name[0];
   ppArgs[1] = &flag[0];
   ppArgs[2] = &input[0];
 
