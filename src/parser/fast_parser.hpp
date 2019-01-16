@@ -126,10 +126,10 @@ private:
   std::unique_ptr<Expression> parseExpression();
   void parseAssignmentExpression();
   void parseBinOpWithRHS(Precedence minPrec);
-  void parseUnaryExpression();
-  void parsePostfixExpression();
-  void parsePrimaryExpression();
-  void parseArgumentExpressionList();
+  std::unique_ptr<Expression> parseUnaryExpression();
+  std::unique_ptr<Expression> parsePostfixExpression();
+  std::unique_ptr<Expression> parsePrimaryExpression();
+  ArgumentExpressionList parseArgumentExpressionList();
 
   // Statements
   std::unique_ptr<Statement> parseStatement();

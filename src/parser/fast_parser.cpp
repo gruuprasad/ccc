@@ -4,6 +4,32 @@ using namespace std;
 
 namespace ccc {
 
+struct EnumClassHash
+{
+  template <typename T>
+  std::size_t operator()(T t) const
+  {
+    return static_cast<std::size_t>(t);
+  }
+};
+
+static std::unordered_map<TokenType, UnaryOpValue, EnumClassHash> TokenToUnaryOpValue{
+    {TokenType::AMPERSAND, UnaryOpValue::ADDRESS_OF},
+    {TokenType::DEREFERENCE, UnaryOpValue::STAR},
+    {TokenType::MINUS, UnaryOpValue::MINUS},
+    {TokenType::NOT, UnaryOpValue::NOT}};
+
+static std::unordered_map<TokenType, BinaryOpValue, EnumClassHash> TokenToBinaryOpValue{
+    {TokenType::STAR, BinaryOpValue::MULTIPLY},
+    {TokenType::PLUS, BinaryOpValue::ADD},
+    {TokenType::MINUS, BinaryOpValue::SUBTRACT},
+    {TokenType::LESS, BinaryOpValue::LESS_THAN},
+    {TokenType::EQUAL, BinaryOpValue::EQUAL},
+    {TokenType::NOT_EQUAL, BinaryOpValue::NOT_EQUAL},
+    {TokenType::AND, BinaryOpValue::LOGICAL_AND},
+    {TokenType::OR, BinaryOpValue::LOGICAL_OR},
+    {TokenType::ASSIGN, BinaryOpValue::ASSIGN}};
+
 // (6.9) translationUnit :: external-declaration+
 unique_ptr<TranslationUnit> FastParser::parseTranslationUnit() {
   ExternalDeclarationListType external_decls;
@@ -336,6 +362,7 @@ unique_ptr<Expression> FastParser::parseExpression() {
   return unique_ptr<Expression>();
 }
 
+/*
 // (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op
 // assignment-expr (6.5.15) conditional-expr: logical-OR | logical-OR ?
 // expression : conditional-expr
@@ -382,30 +409,39 @@ void FastParser::parseBinOpWithRHS(Precedence minPrec) {
     nextTokenPrec = peek().getPrecedence();
   }
 }
+*/
 
 // (6.5.3) unary-expression : postfix-expression
 //                            unary-operator unary-expression
+//                            sizeof ( type-name ) 
 //                            sizeof unary-expression
-//                            sizeof unary-expression
-void FastParser::parseUnaryExpression() {
-  Token op;
-
-  if (peek().is(UNARY_OP)) {
-    op = nextToken();
-    parseUnaryExpression();
-    return;
+std::unique_ptr<Expression> FastParser::parseUnaryExpression() {
+  Token src_mark (peek()), op;
+  if (src_mark.is(UNARY_OP)) {
+    auto op = TokenToUnaryOpValue[nextToken().getType()];
+    auto unary = parseUnaryExpression();
+    if (fail()) {
+      return std::unique_ptr<Expression>();
+    }
+    return make_unique<Unary>(src_mark, op, std::move(unary));
   }
 
   if (peek().is(TokenType::SIZEOF)) {
-    op = nextToken();
+    consume(TokenType::SIZEOF);
     if (mayExpect(TokenType::PARENTHESIS_OPEN)) {
-      // FIXME Parsing type-expression
+      auto type_name = parseTypeSpecifier();
       mustExpect(TokenType::PARENTHESIS_CLOSE);
-      return;
+      if (fail()) {
+        return std::unique_ptr<Expression>();
+      }
+      return make_unique<SizeOf>(src_mark, std::move(type_name));
     }
 
-    parseUnaryExpression();
-    return;
+    auto unary = parseUnaryExpression();
+    if (fail()) {
+      return std::unique_ptr<Expression>();
+    }
+    return make_unique<SizeOf>(src_mark, std::move(unary));
   }
   return parsePostfixExpression();
 }
@@ -416,7 +452,7 @@ void FastParser::parseUnaryExpression() {
 //                              postfix-expr . identifier
 //                              postfix-expr -> identifier
 std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
-  Token src_mark (peek());
+  Token src_mark (peek()), op;
   auto postfix = parsePrimaryExpression();
   if (fail()) {
     return std::unique_ptr<Expression>();

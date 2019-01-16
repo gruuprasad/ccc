@@ -324,7 +324,7 @@ public:
       callee_name(std::move(n)), callee_args(std::move(a)) {}
 };
 
-enum class UnaryOpValue { ADDRESS_OF, DEREFERENCE, MINUS, NOT };
+enum class UnaryOpValue { ADDRESS_OF = 0, DEREFERENCE, MINUS, NOT };
 
 class Unary : public Expression {
   UnaryOpValue op_kind;
@@ -341,12 +341,15 @@ class SizeOf : public Expression {
   std::unique_ptr<Expression> operand;
 
 public:
-  SizeOf(const Token & tk, std::unique_ptr<Type> n, std::unique_ptr<Expression> o)
+  SizeOf(const Token & tk, std::unique_ptr<Type> n)
     : Expression(tk),
-      type_name(std::move(n)), operand(std::move(o)) {}
+      type_name(std::move(n)) {}
+  SizeOf(const Token & tk, std::unique_ptr<Expression> o)
+    : Expression(tk),
+      operand(std::move(o)) {}
 };
 
-enum class BinaryOpValue { MULTIPLY, ADD, SUBTRACT, LESS_THAN, EQUAL, NOT_EQUAL, LOGICAL_AND, LOGICAL_OR, ASSIGN };
+enum class BinaryOpValue { MULTIPLY = 0, ADD, SUBTRACT, LESS_THAN, EQUAL, NOT_EQUAL, LOGICAL_AND, LOGICAL_OR, ASSIGN };
 
 class Binary : public Expression {
   BinaryOpValue op_kind;
