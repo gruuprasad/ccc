@@ -14,6 +14,7 @@ add_test(NAME lexer COMMAND test_lexer)
 
 add_executable(test_parser
         parser/parse_declaration.cpp
+        parser/parse_expression.cpp
         parser/parser_big_test.cpp
         )
 target_link_libraries(test_parser test_LLIB)
