@@ -16,6 +16,7 @@ add_executable(test_parser
         parser/parse_declaration.cpp
         parser/parse_expression.cpp
         parser/parser_big_test.cpp
+        parser/parse_test_codes.cpp
         )
 target_link_libraries(test_parser test_LLIB)
 add_dependencies(check test_parser)

@@ -1,0 +1,22 @@
+### .c4 format code between "startunit" and "endunit" treated as c code
+### Keep the main() function so that we can compile with gcc and validate the test case
+
+startunit
+
+int main() {
+
+  return 0;
+}
+
+endunit
+
+startunit
+
+char c;
+
+int main() {
+
+  return 0;
+}
+
+endunit
