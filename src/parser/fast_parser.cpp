@@ -162,7 +162,10 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   int ptrCount = 0;
   if (peek().is(TokenType::STAR)) {
     // Parse Pointer (*) symbols
-    parseList([&]() { ++ptrCount; }, TokenType::STAR);
+    do {
+      consume(TokenType::STAR);
+      ptrCount++;
+    } while (peek().is(TokenType::STAR));
   }
 
   // In the case of function type, if pointer is within parenthesis then it is
@@ -263,12 +266,11 @@ unique_ptr<Statement> FastParser::parseCompoundStatement() {
   auto src_mark(peek());
   std::vector<std::unique_ptr<ASTNode>> stmts =
       std::vector<std::unique_ptr<ASTNode>>();
-  std::unique_ptr<Statement> stmt;
-  std::unique_ptr<ExternalDeclaration> decl;
+  std::unique_ptr<ASTNode> stmt;
   mustExpect(TokenType::BRACE_OPEN, " open brace ({) ");
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is(C_TYPES)) {
-      decl = parseFuncDefOrDeclaration(true);
+      stmt = parseFuncDefOrDeclaration(true);
     } else {
       stmt = parseStatement();
     }
