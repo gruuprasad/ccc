@@ -43,19 +43,3 @@ add_executable(test_semantic
 target_link_libraries(test_semantic test_LLIB)
 add_dependencies(check test_semantic)
 add_test(NAME semantic COMMAND test_semantic)
-
-add_executable(test_all
-        lexer/lexer_test.cpp
-        lexer/lexer_punctuation_test.cpp
-        lexer/lexer_keyword_test.cpp
-        lexer/lexer_big_test.cpp
-        lexer/first_test.cpp
-        parser/parser_test.cpp
-        parser/parser_big_test.cpp
-        ast/ast_test.cpp
-        prettyPrinter/prettyPrinter_test.cpp
-        prettyPrinter/prettyPrinter_entry_test.cpp
-        semantic/typeAnalysis_test.cpp
-        semantic/nameAnalysis_test.cpp
-        )
-target_link_libraries(test_all test_LLIB)

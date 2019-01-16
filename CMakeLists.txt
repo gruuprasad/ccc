@@ -4,7 +4,7 @@ project(c4)
 enable_testing()
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D DEBUG=truee -Wall -Wextra -pedantic -pthread -g -pg -O0 -fprofile-arcs -ftest-coverage")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D DEBUG=truee -Wall -Wextra -pedantic -pthread -g -pg -ftest-coverage")
 
 SET(EXECUTABLE_OUTPUT_PATH      "${PROJECT_BINARY_DIR}/bin")
 SET(LIBRARY_OUTPUT_PATH         "${PROJECT_BINARY_DIR}/lib")

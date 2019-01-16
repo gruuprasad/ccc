@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [[ $(git status --short) ]]; then
+echo "unstaged files"
+exit 1
+else
+echo "clang-format"
+clang-format -style=llvm -i -verbose $(find ./src -name *.cpp -or -name *.hpp) $(find ./test -name *.cpp -or -name *.hpp ! -name catch.hpp)
+git add -u
+if [[ $(git status --short) ]]; then
+echo "commit changes"
+git commit -m "clang-format $(git rev-parse --short HEAD)"
+fi
+fi
+exit 0
+
