@@ -9,7 +9,7 @@
   TokenType::VOID, TokenType::CHAR, TokenType::SHORT, TokenType::INT
 
 #define UNARY_OP                                                               \
-  TokenType::AMPERSAND, TokenType::STAR, TokenType::MINUS, TokenType::NOT     \
+  TokenType::AMPERSAND, TokenType::STAR, TokenType::MINUS, TokenType::NOT
 
 #define BINARY_OP                                                              \
   TokenType::STAR, TokenType::PLUS, TokenType::MINUS, TokenType::LESS,         \
