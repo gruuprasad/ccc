@@ -309,11 +309,11 @@ unique_ptr<Statement> FastParser::parseStatement() {
   case TokenType::CONTINUE:
     consume(TokenType::CONTINUE);
     mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
-    return make_unique<Continue>(nextToken());
+    return make_unique<Continue>(src_mark);
   case TokenType::BREAK:
     consume(TokenType::BREAK);
     mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
-    return make_unique<Break>(nextToken());
+    return make_unique<Break>(src_mark);
   case TokenType::RETURN:
     consume(TokenType::RETURN);
     if (peek().is_not(TokenType::SEMICOLON)) {
