@@ -6,15 +6,6 @@
 
 namespace ccc {
 
-Token::Token(const TokenType type, const unsigned long line,
-             const unsigned long column, const std::string extra)
-    : type(type), line(line), column(column), extra(std::move(extra)) {}
-
-TokenType Token::getType() const { return type; }
-unsigned long Token::getLine() const { return line; }
-unsigned long Token::getColumn() const { return column + 1; }
-const std::string &Token::getExtra() const { return extra; }
-
 const std::string Token::name() const {
   switch (type) {
   case TokenType::NUMBER:
@@ -183,7 +174,7 @@ const std::string Token::name() const {
     return ",";
   case TokenType::COLON:
     return ":";
-  case TokenType::QUESTION:
+  case TokenType::CONDITIONAL:
     return "?";
   case TokenType::SEMICOLON:
     return ";";
@@ -221,11 +212,24 @@ const std::string Token::name() const {
     return "float";
   case TokenType::DOUBLE:
     return "double";
-  case TokenType::TOKENEND:
-    return "";
+  case TokenType::ENDOFFILE:
+    return "EOF";
+  case TokenType::BLOCKCOMMENT:
+    return "b-comment";
+  case TokenType::LINECOMMENT:
+    return "l-comment";
+  case TokenType::WHITESPACE:
+    return "whitespace";
+  case TokenType::NONKEYWORD:
+    return "non-keyword";
+  case TokenType::INVALIDTOK:
+    return "invalid-tok";
+  case TokenType::GHOST:
+    return "ghost";
+  default:
+    std::cerr << "error: unknown TokenType";
+    return "unknown type";
   }
-  std::cerr << "error: unknown TokenType";
-  return "unknown type";
 }
 
 const std::string Token::token_type() const {
@@ -396,7 +400,7 @@ const std::string Token::token_type() const {
     return "punctuator";
   case TokenType::COLON:
     return "punctuator";
-  case TokenType::QUESTION:
+  case TokenType::CONDITIONAL:
     return "punctuator";
   case TokenType::SEMICOLON:
     return "punctuator";
@@ -434,43 +438,54 @@ const std::string Token::token_type() const {
     return "keyword";
   case TokenType::DOUBLE:
     return "keyword";
-  case TokenType::TOKENEND:
-    return "";
+  case TokenType::ENDOFFILE:
+    return "helper";
+  case TokenType::BLOCKCOMMENT:
+    return "helper";
+  case TokenType::LINECOMMENT:
+    return "helper";
+  case TokenType::WHITESPACE:
+    return "helper";
+  case TokenType::NONKEYWORD:
+    return "helper";
+  case TokenType::INVALIDTOK:
+    return "helper";
+  case TokenType::GHOST:
+    return "helper";
+  default:
+    std::cerr << "error: unknown TokenType";
+    return "unknown type";
   }
-  std::cerr << "error: unknown TokenType";
-  return "unknown type";
 }
 
-unsigned int Token::getPrecedence() {
+Precedence Token::getPrecedence() const {
   switch (type) {
-  case TokenType::STAR:
-    return 10;
-  case TokenType::PLUS:
-    return 10;
-  case TokenType::MINUS:
-    return 10;
-  case TokenType::EQUAL:
-    return 10;
-  case TokenType::NOT_EQUAL:
-    return 10;
-  case TokenType::AND:
-    return 10;
-  case TokenType::OR:
-    return 10;
   case TokenType::ASSIGN:
-    return 10;
+    return 1;
+  case TokenType::CONDITIONAL:
+    return 2;
+  case TokenType::OR:
+    return 3;
+  case TokenType::AND:
+    return 4;
   case TokenType::LESS:
-    return 10;
+    return 5;
   case TokenType::GREATER:
-    return 10;
-  case TokenType::NOT:
-    return 10;
-  case TokenType::DOT:
-    return 10;
-  case TokenType::LEFT_SHIFT_ASSIGN:
-    return 10;
-  case TokenType::RIGHT_SHIFT_ASSIGN:
-    return 10;
+    return 5;
+  case TokenType::EQUAL:
+    return 5;
+  case TokenType::NOT_EQUAL:
+    return 5;
+  case TokenType::PLUS:
+    return 6;
+  case TokenType::MINUS:
+    return 6;
+  case TokenType::STAR:
+    return 7;
+  case TokenType::LEFT_SHIFT:
+    return 7;
+  case TokenType::RIGHT_SHIFT:
+    return 7;
   default:
     return 0;
   }
@@ -478,11 +493,11 @@ unsigned int Token::getPrecedence() {
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
   if (token.extra.empty() && token.getType() != TokenType::STRING) {
-    os << token.line << ':' << token.getColumn() << ": " << token.token_type()
-       << " " << token.name();
+    os << token.getLine() << ':' << token.getColumn() << ": "
+       << token.token_type() << " " << token.name();
   } else {
-    os << token.line << ':' << token.getColumn() << ": " << token.token_type()
-       << " ";
+    os << token.getLine() << ':' << token.getColumn() << ": "
+       << token.token_type() << " ";
     if (token.getType() == TokenType::CHARACTER) {
       os << "'" << token.extra << "'";
     } else if (token.getType() == TokenType::STRING) {

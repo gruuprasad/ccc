@@ -101,14 +101,21 @@ enum class TokenType {
   OR,
   PIPE,
   COLON,
-  QUESTION,
+  CONDITIONAL,
   HASH,
   HASHHASH,
   HASH_ALT,
   HASHHASH_ALT,
   FLOAT,
   DOUBLE,
-  TOKENEND
+  // helper tokens
+  BLOCKCOMMENT,
+  LINECOMMENT,
+  WHITESPACE,
+  NONKEYWORD,
+  INVALIDTOK,
+  ENDOFFILE,
+  GHOST
 };
 
 } // namespace ccc

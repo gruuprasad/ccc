@@ -1,7 +1,7 @@
-#include "../src/entry/entry_point_handler.hpp"
-#include "../src/lexer/fast_lexer.hpp"
-#include "../src/lexer/lexer_exception.hpp"
-#include "catch.hpp"
+#include "../catch.hpp"
+#include "entry/entry_point_handler.hpp"
+#include "lexer/fast_lexer.hpp"
+#include "lexer/lexer_exception.hpp"
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -32,7 +32,9 @@ using namespace ccc;
     REQUIRE(firstToken.getColumn() == 1);                                      \
   }                                                                            \
   TEST_CASE("Fast Lexer keyword " #keyword " length") {                        \
-    auto lastToken = FastLexer(#keyword " n").lex().back();                    \
+    auto token_list = FastLexer(#keyword " n").lex();                          \
+    token_list.pop_back();                                                     \
+    auto lastToken = token_list.back();                                        \
     REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);                     \
     REQUIRE(lastToken.getLine() == 1);                                         \
     REQUIRE(lastToken.getColumn() == sizeof(#keyword) + 1);                    \
@@ -93,7 +95,7 @@ PUNCTUATOR_TESTS("|=", TokenType::PIPE_ASSIGN)
 PUNCTUATOR_TESTS("||", TokenType::OR)
 PUNCTUATOR_TESTS("|", TokenType::PIPE)
 PUNCTUATOR_TESTS(":", TokenType::COLON)
-PUNCTUATOR_TESTS("?", TokenType::QUESTION)
+PUNCTUATOR_TESTS("?", TokenType::CONDITIONAL)
 PUNCTUATOR_TESTS("#", TokenType::HASH)
 PUNCTUATOR_TESTS("##", TokenType::HASHHASH)
 PUNCTUATOR_TESTS("%:", TokenType::HASH_ALT)

@@ -26,6 +26,7 @@ test:run:
   - cd ./build
   - ./release/c4 --tokenize ../example/hello_world.c
   - ./release/c4 --parse ../example/hello_world.c
+  - ./release/c4 --print-ast ../example/hello_world.c
 
 build:test:
   stage: build
@@ -34,30 +35,27 @@ build:test:
   - cd ./build
   - cmake ..
   - make -j$(nproc)
-  - cd ..
-  artifacts:
-    when: on_success
-    paths:
-    - ./build/*
-    expire_in: 5 mins
 
 test:tests:
   stage: test
   dependencies:
   - build:test
   script:
+  - mkdir -p build
   - cd ./build
-  - make test
+  - cmake ..
+  - make check -j$(nproc)
   allow_failure: true
 
 analysis:coverage:
   stage: analysis
+  dependencies:
+  - test:tests
   script:
   - mkdir -p build
   - cd ./build
   - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
-  - make -j$(nproc)
-  - make test
+  - make check -j$(nproc)
   - cd ..
   - chmod +x ./scripts/coverage.sh
   - ./scripts/coverage.sh
@@ -74,11 +72,11 @@ deploy:benchmark:
   - echo "The cake is a lie."
   only:
     refs:
-    - master
     - develop
   artifacts:
     paths:
     - ./benchmark.svg
-    expire_in: 1 week
+    expire_in: 3 days
+  allow_failure: true
 
 

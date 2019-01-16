@@ -1,6 +1,7 @@
 #include "entry_point_handler.hpp"
 #include "../lexer/fast_lexer.hpp"
 #include "../parser/fast_parser.hpp"
+#include "../utils/utils.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -26,18 +27,24 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     }
     if (flagName == "--tokenize") {
       for (const auto &token : token_list) {
+        if (token.is(TokenType::ENDOFFILE))
+          break;
         std::cout << filename << ":" << token << '\n';
       }
       return EXIT_SUCCESS;
-    }
-    if (flagName == "--parse") {
-      auto parser = FastParser(token_list);
+    } else if (flagName == "--parse") {
+      auto parser = FastParser(buffer);
+      parser.parse();
       if (parser.fail()) {
         std::cerr << filename << ":" << parser.getError() << std::endl;
         return EXIT_FAILURE;
       }
       return EXIT_SUCCESS;
+    } else if (flagName == "--print-ast") {
+      return EXIT_SUCCESS; // Not implemented, keeping the flag as it is, but
+                           // dummy success
     }
   }
+  std::cerr << "?" << std::endl;
   return EXIT_FAILURE;
 }

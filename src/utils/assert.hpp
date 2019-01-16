@@ -1,11 +1,12 @@
 #ifndef C4_ASSERT_HPP
 #define C4_ASSERT_HPP
 
+#include "macros.hpp"
 #include <iostream>
 
 class Assert {
 public:
-  Assert(bool cond) : assertion(cond) {}
+  explicit Assert(bool cond) : assertion(cond) {}
   ~Assert() {
     if (!assertion) {
       std::cerr << std::endl;
@@ -24,8 +25,9 @@ private:
 
 class NullAssert {
 public:
-  NullAssert(bool cond) {}
+  NullAssert(bool) {}
   template <class T> inline NullAssert &operator<<(const T &message) {
+    UNUSED(message);
     return *this;
   }
 };

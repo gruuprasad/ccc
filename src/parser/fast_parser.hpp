@@ -1,22 +1,34 @@
 #ifndef C4_PARSER_HPP
 #define C4_PARSER_HPP
 
+#include "../ast/ast_node.hpp"
+#include "../lexer/fast_lexer.hpp"
 #include "../lexer/token.hpp"
 #include "../utils/assert.hpp"
 #include "../utils/macros.hpp"
+#include "../utils/utils.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <iostream>
+#include <memory>
 #include <vector>
 
 namespace ccc {
 
 enum PARSE_TYPE { TRANSLATIONUNIT, EXPRESSION, STATEMENT, DECLARATION };
+constexpr static const std::size_t N = 3; // la_buffer size
 
 class FastParser {
 public:
-  FastParser(std::vector<Token> &tokens_) : tokens(tokens_) {
-    tokens.emplace_back(TokenType::TOKENEND, 0, 0);
+  explicit FastParser(const std::string &content) : lexer(content) {
+    for (auto &elem : la_buffer)
+      elem = lexer.lex_valid();
   }
 
-  void parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  std::unique_ptr<ASTNode>
+  parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -25,127 +37,119 @@ public:
     case PARSE_TYPE::STATEMENT:
       return parseStatement();
     case PARSE_TYPE::DECLARATION:
-      return parseDeclarations();
+      return parseFuncDefOrDeclaration();
     default:
-      error = "Unknown parse type";
+      error_stream
+          << "Unknown parse type [error appears only for unit testing]";
+      return std::unique_ptr<TranslationUnit>();
     }
   }
 
-  bool fail() const { return !error.empty(); }
-  std::string getError() { return error; }
+  std::pair<unsigned long, unsigned long> getParserLocation() const {
+    return lexer.getLexerLocation();
+  }
+
+  bool fail() const { return error_count != 0; }
+  std::string getError() { return error_stream.str(); }
+
+  void log_msg(const Token &tok, const std::string &msg = std::string()) {
+    std::cout << msg << " peek() token info = ";
+    std::cout << std::to_string(tok.getLine()) << ":"
+              << std::to_string(tok.getColumn()) << ":" << tok.name() << ":\n";
+  }
+
+  void parser_error(const Token &tok, const std::string &msg = std::string()) {
+    error_count++;
+    std::cerr << std::to_string(tok.getLine()) << ":"
+              << std::to_string(tok.getColumn()) << ":error:";
+    if (msg.empty()) {
+      std::cerr << "Unexpected Token " << tok.name() << "found.";
+    } else {
+      std::cerr << "Expected " << msg << " found \"" << tok.name();
+    }
+    std::cerr << "\" Parsing Stopped!" << std::endl;
+  }
 
 private:
-  Token nextToken() { return tokens[curTokenIdx++]; }
-
-  bool consume() {
-    curTokenIdx++;
-    return true;
+  Token nextToken() {
+    auto ret = la_buffer.front();
+    std::rotate(la_buffer.begin(), la_buffer.begin() + 1, la_buffer.end());
+    la_buffer.back() = lexer.lex_valid();
+    return ret;
   }
 
-  bool expect(TokenType tok) {
-    if (peek().is(tok)) {
-      return consume();
-    } else {
-      error = PARSER_ERROR(peek().getLine(), peek().getColumn(),
-                           "Unexpected Token: \"" + peek().name() +
-                               "\", expecting  \"" + "\"");
-      return false;
+  void consume(const TokenType) {
+    nextToken();
+    return;
+  }
+
+  bool mayExpect(const TokenType tok_type) {
+    if (peek().is(tok_type)) {
+      nextToken();
+      return true;
     }
-    // FIXME get string version of token?
+    return false;
   }
 
-  template <typename T, typename... Args> bool expect(T first, Args... args) {
-    return expect(first) && expect(args...);
+  bool mustExpect(const TokenType tok_type,
+                  const std::string &msg = std::string()) {
+    if (peek().is(tok_type)) {
+      nextToken(); // Token is not used by parser
+      return true;
+    }
+    parser_error(peek(), msg);
+    return false;
   }
 
-  const Token &peek(int k = 0) const {
-    // TODO bound check. Append k number of empty tokens at the end of tokens
-    // so we don't need to bound check.
-    return tokens[curTokenIdx + k];
+  const Token &peek(std::size_t k = 0) const {
+    assert(k < N);
+    return la_buffer[k];
   }
 
   template <typename F> void parseList(F word, TokenType delimit) {
     do {
       word();
-    } while (peek().is(delimit) && consume());
+    } while (mayExpect(delimit));
   }
 
-  // Grammar Rules we plan to implement.
-  // (6.9) translationUnit :: external-declaration+
-  // (6.9) external-declaration :: function-definition | declaration
-  // (6.9.1) function-definition :: type-specifier declarator declaration+(opt)
-  // compound-statement (6.7)  declaration :: type-specifier declarator(opt) ;
-  // (6.7.2) type-specifier :: void | char | short | int |
-  // struct-or-union-specifier (6.7.2.1) struct-or-union-specifier :: struct
-  // identifer(opt) { struct-declaration+ } | struct-or-union identifier
-  // (6.7.2.1) struct-declaration :: type-specifier declarator (opt) ;
-  // (6.7.6)  declarator :: pointer(opt) direct-declarator
-  // (6.7.6)  direct-declarator :: identifier | ( declarator ) |
-  // direct-declarator ( parameter-list ) (6.7.6)  parameter-list ::
-  // (type-specifier declarator)+ (comma-separated)
-  // TODO Add rules -> parameter-declaration :: type-specifiers
-  // abstract-declarator(opt)
-  //                   abstract-declarator :: pointer | pointer(opt)
-  //                   direct-abstract-declarator direct-abstract-declarator ::
-  //                   ( abstract-declarator) | ( parameter-type-list(opt) )+
+  std::unique_ptr<TranslationUnit> parseTranslationUnit();
+  std::unique_ptr<ExternalDeclaration> parseExternalDeclaration();
+  std::unique_ptr<ExternalDeclaration>
+  parseFuncDefOrDeclaration(bool parseOnlyDecl = false);
 
-  void parseTranslationUnit() { return parseExternalDeclaration(); }
-  void parseExternalDeclaration();
-  void parseFuncDefOrDeclaration();
-
-  // declarations
-  void parseDeclarations();
-  void parseTypeSpecifiers();
-  void parseDeclarator();
-  void parseDirectDeclarator();
-  void parseParameterList();
-  void parseStructOrUnionSpecifier();
-  void parseStructDeclaration();
+  // Declarations
+  std::unique_ptr<Type> parseTypeSpecifier(bool &structDefined);
+  std::unique_ptr<StructType> parseStructType(bool &structDefined);
+  std::unique_ptr<Declarator> parseDeclarator(bool within_paren = false);
+  std::unique_ptr<Declarator> parseDirectDeclarator(bool in_paren,
+                                                    int ptrCount);
+  ParamDeclarationListType parseParameterList();
+  std::unique_ptr<ParamDeclaration> parseParameterDeclaration();
 
   // Expressions
-  // (6.5.17) expression: assignment+ (comma-separated)
-  // (6.5.16) assignment: conditional | unary assignment-op assignment
-  // (6.5.16) assignment-op: = | *= | /= | %= | += | -= | <<= | >>= | &= | ^= |
-  // |= (6.5.15) conditional: logical-OR | logical-OR ? expression : conditional
-  // (6.5.14) logical-OR: logical-AND | logical-OR || logical-AND
-  // (6.5.13) logical-AND: inclusive-OR | logical-AND && inclusive-OR
-  // (6.5.12) inclusive-OR: exclusive-OR | inclusive-OR | exclusive-OR
-  // (6.5.11) exclusive-OR: AND | exclusive-OR ^ AND
-  // (6.5.10) AND: equality | AND & equality
-  // (6.5.9) equality: relational | equality == relational | equality !=
-  // relational (6.5.8) relational: shift | relational < shift | relational >
-  // shift | relational <= shift | relational >= shift (6.5.7) shift: additive |
-  // shift << additive | shift >> additive (6.5.6) additive: multiplicative |
-  // additive + multiplicative | additive - multiplicative (6.5.5)
-  // multiplicative: cast | multiplicative * cast | multiplicative / cast |
-  // multiplicative % cast (6.5.4) cast: unary | ( type-name ) cast (6.5.3)
-  // unary: postfix | ++ unary | -- unary | unary-op cast | sizeof unary |
-  // sizeof ( type-name ) (6.5.3) unary-op: & | * | + | - | ~ |  ! (6.5.2)
-  // postfix: primary | postfix [ expression ] | postfix (
-  // argument-expr-list(opt) ) | postfix . identifier
-  //                  postfix -> identifier | postfix -- | ( type-name ) {
-  //                  initializer-list } | ( type-name ) { initializer-list , }
-  // (6.5.2) argument-expr-list: assignment | argument-expr-list , assignment
-  // (6.5.1) primary: identifer | constant | string-literal | ( expression )
-
-  void parseExpression();
-  void parsePrimary();
-  void parsePrimaryExpression();
-  void parseUnaryExpression();
-  void parseArgumentExpressionList();
-  void parsePostfixExpression();
+  std::unique_ptr<Expression> parseExpression();
+  std::unique_ptr<Expression> parseAssignmentExpression();
+  std::unique_ptr<Expression> parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
+                                                Precedence minPrec);
+  std::unique_ptr<Expression> parseUnaryExpression();
+  std::unique_ptr<Expression> parsePostfixExpression();
+  std::unique_ptr<Expression> parsePrimaryExpression();
+  ExpressionListType parseArgumentExpressionList();
 
   // Statements
-  void parseCompoundStatement();
-  void parseBlockItemList();
-  void parseStatement();
-  void parseLabeledStatement();
-  void parseSelectionStatement();
-  void parseIterationStatement();
+  std::unique_ptr<Statement> parseStatement();
+  std::unique_ptr<Statement> parseCompoundStatement();
+  std::unique_ptr<Statement> parseLabeledStatement();
+  std::unique_ptr<Statement> parseSelectionStatement();
+  std::unique_ptr<Statement> parseIterationStatement();
 
-  std::vector<Token> &tokens;
-  std::size_t curTokenIdx = 0;
-  std::string error = "";
+  FastLexer lexer;
+  std::array<Token, N> la_buffer;
+  unsigned int error_count = 0;
+  std::stringstream error_stream;
+  // Variables to hold certain states during parsing.
+  bool isIdentiferFuncType;
+  Token global_mark;
 };
 
 } // namespace ccc
