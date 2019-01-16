@@ -162,7 +162,10 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   int ptrCount = 0;
   if (peek().is(TokenType::STAR)) {
     // Parse Pointer (*) symbols
-    parseList([&]() { ++ptrCount; }, TokenType::STAR);
+    do {
+      consume(TokenType::STAR);
+      ptrCount++;
+    } while (peek().is(TokenType::STAR));
   }
 
   // In the case of function type, if pointer is within parenthesis then it is
