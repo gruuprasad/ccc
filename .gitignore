@@ -6,6 +6,7 @@ venv/
 *.gv
 *.svg
 *.old
+*.html
 
 # Created by https://www.gitignore.io/api/c,c++
 
