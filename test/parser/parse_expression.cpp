@@ -6,7 +6,7 @@ using namespace ccc;
 // Test simple expressions
 TEST_CASE("Fast Parser:primary expression test_1") {
   std::string language{" int main() {"
-                       " x = 0;"
+                       " printf(\"hello world!\");"
                        " return 0;"
                        "}"};
 
@@ -73,6 +73,16 @@ TEST_CASE("Fast Parser:primary expression test_2") {
       "if (x) { if (y) return 1; } else {return 2;}"
       "continue;"
       "break;"
+      " return 0;"
+      "}"};
+
+    auto fp = FastParser(language);
+    auto root = fp.parse();
+    REQUIRE(fp.fail() == false);
+  }
+  {
+    std::string language{" int main() {"
+      "a = ((X) + (y) + ((z))) + ((y) + (k));"
       " return 0;"
       "}"};
 
