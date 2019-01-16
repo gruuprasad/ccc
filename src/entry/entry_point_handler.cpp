@@ -41,7 +41,8 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       }
       return EXIT_SUCCESS;
     } else if (flagName == "--print-ast") {
-      return EXIT_SUCCESS; // Not implemented, keeping the flag as it is, but dummy success
+      return EXIT_SUCCESS; // Not implemented, keeping the flag as it is, but
+                           // dummy success
     }
   }
   std::cerr << "?" << std::endl;

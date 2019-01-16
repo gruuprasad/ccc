@@ -121,6 +121,7 @@ TEST_CASE("pretty print if") {
 TEST_CASE("pretty print if inline") {
   auto root = make_unique<CompoundStmt>(
       Token(),
+
       Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(),
           make_unique<Binary>(
@@ -143,6 +144,7 @@ TEST_CASE("pretty print if inline") {
 TEST_CASE("pretty print if else") {
   auto root = make_unique<CompoundStmt>(
       Token(),
+
       Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(),
           make_unique<Binary>(
@@ -178,6 +180,7 @@ make_unique<Binary>( Token(TokenType::PLUS_ASSIGN),
 TEST_CASE("pretty print if else inline") {
   auto root = make_unique<CompoundStmt>(
       Token(),
+
       Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(),
           make_unique<Binary>(
@@ -192,10 +195,25 @@ TEST_CASE("pretty print if else inline") {
 "b")), make_unique<Number>(Token(TokenType::NUMBER, "2")))),
           make_unique<ExpressionStatement>(
               Token(),
-              make_unique<Binary>(
-                  Token(TokenType::DIV),
-                  make_unique<VariableName>(Token(TokenType::IDENTIFIER,
-"a")), make_unique<Number>(Token(TokenType::NUMBER, "3")))))));
+              new BinaryExpression(
+                  Token(TokenType::EQUAL),
+                  new IdentifierExpression(Token(TokenType::IDENTIFIER, "a")),
+                  new ConstantExpression(Token(TokenType::NUMBER, "1"))),
+              new ExpressionStatement(
+                  Token(),
+                  new BinaryExpression(
+                      Token(TokenType::PLUS_ASSIGN),
+                      new IdentifierExpression(
+                          Token(TokenType::IDENTIFIER, "b")),
+                      new ConstantExpression(Token(TokenType::NUMBER, "2")))),
+              new ExpressionStatement(
+                  Token(),
+                  new BinaryExpression(
+                      Token(TokenType::DIV),
+                      new IdentifierExpression(
+                          Token(TokenType::IDENTIFIER, "a")),
+                      new ConstantExpression(Token(TokenType::NUMBER, "3"))))),
+      });
 
   REQUIRE(compare(std::move(root), "{\n"
                                    "\tif ((a == 1))\n"
@@ -208,6 +226,7 @@ TEST_CASE("pretty print if else inline") {
 TEST_CASE("pretty print if else if else inline") {
   auto root = make_unique<CompoundStmt>(
       Token(),
+
       Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
           make_unique<ReturnStatement>(
@@ -240,6 +259,7 @@ make_unique<VariableName>(Token( TokenType::NUMBER, "0")))))))));
 TEST_CASE("pretty print if else if else") {
   auto root = make_unique<CompoundStmt>(
       Token(),
+
       Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
           make_unique<ReturnStatement>(
@@ -258,10 +278,14 @@ make_unique<VariableName>( Token(TokenType::NUMBER, "1"))))),
                   Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
                   make_unique<ReturnStatement>(
                       Token(),
-                      make_unique<VariableName>(Token(TokenType::NUMBER, "1"))),
-                  make_unique<ReturnStatement>(
-                      Token(), make_unique<VariableName>(
-                                   Token(TokenType::NUMBER, "0"))))))));
+                      new ConstantExpression(Token(TokenType::NUMBER, "0")),
+                      new ReturnStatement(Token(),
+                                          new IdentifierExpression(
+                                              Token(TokenType::NUMBER, "1"))),
+                      new ReturnStatement(
+                          Token(), new IdentifierExpression(
+                                       Token(TokenType::NUMBER, "0")))))),
+      });
 
   REQUIRE(compare(std::move(root), "{\n"
                                    "\tif (1)\n"
@@ -278,6 +302,7 @@ make_unique<VariableName>( Token(TokenType::NUMBER, "1"))))),
 TEST_CASE("pretty print if else if") {
   auto root = make_unique<CompoundStmt>(
       Token(),
+
       Utils::vector<StatementListType>(make_unique<IfElse>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
           make_unique<ReturnStatement>(
@@ -290,8 +315,15 @@ TEST_CASE("pretty print if else if") {
               Token(), make_unique<Number>(Token(TokenType::NUMBER, "0")),
               make_unique<CompoundStmt>(
                   Token(),
-Utils::vector<StatementListType>(make_unique<ReturnStatement>( Token(),
-make_unique<VariableName>(Token( TokenType::NUMBER, "1")))))))));
+                  new ConstantExpression(Token(TokenType::NUMBER, "0")),
+                  new CompoundStatement(
+                      Token(),
+                      {
+                          new ReturnStatement(
+                              Token(), new IdentifierExpression(
+                                           Token(TokenType::NUMBER, "1"))),
+                      }))),
+      });
 
   REQUIRE(compare(std::move(root), "{\n"
                                    "\tif (1)\n"
@@ -339,6 +371,7 @@ TEST_CASE("pretty print while") {
 TEST_CASE("pretty print while inline") {
   auto root = make_unique<CompoundStmt>(
       Token(),
+
       Utils::vector<StatementListType>(make_unique<WhileStatement>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
           make_unique<IfElse>(
@@ -362,6 +395,7 @@ TEST_CASE("pretty print while inline") {
 TEST_CASE("pretty print while inline if else break continue") {
   auto root = make_unique<CompoundStmt>(
       Token(),
+
       Utils::vector<StatementListType>(make_unique<WhileStatement>(
           Token(), make_unique<Number>(Token(TokenType::NUMBER, "3")),
           make_unique<IfElse>(
@@ -369,13 +403,14 @@ TEST_CASE("pretty print while inline if else break continue") {
               make_unique<BreakStatement>(Token()),
               make_unique<ContinueStatement>(Token())))));
 
-  REQUIRE(compare(std::move(root), "{\n"
-                                   "\twhile (3)\n"
-                                   "\t\tif (1)\n"
-                                   "\t\t\tbreak;\n"
-                                   "\t\telse\n"
-                                   "\t\t\tcontinue;\n"
-                                   "}\n"));
+  REQUIRE(compare(root, "{\n"
+                        "\twhile (3)\n"
+                        "\t\tif (1)\n"
+                        "\t\t\tbreak;\n"
+                        "\t\telse\n"
+                        "\t\t\tcontinue;\n"
+                        "}\n"));
+  delete root;
 }
 
 TEST_CASE("pretty print while inline break continue") {
@@ -478,6 +513,7 @@ TEST_CASE("pretty print goto label") {
 TEST_CASE("pretty print if else if else goto label") {
   auto root = make_unique<CompoundStmt>(
       Token(),
+
       Utils::vector<StatementListType>(
           make_unique<IfElse>(
               Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
@@ -510,6 +546,7 @@ TEST_CASE("pretty print if else if else goto label") {
               make_unique<IfElse>(
                   Token(), make_unique<Number>(Token(TokenType::NUMBER, "1")),
                   make_unique<ReturnStatement>(Token())))));
+>>>>>>> f1c7734... added a lot of pretty print stuff
 
   REQUIRE(compare(std::move(root), "{\n"
                                    "\tif (1)\n"

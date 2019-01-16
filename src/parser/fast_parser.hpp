@@ -9,8 +9,8 @@
 #include "../utils/utils.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <array>
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -27,7 +27,8 @@ public:
       elem = lexer.lex_valid();
   }
 
-  std::unique_ptr<ASTNode> parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
+  std::unique_ptr<ASTNode>
+  parse(PARSE_TYPE type = PARSE_TYPE::TRANSLATIONUNIT) {
     switch (type) {
     case PARSE_TYPE::TRANSLATIONUNIT:
       return parseTranslationUnit();
@@ -51,7 +52,7 @@ public:
   bool fail() const { return error_count != 0; }
   std::string getError() { return error_stream.str(); }
 
-  void log_msg(const Token & tok, const std::string & msg = std::string()) {
+  void log_msg(const Token &tok, const std::string &msg = std::string()) {
     std::cout << msg << " peek() token info = ";
     std::cout << std::to_string(tok.getLine()) << ":"
               << std::to_string(tok.getColumn()) << ":" << tok.name() << ":\n";
@@ -90,7 +91,8 @@ private:
     return false;
   }
 
-  bool mustExpect(const TokenType tok_type, const std::string & msg = std::string()) {
+  bool mustExpect(const TokenType tok_type,
+                  const std::string &msg = std::string()) {
     if (peek().is(tok_type)) {
       nextToken(); // Token is not used by parser
       return true;
@@ -112,31 +114,34 @@ private:
 
   std::unique_ptr<TranslationUnit> parseTranslationUnit();
   std::unique_ptr<ExternalDeclaration> parseExternalDeclaration();
-  std::unique_ptr<ExternalDeclaration> parseFuncDefOrDeclaration(bool parseOnlyDecl=false);
+  std::unique_ptr<ExternalDeclaration>
+  parseFuncDefOrDeclaration(bool parseOnlyDecl = false);
 
   // Declarations
-  std::unique_ptr<Type> parseTypeSpecifier(bool & structDefined);
-  std::unique_ptr<StructType> parseStructType(bool & structDefined);
-  std::unique_ptr<Declarator> parseDeclarator(bool within_paren=false);
-  std::unique_ptr<Declarator> parseDirectDeclarator(bool in_paren, int ptrCount);
+  std::unique_ptr<Type> parseTypeSpecifier(bool &structDefined);
+  std::unique_ptr<StructType> parseStructType(bool &structDefined);
+  std::unique_ptr<Declarator> parseDeclarator(bool within_paren = false);
+  std::unique_ptr<Declarator> parseDirectDeclarator(bool in_paren,
+                                                    int ptrCount);
   ParamDeclarationListType parseParameterList();
   std::unique_ptr<ParamDeclaration> parseParameterDeclaration();
 
   // Expressions
   std::unique_ptr<Expression> parseExpression();
-  void parseAssignmentExpression();
-  void parseBinOpWithRHS(Precedence minPrec);
-  void parseUnaryExpression();
-  void parsePostfixExpression();
-  void parsePrimaryExpression();
-  void parseArgumentExpressionList();
+  std::unique_ptr<Expression> parseAssignmentExpression();
+  std::unique_ptr<Expression> parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
+                                                Precedence minPrec);
+  std::unique_ptr<Expression> parseUnaryExpression();
+  std::unique_ptr<Expression> parsePostfixExpression();
+  std::unique_ptr<Expression> parsePrimaryExpression();
+  ExpressionListType parseArgumentExpressionList();
 
   // Statements
   std::unique_ptr<Statement> parseStatement();
   std::unique_ptr<Statement> parseCompoundStatement();
-  void parseLabeledStatement();
-  void parseSelectionStatement();
-  void parseIterationStatement();
+  std::unique_ptr<Statement> parseLabeledStatement();
+  std::unique_ptr<Statement> parseSelectionStatement();
+  std::unique_ptr<Statement> parseIterationStatement();
 
   FastLexer lexer;
   std::array<Token, N> la_buffer;
