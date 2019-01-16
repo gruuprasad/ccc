@@ -15,7 +15,7 @@ struct EnumClassHash
 
 static std::unordered_map<TokenType, UnaryOpValue, EnumClassHash> TokenToUnaryOpValue{
     {TokenType::AMPERSAND, UnaryOpValue::ADDRESS_OF},
-    {TokenType::DEREFERENCE, UnaryOpValue::STAR},
+    {TokenType::STAR, UnaryOpValue::DEREFERENCE},
     {TokenType::MINUS, UnaryOpValue::MINUS},
     {TokenType::NOT, UnaryOpValue::NOT}};
 
@@ -359,57 +359,69 @@ void FastParser::parseIterationStatement() {
 // Expressions
 // (6.5.17) expression: assignment
 unique_ptr<Expression> FastParser::parseExpression() {
-  return unique_ptr<Expression>();
+  return parseAssignmentExpression();
 }
 
-/*
 // (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op
 // assignment-expr (6.5.15) conditional-expr: logical-OR | logical-OR ?
 // expression : conditional-expr
-void FastParser::parseAssignmentExpression() {
-  parseUnaryExpression();               // LHS
-  parseBinOpWithRHS(move(lhs), 1); // BinOpLeft + RHS
-  return;
+std::unique_ptr<Expression> FastParser::parseAssignmentExpression() {
+  Token src_mark (peek());
+  auto lhs = parseUnaryExpression();        // LHS or first operand
+  if (peek().is(TokenType::ASSIGN)) {
+    consume(TokenType::ASSIGN);
+    auto rhs = parseUnaryExpression();   // rhs first operand
+    rhs = parseBinOpWithRHS(move(rhs), 1); // BinOpLeft + RHS
+    return make_unique<Assignment>(src_mark, std::move(lhs), std::move(rhs));
+  }
+
+  return parseBinOpWithRHS(std::move(lhs), 1);
 }
 
-void FastParser::parseBinOpWithRHS(Precedence minPrec) {
+std::unique_ptr<Expression> FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs, Precedence minPrec) {
   auto nextTokenPrec = peek().getPrecedence();
 
   while (true) {
     // If precedence of BinOp encounted is smaller than current Precedence
     // level return LHS.
-    if (nextTokenPrec < minPrec)
-      return; // LHS
+
+    if (nextTokenPrec < minPrec) {
+      if (fail())
+        return std::unique_ptr<Expression>();
+      return std::move(lhs); // LHS
+    }
 
     auto binOpLeft = nextToken();
+    auto binOpLeftValue = TokenToBinaryOpValue[binOpLeft.getType()];
 
     // Handle conditional operator middle expression
+    bool ternayOp = false;
+    std::unique_ptr<Expression> ternary_middle;
     if (binOpLeft.getType() == TokenType::CONDITIONAL) {
-      parseExpression(); // Ternary middle
+      ternayOp = true;
+      ternary_middle = parseExpression(); // Ternary middle
       mustExpect(TokenType::COLON);
     }
 
-    parseUnaryExpression(); // RHS
+    auto rhs = parseUnaryExpression(); // RHS
 
     auto binOpLeftPrec = nextTokenPrec;
     nextTokenPrec = peek().getPrecedence(); // binOpRight
 
     if (binOpLeftPrec < nextTokenPrec) {
       // Evaluate RHS + binOpRight...
-      parseBinOpWithRHS(binOpLeftPrec); // new RHS after evaluation
+      rhs = parseBinOpWithRHS( std::move(rhs), binOpLeftPrec); // new RHS after evaluation
     }
 
     // Make AST LHS = LHS + RHS or lhs + ternary_middle + rhs
-    bool ternary_middle = false;
-    if (ternary_middle) {
-      ;
+    if (ternayOp) {
+      lhs = make_unique<Ternary>(binOpLeft, std::move(lhs), std::move(ternary_middle), std::move(rhs));
     } else {
-      ;
+      lhs = make_unique<Binary>(binOpLeft, binOpLeftValue, std::move(lhs), std::move(rhs));
     }
     nextTokenPrec = peek().getPrecedence();
   }
 }
-*/
 
 // (6.5.3) unary-expression : postfix-expression
 //                            unary-operator unary-expression
@@ -429,7 +441,8 @@ std::unique_ptr<Expression> FastParser::parseUnaryExpression() {
   if (peek().is(TokenType::SIZEOF)) {
     consume(TokenType::SIZEOF);
     if (mayExpect(TokenType::PARENTHESIS_OPEN)) {
-      auto type_name = parseTypeSpecifier();
+      bool structDefined;
+      auto type_name = parseTypeSpecifier(structDefined);
       mustExpect(TokenType::PARENTHESIS_CLOSE);
       if (fail()) {
         return std::unique_ptr<Expression>();
@@ -453,6 +466,10 @@ std::unique_ptr<Expression> FastParser::parseUnaryExpression() {
 //                              postfix-expr -> identifier
 std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
   Token src_mark (peek()), op;
+  PostFixOpValue postfixOp;
+  ExpressionListType arg_list;
+  std::string m_name;
+  std::unique_ptr<Expression> post_operand;
   auto postfix = parsePrimaryExpression();
   if (fail()) {
     return std::unique_ptr<Expression>();
@@ -462,23 +479,23 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
     switch (src_mark.getType()) {
       case TokenType::BRACKET_OPEN:
         op = nextToken();
-        index = parseExpression();
+        post_operand = parseExpression();
         mustExpect(TokenType::BRACKET_CLOSE);
-        postfix = make_unique<ArraySubscriptOp>(src_mark, std::move(postfix), std::move(index));
+        postfix = make_unique<ArraySubscriptOp>(src_mark, std::move(postfix), std::move(post_operand));
         break;
       case TokenType::PARENTHESIS_OPEN:
         op = nextToken();
-        auto arg_list = parseArgumentExpressionList();
+        arg_list = parseArgumentExpressionList();
         mustExpect(TokenType::PARENTHESIS_CLOSE);
         postfix = make_unique<FunctionCall>(src_mark, std::move(postfix), std::move(arg_list));
         break;
       case TokenType::DOT:
       case TokenType::ARROW:
-        auto op = (nextToken().getType() == TokenType::DOT) ? PostFixOpValue::DOT : PostFixOpValue::ARROW; 
+        postfixOp = (nextToken().getType() == TokenType::DOT) ? PostFixOpValue::DOT : PostFixOpValue::ARROW; 
         if (peek().is(TokenType::IDENTIFIER)) {
-          auto m_name = peek().getExtra();
-          auto identifer = make_unique<Identifier>(nextToken(), std::move(m_name));
-          postfix = make_unique<MemberAccessOp>(src_mark, std::move(postfix), std::move(identifer));
+          m_name = peek().getExtra();
+          post_operand = make_unique<VariableName>(nextToken(), std::move(m_name));
+          postfix = make_unique<MemberAccessOp>(src_mark, postfixOp, std::move(postfix), std::move(post_operand));
           break;
         }
         parser_error(peek(), "identifier after member access operator (. or ->)");
@@ -491,6 +508,7 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
 
 // (6.5.1) primary: identifer | constant | string-literal | ( expression )
 std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
+  std::unique_ptr<Expression> paren_expr;
   Token src_mark (peek());
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
@@ -498,12 +516,12 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
   case TokenType::NUMBER:
     return make_unique<Number>(nextToken(), stoi(src_mark.getExtra()));;
   case TokenType::CHARACTER:
-    return make_unique<Character>(nextToken(), src_mark.getExtra());
+    return make_unique<Character>(nextToken(), src_mark.getExtra().front());
   case TokenType::STRING:
     return make_unique<String>(nextToken(), src_mark.getExtra());
   case TokenType::PARENTHESIS_OPEN:
     mustExpect(TokenType::PARENTHESIS_OPEN);
-    auto paren_expr = parseExpression();
+    paren_expr = parseExpression();
     mustExpect(TokenType::PARENTHESIS_CLOSE);
     return std::move(paren_expr);
   default:
@@ -512,9 +530,9 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
   }
 }
 
-ArgumentExpressionList FastParser::parseArgumentExpressionList() {
+ExpressionListType FastParser::parseArgumentExpressionList() {
   // TODO implement
-  ArgumentExpressionList empty_list;
+  ExpressionListType empty_list;
   return empty_list;
 }
 

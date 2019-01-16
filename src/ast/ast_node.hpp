@@ -298,9 +298,9 @@ class MemberAccessOp : public Expression {
   std::unique_ptr<Expression> member_name;
 
 public:
-  MemberAccessOp(const Token & tk, std::unique_ptr<Expression> s, std::unique_ptr<Expression> m)
+  MemberAccessOp(const Token & tk, PostFixOpValue o, std::unique_ptr<Expression> s, std::unique_ptr<Expression> m)
     : Expression(tk),
-      struct_name(std::move(s)), member_name(std::move(m)) {}
+      op_kind(o), struct_name(std::move(s)), member_name(std::move(m)) {}
 };
 
 class ArraySubscriptOp : public Expression {
