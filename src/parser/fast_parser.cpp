@@ -11,15 +11,17 @@ static std::unordered_map<TokenType, UnaryOpValue, EnumClassHash>
                         {TokenType::NOT, UnaryOpValue::NOT}};
 
 static std::unordered_map<TokenType, BinaryOpValue, EnumClassHash>
-    TokenToBinaryOpValue{{TokenType::STAR, BinaryOpValue::MULTIPLY},
-                         {TokenType::PLUS, BinaryOpValue::ADD},
-                         {TokenType::MINUS, BinaryOpValue::SUBTRACT},
-                         {TokenType::LESS, BinaryOpValue::LESS_THAN},
-                         {TokenType::EQUAL, BinaryOpValue::EQUAL},
-                         {TokenType::NOT_EQUAL, BinaryOpValue::NOT_EQUAL},
-                         {TokenType::AND, BinaryOpValue::LOGICAL_AND},
-                         {TokenType::OR, BinaryOpValue::LOGICAL_OR},
-                         {TokenType::ASSIGN, BinaryOpValue::ASSIGN}};
+    TokenToBinaryOpValue{
+        {TokenType::STAR, BinaryOpValue::MULTIPLY},
+        {TokenType::PLUS, BinaryOpValue::ADD},
+        {TokenType::MINUS, BinaryOpValue::SUBTRACT},
+        {TokenType::LESS, BinaryOpValue::LESS_THAN},
+        {TokenType::EQUAL, BinaryOpValue::EQUAL},
+        {TokenType::NOT_EQUAL, BinaryOpValue::NOT_EQUAL},
+        {TokenType::AND, BinaryOpValue::LOGICAL_AND},
+        {TokenType::OR, BinaryOpValue::LOGICAL_OR},
+        //                         {TokenType::ASSIGN, BinaryOpValue::ASSIGN}
+    };
 
 // (6.9) translationUnit :: external-declaration+
 unique_ptr<TranslationUnit> FastParser::parseTranslationUnit() {

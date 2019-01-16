@@ -73,16 +73,16 @@ TEST_CASE("pretty print if") {
 
 TEST_CASE("pretty print if inline") {
   auto root = make_unique<CompoundStmt>(
-      Token(), Utils::vector<ASTNodeListType>(make_unique<IfElse>(
-                   Token(),
-                   make_unique<Binary>(Token(), BinaryOpValue::EQUAL,
-                                       make_unique<VariableName>(Token(), "a"),
-                                       make_unique<Character>(Token(), 'a')),
-                   make_unique<ExpressionStmt>(
-                       Token(), make_unique<Binary>(
-                                    Token(), BinaryOpValue::ASSIGN,
-                                    make_unique<VariableName>(Token(), "b"),
-                                    make_unique<Number>(Token(), 2))))));
+      Token(),
+      Utils::vector<ASTNodeListType>(make_unique<IfElse>(
+          Token(),
+          make_unique<Binary>(Token(), BinaryOpValue::EQUAL,
+                              make_unique<VariableName>(Token(), "a"),
+                              make_unique<Character>(Token(), 'a')),
+          make_unique<ExpressionStmt>(
+              Token(), make_unique<Assignment>(
+                           Token(), make_unique<VariableName>(Token(), "b"),
+                           make_unique<Number>(Token(), 2))))));
   REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
                                                "\tif ((a == 'a'))\n"
                                                "\t\t(b = 2);\n"
@@ -433,102 +433,104 @@ TEST_CASE("declaration") {
           make_unique<DataDeclaration>(
               Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
               make_unique<DirectDeclarator>(
-                  Token(), make_unique<VariableName>(Token(), "a")))
-          //          make_unique<DeclarationStatement>(
-          //              Token(),
-          //              make_unique<TypeExpression>(
-          //                  TypeSpec::INT, make_unique<PointerTypeExpression>(
-          //                                     make_unique<VariableName>(Token(),
-          //                                     "b")))),
-          //          make_unique<DeclarationStatement>(
-          //              Token(),
-          //              make_unique<TypeExpression>(
-          //                  TypeSpec::VOID,
-          //                  make_unique<PointerTypeExpression>(
-          //                                      make_unique<PointerTypeExpression>(
-          //                                          make_unique<VariableName>(Token(
-          //                                              TokenType::IDENTIFIER,
-          //                                              "c")))))),
-          //          make_unique<DeclarationStatement>(
-          //              Token(), make_unique<TypeExpression>(
-          //                           TypeSpec::VOID,
-          //                           make_unique<PointerTypeExpression>(
-          //                               make_unique<FunctionTypeExpression>(
-          //                                   make_unique<PointerTypeExpression>(
-          //                                       make_unique<PointerTypeExpression>(
-          //                                           make_unique<VariableName>(Token(
-          //                                               TokenType::IDENTIFIER,
-          //                                               "d")))),
-          //                                   std::move(tmp0))))),
-          //          make_unique<DeclarationStatement>(
-          //              Token(),
-          //              make_unique<TypeExpression>(
-          //                  TypeSpec::INT,
-          //                  make_unique<FunctionTypeExpression>(
-          //                                     make_unique<VariableName>(
-          //                                         Token(TokenType::IDENTIFIER,
-          //                                         "main")),
-          //                                     std::move(tmp1)))),
-          //          make_unique<DeclarationStatement>(
-          //              Token(),
-          //              make_unique<StructTypeExpression>(
-          //                  make_unique<VariableName>(Token(), "s"),
-          //                  make_unique<PointerTypeExpression>(make_unique<VariableName>(
-          //                      Token(TokenType::IDENTIFIER, "p"))))),
-          //          make_unique<DeclarationStatement>(
-          //              Token(),
-          //              make_unique<TypeExpression>(
-          //                  TypeSpec::INT, make_unique<PointerTypeExpression>(
-          //                                     make_unique<FunctionTypeExpression>(
-          //                                         make_unique<VariableName>(Token(
-          //                                             TokenType::IDENTIFIER,
-          //                                             "test")),
-          //                                         std::move(tmp2)))))
-          ));
+                  Token(), make_unique<VariableName>(Token(), "a"))),
+          make_unique<DataDeclaration>(
+              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
+              make_unique<PointerDeclarator>(
+                  Token(),
+                  make_unique<DirectDeclarator>(
+                      Token(), make_unique<VariableName>(Token(), "b")))),
+          make_unique<DataDeclaration>(
+              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::VOID),
+              make_unique<PointerDeclarator>(
+                  Token(),
+                  make_unique<DirectDeclarator>(
+                      Token(), make_unique<VariableName>(Token(), "c")),
+                  2)),
+          make_unique<DataDeclaration>(
+              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::VOID),
+              make_unique<PointerDeclarator>(
+                  Token(),
+                  make_unique<FunctionDeclarator>(
+                      Token(),
+                      make_unique<PointerDeclarator>(
+                          Token(),
+                          make_unique<DirectDeclarator>(
+                              Token(), make_unique<VariableName>(Token(), "d")),
+                          2),
+                      Utils::vector<ParamDeclarationListType>(
+                          make_unique<ParamDeclaration>(
+                              Token(), make_unique<ScalarType>(
+                                           Token(), ScalarTypeValue::INT)))))),
+          make_unique<FunctionDeclaration>(
+              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::CHAR),
+              make_unique<FunctionDeclarator>(
+                  Token(),
+                  make_unique<DirectDeclarator>(
+                      Token(), make_unique<VariableName>(Token(), "main")),
+                  Utils::vector<
+                      ParamDeclarationListType>(make_unique<ParamDeclaration>(
+                      Token(),
+                      make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
+                      make_unique<DirectDeclarator>(
+                          Token(), make_unique<VariableName>(Token(), "a")))))),
+          make_unique<StructDeclaration>(
+              Token(), make_unique<StructType>(Token(), "S"),
+              make_unique<PointerDeclarator>(
+                  Token(),
+                  make_unique<DirectDeclarator>(
+                      Token(), make_unique<VariableName>(Token(), "p"))))));
 
-  REQUIRE(Utils::compare(
-      root->prettyPrint(0),
-      "{\n"
-      "\tint a;\n"
-      //                                               "\tint (*b);\n"
-      //                                               "\tvoid (*(*c));\n"
-      //                                               "\tvoid
-      //                                               (*((*(*d))(int)));\n"
-      //                                               "\tint (main(void));\n"
-      //                                               "\tstruct S (*p);\n"
-      //                                               "\tint
-      //                                               (*(test(char)));\n"
-      "}\n"));
+  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
+                                               "\tint a;\n"
+                                               "\tint (*b);\n"
+                                               "\tvoid (*(*c));\n"
+                                               "\tvoid (*((*(*d))(int)));\n"
+                                               "\tchar (main(int a));\n"
+                                               "\tstruct S (*p);\n"
+                                               "}\n"));
 }
-/*
+
 TEST_CASE("declaration init") {
-  std::vector<std::unique_ptr<TypeExpression>> tmp;
-  tmp.push_back(std::move(make_unique<TypeExpression>(TypeSpec::VOID)));
-  tmp.push_back(std::move(make_unique<TypeExpression>(TypeSpec::INT)));
   auto root = make_unique<CompoundStmt>(
       Token(),
-      Utils::vector<ASTNodeListType>(make_unique<DeclarationStatement>(
-          Token(),
-          make_unique<TypeExpression>(
-              TypeSpec::INT, make_unique<FunctionTypeExpression>(
-                                 make_unique<VariableName>(
-                                     Token(TokenType::IDENTIFIER, "main")),
-                                 std::move(tmp))),
+      Utils::vector<ASTNodeListType>(make_unique<FunctionDefinition>(
+          Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
+          make_unique<FunctionDeclarator>(
+              Token(),
+              make_unique<DirectDeclarator>(
+                  Token(), make_unique<VariableName>(Token(), "main")),
+              Utils::vector<ParamDeclarationListType>(
+                  make_unique<ParamDeclaration>(
+                      Token(),
+                      make_unique<ScalarType>(Token(), ScalarTypeValue::INT)),
+                  make_unique<ParamDeclaration>(
+                      Token(),
+                      make_unique<ScalarType>(Token(), ScalarTypeValue::CHAR),
+                      make_unique<PointerDeclarator>(Token())),
+                  make_unique<ParamDeclaration>(
+                      Token(),
+                      make_unique<ScalarType>(Token(), ScalarTypeValue::VOID),
+                      make_unique<PointerDeclarator>(
+                          Token(),
+                          make_unique<DirectDeclarator>(
+                              Token(), make_unique<VariableName>(Token(), "a")),
+                          2)))),
           make_unique<CompoundStmt>(
               Token(),
-              Utils::vector<ASTNodeListType>(make_unique<DeclarationStatement>(
+              Utils::vector<ASTNodeListType>(make_unique<DataDeclaration>(
                   Token(),
-                  make_unique<TypeExpression>(
-                      TypeSpec::INT, make_unique<VariableName>(Token(
-                                         TokenType::IDENTIFIER, "d"))))))))
+                  make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
+                  make_unique<DirectDeclarator>(
+                      Token(), make_unique<VariableName>(Token(), "d"))))))));
 
-  );
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                   "\tint (main(void, int))\n"
-                                   "\t{\n"
-                                   "\t\tint d;\n"
-                                   "\t}\n"
-                                   "}\n"));
+  REQUIRE(Utils::compare(root->prettyPrint(0),
+                         "{\n"
+                         "\tint (main(int, char (*), void (*(*a))))\n"
+                         "\t{\n"
+                         "\t\tint d;\n"
+                         "\t}\n"
+                         "}\n"));
 }
 
 TEST_CASE("sizeof") {
@@ -536,44 +538,50 @@ TEST_CASE("sizeof") {
       Token(),
       Utils::vector<ASTNodeListType>(
           make_unique<ExpressionStmt>(
-              Token(), make_unique<SizeOfExpression>(
+              Token(), make_unique<SizeOf>(
                            Token(), make_unique<VariableName>(Token(), "b"))),
           make_unique<ExpressionStmt>(
               Token(),
-              make_unique<SizeOfExpression>(
-                  Token(), make_unique<TypeExpression>(TypeSpec::INT))),
+              make_unique<SizeOf>(Token(), make_unique<ScalarType>(
+                                               Token(), ScalarTypeValue::INT))),
           make_unique<ExpressionStmt>(
-              Token(), make_unique<SizeOfExpression>(
+              Token(), make_unique<SizeOf>(
                            Token(), make_unique<Binary>(
                                         Token(), BinaryOpValue::ADD,
                                         make_unique<Number>(Token(), 0),
                                         make_unique<Number>(Token(), 0))))));
   REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                   "\t(sizeof b);\n"
-                                   "\t(sizeof(int));\n"
-                                   "\t(sizeof (0 + 0));\n"
-                                   "}\n"));
+                                               "\t(sizeof b);\n"
+                                               "\t(sizeof(int));\n"
+                                               "\t(sizeof (0 + 0));\n"
+                                               "}\n"));
 }
 
 TEST_CASE("struct") {
   auto root = make_unique<CompoundStmt>(
       Token(),
-      Utils::vector<ASTNodeListType>(make_unique<StructStatement>(
-          Token(), make_unique<VariableName>(Token(), "s"),
-          make_unique<CompoundStmt>(
+      Utils::vector<ASTNodeListType>(
+          make_unique<StructDeclaration>(Token(),
+                                         make_unique<StructType>(Token(), "S")),
+          make_unique<StructDeclaration>(
               Token(),
-              Utils::vector<ASTNodeListType>(make_unique<DeclarationStatement>(
-                  Token(),
-                  make_unique<TypeExpression>(
-                      TypeSpec::INT, make_unique<VariableName>(
-                                         Token(), "x"))))),
-          make_unique<VariableName>(Token(), "s"))));
+              make_unique<StructType>(
+                  Token(), "S",
+                  Utils::vector<
+                      ExternalDeclarationListType>(make_unique<DataDeclaration>(
+                      Token(),
+                      make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
+                      make_unique<DirectDeclarator>(
+                          Token(), make_unique<VariableName>(Token(), "x"))))),
+              make_unique<DirectDeclarator>(
+                  Token(), make_unique<VariableName>(Token(), "s")))));
   REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                   "\tstruct S\n"
-                                   "\t{\n"
-                                   "\t\tint x;\n"
-                                   "\t} s;\n"
-                                   "}\n"));
+                                               "\tstruct S;\n"
+                                               "\tstruct S\n"
+                                               "\t{\n"
+                                               "\t\tint x;\n"
+                                               "\t} s;\n"
+                                               "}\n"));
 }
 
 TEST_CASE("postfix") {
@@ -581,42 +589,35 @@ TEST_CASE("postfix") {
       Token(),
       Utils::vector<ASTNodeListType>(
           make_unique<ExpressionStmt>(
-              Token(),
-              make_unique<PostfixExpression>(
-                  Token(TokenType::DOT),
-                  make_unique<VariableName>(Token(), "s"),
-                  make_unique<VariableName>(
-                      Token(), "x"))),
+              Token(), make_unique<MemberAccessOp>(
+                           Token(), PostFixOpValue::DOT,
+                           make_unique<VariableName>(Token(), "s"),
+                           make_unique<VariableName>(Token(), "x"))),
           make_unique<ExpressionStmt>(
-              Token(), make_unique<PostfixExpression>(
-                           Token(TokenType::ARROW),
-                           make_unique<PostfixExpression>(
-                               Token(TokenType::DOT),
-                               make_unique<PostfixExpression>(
-                                   Token(TokenType::ARROW),
+              Token(), make_unique<MemberAccessOp>(
+                           Token(), PostFixOpValue::ARROW,
+                           make_unique<MemberAccessOp>(
+                               Token(), PostFixOpValue::DOT,
+                               make_unique<MemberAccessOp>(
+                                   Token(), PostFixOpValue::ARROW,
                                    make_unique<VariableName>(Token(), "a"),
-                                   make_unique<VariableName>(
-                                       Token(), "s")),
-                               make_unique<VariableName>(
-                                   Token(), "x")),
-                           make_unique<VariableName>(
-                               Token(TokenType::IDENTIFIER, "b")))),
+                                   make_unique<VariableName>(Token(), "s")),
+                               make_unique<VariableName>(Token(), "x")),
+                           make_unique<VariableName>(Token(), "b"))),
           make_unique<ExpressionStmt>(
               Token(),
-              make_unique<Binary>(Token(), BinaryOpValue::ASSIGN,
-                                  make_unique<PostfixExpression>(
-                                      Token(TokenType::DOT),
-                                      make_unique<VariableName>(
-                                          Token(), "s"),
-                                      make_unique<VariableName>(
-                                          Token(), "x")),
-                                  make_unique<VariableName>(
-                                      Token(), "x")))));
+              make_unique<Assignment>(
+                  Token(),
+                  make_unique<MemberAccessOp>(
+                      Token(), PostFixOpValue::DOT,
+                      make_unique<VariableName>(Token(), "s"),
+                      make_unique<VariableName>(Token(), "x")),
+                  make_unique<VariableName>(Token(), "x")))));
   REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                   "\t(s.x);\n"
-                                   "\t(((a->s).x)->b);\n"
-                                   "\t((s.x) = x);\n"
-                                   "}\n"));
+                                               "\t(s.x);\n"
+                                               "\t(((a->s).x)->b);\n"
+                                               "\t((s.x) = x);\n"
+                                               "}\n"));
 }
 
 TEST_CASE("unary") {
@@ -625,46 +626,94 @@ TEST_CASE("unary") {
       Utils::vector<ASTNodeListType>(
           make_unique<ExpressionStmt>(
               Token(),
-              make_unique<UnaryExpression>(Token(TokenType::AMPERSAND),
-                                           make_unique<VariableName>(Token(
-                                               ), "s"))),
+              make_unique<Unary>(Token(), UnaryOpValue::DEREFERENCE,
+                                 make_unique<VariableName>(Token(), "s"))),
+          make_unique<ExpressionStmt>(
+              Token(),
+              make_unique<Unary>(Token(), UnaryOpValue::ADDRESS_OF,
+                                 make_unique<VariableName>(Token(), "s"))),
           make_unique<Return>(
-              Token(), make_unique<UnaryExpression>(
-                           Token(TokenType::MINUS),
-                           make_unique<UnaryExpression>(
-                               Token(), BinaryOpValue::MULTIPLY,
-                               make_unique<UnaryExpression>(
-                                   Token(TokenType::AMPERSAND),
-                                   make_unique<PostfixExpression>(
-                                       Token(TokenType::DOT),
-                                       make_unique<VariableName>(
-                                           Token(), "s"),
-                                       make_unique<VariableName>(Token(
-                                           ), "x"))))))));
+              Token(),
+              make_unique<Unary>(
+                  Token(), UnaryOpValue::MINUS,
+                  make_unique<Unary>(
+                      Token(), UnaryOpValue::DEREFERENCE,
+                      make_unique<Unary>(
+                          Token(), UnaryOpValue::ADDRESS_OF,
+                          make_unique<ArraySubscriptOp>(
+                              Token(), make_unique<VariableName>(Token(), "s"),
+                              make_unique<VariableName>(Token(), "x"))))))));
   REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                   "\t(&s);\n"
-                                   "\treturn (-(*(&(s.x))));\n"
-                                   "}\n"));
+                                               "\t(*s);\n"
+                                               "\t(&s);\n"
+                                               "\treturn (-(*(&(s[x]))));\n"
+                                               "}\n"));
 }
 
 TEST_CASE("call") {
-  auto root = new CompoundStmt(
+  auto root = make_unique<CompoundStmt>(
       Token(),
-      {
-          new ExpressionStmt(
-              Token(),
-              new CallExpression(
-                  Token(),
-                  new VariableNameExpression(Token(TokenType::IDENTIFIER, "f")),
-                  {new UnaryExpression(Token(TokenType::MINUS),
-                                       new VariableNameExpression(
-                                           Token(), "s")),
-                   new VariableNameExpression(Token(), 1)})),
-      });
-  REQUIRE(Utils::compare(root, "{\n"
-                        "\t(f((-s), 1));\n"
-                        "}\n"));
-  delete root;
+      Utils::vector<ASTNodeListType>(make_unique<ExpressionStmt>(
+          Token(),
+          make_unique<FunctionCall>(
+              Token(), make_unique<VariableName>(Token(), "f"),
+              Utils::vector<ExpressionListType>(
+                  make_unique<Unary>(Token(), UnaryOpValue::MINUS,
+                                     make_unique<VariableName>(Token(), "s")),
+                  make_unique<Number>(Token(), 1))))));
+  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
+                                               "\t(f((-s), 1));\n"
+                                               "}\n"));
 }
-*/
+
+TEST_CASE("traslation") {
+  auto root = make_unique<TranslationUnit>(
+      Token(),
+      Utils::vector<ExternalDeclarationListType>(
+          make_unique<DataDeclaration>(
+              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
+              make_unique<DirectDeclarator>(
+                  Token(), make_unique<VariableName>(Token(), "a"))),
+          make_unique<DataDeclaration>(
+              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::CHAR),
+              make_unique<DirectDeclarator>(
+                  Token(), make_unique<VariableName>(Token(), "b"))),
+          make_unique<FunctionDefinition>(
+              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
+              make_unique<FunctionDeclarator>(
+                  Token(),
+                  make_unique<DirectDeclarator>(
+                      Token(), make_unique<VariableName>(Token(), "main")),
+                  Utils::vector<ParamDeclarationListType>(
+                      make_unique<ParamDeclaration>(
+                          Token(), make_unique<ScalarType>(
+                                       Token(), ScalarTypeValue::INT)),
+                      make_unique<ParamDeclaration>(
+                          Token(), make_unique<ScalarType>(
+                                       Token(), ScalarTypeValue::CHAR)),
+                      make_unique<ParamDeclaration>(
+                          Token(),
+                          make_unique<ScalarType>(Token(),
+                                                  ScalarTypeValue::INT),
+                          make_unique<DirectDeclarator>(
+                              Token(),
+                              make_unique<VariableName>(Token(), "a"))))),
+              make_unique<CompoundStmt>(
+                  Token(),
+                  Utils::vector<ASTNodeListType>(make_unique<DataDeclaration>(
+                      Token(),
+                      make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
+                      make_unique<DirectDeclarator>(
+                          Token(),
+                          make_unique<VariableName>(Token(), "d"))))))));
+  REQUIRE(Utils::compare(root->prettyPrint(0), "int a;\n"
+                                               "\n"
+                                               "char b;\n"
+                                               "\n"
+                                               "int (main(int, char, int a))\n"
+                                               "{\n"
+                                               "\tint d;\n"
+                                               "}\n"));
+}
+
 } // namespace ccc

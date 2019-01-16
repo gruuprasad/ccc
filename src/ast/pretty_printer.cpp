@@ -7,26 +7,42 @@
 namespace ccc {
 
 static std::unordered_map<BinaryOpValue, std::string, EnumClassHash>
-    BinaryOpValueToString{{BinaryOpValue::MULTIPLY, " * "},
-                          {BinaryOpValue::ADD, " + "},
-                          {BinaryOpValue::SUBTRACT, " - "},
-                          {BinaryOpValue::LESS_THAN, " < "},
-                          {BinaryOpValue::EQUAL, " == "},
-                          {BinaryOpValue::NOT_EQUAL, " != "},
-                          {BinaryOpValue::LOGICAL_AND, " && "},
-                          {BinaryOpValue::LOGICAL_OR, " || "},
-                          {BinaryOpValue::ASSIGN, " = "}};
+    BinaryOpValueToString{
+        {BinaryOpValue::MULTIPLY, " * "},
+        {BinaryOpValue::ADD, " + "},
+        {BinaryOpValue::SUBTRACT, " - "},
+        {BinaryOpValue::LESS_THAN, " < "},
+        {BinaryOpValue::EQUAL, " == "},
+        {BinaryOpValue::NOT_EQUAL, " != "},
+        {BinaryOpValue::LOGICAL_AND, " && "},
+        {BinaryOpValue::LOGICAL_OR, " || "},
+        //                          {BinaryOpValue::ASSIGN, " = "}
+    };
 
-std::string TranslationUnit::prettyPrint(int) { return std::string(); }
+static std::unordered_map<UnaryOpValue, std::string, EnumClassHash>
+    UnaryOpValueToString{{UnaryOpValue::ADDRESS_OF, "&"},
+                         {UnaryOpValue::DEREFERENCE, "*"},
+                         {UnaryOpValue::MINUS, "-"},
+                         {UnaryOpValue::NOT, "!"}};
+
+std::string TranslationUnit::prettyPrint(int) {
+  std::stringstream ss;
+  for (const auto &p : extern_list) {
+    ss << p->prettyPrint(0);
+    if (p != extern_list.back())
+      ss << "\n";
+  }
+  return ss.str();
+}
 
 std::string FunctionDefinition::prettyPrint(int lvl) {
-  return indent(lvl) + return_type->prettyPrint(0) + fn_name->prettyPrint(0) +
-         fn_body->prettyPrint(0);
+  return indent(lvl) + return_type->prettyPrint(0) + " " +
+         fn_name->prettyPrint(0) + "\n" + fn_body->prettyPrint(lvl);
 }
 
 std::string FunctionDeclaration::prettyPrint(int lvl) {
-  return indent(lvl) + return_type->prettyPrint(0) + fn_name->prettyPrint(0) +
-         ";\n";
+  return indent(lvl) + return_type->prettyPrint(0) + " " +
+         fn_name->prettyPrint(0) + ";\n";
 }
 
 std::string DataDeclaration::prettyPrint(int lvl) {
@@ -34,8 +50,9 @@ std::string DataDeclaration::prettyPrint(int lvl) {
          data_name->prettyPrint(0) + ";\n";
 }
 
-std::string StructDeclaration::prettyPrint(int) {
-  return struct_type->prettyPrint(0) + " " + struct_alias->prettyPrint(0);
+std::string StructDeclaration::prettyPrint(int lvl) {
+  return indent(lvl) + struct_type->prettyPrint(lvl) +
+         (struct_alias ? " " + struct_alias->prettyPrint(0) : error) + ";\n";
 }
 
 std::string ParamDeclaration::prettyPrint(int) {
@@ -78,7 +95,7 @@ std::string PointerDeclarator::prettyPrint(int) {
     pre += "(*";
     post += ")";
   }
-  return pre + identifer->prettyPrint(0) + post;
+  return pre + (identifer ? identifer->prettyPrint(0) : error) + post;
 }
 
 std::string FunctionDeclarator::prettyPrint(int) {
@@ -166,17 +183,37 @@ std::string Character::prettyPrint(int) {
 
 std::string String::prettyPrint(int) { return "\"" + str_value + "\""; }
 
-std::string MemberAccessOp::prettyPrint(int) { return std::string(); }
-
-std::string ArraySubscriptOp::prettyPrint(int) { return std::string(); }
-
-std::string FunctionCall::prettyPrint(int) { return std::string(); }
-
-std::string Unary::prettyPrint(int) {
-  return "(" + getTokenRef().name() + operand->prettyPrint(0) + ")";
+std::string MemberAccessOp::prettyPrint(int) {
+  return "(" + struct_name->prettyPrint(0) +
+         (op_kind == PostFixOpValue::DOT ? "." : "->") +
+         member_name->prettyPrint(0) + ")";
 }
 
-std::string SizeOf::prettyPrint(int) { return std::string(); }
+std::string ArraySubscriptOp::prettyPrint(int) {
+  return "(" + array_name->prettyPrint(0) + "[" + index_value->prettyPrint(0) +
+         "])";
+}
+
+std::string FunctionCall::prettyPrint(int) {
+  std::stringstream ss;
+  for (const auto &p : callee_args) {
+    ss << p->prettyPrint(0);
+    if (p != callee_args.back())
+      ss << ", ";
+  }
+  return "(" + callee_name->prettyPrint(0) + "(" + ss.str() + "))";
+}
+
+std::string Unary::prettyPrint(int) {
+  return "(" + UnaryOpValueToString[op_kind] + operand->prettyPrint(0) + ")";
+}
+
+std::string SizeOf::prettyPrint(int) {
+  return "(sizeof" +
+         (type_name ? "(" + type_name->prettyPrint(0) + ")"
+                    : " " + operand->prettyPrint(0)) +
+         ")";
+}
 
 std::string Binary::prettyPrint(int) {
   return "(" + left_operand->prettyPrint(0) + BinaryOpValueToString[op_kind] +
@@ -188,6 +225,9 @@ std::string Ternary::prettyPrint(int) {
          " : " + right_branch->prettyPrint(0) + ")";
 }
 
-std::string Assignment::prettyPrint(int) { return std::string(); }
+std::string Assignment::prettyPrint(int) {
+  return "(" + left_operand->prettyPrint(0) + " = " +
+         right_operand->prettyPrint(0) + ")";
+}
 
 } // namespace ccc

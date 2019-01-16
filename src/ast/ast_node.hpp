@@ -126,7 +126,7 @@ class StructDeclaration : public Declaration {
 
 public:
   StructDeclaration(const Token &tk, std::unique_ptr<Type> t,
-                    std::unique_ptr<Declarator> a)
+                    std::unique_ptr<Declarator> a = nullptr)
       : Declaration(tk), struct_type(std::move(t)), struct_alias(std::move(a)) {
   }
 
@@ -198,7 +198,8 @@ class PointerDeclarator : public Declarator {
   int indirection_level;
 
 public:
-  PointerDeclarator(const Token &tk, std::unique_ptr<Declarator> i, int l = 1)
+  explicit PointerDeclarator(const Token &tk,
+                             std::unique_ptr<Declarator> i = nullptr, int l = 1)
       : Declarator(tk), identifer(std::move(i)), indirection_level(l) {}
 
   std::string prettyPrint(int lvl) override;
@@ -443,7 +444,7 @@ enum class BinaryOpValue {
   NOT_EQUAL,
   LOGICAL_AND,
   LOGICAL_OR,
-  ASSIGN
+  //  ASSIGN XXX replaced by Assignment?
 };
 
 class Binary : public Expression {
