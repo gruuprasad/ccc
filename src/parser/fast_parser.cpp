@@ -505,7 +505,7 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
   }
 
   while (true) {
-    switch (src_mark.getType()) {
+    switch (peek().getType()) {
     case TokenType::BRACKET_OPEN:
       op = nextToken();
       post_operand = parseExpression();
