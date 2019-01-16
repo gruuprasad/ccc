@@ -508,16 +508,14 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
   while (true) {
     switch (peek().getType()) {
     case TokenType::BRACKET_OPEN:
-      op = nextToken();
+      consume(TokenType::BRACE_OPEN);
       post_operand = parseExpression();
       mustExpect(TokenType::BRACKET_CLOSE, " bracket close ");
       postfix = make_unique<ArraySubscriptOp>(src_mark, std::move(postfix),
                                               std::move(post_operand));
       break;
     case TokenType::PARENTHESIS_OPEN:
-      op = nextToken();
       arg_list = parseArgumentExpressionList();
-      mustExpect(TokenType::PARENTHESIS_CLOSE);
       postfix = make_unique<FunctionCall>(src_mark, std::move(postfix),
                                           std::move(arg_list));
       break;
@@ -568,9 +566,23 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
 }
 
 ExpressionListType FastParser::parseArgumentExpressionList() {
-  // TODO implement
-  ExpressionListType empty_list;
-  return empty_list;
+  ExpressionListType arg_list;
+  mustExpect(TokenType::PARENTHESIS_OPEN);
+  if (peek().is_not(TokenType::PARENTHESIS_CLOSE)) {
+    while (true) {
+      auto arg_i = parseAssignmentExpression();
+      arg_list.push_back(std::move(arg_i));
+      if (peek().is(TokenType::PARENTHESIS_CLOSE)) {
+        consume(TokenType::PARENTHESIS_CLOSE);
+        return std::move(arg_list);
+      }
+      mustExpect(TokenType::COMMA);
+      if (fail()) {
+        return std::move(arg_list);
+      }
+    }
+  }
+  return std::move(arg_list);
 }
 
 } // namespace ccc

@@ -45,6 +45,13 @@ TEST_CASE("Fast Parser:primary expression test_2") {
       " sizeof (int);"
       " sizeof (a + b);"
       " sizeof a + b;"
+      " a[10];"
+      " a->b;"
+      " a.b;"
+      " x = y + (z.c) + (p->q) - a[10];"
+      " x = (y + (z.c) + (p->q)) - a[10];"
+      " ((((a.b))));"
+      " funcA(1, 2, 3);"
         " return 0;"
         "}"};
 
