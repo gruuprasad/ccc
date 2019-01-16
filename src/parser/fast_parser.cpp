@@ -469,7 +469,8 @@ std::unique_ptr<Expression> FastParser::parseUnaryExpression() {
 
   if (peek().is(TokenType::SIZEOF)) {
     consume(TokenType::SIZEOF);
-    if (mayExpect(TokenType::PARENTHESIS_OPEN)) {
+    if (peek().is(TokenType::PARENTHESIS_OPEN) && peek(1).is(C_TYPES)) {
+      consume(TokenType::PARENTHESIS_OPEN);
       bool structDefined;
       auto type_name = parseTypeSpecifier(structDefined);
       mustExpect(TokenType::PARENTHESIS_CLOSE, " parenthesis close ");

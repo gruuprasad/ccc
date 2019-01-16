@@ -43,6 +43,8 @@ TEST_CASE("Fast Parser:primary expression test_2") {
       " x = (a + b - c) * e;"
       " y + z - x * p && -q;"
       " sizeof (int);"
+      " sizeof (a + b);"
+      " sizeof a + b;"
         " return 0;"
         "}"};
 
