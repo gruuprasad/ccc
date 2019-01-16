@@ -1,12 +1,10 @@
-/*
 #include "ast_node.hpp"
 
 namespace ccc {
 
-std::string PrimaryExpression::prettyPrint(int) { return extra; }
+std::string TranslationUnit::prettyPrint(int) {
 
-std::string UnaryExpression::prettyPrint(int) {
-  return "(" + op + expr->prettyPrint(0) + ")";
+  return std::string();
 }
 
 std::string FunctionDefinition::prettyPrint(int lvl) {
@@ -95,8 +93,38 @@ std::string IfElse::prettyPrint(int lvl) {
                    : ifStmt->prettyPrint(lvl + 1));
 }
 
+std::string Label::prettyPrint(int) {
+
+  return std::string();
+}
+
+std::string While::prettyPrint(int) {
+
+  return std::string();
+}
+
+std::string Goto::prettyPrint(int) {
+
+  return std::string();
+}
+
 std::string ExpressionStmt::prettyPrint(int lvl) {
   return indent(lvl) + (expression ? expression->prettyPrint(0) : "") + ";\n";
+}
+
+std::string Break::prettyPrint(int) {
+
+  return std::string();
+}
+
+std::string Return::prettyPrint(int) {
+
+  return std::string();
+}
+
+std::string Continue::prettyPrint(int) {
+
+  return std::string();
 }
 
 std::string VariableName::prettyPrint(int) { return name; }
@@ -107,9 +135,43 @@ std::string Character::prettyPrint(int) { return std::to_string(char_value); }
 
 std::string String::prettyPrint(int) { return str_value; }
 
+std::string MemberAccessOp::prettyPrint(int) {
+
+  return std::string();
+}
+
+std::string ArraySubscriptOp::prettyPrint(int) {
+
+  return std::string();
+}
+
+std::string FunctionCall::prettyPrint(int) {
+
+  return std::string();
+}
+
+std::string Unary::prettyPrint(int) {
+  return "(" + getTokenRef().name() + operand->prettyPrint(0) + ")";
+}
+
+std::string SizeOf::prettyPrint(int) {
+
+  return std::string();
+}
+
 std::string Binary::prettyPrint(int) {
-  return "(" + left_expression->prettyPrint(0) + " " + tok.name() + " " +
-         right_expression->prettyPrint(0) + ")";
+  return "(" + left_operand->prettyPrint(0) + " " + getTokenRef().name() + " " +
+         right_operand->prettyPrint(0) + ")";
+}
+
+std::string Ternary::prettyPrint(int) {
+
+  return std::string();
+}
+
+std::string Assignment::prettyPrint(int) {
+
+  return std::string();
 }
 
 std::string Statement::indent(int n) {
@@ -122,4 +184,3 @@ std::string Statement::indent(int n) {
     return "";
 }
 } // namespace ccc
-*/
