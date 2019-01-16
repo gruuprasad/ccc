@@ -258,7 +258,7 @@ unique_ptr<Statement> FastParser::parseCompoundStatement() {
   std::vector<std::unique_ptr<ASTNode>> stmts;
   std::unique_ptr<Statement> stmt;
   std::unique_ptr<ExternalDeclaration> decl;
-  mustExpect(TokenType::BRACE_OPEN);
+  mustExpect(TokenType::BRACE_OPEN, " open brace ({) ");
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is(C_TYPES)) {
       decl = parseFuncDefOrDeclaration(true);
@@ -270,16 +270,19 @@ unique_ptr<Statement> FastParser::parseCompoundStatement() {
     }
     stmts.push_back(std::move(stmt));
   }
-  mustExpect(TokenType::BRACE_CLOSE);
+  mustExpect(TokenType::BRACE_CLOSE, " close brace (}) ");
   return make_unique<CompoundStmt>(src_mark, std::move(stmts));
 }
 
 unique_ptr<Statement> FastParser::parseStatement() {
   std::unique_ptr<Expression> expr_node;
   auto src_mark (peek());
-  switch (peek().getType()) {
-  case TokenType::IDENTIFIER:
+
+  if (peek().getType() == TokenType::IDENTIFIER &&
+      peek(1).getType() == TokenType::COLON) {
     return parseLabeledStatement();
+  }
+  switch (peek().getType()) {
   case TokenType::BRACE_OPEN:
     return parseCompoundStatement();
   case TokenType::IF:
@@ -291,29 +294,29 @@ unique_ptr<Statement> FastParser::parseStatement() {
     if (peek().is(TokenType::IDENTIFIER)) {
       auto name = peek().getExtra();
       expr_node = make_unique<VariableName>(nextToken(), std::move(name));
-      mustExpect(TokenType::SEMICOLON);
+      mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
       return make_unique<Goto>(src_mark, std::move(expr_node));
     }
     parser_error(peek());
     return std::unique_ptr<Statement>();
   case TokenType::CONTINUE:
-    mustExpect(TokenType::SEMICOLON);
+    mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
     return make_unique<Continue>(nextToken());
   case TokenType::BREAK:
-    mustExpect(TokenType::SEMICOLON);
+    mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
     return make_unique<Break>(nextToken());
   case TokenType::RETURN:
     nextToken();
     if (peek().is_not(TokenType::SEMICOLON)) {
       expr_node = parseExpression();
     }
-    mustExpect(TokenType::SEMICOLON);
+    mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
     return make_unique<Return>(src_mark, std::move(expr_node));
   default:
     if (peek().is_not(TokenType::SEMICOLON)) {
       expr_node = parseExpression();
     }
-    mustExpect(TokenType::SEMICOLON);
+    mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
     return make_unique<ExpressionStmt>(src_mark, std::move(expr_node));
   }
   parser_error(peek(), "Statement, unrecognized statement type");
@@ -334,9 +337,9 @@ std::unique_ptr<Statement> FastParser::parseLabeledStatement() {
 std::unique_ptr<Statement> FastParser::parseSelectionStatement() {
   Token src_mark (peek());
   mustExpect(TokenType::IF);
-  mustExpect(TokenType::PARENTHESIS_OPEN);
+  mustExpect(TokenType::PARENTHESIS_OPEN, " parenthesis after if keyword");
   auto predicate = parseExpression();
-  mustExpect(TokenType::PARENTHESIS_CLOSE);
+  mustExpect(TokenType::PARENTHESIS_CLOSE, " parenthesis close after if condition ");
   auto ifBranch = parseStatement();
   std::unique_ptr<Statement> elseBranch;
   if (!fail() && mayExpect(TokenType::ELSE)) {
@@ -351,10 +354,10 @@ std::unique_ptr<Statement> FastParser::parseSelectionStatement() {
 
 std::unique_ptr<Statement> FastParser::parseIterationStatement() {
   Token src_mark (peek());
-  mustExpect(TokenType::WHILE);
-  mustExpect(TokenType::PARENTHESIS_OPEN);
+  mustExpect(TokenType::WHILE, " while keyword ");
+  mustExpect(TokenType::PARENTHESIS_OPEN, " parenthesis open after while keyword ");
   auto predicate = parseExpression();
-  mustExpect(TokenType::PARENTHESIS_CLOSE);
+  mustExpect(TokenType::PARENTHESIS_CLOSE, " parenthesis close after while condition ");
   if (fail()) {
     return std::unique_ptr<While>();
   }
@@ -406,7 +409,7 @@ std::unique_ptr<Expression> FastParser::parseBinOpWithRHS(std::unique_ptr<Expres
     if (binOpLeft.getType() == TokenType::CONDITIONAL) {
       ternayOp = true;
       ternary_middle = parseExpression(); // Ternary middle
-      mustExpect(TokenType::COLON);
+      mustExpect(TokenType::COLON, " colon in ternary operator ");
     }
 
     auto rhs = parseUnaryExpression(); // RHS
@@ -449,7 +452,7 @@ std::unique_ptr<Expression> FastParser::parseUnaryExpression() {
     if (mayExpect(TokenType::PARENTHESIS_OPEN)) {
       bool structDefined;
       auto type_name = parseTypeSpecifier(structDefined);
-      mustExpect(TokenType::PARENTHESIS_CLOSE);
+      mustExpect(TokenType::PARENTHESIS_CLOSE, " parenthesis close ");
       if (fail()) {
         return std::unique_ptr<Expression>();
       }
@@ -486,7 +489,7 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
       case TokenType::BRACKET_OPEN:
         op = nextToken();
         post_operand = parseExpression();
-        mustExpect(TokenType::BRACKET_CLOSE);
+        mustExpect(TokenType::BRACKET_CLOSE, " bracket close ");
         postfix = make_unique<ArraySubscriptOp>(src_mark, std::move(postfix), std::move(post_operand));
         break;
       case TokenType::PARENTHESIS_OPEN:
@@ -526,9 +529,9 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
   case TokenType::STRING:
     return make_unique<String>(nextToken(), src_mark.getExtra());
   case TokenType::PARENTHESIS_OPEN:
-    mustExpect(TokenType::PARENTHESIS_OPEN);
+    mustExpect(TokenType::PARENTHESIS_OPEN, " open-parenthesis ");
     paren_expr = parseExpression();
-    mustExpect(TokenType::PARENTHESIS_CLOSE);
+    mustExpect(TokenType::PARENTHESIS_CLOSE, " close parenthesis ");
     return std::move(paren_expr);
   default:
     parser_error(peek(), "Expression or (");
