@@ -41,8 +41,14 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       }
       return EXIT_SUCCESS;
     } else if (flagName == "--print-ast") {
-      return EXIT_SUCCESS; // Not implemented, keeping the flag as it is, but
-                           // dummy success
+      auto parser = FastParser(buffer);
+      auto root = parser.parse();
+      if (parser.fail()) {
+        std::cerr << filename << ":" << parser.getError() << std::endl;
+        return EXIT_FAILURE;
+      }
+      std::cout << root->prettyPrint(0);
+      return EXIT_SUCCESS;
     }
   }
   std::cerr << "?" << std::endl;

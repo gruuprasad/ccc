@@ -56,7 +56,7 @@ protected:
 
 public:
   virtual ~ASTNode() = default;
-  virtual std::string prettyPrint(int lvl) = 0;
+  virtual std::string prettyPrint(int) = 0;
   Token &getTokenRef() { return tok; }
 };
 
