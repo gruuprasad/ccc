@@ -296,7 +296,7 @@ unique_ptr<Statement> FastParser::parseStatement() {
   case TokenType::WHILE:
     return parseIterationStatement();
   case TokenType::GOTO:
-    nextToken();
+    consume(TokenType::GOTO);
     if (peek().is(TokenType::IDENTIFIER)) {
       auto name = peek().getExtra();
       expr_node = make_unique<VariableName>(nextToken(), std::move(name));
@@ -306,13 +306,15 @@ unique_ptr<Statement> FastParser::parseStatement() {
     parser_error(peek());
     return std::unique_ptr<Statement>();
   case TokenType::CONTINUE:
+    consume(TokenType::CONTINUE);
     mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
     return make_unique<Continue>(nextToken());
   case TokenType::BREAK:
+    consume(TokenType::BREAK);
     mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
     return make_unique<Break>(nextToken());
   case TokenType::RETURN:
-    nextToken();
+    consume(TokenType::RETURN);
     if (peek().is_not(TokenType::SEMICOLON)) {
       expr_node = parseExpression();
     }
@@ -465,7 +467,8 @@ std::unique_ptr<Expression> FastParser::parseUnaryExpression() {
 
   if (peek().is(TokenType::SIZEOF)) {
     consume(TokenType::SIZEOF);
-    if (mayExpect(TokenType::PARENTHESIS_OPEN)) {
+    if (peek().is(TokenType::PARENTHESIS_OPEN) && peek(1).is(C_TYPES)) {
+      consume(TokenType::PARENTHESIS_OPEN);
       bool structDefined;
       auto type_name = parseTypeSpecifier(structDefined);
       mustExpect(TokenType::PARENTHESIS_CLOSE, " parenthesis close ");
@@ -501,18 +504,16 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
   }
 
   while (true) {
-    switch (src_mark.getType()) {
+    switch (peek().getType()) {
     case TokenType::BRACKET_OPEN:
-      op = nextToken();
+      consume(TokenType::BRACE_OPEN);
       post_operand = parseExpression();
       mustExpect(TokenType::BRACKET_CLOSE, " bracket close ");
       postfix = make_unique<ArraySubscriptOp>(src_mark, std::move(postfix),
                                               std::move(post_operand));
       break;
     case TokenType::PARENTHESIS_OPEN:
-      op = nextToken();
       arg_list = parseArgumentExpressionList();
-      mustExpect(TokenType::PARENTHESIS_CLOSE);
       postfix = make_unique<FunctionCall>(src_mark, std::move(postfix),
                                           std::move(arg_list));
       break;
@@ -563,9 +564,23 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
 }
 
 ExpressionListType FastParser::parseArgumentExpressionList() {
-  // TODO implement
-  ExpressionListType empty_list;
-  return empty_list;
+  ExpressionListType arg_list;
+  mustExpect(TokenType::PARENTHESIS_OPEN);
+  if (peek().is_not(TokenType::PARENTHESIS_CLOSE)) {
+    while (true) {
+      auto arg_i = parseAssignmentExpression();
+      arg_list.push_back(std::move(arg_i));
+      if (peek().is(TokenType::PARENTHESIS_CLOSE)) {
+        consume(TokenType::PARENTHESIS_CLOSE);
+        return std::move(arg_list);
+      }
+      mustExpect(TokenType::COMMA);
+      if (fail()) {
+        return std::move(arg_list);
+      }
+    }
+  }
+  return std::move(arg_list);
 }
 
 } // namespace ccc

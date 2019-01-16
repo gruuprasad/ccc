@@ -115,5 +115,70 @@ public:
     return block;
   }
 };
+
+// Read translation unit from .c4 file.
+// Format of the code in .c4
+// (startunit + empty line + input code + + emoty line endunit)+
+
+class Reader {
+  public:
+    Reader(std::ifstream & in_) :
+      in(in_) { }
+
+    std::string readLine() {
+      cur_line++;
+      // State variables
+      std::string line;
+      if (getline(in, line).good()) {
+        return line;
+      }
+
+      if (in.eof()) {
+        stopped = true;
+        return std::string();
+      }
+
+      if (!in) {
+        std::cerr << "Error in line " << cur_line << std::endl;
+        exit(-1);
+      }
+
+      return line;
+    }
+
+    std::string readUnit() {
+      // Go to start of code
+      while (true) {
+        if (readLine() == "startunit") {
+          break;
+        }
+      }
+
+      // Read code
+      std::string unit;
+      std::string line;
+      while (true) {
+        line = readLine();
+        if (stopped) {
+          return unit;
+        }
+        if (line == "endunit") {
+          break;
+        }
+        unit.append(line);
+      }
+      return unit;
+    }
+
+    bool is_eof() {
+      return stopped;
+    }
+
+  private:
+    int cur_line = 0;
+    bool stopped = false;
+    std::ifstream & in;
+};
+
 } // namespace ccc
 #endif
