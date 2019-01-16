@@ -2,10 +2,7 @@
 
 namespace ccc {
 
-std::string TranslationUnit::prettyPrint(int) {
-
-  return std::string();
-}
+std::string TranslationUnit::prettyPrint(int) { return std::string(); }
 
 std::string FunctionDefinition::prettyPrint(int lvl) {
   return indent(lvl) + return_type->prettyPrint(0) + fn_name->prettyPrint(0) +
@@ -93,39 +90,21 @@ std::string IfElse::prettyPrint(int lvl) {
                    : ifStmt->prettyPrint(lvl + 1));
 }
 
-std::string Label::prettyPrint(int) {
+std::string Label::prettyPrint(int) { return std::string(); }
 
-  return std::string();
-}
+std::string While::prettyPrint(int) { return std::string(); }
 
-std::string While::prettyPrint(int) {
-
-  return std::string();
-}
-
-std::string Goto::prettyPrint(int) {
-
-  return std::string();
-}
+std::string Goto::prettyPrint(int) { return std::string(); }
 
 std::string ExpressionStmt::prettyPrint(int lvl) {
   return indent(lvl) + (expr ? expr->prettyPrint(0) : "") + ";\n";
 }
 
-std::string Break::prettyPrint(int) {
+std::string Break::prettyPrint(int) { return std::string(); }
 
-  return std::string();
-}
+std::string Return::prettyPrint(int) { return std::string(); }
 
-std::string Return::prettyPrint(int) {
-
-  return std::string();
-}
-
-std::string Continue::prettyPrint(int) {
-
-  return std::string();
-}
+std::string Continue::prettyPrint(int) { return std::string(); }
 
 std::string VariableName::prettyPrint(int) { return name; }
 
@@ -135,44 +114,26 @@ std::string Character::prettyPrint(int) { return std::to_string(char_value); }
 
 std::string String::prettyPrint(int) { return str_value; }
 
-std::string MemberAccessOp::prettyPrint(int) {
+std::string MemberAccessOp::prettyPrint(int) { return std::string(); }
 
-  return std::string();
-}
+std::string ArraySubscriptOp::prettyPrint(int) { return std::string(); }
 
-std::string ArraySubscriptOp::prettyPrint(int) {
-
-  return std::string();
-}
-
-std::string FunctionCall::prettyPrint(int) {
-
-  return std::string();
-}
+std::string FunctionCall::prettyPrint(int) { return std::string(); }
 
 std::string Unary::prettyPrint(int) {
   return "(" + getTokenRef().name() + operand->prettyPrint(0) + ")";
 }
 
-std::string SizeOf::prettyPrint(int) {
-
-  return std::string();
-}
+std::string SizeOf::prettyPrint(int) { return std::string(); }
 
 std::string Binary::prettyPrint(int) {
   return "(" + left_operand->prettyPrint(0) + " " + getTokenRef().name() + " " +
          right_operand->prettyPrint(0) + ")";
 }
 
-std::string Ternary::prettyPrint(int) {
+std::string Ternary::prettyPrint(int) { return std::string(); }
 
-  return std::string();
-}
-
-std::string Assignment::prettyPrint(int) {
-
-  return std::string();
-}
+std::string Assignment::prettyPrint(int) { return std::string(); }
 
 std::string Statement::indent(int n) {
   if (n >= 0) {

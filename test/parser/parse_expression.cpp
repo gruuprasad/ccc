@@ -5,15 +5,12 @@ using namespace ccc;
 
 // Test simple expressions
 TEST_CASE("Fast Parser:primary expression test") {
-  std::string language {
-    " int main() {"
-    " x = 0;"
-    " return 0;"
-    "}"
-  };
+  std::string language{" int main() {"
+                       " x = 0;"
+                       " return 0;"
+                       "}"};
 
   auto fp = FastParser(language);
   auto root = fp.parse();
   REQUIRE(fp.fail() == false);
 }
-
