@@ -254,33 +254,29 @@ unique_ptr<ParamDeclaration> FastParser::parseParameterDeclaration() {
 }
 
 unique_ptr<Statement> FastParser::parseCompoundStatement() {
-  mustExpect(TokenType::BRACE_OPEN);
-  /*
+  auto src_mark (peek());
+  std::vector<std::unique_ptr<ASTNode>> stmts;
+  std::unique_ptr<Statement> stmt;
+  std::unique_ptr<ExternalDeclaration> decl;
   mustExpect(TokenType::BRACE_OPEN);
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is(C_TYPES)) {
-      parseTypeSpecifier();
-      parseDeclarator();
-      mustExpect(TokenType::SEMICOLON);
+      decl = parseFuncDefOrDeclaration(true);
     } else {
-      parseStatement();
+      stmt = parseStatement();
     }
     if (fail()) {
-      return;
+      return std::unique_ptr<CompoundStmt>();
     }
+    stmts.push_back(std::move(stmt));
   }
   mustExpect(TokenType::BRACE_CLOSE);
-  return;
-  */
-  mustExpect(TokenType::BRACE_CLOSE);
-  return unique_ptr<CompoundStmt>();
+  return make_unique<CompoundStmt>(src_mark, std::move(stmts));
 }
 
 unique_ptr<Statement> FastParser::parseStatement() {
-  return unique_ptr<Statement>();
-}
-/*
-void FastParser::parseStatement() {
+  std::unique_ptr<Expression> expr_node;
+  auto src_mark (peek());
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
     return parseLabeledStatement();
@@ -293,68 +289,78 @@ void FastParser::parseStatement() {
   case TokenType::GOTO:
     nextToken();
     if (peek().is(TokenType::IDENTIFIER)) {
-      nextToken();
-      return;
+      auto name = peek().getExtra();
+      expr_node = make_unique<VariableName>(nextToken(), std::move(name));
+      mustExpect(TokenType::SEMICOLON);
+      return make_unique<Goto>(src_mark, std::move(expr_node));
     }
     parser_error(peek());
-    return;
+    return std::unique_ptr<Statement>();
   case TokenType::CONTINUE:
-    nextToken();
-    break;
+    mustExpect(TokenType::SEMICOLON);
+    return make_unique<Continue>(nextToken());
   case TokenType::BREAK:
-    nextToken();
-    break;
+    mustExpect(TokenType::SEMICOLON);
+    return make_unique<Break>(nextToken());
   case TokenType::RETURN:
     nextToken();
     if (peek().is_not(TokenType::SEMICOLON)) {
-      expr = parseExpression();
+      expr_node = parseExpression();
     }
-    break;
+    mustExpect(TokenType::SEMICOLON);
+    return make_unique<Return>(src_mark, std::move(expr_node));
   default:
-    peek();
     if (peek().is_not(TokenType::SEMICOLON)) {
-      parseExpression();
+      expr_node = parseExpression();
     }
-    break;
+    mustExpect(TokenType::SEMICOLON);
+    return make_unique<ExpressionStmt>(src_mark, std::move(expr_node));
   }
-  mustExpect(TokenType::SEMICOLON);
-  return;
+  parser_error(peek(), "Statement, unrecognized statement type");
+  return std::unique_ptr<Statement>();
 }
 
-void FastParser::parseLabeledStatement() {
-  nextToken();
+std::unique_ptr<Statement> FastParser::parseLabeledStatement() {
+  auto src_mark (peek());
+  auto name = peek().getExtra();
+  auto label_node = make_unique<VariableName>(nextToken(), std::move(name));
   if (mustExpect(TokenType::COLON)) {
-    parseStatement();
+    auto stmt_node = parseStatement();
+    return make_unique<Label>(src_mark, std::move(label_node), std::move(stmt_node));
   }
-  return;
+  return std::unique_ptr<Label>();
 }
 
-void FastParser::parseSelectionStatement() {
+std::unique_ptr<Statement> FastParser::parseSelectionStatement() {
+  Token src_mark (peek());
   mustExpect(TokenType::IF);
   mustExpect(TokenType::PARENTHESIS_OPEN);
-  parseExpression();
+  auto predicate = parseExpression();
   mustExpect(TokenType::PARENTHESIS_CLOSE);
-  if (fail()) {
-    return;
-  }
-
-  parseStatement();
+  auto ifBranch = parseStatement();
+  std::unique_ptr<Statement> elseBranch;
   if (!fail() && mayExpect(TokenType::ELSE)) {
-    parseStatement();
+   elseBranch =  parseStatement();
   }
 
-  return;
+  if (fail())
+    return std::unique_ptr<IfElse>();
+
+  return make_unique<IfElse>(src_mark, std::move(predicate), std::move(ifBranch), std::move(elseBranch));
 }
 
-void FastParser::parseIterationStatement() {
+std::unique_ptr<Statement> FastParser::parseIterationStatement() {
+  Token src_mark (peek());
   mustExpect(TokenType::WHILE);
   mustExpect(TokenType::PARENTHESIS_OPEN);
-  parseExpression();
+  auto predicate = parseExpression();
   mustExpect(TokenType::PARENTHESIS_CLOSE);
-  parseStatement();
-  return;
+  if (fail()) {
+    return std::unique_ptr<While>();
+  }
+  auto block = parseStatement();
+  return make_unique<While>(src_mark, std::move(predicate), std::move(block));
 }
-*/
 
 // Expressions
 // (6.5.17) expression: assignment

@@ -134,9 +134,9 @@ private:
   // Statements
   std::unique_ptr<Statement> parseStatement();
   std::unique_ptr<Statement> parseCompoundStatement();
-  void parseLabeledStatement();
-  void parseSelectionStatement();
-  void parseIterationStatement();
+  std::unique_ptr<Statement> parseLabeledStatement();
+  std::unique_ptr<Statement> parseSelectionStatement();
+  std::unique_ptr<Statement> parseIterationStatement();
 
   FastLexer lexer;
   std::array<Token, N> la_buffer;

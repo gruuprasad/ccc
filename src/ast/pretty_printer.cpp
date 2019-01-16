@@ -81,7 +81,7 @@ std::string FunctionDeclarator::prettyPrint(int) {
 
 std::string CompoundStmt::prettyPrint(int lvl) {
   std::stringstream ss;
-  for (const auto &stat : block)
+  for (const auto &stat : block_items)
     ss << stat->prettyPrint(lvl + 1);
   return indent(lvl) + "{\n" + ss.str() + indent(lvl) + "}\n";
 }

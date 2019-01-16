@@ -239,10 +239,10 @@ public:
 };
 
 class CompoundStmt : public Statement {
-  StatementListType block;
+  std::vector<std::unique_ptr<ASTNode>> block_items;
 public:
-  CompoundStmt(const Token &tk, StatementListType block)
-      : Statement(tk), block(std::move(block)) {}
+  CompoundStmt(const Token &tk, std::vector<std::unique_ptr<ASTNode>> block)
+      : Statement(tk), block_items(std::move(block)) {}
 
   std::string prettyPrint(int lvl) override;
 };
@@ -307,9 +307,10 @@ public:
 };
 
 class Return : public Statement {
+  std::unique_ptr<Expression> expr;
 public:
-  explicit Return(const Token & tk)
-    : Statement(tk) {}
+  explicit Return(const Token & tk, std::unique_ptr<Expression> e)
+    : Statement(tk), expr(std::move(e)) {}
 
   std::string prettyPrint(int lvl) override;
 };
