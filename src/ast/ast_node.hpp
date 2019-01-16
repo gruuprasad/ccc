@@ -262,38 +262,54 @@ public:
 };
 
 class Label: public Statement {
+  std::unique_ptr<Expression> label_name;
+  std::unique_ptr<Statement> stmt;
 
 public:
+  Label(const Token & tk, std::unique_ptr<Expression> e, std::unique_ptr<Statement> b)
+    : Statement(tk), label_name(std::move(e)), stmt(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
 };
 
 class While : public Statement {
+  std::unique_ptr<Expression> predicate;
+  std::unique_ptr<Statement> block;
 public:
-
+  While(const Token & tk, std::unique_ptr<Expression> e, std::unique_ptr<Statement> b)
+    : Statement(tk), predicate(std::move(e)), block(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
 };
 
 class Goto : public Statement {
+  std::unique_ptr<Expression> label_name;
 public:
+  Goto(const Token & tk, std::unique_ptr<Expression> e)
+    : Statement(tk), label_name(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
 
 };
 
 class ExpressionStmt : public Statement {
-  std::unique_ptr<Expression> expression;
+  std::unique_ptr<Expression> expr;
 public:
+  ExpressionStmt(const Token & tk, std::unique_ptr<Expression> e)
+    : Statement(tk), expr(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
 
 };
 
 class Break : public Statement {
 public:
+  explicit Break(const Token & tk)
+    : Statement(tk) {}
 
   std::string prettyPrint(int lvl) override;
 };
 
 class Return : public Statement {
 public:
+  explicit Return(const Token & tk)
+    : Statement(tk) {}
 
   std::string prettyPrint(int lvl) override;
 };
@@ -301,16 +317,17 @@ public:
 class Continue : public Statement {
 
 public:
+  explicit Continue(const Token & tk)
+    : Statement(tk) {}
+
   std::string prettyPrint(int lvl) override;
 };
 
 class Expression : public ASTNode {
-
 public:
   Expression(const Token & tk)
     : ASTNode(tk) {}
 };
-
 
 class VariableName : public Expression {
   std::string name;

@@ -109,7 +109,7 @@ std::string Goto::prettyPrint(int) {
 }
 
 std::string ExpressionStmt::prettyPrint(int lvl) {
-  return indent(lvl) + (expression ? expression->prettyPrint(0) : "") + ";\n";
+  return indent(lvl) + (expr ? expr->prettyPrint(0) : "") + ";\n";
 }
 
 std::string Break::prettyPrint(int) {
