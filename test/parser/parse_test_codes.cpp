@@ -11,7 +11,7 @@ TEST_CASE("Read simple unit from .c4") {
 
   ccc::Reader reader(in);
   auto unit = reader.readUnit();
-  std::cout << unit << std::endl;
+  //  std::cout << unit << std::endl;
   REQUIRE(unit.empty() == false);
 }
 
