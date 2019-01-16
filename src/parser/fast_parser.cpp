@@ -300,7 +300,7 @@ unique_ptr<Statement> FastParser::parseStatement() {
   case TokenType::WHILE:
     return parseIterationStatement();
   case TokenType::GOTO:
-    nextToken();
+    consume(TokenType::GOTO);
     if (peek().is(TokenType::IDENTIFIER)) {
       auto name = peek().getExtra();
       expr_node = make_unique<VariableName>(nextToken(), std::move(name));
@@ -310,13 +310,15 @@ unique_ptr<Statement> FastParser::parseStatement() {
     parser_error(peek());
     return std::unique_ptr<Statement>();
   case TokenType::CONTINUE:
+    consume(TokenType::CONTINUE);
     mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
     return make_unique<Continue>(nextToken());
   case TokenType::BREAK:
+    consume(TokenType::BREAK);
     mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
     return make_unique<Break>(nextToken());
   case TokenType::RETURN:
-    nextToken();
+    consume(TokenType::RETURN);
     if (peek().is_not(TokenType::SEMICOLON)) {
       expr_node = parseExpression();
     }
