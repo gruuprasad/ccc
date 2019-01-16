@@ -263,12 +263,11 @@ unique_ptr<Statement> FastParser::parseCompoundStatement() {
   auto src_mark(peek());
   std::vector<std::unique_ptr<ASTNode>> stmts =
       std::vector<std::unique_ptr<ASTNode>>();
-  std::unique_ptr<Statement> stmt;
-  std::unique_ptr<ExternalDeclaration> decl;
+  std::unique_ptr<ASTNode> stmt;
   mustExpect(TokenType::BRACE_OPEN, " open brace ({) ");
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is(C_TYPES)) {
-      decl = parseFuncDefOrDeclaration(true);
+      stmt = parseFuncDefOrDeclaration(true);
     } else {
       stmt = parseStatement();
     }
