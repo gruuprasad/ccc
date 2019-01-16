@@ -48,8 +48,9 @@ using StatementListType = std::vector<std::unique_ptr<Statement>>;
 using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
 // Base class for all nodes in AST.
 class ASTNode {
-protected:
   Token tok;
+
+protected:
   std::string error;
   explicit ASTNode(Token tk) : tok(std::move(tk)) {}
   std::string indent(int lvl) { return std::string(lvl, TAB); }
