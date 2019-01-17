@@ -24,9 +24,9 @@ test:run:
   - build:make
   script:
   - cd ./build
-  - ./release/c4 --tokenize ../example/hello_world.c
-  - ./release/c4 --parse ../example/hello_world.c
-  - ./release/c4 --print-ast ../example/hello_world.c
+  - ./release/c4 --tokenize ../examples/sample.c
+  - ./release/c4 --parse ../examples/sample.c
+  - ./release/c4 --print-ast ../examples/sample.c
 
 build:test:
   stage: build
