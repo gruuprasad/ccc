@@ -1,6 +1,11 @@
 #include "../catch.hpp"
 #include "parser/fast_parser.hpp"
 
+#define REQUIRE_SUCCESS(fp)                                                    \
+  if (fp.fail())                                                               \
+    FAIL("\033[1;31m" + fp.getError() + "\033[0m");                            \
+  SUCCEED();
+
 using namespace ccc;
 
 // Test simple expressions
@@ -12,7 +17,7 @@ TEST_CASE("Fast Parser:primary expression test_1") {
 
   auto fp = FastParser(language);
   auto root = fp.parse();
-  REQUIRE(fp.fail() == false);
+  REQUIRE_SUCCESS(fp);
 }
 
 TEST_CASE("Fast Parser:primary expression test_2") {
@@ -24,7 +29,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -34,7 +39,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -55,7 +60,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -66,7 +71,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -78,7 +83,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -88,6 +93,6 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
 }

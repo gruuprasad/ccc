@@ -45,6 +45,13 @@ target_link_libraries(test_semantic test_LLIB)
 add_dependencies(check test_semantic)
 add_test(NAME semantic COMMAND test_semantic)
 
+add_executable(test_blackBox
+               blackBox/black_box.cpp
+               )
+target_link_libraries(test_blackBox test_LLIB)
+add_dependencies(check test_blackBox)
+add_test(NAME blackBox COMMAND test_blackBox)
+
 add_executable(test_all
                lexer/lexer_test.cpp
                lexer/lexer_punctuation_test.cpp
@@ -64,5 +71,7 @@ add_executable(test_all
 
                semantic/typeAnalysis_test.cpp
                semantic/nameAnalysis_test.cpp
+
+               blackBox/black_box.cpp
                )
 target_link_libraries(test_all test_LLIB)

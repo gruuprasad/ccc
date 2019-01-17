@@ -9,7 +9,7 @@
 using namespace ccc;
 TEST_CASE("entry handler") {
   std::string flag = "--print-ast";
-  std::string input = "../../examples/easy.c";
+  std::string input = "../../examples/sample.c";
 
   std::ifstream ifs(input);
   std::stringstream buffer;
@@ -31,5 +31,5 @@ TEST_CASE("entry handler") {
   std::cout.rdbuf(sb);
   std::string content = ss.str();
 
-  REQUIRE(Utils::compare(content, expected));
+  REQUIRE_EMPTY(Utils::compare(content, expected));
 }

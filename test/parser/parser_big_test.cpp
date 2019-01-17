@@ -15,7 +15,7 @@ using namespace ccc;
     ppArgs[1] = &flag[0];                                                      \
     ppArgs[2] = &file[0];                                                      \
     auto rc = EntryPointHandler().handle(3, ppArgs);                           \
-    REQUIRE(rc == 0);                                                          \
+    REQUIRE(rc == EXIT_SUCCESS);                                               \
   }
 
 PARSE_FILE("declarations.c")
