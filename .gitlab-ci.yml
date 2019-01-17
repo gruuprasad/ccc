@@ -47,24 +47,24 @@ test:tests:
   - make check -j$(nproc)
   allow_failure: true
 
-analysis:coverage:
-  stage: analysis
-  dependencies:
-  - test:tests
-  script:
-  - mkdir -p build
-  - cd ./build
-  - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
-  - make check -j$(nproc)
-  - cd ..
-  - chmod +x ./scripts/coverage.sh
-  - ./scripts/coverage.sh
-  artifacts:
-    when: on_success
-    paths:
-    - ./coverage/*
-    expire_in: 5 mins
-  allow_failure: true
+#analysis:coverage:
+#  stage: analysis
+#  dependencies:
+#  - test:tests
+#  script:
+#  - mkdir -p build
+#  - cd ./build
+#  - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
+#  - make check -j$(nproc)
+#  - cd ..
+#  - chmod +x ./scripts/coverage.sh
+#  - ./scripts/coverage.sh
+#  artifacts:
+#    when: on_success
+#    paths:
+#    - ./coverage/*
+#    expire_in: 5 mins
+#  allow_failure: true
 
 deploy:benchmark:
   stage: deploy
@@ -72,7 +72,7 @@ deploy:benchmark:
   - echo "The cake is a lie."
   only:
     refs:
-    - develop
+    - master
   artifacts:
     paths:
     - ./benchmark.svg

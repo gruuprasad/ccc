@@ -3,38 +3,38 @@
 #include "parser/fast_parser.hpp"
 
 namespace ccc {
-TEST_CASE("pretty_print - types") {
 
-  SECTION("Simpleton") {
-    auto root = make_unique<ScalarType>(Token(), ScalarTypeValue::INT);
-    REQUIRE(Utils::compare(root->prettyPrint(0), "int"));
-  }
-  SECTION("Just struct name") {
-    auto root = make_unique<StructType>(Token(), "book");
-    REQUIRE(Utils::compare(root->prettyPrint(0), "struct book"));
-  }
-  SECTION("Add member to struct book") {
-    auto root = make_unique<StructType>(
-        Token(), "book",
-        Utils::vector<ExternalDeclarationListType>(make_unique<DataDeclaration>(
-            Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
-            make_unique<DirectDeclarator>(
-                Token(), make_unique<VariableName>(Token(), "name")))));
-    REQUIRE(Utils::compare(root->prettyPrint(0), "struct book\n"
-                                                 "{\n"
-                                                 "\tint name;\n"
-                                                 "}"));
-  }
+TEST_CASE("Simpleton") {
+  auto root = make_unique<ScalarType>(Token(), ScalarTypeValue::INT);
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "int"));
+}
+
+TEST_CASE("Just struct name") {
+  auto root = make_unique<StructType>(Token(), "book");
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "struct book"));
+}
+
+TEST_CASE("Add member to struct book") {
+  auto root = make_unique<StructType>(
+      Token(), "book",
+      Utils::vector<ExternalDeclarationListType>(make_unique<DataDeclaration>(
+          Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
+          make_unique<DirectDeclarator>(
+              Token(), make_unique<VariableName>(Token(), "name")))));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "struct book\n"
+                                                     "{\n"
+                                                     "\tint name;\n"
+                                                     "}"));
 }
 
 TEST_CASE("pretty print block block") {
   auto root = make_unique<CompoundStmt>(
       Token(), Utils::vector<ASTNodeListType>(make_unique<CompoundStmt>(
                    Token(), Utils::vector<ASTNodeListType>())));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\t{\n"
-                                               "\t}\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\t{\n"
+                                                     "\t}\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print block") {
@@ -44,9 +44,9 @@ TEST_CASE("pretty print block") {
           Token(), make_unique<Binary>(Token(), BinaryOpValue::ADD,
                                        make_unique<VariableName>(Token(), "b"),
                                        make_unique<Number>(Token(), 2)))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\t(b + 2);\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\t(b + 2);\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print if") {
@@ -64,11 +64,11 @@ TEST_CASE("pretty print if") {
                   make_unique<Binary>(Token(), BinaryOpValue::MULTIPLY,
                                       make_unique<VariableName>(Token(), "b"),
                                       make_unique<Number>(Token(), 2))))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tif ((a == 1)) {\n"
-                                               "\t\t(b * 2);\n"
-                                               "\t}\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\tif ((a == 1)) {\n"
+                                                     "\t\t(b * 2);\n"
+                                                     "\t}\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print if inline") {
@@ -83,10 +83,10 @@ TEST_CASE("pretty print if inline") {
               Token(), make_unique<Assignment>(
                            Token(), make_unique<VariableName>(Token(), "b"),
                            make_unique<Number>(Token(), 2))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tif ((a == 'a'))\n"
-                                               "\t\t(b = 2);\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\tif ((a == 'a'))\n"
+                                                     "\t\t(b = 2);\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print if else") {
@@ -111,13 +111,13 @@ TEST_CASE("pretty print if else") {
                   make_unique<Binary>(Token(), BinaryOpValue::ADD,
                                       make_unique<VariableName>(Token(), "b"),
                                       make_unique<Number>(Token(), 2))))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tif ((a == 1)) {\n"
-                                               "\t\t(b + 2);\n"
-                                               "\t} else {\n"
-                                               "\t\t(b + 2);\n"
-                                               "\t}\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\tif ((a == 1)) {\n"
+                                                     "\t\t(b + 2);\n"
+                                                     "\t} else {\n"
+                                                     "\t\t(b + 2);\n"
+                                                     "\t}\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print if else inline") {
@@ -138,12 +138,12 @@ TEST_CASE("pretty print if else inline") {
               make_unique<Binary>(Token(), BinaryOpValue::MULTIPLY,
                                   make_unique<VariableName>(Token(), "a"),
                                   make_unique<Number>(Token(), 3))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tif ((a == 1))\n"
-                                               "\t\t(b + 2);\n"
-                                               "\telse\n"
-                                               "\t\t(a * 3);\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\tif ((a == 1))\n"
+                                                     "\t\t(b + 2);\n"
+                                                     "\telse\n"
+                                                     "\t\t(a * 3);\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print if else if else inline") {
@@ -161,15 +161,15 @@ TEST_CASE("pretty print if else if else inline") {
               make_unique<CompoundStmt>(
                   Token(), Utils::vector<ASTNodeListType>(make_unique<Return>(
                                Token(), make_unique<Number>(Token(), 0))))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tif (1)\n"
-                                               "\t\treturn (1 + 3);\n"
-                                               "\telse if (0)\n"
-                                               "\t\treturn;\n"
-                                               "\telse {\n"
-                                               "\t\treturn 0;\n"
-                                               "\t}\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\tif (1)\n"
+                                                     "\t\treturn (1 + 3);\n"
+                                                     "\telse if (0)\n"
+                                                     "\t\treturn;\n"
+                                                     "\telse {\n"
+                                                     "\t\treturn 0;\n"
+                                                     "\t}\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print if else if else") {
@@ -192,16 +192,16 @@ TEST_CASE("pretty print if else if else") {
                   make_unique<Return>(Token(), make_unique<Number>(Token(), 1)),
                   make_unique<Return>(Token(),
                                       make_unique<Number>(Token(), 0)))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tif (1)\n"
-                                               "\t\treturn (1 + 3);\n"
-                                               "\telse if (0) {\n"
-                                               "\t\treturn a;\n"
-                                               "\t} else if (0)\n"
-                                               "\t\treturn 1;\n"
-                                               "\telse\n"
-                                               "\t\treturn 0;\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\tif (1)\n"
+                                                     "\t\treturn (1 + 3);\n"
+                                                     "\telse if (0) {\n"
+                                                     "\t\treturn a;\n"
+                                                     "\t} else if (0)\n"
+                                                     "\t\treturn 1;\n"
+                                                     "\telse\n"
+                                                     "\t\treturn 0;\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print if else if") {
@@ -218,13 +218,13 @@ TEST_CASE("pretty print if else if") {
               make_unique<CompoundStmt>(
                   Token(), Utils::vector<ASTNodeListType>(make_unique<Return>(
                                Token(), make_unique<Number>(Token(), 1))))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tif (1)\n"
-                                               "\t\treturn (1 + 3);\n"
-                                               "\telse if (0) {\n"
-                                               "\t\treturn 1;\n"
-                                               "\t}\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\tif (1)\n"
+                                                     "\t\treturn (1 + 3);\n"
+                                                     "\telse if (0) {\n"
+                                                     "\t\treturn 1;\n"
+                                                     "\t}\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print while") {
@@ -248,12 +248,12 @@ TEST_CASE("pretty print while") {
                                    Token(), BinaryOpValue::MULTIPLY,
                                    make_unique<Number>(Token(), 0),
                                    make_unique<Number>(Token(), 5))))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\twhile ((a + b)) {\n"
-                                               "\t\t(1 + 3);\n"
-                                               "\t\t(0 * 5);\n"
-                                               "\t}\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\twhile ((a + b)) {\n"
+                                                     "\t\t(1 + 3);\n"
+                                                     "\t\t(0 * 5);\n"
+                                                     "\t}\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print while inline") {
@@ -266,13 +266,13 @@ TEST_CASE("pretty print while inline") {
                            Token(), make_unique<VariableName>(Token(), "a")),
                        make_unique<Return>(
                            Token(), make_unique<String>(Token(), "test"))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\twhile (3)\n"
-                                               "\t\tif (1)\n"
-                                               "\t\t\treturn a;\n"
-                                               "\t\telse\n"
-                                               "\t\t\treturn \"test\";\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\twhile (3)\n"
+                                                     "\t\tif (1)\n"
+                                                     "\t\t\treturn a;\n"
+                                                     "\t\telse\n"
+                                                     "\t\t\treturn \"test\";\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print while inline if else break continue") {
@@ -282,13 +282,13 @@ TEST_CASE("pretty print while inline if else break continue") {
                    make_unique<IfElse>(Token(), make_unique<Number>(Token(), 1),
                                        make_unique<Break>(Token()),
                                        make_unique<Continue>(Token())))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\twhile (3)\n"
-                                               "\t\tif (1)\n"
-                                               "\t\t\tbreak;\n"
-                                               "\t\telse\n"
-                                               "\t\t\tcontinue;\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\twhile (3)\n"
+                                                     "\t\tif (1)\n"
+                                                     "\t\t\tbreak;\n"
+                                                     "\t\telse\n"
+                                                     "\t\t\tcontinue;\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print while inline break continue") {
@@ -299,12 +299,12 @@ TEST_CASE("pretty print while inline break continue") {
                    make_unique<While>(Token(), make_unique<Number>(Token(), 1),
                                       make_unique<Continue>(Token()))));
 
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\twhile (3)\n"
-                                               "\t\tbreak;\n"
-                                               "\twhile (1)\n"
-                                               "\t\tcontinue;\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\twhile (3)\n"
+                                                     "\t\tbreak;\n"
+                                                     "\twhile (1)\n"
+                                                     "\t\tcontinue;\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("conditional") {
@@ -320,9 +320,9 @@ TEST_CASE("conditional") {
               make_unique<Number>(Token(), 1),
               make_unique<Number>(Token(), 3)))));
 
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\t((a < 0) ? 1 : 3);\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\t((a < 0) ? 1 : 3);\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print while inline break continue blocks") {
@@ -348,20 +348,20 @@ TEST_CASE("pretty print while inline break continue blocks") {
                                         Utils::vector<ASTNodeListType>(
                                             make_unique<Continue>(Token()))))));
 
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\twhile (3) {\n"
-                                               "\t\tbreak;\n"
-                                               "\t}\n"
-                                               "\twhile (2) {\n"
-                                               "\t\tbreak;\n"
-                                               "\t\t{\n"
-                                               "\t\t\tcontinue;\n"
-                                               "\t\t}\n"
-                                               "\t}\n"
-                                               "\twhile (1) {\n"
-                                               "\t\tcontinue;\n"
-                                               "\t}\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\twhile (3) {\n"
+                                                     "\t\tbreak;\n"
+                                                     "\t}\n"
+                                                     "\twhile (2) {\n"
+                                                     "\t\tbreak;\n"
+                                                     "\t\t{\n"
+                                                     "\t\t\tcontinue;\n"
+                                                     "\t\t}\n"
+                                                     "\t}\n"
+                                                     "\twhile (1) {\n"
+                                                     "\t\tcontinue;\n"
+                                                     "\t}\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print goto label") {
@@ -375,12 +375,12 @@ TEST_CASE("pretty print goto label") {
                    make_unique<Goto>(
                        Token(), make_unique<VariableName>(Token(), "foo"))));
 
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\twhile (1)\n"
-                                               "foo:\n"
-                                               "\t\tbreak;\n"
-                                               "\tgoto foo;\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\twhile (1)\n"
+                                                     "foo:\n"
+                                                     "\t\tbreak;\n"
+                                                     "\tgoto foo;\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("pretty print if else if else goto label") {
@@ -410,20 +410,20 @@ TEST_CASE("pretty print if else if else goto label") {
                   make_unique<IfElse>(Token(), make_unique<Number>(Token(), 1),
                                       make_unique<Return>(Token()))))));
 
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tif (1)\n"
-                                               "foo:\n"
-                                               "\t\tgoto empty;\n"
-                                               "\telse if (0) {\n"
-                                               "\t\tgoto end;\n"
-                                               "\t} else {\n"
-                                               "\t\tgoto foo;\n"
-                                               "\t}\n"
-                                               "empty:\n"
-                                               "end:\n"
-                                               "\tif (1)\n"
-                                               "\t\treturn;\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\tif (1)\n"
+                                                     "foo:\n"
+                                                     "\t\tgoto empty;\n"
+                                                     "\telse if (0) {\n"
+                                                     "\t\tgoto end;\n"
+                                                     "\t} else {\n"
+                                                     "\t\tgoto foo;\n"
+                                                     "\t}\n"
+                                                     "empty:\n"
+                                                     "end:\n"
+                                                     "\tif (1)\n"
+                                                     "\t\treturn;\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("declaration") {
@@ -481,14 +481,15 @@ TEST_CASE("declaration") {
                   make_unique<DirectDeclarator>(
                       Token(), make_unique<VariableName>(Token(), "p"))))));
 
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tint a;\n"
-                                               "\tint (*b);\n"
-                                               "\tvoid (*(*c));\n"
-                                               "\tvoid (*((*(*d))(int)));\n"
-                                               "\tchar (main(int a));\n"
-                                               "\tstruct S (*p);\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0),
+                               "{\n"
+                               "\tint a;\n"
+                               "\tint (*b);\n"
+                               "\tvoid (*(*c));\n"
+                               "\tvoid (*((*(*d))(int)));\n"
+                               "\tchar (main(int a));\n"
+                               "\tstruct S (*p);\n"
+                               "}\n"));
 }
 
 TEST_CASE("declaration init") {
@@ -524,13 +525,13 @@ TEST_CASE("declaration init") {
                   make_unique<DirectDeclarator>(
                       Token(), make_unique<VariableName>(Token(), "d"))))))));
 
-  REQUIRE(Utils::compare(root->prettyPrint(0),
-                         "{\n"
-                         "\tint (main(int, char (*), void (*(*a))))\n"
-                         "\t{\n"
-                         "\t\tint d;\n"
-                         "\t}\n"
-                         "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0),
+                               "{\n"
+                               "\tint (main(int, char (*), void (*(*a))))\n"
+                               "\t{\n"
+                               "\t\tint d;\n"
+                               "\t}\n"
+                               "}\n"));
 }
 
 TEST_CASE("sizeof") {
@@ -550,11 +551,11 @@ TEST_CASE("sizeof") {
                                         Token(), BinaryOpValue::ADD,
                                         make_unique<Number>(Token(), 0),
                                         make_unique<Number>(Token(), 0))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\t(sizeof b);\n"
-                                               "\t(sizeof(int));\n"
-                                               "\t(sizeof (0 + 0));\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\t(sizeof b);\n"
+                                                     "\t(sizeof(int));\n"
+                                                     "\t(sizeof (0 + 0));\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("struct") {
@@ -575,13 +576,13 @@ TEST_CASE("struct") {
                           Token(), make_unique<VariableName>(Token(), "x"))))),
               make_unique<DirectDeclarator>(
                   Token(), make_unique<VariableName>(Token(), "s")))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\tstruct S;\n"
-                                               "\tstruct S\n"
-                                               "\t{\n"
-                                               "\t\tint x;\n"
-                                               "\t} s;\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\tstruct S;\n"
+                                                     "\tstruct S\n"
+                                                     "\t{\n"
+                                                     "\t\tint x;\n"
+                                                     "\t} s;\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("postfix") {
@@ -613,11 +614,11 @@ TEST_CASE("postfix") {
                       make_unique<VariableName>(Token(), "s"),
                       make_unique<VariableName>(Token(), "x")),
                   make_unique<VariableName>(Token(), "x")))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\t(s.x);\n"
-                                               "\t(((a->s).x)->b);\n"
-                                               "\t((s.x) = x);\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\t(s.x);\n"
+                                                     "\t(((a->s).x)->b);\n"
+                                                     "\t((s.x) = x);\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("unary") {
@@ -643,11 +644,12 @@ TEST_CASE("unary") {
                           make_unique<ArraySubscriptOp>(
                               Token(), make_unique<VariableName>(Token(), "s"),
                               make_unique<VariableName>(Token(), "x"))))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\t(*s);\n"
-                                               "\t(&s);\n"
-                                               "\treturn (-(*(&(s[x]))));\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0),
+                               "{\n"
+                               "\t(*s);\n"
+                               "\t(&s);\n"
+                               "\treturn (-(*(&(s[x]))));\n"
+                               "}\n"));
 }
 
 TEST_CASE("call") {
@@ -661,9 +663,9 @@ TEST_CASE("call") {
                   make_unique<Unary>(Token(), UnaryOpValue::MINUS,
                                      make_unique<VariableName>(Token(), "s")),
                   make_unique<Number>(Token(), 1))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "{\n"
-                                               "\t(f((-s), 1));\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), "{\n"
+                                                     "\t(f((-s), 1));\n"
+                                                     "}\n"));
 }
 
 TEST_CASE("traslation") {
@@ -706,14 +708,15 @@ TEST_CASE("traslation") {
                       make_unique<DirectDeclarator>(
                           Token(),
                           make_unique<VariableName>(Token(), "d"))))))));
-  REQUIRE(Utils::compare(root->prettyPrint(0), "int a;\n"
-                                               "\n"
-                                               "char b;\n"
-                                               "\n"
-                                               "int (main(int, char, int a))\n"
-                                               "{\n"
-                                               "\tint d;\n"
-                                               "}\n"));
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0),
+                               "int a;\n"
+                               "\n"
+                               "char b;\n"
+                               "\n"
+                               "int (main(int, char, int a))\n"
+                               "{\n"
+                               "\tint d;\n"
+                               "}\n"));
 }
 
 } // namespace ccc

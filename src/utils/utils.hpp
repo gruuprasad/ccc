@@ -4,9 +4,11 @@
 #include "../ast/ast_node.hpp"
 #include <cstddef>
 #include <cstdlib>
+#include <dirent.h>
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <sys/types.h>
 #include <type_traits>
 #include <utility>
 
@@ -68,36 +70,65 @@ public:
     return split;
   }
 
-  static bool compare(const std::string &content, const std::string &expected) {
+  static std::vector<std::string> dir(char *d) {
+    std::vector<std::string> files = {};
+    DIR *dirp = opendir(d);
+    struct dirent *dp;
+    while ((dp = readdir(dirp)) != nullptr) {
+      if (dp->d_name[0] != '.')
+        files.emplace_back(dp->d_name);
+    }
+    closedir(dirp);
+    return files;
+  }
+
+  static std::string compare(const std::string &content,
+                             const std::string &expected) {
     if (expected != content) {
+      std::stringstream ss;
       std::vector<std::string> expected_lines = split_lines(expected);
       std::vector<std::string> content_lines = split_lines(content);
       for (unsigned long i = 0, errors = 0;
            i < std::max(content_lines.size(), expected_lines.size()); i++) {
         if (i >= expected_lines.size()) {
-          std::cerr << "expected nothing but got \"" << content_lines[i] << "\""
-                    << std::endl;
+          ss << "\033[1;31m" << i + 1 << ":\texpected nothing but got \""
+             << content_lines[i] << "\"" << std::endl;
         } else if (i >= content_lines.size()) {
-          std::cerr << "expected \"" << expected_lines[i]
-                    << "\" but got nothing" << std::endl;
+          ss << "\033[1;31m" << i + 1 << ":\texpected \"" << expected_lines[i]
+             << "\" but got nothing" << std::endl;
         } else if (content_lines[i] != expected_lines[i]) {
-          std::cerr << "expected \"" << expected_lines[i] << "\" but got \""
-                    << content_lines[i] << "\"" << std::endl;
+          ss << "\033[1;31m" << i + 1 << ":\texpected "
+             << (expected_lines[i].empty() ? "nothing"
+                                           : "\"" + expected_lines[i] + "\"")
+             << " but got "
+             << (content_lines[i].empty() ? "nothing"
+                                          : "\"" + content_lines[i] + "\"")
+             << std::endl;
         } else {
           continue;
         }
+        ss << std::endl;
+        for (unsigned long j = (unsigned long)std::max(0, (int)i - 3);
+             j < std::min(i + 4, std::min(content_lines.size(),
+                                          expected_lines.size()));
+             j++) {
+          if (i == j)
+            ss << "\033[1;33m";
+          else
+            ss << "\033[0;37m";
+          ss << j + 1 << ":\t" << content_lines[j] << "    -> \""
+             << expected_lines[j] << "\"" << std::endl;
+        }
+        ss << std::endl;
         errors++;
         if (errors > 5) {
-          std::cerr << std::endl
-                    << "Output truncated after five errors... - fix your stuff!"
-                    << std::endl;
+          ss << "Output truncated after five errors... - fix your stuff!\n";
           break;
         }
       }
-      std::cout << content << std::endl;
-      return false;
+      return ss.str() + "\033[0m\n\n";
     }
-    return true;
+    return "";
   }
 
   template <class ListType, typename... Args>

@@ -3061,8 +3061,9 @@ struct IGeneratorTracker {
 
 namespace Catch {
 #if !defined(CATCH_CONFIG_DISABLE_EXCEPTIONS)
-template <typename Ex>
-[[noreturn]] void throw_exception(Ex const &e) { throw e; }
+template <typename Ex>[[noreturn]] void throw_exception(Ex const &e) {
+  throw e;
+}
 #else // ^^ Exceptions are enabled //  Exceptions are disabled vv
 [[noreturn]] void throw_exception(std::exception const &e);
 #endif
@@ -13919,6 +13920,21 @@ int main(int argc, char *const argv[]) {
 // required
 #else
 
+#define REQUIRE_SUCCESS(fp)                                                    \
+  if (fp.fail())                                                               \
+    FAIL("\033[1;31mUnexpected fail\n " + fp.getError() + "\033[0m");          \
+  SUCCEED();
+
+#define REQUIRE_FAIL(fp)                                                       \
+  if (!fp.fail())                                                              \
+    FAIL("\033[1;31mUnexpected Pass\033[0m\n");                                \
+  SUCCEED();
+
+#define REQUIRE_EMPTY(error)                                                   \
+  if (!error.empty())                                                          \
+    FAIL("\033[1;31mDiff in expected output\033[0m\n" + error);                \
+  SUCCEED();
+
 #define REQUIRE(...)                                                           \
   INTERNAL_CATCH_TEST("REQUIRE", Catch::ResultDisposition::Normal, __VA_ARGS__)
 #define REQUIRE_FALSE(...)                                                     \
@@ -14017,7 +14033,7 @@ int main(int argc, char *const argv[]) {
 #define SECTION(...) INTERNAL_CATCH_SECTION(__VA_ARGS__)
 #define DYNAMIC_SECTION(...) INTERNAL_CATCH_DYNAMIC_SECTION(__VA_ARGS__)
 #define FAIL(...)                                                              \
-  INTERNAL_CATCH_MSG("FAIL", Catch::ResultWas::ExplicitFailure,                \
+  INTERNAL_CATCH_MSG("FAIL", Catch::ResultWas::ExpressionFailed,               \
                      Catch::ResultDisposition::Normal, __VA_ARGS__)
 #define FAIL_CHECK(...)                                                        \
   INTERNAL_CATCH_MSG("FAIL_CHECK", Catch::ResultWas::ExplicitFailure,          \

@@ -12,7 +12,7 @@ TEST_CASE("Fast Parser:primary expression test_1") {
 
   auto fp = FastParser(language);
   auto root = fp.parse();
-  REQUIRE(fp.fail() == false);
+  REQUIRE_SUCCESS(fp);
 }
 
 TEST_CASE("Fast Parser:primary expression test_2") {
@@ -24,7 +24,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -34,7 +34,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -55,7 +55,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -66,7 +66,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -78,7 +78,7 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
   {
     std::string language{" int main() {"
@@ -88,6 +88,24 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 
     auto fp = FastParser(language);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
+}
+
+TEST_CASE("parser/digraph") {
+  std::string ctx = "int (main())\n"
+                    "<%\n"
+                    "\ta[0];\n"
+                    "\ta<:0:>;\n"
+                    "%>\n";
+  std::string xtc = "int (main())\n"
+                    "{\n"
+                    "\ta[0];\n"
+                    "\ta[0];\n"
+                    "}\n";
+
+  auto fp = FastParser(ctx);
+  auto root = fp.parse();
+  REQUIRE_SUCCESS(fp);
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), xtc));
 }

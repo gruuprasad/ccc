@@ -7,17 +7,17 @@
 
 TEST_CASE("Read simple unit from .c4") {
   std::ifstream in("../../test/parser/test_codes.c4");
-  REQUIRE(in.is_open() == true);
+  REQUIRE(in.is_open());
 
   ccc::Reader reader(in);
   auto unit = reader.readUnit();
   //  std::cout << unit << std::endl;
-  REQUIRE(unit.empty() == false);
+  REQUIRE(!unit.empty());
 }
 
 TEST_CASE("Parse multiple units from .c4") {
   std::ifstream in("../../test/parser/test_codes.c4");
-  REQUIRE(in.is_open() == true);
+  REQUIRE(in.is_open());
   ccc::Reader reader(in);
 
   while (true) {
@@ -26,6 +26,6 @@ TEST_CASE("Parse multiple units from .c4") {
       break;
     auto fp = ccc::FastParser(unit);
     auto root = fp.parse();
-    REQUIRE(fp.fail() == false);
+    REQUIRE_SUCCESS(fp);
   }
 }

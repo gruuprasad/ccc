@@ -43,8 +43,8 @@ LDFLAGS  += $(LLVM_LDFLAGS)
 DUMMY := $(shell mkdir -p $(sort $(dir $(OBJ))))
 
 #cosmetic
-COLOR ?= \033[33m
-_COLOR := \033[0m
+COLOUR ?= \033[33m
+_COLOUR := \033[0m
 
 # build rules
 .PHONY: all clean
@@ -57,19 +57,19 @@ all:
 
 legacy:
 	@$(MAKE) -j$(nproc) $(BIN) --no-print-directory
-	@echo "$(COLOR)===> LEGACY$(_COLOR) | $(LEGACYBIN)"
+	@echo "$(COLOUR)===> LEGACY$(_COLOUR) | $(LEGACYBIN)"
 	$(Q)mkdir -p $(LEGACYDIR)
 	@echo "$(shell echo ${CXXFLAGS} | sed -e 's/^[ \t]*//')" > $(LEGACYBIN).flags
 	$(Q)mv $(BIN) $(LEGACYBIN)
 
 clean:
-	@echo "$(COLOR)===> CLEAN$(_COLOR) | $(BINDIR)"
+	@echo "$(COLOUR)===> CLEAN$(_COLOUR) | $(BINDIR)"
 	$(Q)rm -fr $(BINDIR)
 
 $(BIN): $(OBJ)
-	@echo "$(COLOR)===> LD  [$(shell echo $(CXX) ${LDFLAGS} | sed -e 's/^[ \t]*//')]$(_COLOR) | $@"
+	@echo "$(COLOUR)===> LD  [$(shell echo $(CXX) ${LDFLAGS} | sed -e 's/^[ \t]*//')]$(_COLOUR) | $@"
 	$(Q)$(CXX) -o $(BIN) $(OBJ) $(LDFLAGS)
 
 $(BINDIR)/%.o: $(SRCDIR)/%.cpp
-	@echo "$(COLOR)===> CXX [$(shell echo $(CXX) ${CXXFLAGS} | sed -e 's/^[ \t]*//')]$(_COLOR) | $*"
+	@echo "$(COLOUR)===> CXX [$(shell echo $(CXX) ${CXXFLAGS} | sed -e 's/^[ \t]*//')]$(_COLOUR) | $*"
 	$(Q)$(CXX) $(CXXFLAGS) -c -o $@ $<

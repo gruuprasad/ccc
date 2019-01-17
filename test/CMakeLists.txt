@@ -30,12 +30,12 @@ add_dependencies(check test_ast)
 add_test(NAME ast COMMAND test_ast)
 
 add_executable(test_prettyPrinter
-               prettyPrinter/prettyPrinter_test.cpp
-               prettyPrinter/prettyPrinter_entry_test.cpp
+               pretty_printer/pretty_printer_test.cpp
+               pretty_printer/pretty_printer_entry_test.cpp
                )
 target_link_libraries(test_prettyPrinter test_LLIB)
 add_dependencies(check test_prettyPrinter)
-add_test(NAME prettyPrinter COMMAND test_prettyPrinter)
+add_test(NAME pretty_printer COMMAND test_prettyPrinter)
 
 add_executable(test_semantic
                semantic/typeAnalysis_test.cpp
@@ -44,6 +44,13 @@ add_executable(test_semantic
 target_link_libraries(test_semantic test_LLIB)
 add_dependencies(check test_semantic)
 add_test(NAME semantic COMMAND test_semantic)
+
+add_executable(test_blackBox
+               black_box/black_box.cpp
+               )
+target_link_libraries(test_blackBox test_LLIB)
+add_dependencies(check test_blackBox)
+add_test(NAME black_box COMMAND test_blackBox)
 
 add_executable(test_all
                lexer/lexer_test.cpp
@@ -59,10 +66,12 @@ add_executable(test_all
 
                ast/ast_test.cpp
 
-               prettyPrinter/prettyPrinter_test.cpp
-               prettyPrinter/prettyPrinter_entry_test.cpp
+               pretty_printer/pretty_printer_test.cpp
+               pretty_printer/pretty_printer_entry_test.cpp
 
                semantic/typeAnalysis_test.cpp
                semantic/nameAnalysis_test.cpp
+
+               black_box/black_box.cpp
                )
 target_link_libraries(test_all test_LLIB)
