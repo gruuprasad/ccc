@@ -13920,9 +13920,19 @@ int main(int argc, char *const argv[]) {
 // required
 #else
 
+#define REQUIRE_SUCCESS(fp)                                                    \
+  if (fp.fail())                                                               \
+    FAIL("\033[1;31mUnexpected fail\n " + fp.getError() + "\033[0m");          \
+  SUCCEED();
+
+#define REQUIRE_FAIL(fp)                                                       \
+  if (!fp.fail())                                                              \
+    FAIL("\033[1;31mUnexpected Pass\033[0m\n");                                \
+  SUCCEED();
+
 #define REQUIRE_EMPTY(error)                                                   \
   if (!error.empty())                                                          \
-    FAIL(error);                                                               \
+    FAIL("\033[1;31mDiff in expected output\033[0m\n" + error);                \
   SUCCEED();
 
 #define REQUIRE(...)                                                           \

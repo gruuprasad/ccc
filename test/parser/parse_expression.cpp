@@ -1,11 +1,6 @@
 #include "../catch.hpp"
 #include "parser/fast_parser.hpp"
 
-#define REQUIRE_SUCCESS(fp)                                                    \
-  if (fp.fail())                                                               \
-    FAIL("\033[1;31m" + fp.getError() + "\033[0m");                            \
-  SUCCEED();
-
 using namespace ccc;
 
 // Test simple expressions
