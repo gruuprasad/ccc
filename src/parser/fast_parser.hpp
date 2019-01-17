@@ -59,7 +59,7 @@ public:
   }
 
   void parser_error(const Token &tok, const std::string &msg = std::string()) {
-    if (error_count++ == 0) {
+    if (error_count++ == 0) { // TODO fix this with new line
       error_stream << std::to_string(tok.getLine()) << ":"
                    << std::to_string(tok.getColumn()) << ": error:";
       if (msg.empty()) {
