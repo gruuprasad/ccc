@@ -59,15 +59,17 @@ public:
   }
 
   void parser_error(const Token &tok, const std::string &msg = std::string()) {
-    error_count++;
-    error_stream << std::to_string(tok.getLine()) << ":"
-                 << std::to_string(tok.getColumn()) << ":error:";
-    if (msg.empty()) {
-      error_stream << "Unexpected Token " << tok.name() << "found.";
-    } else {
-      error_stream << "Expected " << msg << " found \"" << tok.name();
+    if (error_count++ == 0) {
+      error_stream << std::to_string(tok.getLine()) << ":"
+                   << std::to_string(tok.getColumn()) << ": error:";
+      if (msg.empty()) {
+        error_stream << " Unexpected Token \"" << tok.name() << "\" found.";
+      } else {
+        error_stream << " Expected " << msg << " found \"" << tok.name()
+                     << "\".";
+      }
+      error_stream << " Parsing Stopped!";
     }
-    error_stream << "\" Parsing Stopped!";
   }
 
 private:
@@ -147,7 +149,7 @@ private:
   // Variables to hold certain states during parsing.
   bool isIdentiferFuncType = false;
   Token global_mark;
-};
+}; // namespace ccc
 
 } // namespace ccc
 #endif
