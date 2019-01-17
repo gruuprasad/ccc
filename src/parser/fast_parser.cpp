@@ -548,13 +548,18 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
 // (6.5.1) primary: identifer | constant | string-literal | ( expression )
 std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
   std::unique_ptr<Expression> paren_expr;
+  std::string num_str;
   Token src_mark(peek());
   switch (peek().getType()) {
   case TokenType::IDENTIFIER:
     return make_unique<VariableName>(nextToken(), src_mark.getExtra());
   case TokenType::NUMBER:
-    return make_unique<Number>(nextToken(), stoi(src_mark.getExtra()));
-    ;
+    num_str = src_mark.getExtra();
+    if (num_str.size() > 1 && src_mark.getExtra()[0] == '0') {
+      parser_error(src_mark, "Bad number, cannot start with 0");
+      return std::unique_ptr<Expression>();
+    }
+    return make_unique<Number>(nextToken(), stoi(num_str));
   case TokenType::CHARACTER:
     return make_unique<Character>(nextToken(), src_mark.getExtra().front());
   case TokenType::STRING:

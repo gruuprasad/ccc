@@ -109,3 +109,15 @@ TEST_CASE("parser/digraph") {
   REQUIRE_SUCCESS(fp);
   REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), xtc));
 }
+
+// Test simple expressions
+TEST_CASE("Fast Parser:bad number") {
+  std::string language{" int main() {"
+                       " x = 0123;"
+                       " return 0;"
+                       "}"};
+
+  auto fp = FastParser(language);
+  auto root = fp.parse();
+  REQUIRE(fp.fail());
+}
