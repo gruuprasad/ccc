@@ -4,9 +4,11 @@
 #include "../ast/ast_node.hpp"
 #include <cstddef>
 #include <cstdlib>
+#include <dirent.h>
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <sys/types.h>
 #include <type_traits>
 #include <utility>
 
@@ -66,6 +68,18 @@ public:
       split.push_back(tmp);
     }
     return split;
+  }
+
+  static std::vector<std::string> dir(char *d) {
+    std::vector<std::string> files = {};
+    DIR *dirp = opendir(d);
+    struct dirent *dp;
+    while ((dp = readdir(dirp)) != nullptr) {
+      if (dp->d_name[0] != '.')
+        files.emplace_back(dp->d_name);
+    }
+    closedir(dirp);
+    return files;
   }
 
   static std::string compare(const std::string &content,
