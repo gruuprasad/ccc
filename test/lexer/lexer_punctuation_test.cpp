@@ -33,7 +33,6 @@ using namespace ccc;
   }                                                                            \
   TEST_CASE("Fast Lexer keyword " #keyword " length") {                        \
     auto token_list = FastLexer(#keyword " n").lex();                          \
-    token_list.pop_back();                                                     \
     auto lastToken = token_list.back();                                        \
     REQUIRE(lastToken.getType() == TokenType::IDENTIFIER);                     \
     REQUIRE(lastToken.getLine() == 1);                                         \

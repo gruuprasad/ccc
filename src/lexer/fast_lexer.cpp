@@ -1149,6 +1149,24 @@ Token FastLexer::lex_valid() {
     case TokenType::WHITESPACE:
       // These tokens are skipped over.
       continue;
+    case TokenType::BRACE_OPEN_ALT:
+      return Token(TokenType::BRACE_OPEN, curToken.getLocation(),
+                   curToken.getExtra());
+    case TokenType::BRACE_CLOSE_ALT:
+      return Token(TokenType::BRACE_CLOSE, curToken.getLocation(),
+                   curToken.getExtra());
+    case TokenType::BRACKET_OPEN_ALT:
+      return Token(TokenType::BRACKET_OPEN, curToken.getLocation(),
+                   curToken.getExtra());
+    case TokenType::BRACKET_CLOSE_ALT:
+      return Token(TokenType::BRACKET_CLOSE, curToken.getLocation(),
+                   curToken.getExtra());
+    case TokenType::HASH_ALT:
+      return Token(TokenType::HASH, curToken.getLocation(),
+                   curToken.getExtra());
+    case TokenType::HASHHASH_ALT:
+      return Token(TokenType::HASHHASH, curToken.getLocation(),
+                   curToken.getExtra());
     default:
       return curToken;
     }
@@ -1156,18 +1174,29 @@ Token FastLexer::lex_valid() {
 }
 
 std::vector<Token> FastLexer::lex() {
-  std::vector<Token> token_list;
+  std::vector<Token> token_list{};
   token_list.reserve(content.size());
   Token curToken;
   while (true) {
-    curToken = lex_valid();
+    while (true) {
+      curToken = munch();
+      switch (curToken.getType()) {
+      case TokenType::BLOCKCOMMENT:
+      case TokenType::LINECOMMENT:
+      case TokenType::WHITESPACE:
+        continue;
+      default:
+        break;
+      }
+      break;
+    }
     if (curToken.getType() == TokenType::INVALIDTOK ||
         curToken.getType() == TokenType::ENDOFFILE) {
       break;
     }
     token_list.push_back(std::move(curToken));
   }
-  token_list.emplace_back(Token(TokenType::ENDOFFILE, line, column));
+  //  token_list.emplace_back(TokenType::ENDOFFILE, line, column);
   return token_list;
 }
 

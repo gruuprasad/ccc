@@ -95,13 +95,13 @@ TEST_CASE("Fast Parser:primary expression test_2") {
 TEST_CASE("parser/digraph") {
   std::string ctx = "int (main())\n"
                     "<%\n"
-                    "\ta[0];\n"
-                    "\ta<:0:>;\n"
+                    "a[0];\n"
+                    "a<:0:>;\n"
                     "%>\n";
   std::string xtc = "int (main())\n"
                     "{\n"
-                    "\ta[0];\n"
-                    "\ta[0];\n"
+                    "\t(a[0]);\n"
+                    "\t(a[0]);\n"
                     "}\n";
 
   auto fp = FastParser(ctx);
