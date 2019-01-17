@@ -46,8 +46,8 @@ std::string FunctionDeclaration::prettyPrint(int lvl) {
 }
 
 std::string DataDeclaration::prettyPrint(int lvl) {
-  return indent(lvl) + data_type->prettyPrint(0) + " " +
-         data_name->prettyPrint(0) + ";\n";
+  return indent(lvl) + data_type->prettyPrint(0) +
+         (data_name ? " " + data_name->prettyPrint(0) : error) + ";\n";
 }
 
 std::string StructDeclaration::prettyPrint(int lvl) {
@@ -159,7 +159,7 @@ std::string Goto::prettyPrint(int lvl) {
 }
 
 std::string ExpressionStmt::prettyPrint(int lvl) {
-  return indent(lvl) + expr->prettyPrint(0) + ";\n";
+  return indent(lvl) + (expr ? expr->prettyPrint(0) : error) + ";\n";
 }
 
 std::string Break::prettyPrint(int lvl) { return indent(lvl) + "break;\n"; }
