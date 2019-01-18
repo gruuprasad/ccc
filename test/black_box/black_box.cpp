@@ -25,7 +25,8 @@ TEST_CASE("parser_success_files") {
 
 TEST_CASE("parser_failure_files") {
   std::string dir = "../../parser_failure_files";
-  for (const auto &file : Utils::dir(&dir[0])) {
+  auto files = Utils::dir(&dir[0]);
+  for (const auto &file : files) {
     SECTION(file) {
       std::string flag = "--parse";
       std::string input = "../../parser_failure_files/" + file;

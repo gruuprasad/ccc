@@ -4,13 +4,10 @@
 #include "../ast/ast_node.hpp"
 #include <cstddef>
 #include <cstdlib>
-#include <cstring>
 #include <dirent.h>
 #include <fstream>
-#include <iostream>
 #include <memory>
 #include <sstream>
-#include <stdio.h>
 #include <sys/types.h>
 #include <type_traits>
 #include <utility>
@@ -87,8 +84,6 @@ public:
           files.emplace_back(dp->d_name);
       }
     }
-    for (auto t : files)
-      std::cout << t << std::endl;
     closedir(dirp);
     return files;
   }
