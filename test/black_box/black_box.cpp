@@ -2,14 +2,16 @@
 #include "entry/entry_point_handler.hpp"
 #include "parser/fast_parser.hpp"
 
+#define ROOT_DIR std::string("../../")
+
 using namespace ccc;
 
 TEST_CASE("parser_success_files") {
-  std::string dir = "../../parser_success_files";
+  std::string dir = ROOT_DIR + "parser_success_files/";
   for (const auto &file : Utils::dir(&dir[0])) {
     SECTION(file) {
       std::string flag = "--parse";
-      std::string input = "../../parser_success_files/" + file;
+      std::string input = dir + file;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
@@ -24,12 +26,12 @@ TEST_CASE("parser_success_files") {
 }
 
 TEST_CASE("parser_failure_files") {
-  std::string dir = "../../parser_failure_files";
+  std::string dir = ROOT_DIR + "parser_failure_files/";
   auto files = Utils::dir(&dir[0]);
   for (const auto &file : files) {
     SECTION(file) {
       std::string flag = "--parse";
-      std::string input = "../../parser_failure_files/" + file;
+      std::string input = dir + file;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
@@ -44,11 +46,11 @@ TEST_CASE("parser_failure_files") {
 }
 
 TEST_CASE("pretty_printer_files") {
-  std::string dir = "../../pretty_printer_files";
+  std::string dir = ROOT_DIR + "pretty_printer_files/";
   for (const auto &file : Utils::dir(&dir[0])) {
     SECTION(file) {
       std::string flag = "--print-ast";
-      std::string input = "../../pretty_printer_files/" + file;
+      std::string input = dir + file;
 
       std::ifstream ifs(input);
       std::stringstream buffer;
