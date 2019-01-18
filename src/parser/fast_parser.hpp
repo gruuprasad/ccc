@@ -21,8 +21,11 @@ enum PARSE_TYPE { TRANSLATIONUNIT, EXPRESSION, STATEMENT, DECLARATION };
 constexpr static const std::size_t N = 3; // la_buffer size
 
 class FastParser {
+  std::string filename;
+
 public:
-  explicit FastParser(const std::string &content) : lexer(content) {
+  explicit FastParser(const std::string &content, std::string f = "")
+      : filename(std::move(f)), lexer(content, filename) {
     for (auto &elem : la_buffer)
       elem = lexer.lex_valid();
   }
@@ -49,8 +52,8 @@ public:
     return lexer.getLexerLocation();
   }
 
-  bool fail() const { return error_count != 0; }
-  std::string getError() { return error_stream.str(); }
+  bool fail() const { return !error.empty(); }
+  std::string getError() { return error; }
 
   void log_msg(const Token &tok, const std::string &msg = std::string()) {
     std::cout << msg << " peek() token info = ";
@@ -59,16 +62,20 @@ public:
   }
 
   void parser_error(const Token &tok, const std::string &msg = std::string()) {
-    if (error_count++ == 0) { // TODO fix this with new line
-      error_stream << std::to_string(tok.getLine()) << ":"
-                   << std::to_string(tok.getColumn()) << ": error:";
-      if (msg.empty()) {
-        error_stream << " Unexpected Token \"" << tok.name() << "\" found.";
-      } else {
-        error_stream << " Expected " << msg << " found \"" << tok.name()
-                     << "\".";
-      }
-      error_stream << " Parsing Stopped!";
+    if (tok.getType() == TokenType::INVALIDTOK)
+      error = lexer.getError();
+    else {
+      if (!error.empty())
+        error += "\n";
+      error += (filename.empty() ? filename : filename + ":") +
+               std::to_string(tok.getLine()) + ":" +
+               std::to_string(tok.getColumn()) + ": error:";
+      if (!msg.empty())
+        error += " Expected " + msg + " found \"" + tok.name() + "\".";
+      else
+        error += " Unexpected Token \"" + tok.name() + "\" found.";
+
+      error += " Parsing Stopped!";
     }
   }
 
@@ -144,7 +151,7 @@ private:
 
   FastLexer lexer;
   std::array<Token, N> la_buffer;
-  unsigned int error_count = 0;
+  std::string error;
   std::stringstream error_stream;
   // Variables to hold certain states during parsing.
   bool isIdentiferFuncType = false;

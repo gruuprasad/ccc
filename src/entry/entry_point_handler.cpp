@@ -16,35 +16,29 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     std::string path = ppArgs[2];
     std::ifstream file = std::ifstream(path);
     auto filename = path.substr(path.find_last_of("/\\") + 1);
-    std::vector<Token, std::allocator<Token>> token_list;
     std::string buffer((std::istreambuf_iterator<char>(file)),
                        std::istreambuf_iterator<char>());
-    auto lexer = FastLexer(buffer);
-    token_list = lexer.lex();
-    if (lexer.fail()) {
-      std::cerr << filename << ":" << lexer.getError() << std::endl;
-      return EXIT_FAILURE;
-    }
     if (flagName == "--tokenize") {
-      for (const auto &token : token_list) {
-        if (token.is(TokenType::ENDOFFILE))
-          break;
-        std::cout << filename << ":" << token << '\n';
+      auto lexer = FastLexer(buffer, filename);
+      lexer.tokenize();
+      if (lexer.fail()) {
+        std::cerr << lexer.getError() << std::endl;
+        return EXIT_FAILURE;
       }
       return EXIT_SUCCESS;
     } else if (flagName == "--parse") {
-      auto parser = FastParser(buffer);
+      auto parser = FastParser(buffer, filename);
       parser.parse();
       if (parser.fail()) {
-        std::cerr << filename << ":" << parser.getError() << std::endl;
+        std::cerr << parser.getError() << std::endl;
         return EXIT_FAILURE;
       }
       return EXIT_SUCCESS;
     } else if (flagName == "--print-ast") {
-      auto parser = FastParser(buffer);
+      auto parser = FastParser(buffer, filename);
       auto root = parser.parse();
       if (parser.fail()) {
-        std::cerr << filename << ":" << parser.getError() << std::endl;
+        std::cerr << parser.getError() << std::endl;
         return EXIT_FAILURE;
       }
       std::cout << root->prettyPrint(0);
