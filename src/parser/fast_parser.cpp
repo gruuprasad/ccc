@@ -28,7 +28,7 @@ unique_ptr<TranslationUnit> FastParser::parseTranslationUnit() {
   ExternalDeclarationListType external_decls = ExternalDeclarationListType();
   Token src_mark(peek());
   if (src_mark.getType() == TokenType::ENDOFFILE) {
-    parser_error(Token(TokenType::ENDOFFILE, 1, 1),
+    parser_error(Token(TokenType::ENDOFFILE, 1, 0),
                  "Empty translation unit not supported");
   }
   while (!fail() && peek().is_not(TokenType::ENDOFFILE)) {
