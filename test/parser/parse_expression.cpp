@@ -121,3 +121,26 @@ TEST_CASE("Fast Parser:bad number") {
   auto root = fp.parse();
   REQUIRE(fp.fail());
 }
+
+// Test parser failed tests
+TEST_CASE("parser/unary_postfix") {
+  std::string ctx{" int main() {"
+                       " &a[1];"
+                       " x = *fun();"
+                       " x = y = z;"
+                       " return 0;"
+                       "}"};
+
+  std::string xtc{"int (main())\n"
+									"{\n"
+									"\t(&(a[1]));\n"
+									"\t(x = (*(fun())));\n"
+                  "\t(x = (y = z));\n"
+									"\treturn 0;\n"
+									"}\n"};
+
+  auto fp =FastParser(ctx);
+  auto root = fp.parse();
+  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), xtc));
+  REQUIRE(fp.fail() == false);
+}

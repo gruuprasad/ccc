@@ -391,20 +391,33 @@ unique_ptr<Expression> FastParser::parseExpression() {
   return parseAssignmentExpression();
 }
 
+// assignment-expression is top level grammar for different types of
+// expression (like unary, binary, ternary and assignment (=) even though
+// non-terminal name is bit misleading.
 // (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op
 // assignment-expr (6.5.15) conditional-expr: logical-OR | logical-OR ?
 // expression : conditional-expr
 std::unique_ptr<Expression> FastParser::parseAssignmentExpression() {
   Token src_mark(peek());
   auto lhs = parseUnaryExpression(); // LHS or first operand
+
+  // Expression contains assignment op
   if (peek().is(TokenType::ASSIGN)) {
     consume(TokenType::ASSIGN);
-    auto rhs = parseUnaryExpression();     // rhs first operand
-    rhs = parseBinOpWithRHS(move(rhs), 1); // BinOpLeft + RHS
+    auto rhs = parseAssignmentExpression(); // Recursively parse assignment
+    if (fail()) {
+      return std::unique_ptr<Expression>();
+    }
     return make_unique<Assignment>(src_mark, std::move(lhs), std::move(rhs));
   }
 
-  return parseBinOpWithRHS(std::move(lhs), 1);
+  // Expression is binary
+  if (peek().is(BINARY_OP)) {
+    return parseBinOpWithRHS(std::move(lhs), 1);
+  }
+  
+  // Expression is unary
+  return lhs;
 }
 
 std::unique_ptr<Expression>
@@ -415,7 +428,6 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
   while (true) {
     // If precedence of BinOp encounted is smaller than current Precedence
     // level return LHS.
-
     if (nextTokenPrec < minPrec) {
       if (fail())
         return std::unique_ptr<Expression>();
