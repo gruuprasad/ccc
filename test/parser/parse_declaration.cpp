@@ -120,3 +120,11 @@ TEST_CASE("Valid Declaration Tests") {
     }
   }
 }
+
+TEST_CASE("Function with pointer return type") {
+  std::string language{"int *funcA() { ;}"};
+  auto fp = FastParser(language);
+  auto root = fp.parse();
+  std::cout << root->prettyPrint(0);
+  REQUIRE_SUCCESS(fp);
+}

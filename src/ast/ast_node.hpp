@@ -194,6 +194,19 @@ public:
   std::string prettyPrint(int lvl) override;
 };
 
+enum class AbstractDeclType { Data, Function };
+
+class AbstractDeclarator : public Declarator {
+  AbstractDeclType type_kind;
+  unsigned int pointerCount = 0;
+
+public:
+  AbstractDeclarator(const Token &tk, AbstractDeclType t, unsigned int p)
+    : Declarator(tk), type_kind(t), pointerCount(p) {}
+
+  std::string prettyPrint(int lvl) override;
+};
+
 class PointerDeclarator : public Declarator {
   std::unique_ptr<Declarator> identifer;
   int indirection_level;
@@ -209,11 +222,12 @@ public:
 class FunctionDeclarator : public Declarator {
   std::unique_ptr<Declarator> identifer;
   ParamDeclarationListType param_list;
+  std::unique_ptr<Declarator> return_ptr;
 
 public:
   FunctionDeclarator(const Token &tk, std::unique_ptr<Declarator> i,
-                     ParamDeclarationListType p)
-      : Declarator(tk), identifer(std::move(i)), param_list(std::move(p)) {}
+                     ParamDeclarationListType p, std::unique_ptr<Declarator> r = nullptr)
+      : Declarator(tk), identifer(std::move(i)), param_list(std::move(p)), return_ptr(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
 };

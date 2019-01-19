@@ -148,6 +148,8 @@ private:
   std::stringstream error_stream;
   // Variables to hold certain states during parsing.
   bool isFunctionIdentifer = false;
+  bool fnReturnTypeWithPtr = false;
+  unsigned int ignoredPtrCount = 0;
   Token global_mark;
 }; // namespace ccc
 
