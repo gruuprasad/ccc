@@ -426,6 +426,7 @@ TEST_CASE("pretty print if else if else goto label") {
                                                      "}\n"));
 }
 
+/*
 TEST_CASE("declaration") {
   auto root = make_unique<CompoundStmt>(
       Token(),
@@ -533,7 +534,7 @@ TEST_CASE("declaration init") {
                                "\t}\n"
                                "}\n"));
 }
-
+*/
 TEST_CASE("sizeof") {
   auto root = make_unique<CompoundStmt>(
       Token(),
@@ -667,7 +668,7 @@ TEST_CASE("call") {
                                                      "\t(f((-s), 1));\n"
                                                      "}\n"));
 }
-
+/*
 TEST_CASE("traslation") {
   auto root = make_unique<TranslationUnit>(
       Token(),
@@ -718,5 +719,5 @@ TEST_CASE("traslation") {
                                "\tint d;\n"
                                "}\n"));
 }
-
+*/
 } // namespace ccc

@@ -89,6 +89,10 @@ std::string DirectDeclarator::prettyPrint(int) {
   return identifer->prettyPrint(0);
 }
 
+std::string AbstractDeclarator::prettyPrint(int) {
+  return std::string(pointerCount, '*');
+}
+
 std::string PointerDeclarator::prettyPrint(int) {
   std::string pre, post;
   for (int i = 0; i < indirection_level; i++) {
@@ -100,12 +104,15 @@ std::string PointerDeclarator::prettyPrint(int) {
 
 std::string FunctionDeclarator::prettyPrint(int) {
   std::stringstream ss;
+  std::string ptr_str;
+  if (return_ptr.get() != nullptr)
+    ptr_str = return_ptr->prettyPrint(0);
   for (const auto &p : param_list) {
     ss << p->prettyPrint(0);
     if (p != param_list.back())
       ss << ", ";
   }
-  return "(" + identifer->prettyPrint(0) + "(" + ss.str() + "))";
+  return ptr_str + "(" + identifer->prettyPrint(0) + "(" + ss.str() + "))";
 }
 
 std::string CompoundStmt::prettyPrintBlock(int lvl) {

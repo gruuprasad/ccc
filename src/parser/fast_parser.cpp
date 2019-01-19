@@ -73,11 +73,12 @@ FastParser::parseFuncDefOrDeclaration(bool parseOnlyDecl) {
   if (peek().is(TokenType::SEMICOLON)) {
     consume(TokenType::SEMICOLON);
     if (structDefined) {
+      structDefined = false; // Reset
       return make_unique<StructDeclaration>(src_mark, move(type_node),
                                             move(identifier_node));
     }
-    if (isIdentiferFuncType) {
-      isIdentiferFuncType = false;
+    if (isFunctionIdentifer) {
+      isFunctionIdentifer = false;
       return make_unique<FunctionDeclaration>(src_mark, move(type_node),
                                               move(identifier_node));
     }
@@ -160,7 +161,7 @@ unique_ptr<StructType> FastParser::parseStructType(bool &structDefined) {
 // (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator
 // ( parameter-list ) (6.7.6) abstract-declarator :: pointer | pointer(opt)
 // direct-abstract-declarator (6.7.6) direct-abstract-declarator :: (
-// abstract-declarator ) | ( parameter-list(opt) )+
+// abstract-declarator ) | direct-abstract-declarator ( parameter-list(opt) )+
 unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   global_mark = peek();
   int ptrCount = 0;
@@ -172,10 +173,12 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
     } while (peek().is(TokenType::STAR));
   }
 
-  // In the case of function type, if pointer is within parenthesis then it is
-  // grouped with function id, otherwise it becomes part of return type
-  // parameter. (Outermost pointer belongs to return type and that is handled
-  // below.
+  if (ptrCount != 0 && peek().is_not(TokenType::PARENTHESIS_OPEN) &&
+      peek().is_not(TokenType::IDENTIFIER)) {
+    // Abstract-declarator::pointer
+    return make_unique<AbstractDeclarator>(global_mark, AbstractDeclType::Data, ptrCount);
+  }
+
   auto identifier = parseDirectDeclarator(within_paren, ptrCount);
   if (fail()) {
     return unique_ptr<Declarator>();
@@ -183,14 +186,15 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
     return identifier;
   }
 
-  // TODO Abstract Declarator
-
   parser_error(peek(), " declarator (identifer or pointer symbol or \"(\") ");
   return unique_ptr<Declarator>();
 }
 
+// TODO Support for abstract function declarator type
 // (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator
 // ( parameter-list )
+// (6.7.6) direct-abstract-declarator :: (
+// abstract-declarator ) | direct-abstract-declarator ( parameter-list(opt) )
 unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
                                                          int ptrCount) {
   std::unique_ptr<Declarator> identifier;
@@ -217,13 +221,14 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
       param_list = parseParameterList();
     }
     mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
-    isIdentiferFuncType = true;
+    isFunctionIdentifer = true;
     if (ptrCount != 0 && in_paren) {
       identifier = make_unique<PointerDeclarator>(
           global_mark, std::move(identifier), ptrCount);
     }
+    auto return_ptr = make_unique<AbstractDeclarator>(global_mark, AbstractDeclType::Data, ptrCount);
     return make_unique<FunctionDeclarator>(src_mark, move(identifier),
-                                           move(param_list));
+                                           move(param_list), move(return_ptr));
   }
 
   if (ptrCount != 0) {
@@ -233,7 +238,6 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
 
   return identifier;
 }
-// NOTE:: Function return type is abstract declarator?
 
 // (6.7.6)  parameter-list :: parameter-declaration (comma-separated)
 ParamDeclarationListType FastParser::parseParameterList() {
@@ -391,20 +395,33 @@ unique_ptr<Expression> FastParser::parseExpression() {
   return parseAssignmentExpression();
 }
 
+// assignment-expression is top level grammar for different types of
+// expression (like unary, binary, ternary and assignment (=) even though
+// non-terminal name is bit misleading.
 // (6.5.16) assignment-expr: conditional-expr | unary-expr assignment-op
 // assignment-expr (6.5.15) conditional-expr: logical-OR | logical-OR ?
 // expression : conditional-expr
 std::unique_ptr<Expression> FastParser::parseAssignmentExpression() {
   Token src_mark(peek());
   auto lhs = parseUnaryExpression(); // LHS or first operand
+
+  // Expression contains assignment op
   if (peek().is(TokenType::ASSIGN)) {
     consume(TokenType::ASSIGN);
-    auto rhs = parseUnaryExpression();     // rhs first operand
-    rhs = parseBinOpWithRHS(move(rhs), 1); // BinOpLeft + RHS
+    auto rhs = parseAssignmentExpression(); // Recursively parse assignment
+    if (fail()) {
+      return std::unique_ptr<Expression>();
+    }
     return make_unique<Assignment>(src_mark, std::move(lhs), std::move(rhs));
   }
 
-  return parseBinOpWithRHS(std::move(lhs), 1);
+  // Expression is binary
+  if (peek().is(BINARY_OP)) {
+    return parseBinOpWithRHS(std::move(lhs), 1);
+  }
+  
+  // Expression is unary
+  return lhs;
 }
 
 std::unique_ptr<Expression>
@@ -415,7 +432,6 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
   while (true) {
     // If precedence of BinOp encounted is smaller than current Precedence
     // level return LHS.
-
     if (nextTokenPrec < minPrec) {
       if (fail())
         return std::unique_ptr<Expression>();
@@ -592,6 +608,8 @@ ExpressionListType FastParser::parseArgumentExpressionList() {
       }
     }
   }
+
+  consume(TokenType::PARENTHESIS_CLOSE);
   return arg_list;
 }
 
