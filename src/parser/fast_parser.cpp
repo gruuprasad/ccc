@@ -592,6 +592,8 @@ ExpressionListType FastParser::parseArgumentExpressionList() {
       }
     }
   }
+
+  consume(TokenType::PARENTHESIS_CLOSE);
   return arg_list;
 }
 
