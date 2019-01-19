@@ -73,11 +73,12 @@ FastParser::parseFuncDefOrDeclaration(bool parseOnlyDecl) {
   if (peek().is(TokenType::SEMICOLON)) {
     consume(TokenType::SEMICOLON);
     if (structDefined) {
+      structDefined = false; // Reset
       return make_unique<StructDeclaration>(src_mark, move(type_node),
                                             move(identifier_node));
     }
-    if (isIdentiferFuncType) {
-      isIdentiferFuncType = false;
+    if (isFunctionIdentifer) {
+      isFunctionIdentifer = false;
       return make_unique<FunctionDeclaration>(src_mark, move(type_node),
                                               move(identifier_node));
     }
@@ -217,7 +218,7 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
       param_list = parseParameterList();
     }
     mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
-    isIdentiferFuncType = true;
+    isFunctionIdentifer = true;
     if (ptrCount != 0 && in_paren) {
       identifier = make_unique<PointerDeclarator>(
           global_mark, std::move(identifier), ptrCount);
