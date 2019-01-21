@@ -38,6 +38,7 @@ class DirectDeclarator;
 class Declaration;
 class ExternalDeclaration;
 class ParamDeclaration;
+class Visitor;
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType =
@@ -58,6 +59,7 @@ protected:
 public:
   virtual ~ASTNode() = default;
   virtual std::string prettyPrint(int) = 0;
+  virtual void accept(Visitor *v) = 0;
   Token &getTokenRef() { return tok; }
 
 // Graphviz block
@@ -75,6 +77,8 @@ public:
       : ASTNode(tk), extern_list(std::move(e)) {}
 
   std::string prettyPrint(int lvl) override;
+
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -101,6 +105,7 @@ public:
         fn_name(std::move(n)), fn_body(std::move(b)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -123,6 +128,7 @@ public:
       : Declaration(tk), return_type(std::move(r)), fn_name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -140,6 +146,7 @@ public:
       : Declaration(tk), data_type(std::move(t)), data_name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -158,6 +165,7 @@ public:
   }
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -175,6 +183,7 @@ public:
       : Declaration(tk), param_type(std::move(t)), param_name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -198,6 +207,7 @@ public:
   bool isStructType() override { return false; }
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -217,6 +227,7 @@ public:
   bool isStructType() override { return true; }
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -238,6 +249,7 @@ public:
       : Declarator(tk), identifer(std::move(i)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -256,6 +268,7 @@ public:
       : Declarator(tk), type_kind(t), pointerCount(p) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -273,6 +286,7 @@ public:
       : Declarator(tk), identifer(std::move(i)), indirection_level(l) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -293,6 +307,7 @@ public:
         return_ptr(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -323,6 +338,7 @@ public:
       : Statement(tk), block_items(std::move(block)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
 
@@ -344,6 +360,7 @@ public:
         elseStmt(std::move(e)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
 
@@ -362,6 +379,7 @@ public:
         std::unique_ptr<Statement> b)
       : Statement(tk), label_name(std::move(e)), stmt(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -378,6 +396,7 @@ public:
         std::unique_ptr<Statement> b)
       : Statement(tk), predicate(std::move(e)), block(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -392,6 +411,7 @@ public:
   Goto(const Token &tk, std::unique_ptr<Expression> e)
       : Statement(tk), label_name(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -406,6 +426,7 @@ public:
   ExpressionStmt(const Token &tk, std::unique_ptr<Expression> e)
       : Statement(tk), expr(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -418,6 +439,7 @@ public:
   explicit Break(const Token &tk) : Statement(tk) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -433,6 +455,7 @@ public:
       : Statement(tk), expr(std::move(e)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -446,6 +469,7 @@ public:
   explicit Continue(const Token &tk) : Statement(tk) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -466,6 +490,7 @@ public:
       : Expression(tk), name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -480,6 +505,7 @@ public:
   Number(const Token &tk, int v) : Expression(tk), num_value(v) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -494,6 +520,7 @@ public:
   Character(const Token &tk, char c) : Expression(tk), char_value(c) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -509,6 +536,7 @@ public:
       : Expression(tk), str_value(std::move(v)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -530,6 +558,7 @@ public:
         member_name(std::move(m)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -547,6 +576,7 @@ public:
       : Expression(tk), array_name(std::move(a)), index_value(std::move(i)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -565,6 +595,7 @@ public:
       : Expression(tk), callee_name(std::move(n)), callee_args(std::move(a)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -583,6 +614,7 @@ public:
       : Expression(tk), op_kind(v), operand(std::move(o)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -601,6 +633,7 @@ public:
       : Expression(tk), operand(std::move(o)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -631,6 +664,7 @@ public:
         right_operand(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -650,6 +684,7 @@ public:
         right_branch(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
@@ -668,6 +703,7 @@ public:
         right_operand(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
+  void accept(Visitor *v) override;
 
 // Graphviz block
 #if GRAPHVIZ
