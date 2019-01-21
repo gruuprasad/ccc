@@ -120,8 +120,7 @@ private:
 
   std::unique_ptr<TranslationUnit> parseTranslationUnit();
   std::unique_ptr<ExternalDeclaration> parseExternalDeclaration();
-  std::unique_ptr<ExternalDeclaration>
-  parseFuncDefOrDeclaration();
+  std::unique_ptr<ExternalDeclaration> parseFuncDefOrDeclaration();
   std::unique_ptr<ExternalDeclaration> parseDeclaration();
 
   // Declarations
