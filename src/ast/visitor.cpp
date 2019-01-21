@@ -2,43 +2,6 @@
 
 namespace ccc {
 
-class Visitor {
-public:
-  void visitTranslationUnit(TranslationUnit *v) {}
-  void visitFunctionDefinition(FunctionDefinition *v) {}
-  void visitFunctionDeclaration(FunctionDeclaration *v) {}
-  void visitDataDeclaration(DataDeclaration *v) {}
-  void visitStructDeclaration(StructDeclaration *v) {}
-  void visitParamDeclaration(ParamDeclaration *v) {}
-  void visitScalarType(ScalarType *v) {}
-  void visitStructType(StructType *v) {}
-  void visitDirectDeclarator(DirectDeclarator *v) {}
-  void visitAbstractDeclarator(AbstractDeclarator *v) {}
-  void visitPointerDeclarator(PointerDeclarator *v) {}
-  void visitFunctionDeclarator(FunctionDeclarator *v) {}
-  void visitCompoundStmt(CompoundStmt *v) {}
-  void visitIfElse(IfElse *v) {}
-  void visitLabel(Label *v) {}
-  void visitWhile(While *v) {}
-  void visitGoto(Goto *v) {}
-  void visitExpressionStmt(ExpressionStmt *v) {}
-  void visitBreak(Break *v) {}
-  void visitReturn(Return *v) {}
-  void visitContinue(Continue *v) {}
-  void visitVariableName(VariableName *v) {}
-  void visitNumber(Number *v) {}
-  void visitCharacter(Character *v) {}
-  void visitString(String *v) {}
-  void visitMemberAccessOp(MemberAccessOp *v) {}
-  void visitArraySubscriptOp(ArraySubscriptOp *v) {}
-  void visitFunctionCall(FunctionCall *v) {}
-  void visitUnary(Unary *v) {}
-  void visitSizeOf(SizeOf *v) {}
-  void visitBinary(Binary *v) {}
-  void visitTernary(Ternary *v) {}
-  void visitAssignment(Assignment *v) {}
-};
-
 void TranslationUnit::accept(Visitor *v) { v->visitTranslationUnit(this); }
 void FunctionDefinition::accept(Visitor *v) {
   v->visitFunctionDefinition(this);

@@ -19,6 +19,7 @@
 namespace ccc {
 
 class ASTNode;
+class TranslationUnit;
 class ScalarType;
 class Expression;
 class CompoundStmt;
@@ -38,7 +39,67 @@ class DirectDeclarator;
 class Declaration;
 class ExternalDeclaration;
 class ParamDeclaration;
-class Visitor;
+class FunctionDeclaration;
+class AbstractDeclarator;
+class IfElse;
+class Label;
+class While;
+class Goto;
+class ExpressionStmt;
+class Break;
+class Return;
+class Continue;
+class Number;
+class Character;
+class MemberAccessOp;
+class String;
+class ArraySubscriptOp;
+class FunctionCall;
+class Unary;
+class SizeOf;
+class Binary;
+class Binary;
+class Ternary;
+class Assignment;
+
+class Visitor {
+public:
+  Visitor() = default;
+  virtual ~Visitor() = default;
+  virtual void visitTranslationUnit(TranslationUnit *v) = 0;
+  virtual void visitFunctionDefinition(FunctionDefinition *v) = 0;
+  virtual void visitFunctionDeclaration(FunctionDeclaration *v) = 0;
+  virtual void visitDataDeclaration(DataDeclaration *v) = 0;
+  virtual void visitStructDeclaration(StructDeclaration *v) = 0;
+  virtual void visitParamDeclaration(ParamDeclaration *v) = 0;
+  virtual void visitScalarType(ScalarType *v) = 0;
+  virtual void visitStructType(StructType *v) = 0;
+  virtual void visitDirectDeclarator(DirectDeclarator *v) = 0;
+  virtual void visitAbstractDeclarator(AbstractDeclarator *v) = 0;
+  virtual void visitPointerDeclarator(PointerDeclarator *v) = 0;
+  virtual void visitFunctionDeclarator(FunctionDeclarator *v) = 0;
+  virtual void visitCompoundStmt(CompoundStmt *v) = 0;
+  virtual void visitIfElse(IfElse *v) = 0;
+  virtual void visitLabel(Label *v) = 0;
+  virtual void visitWhile(While *v) = 0;
+  virtual void visitGoto(Goto *v) = 0;
+  virtual void visitExpressionStmt(ExpressionStmt *v) = 0;
+  virtual void visitBreak(Break *v) = 0;
+  virtual void visitReturn(Return *v) = 0;
+  virtual void visitContinue(Continue *v) = 0;
+  virtual void visitVariableName(VariableName *v) = 0;
+  virtual void visitNumber(Number *v) = 0;
+  virtual void visitCharacter(Character *v) = 0;
+  virtual void visitString(String *v) = 0;
+  virtual void visitMemberAccessOp(MemberAccessOp *v) = 0;
+  virtual void visitArraySubscriptOp(ArraySubscriptOp *v) = 0;
+  virtual void visitFunctionCall(FunctionCall *v) = 0;
+  virtual void visitUnary(Unary *v) = 0;
+  virtual void visitSizeOf(SizeOf *v) = 0;
+  virtual void visitBinary(Binary *v) = 0;
+  virtual void visitTernary(Ternary *v) = 0;
+  virtual void visitAssignment(Assignment *v) = 0;
+};
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType =
@@ -49,6 +110,7 @@ using StatementListType = std::vector<std::unique_ptr<Statement>>;
 using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
 // Base class for all nodes in AST.
 class ASTNode {
+public:
   Token tok;
 
 protected:
@@ -70,6 +132,7 @@ public:
 };
 
 class TranslationUnit : public ASTNode {
+public:
   ExternalDeclarationListType extern_list;
 
 public:
@@ -87,12 +150,14 @@ public:
 };
 
 class ExternalDeclaration : public ASTNode {
-
+public:
 public:
   explicit ExternalDeclaration(const Token &tk) : ASTNode(tk) {}
 };
 
 class FunctionDefinition : public ExternalDeclaration {
+public:
+public:
   std::unique_ptr<Type> return_type;
   std::unique_ptr<Declarator> fn_name;
   std::unique_ptr<Statement> fn_body;
@@ -115,10 +180,13 @@ public:
 
 class Declaration : public ExternalDeclaration {
 public:
+public:
   explicit Declaration(const Token &tk) : ExternalDeclaration(tk) {}
 };
 
 class FunctionDeclaration : public Declaration {
+public:
+public:
   std::unique_ptr<Type> return_type;
   std::unique_ptr<Declarator> fn_name;
 
@@ -137,6 +205,7 @@ public:
 };
 
 class DataDeclaration : public Declaration {
+public:
   std::unique_ptr<Type> data_type;
   std::unique_ptr<Declarator> data_name;
 
@@ -155,6 +224,7 @@ public:
 };
 
 class StructDeclaration : public Declaration {
+public:
   std::unique_ptr<Type> struct_type;
   std::unique_ptr<Declarator> struct_alias;
 
@@ -174,6 +244,7 @@ public:
 };
 
 class ParamDeclaration : public Declaration {
+public:
   std::unique_ptr<Type> param_type;
   std::unique_ptr<Declarator> param_name;
 
@@ -193,6 +264,7 @@ public:
 
 class Type : public ASTNode {
 public:
+public:
   explicit Type(const Token &tk) : ASTNode(tk) {}
   virtual bool isStructType() = 0;
 };
@@ -200,6 +272,7 @@ public:
 enum class ScalarTypeValue { VOID, CHAR, INT };
 
 class ScalarType : public Type {
+public:
   ScalarTypeValue type_kind;
 
 public:
@@ -216,6 +289,7 @@ public:
 };
 
 class StructType : public Type {
+public:
   std::string struct_name;
   ExternalDeclarationListType member_list;
 
@@ -236,12 +310,13 @@ public:
 };
 
 class Declarator : public ASTNode {
-
+public:
 public:
   explicit Declarator(const Token &tk) : ASTNode(tk) {}
 };
 
 class DirectDeclarator : public Declarator {
+public:
   std::unique_ptr<VariableName> identifer;
 
 public:
@@ -260,6 +335,7 @@ public:
 enum class AbstractDeclType { Data, Function };
 
 class AbstractDeclarator : public Declarator {
+public:
   AbstractDeclType type_kind;
   unsigned int pointerCount = 0;
 
@@ -277,6 +353,7 @@ public:
 };
 
 class PointerDeclarator : public Declarator {
+public:
   std::unique_ptr<Declarator> identifer;
   int indirection_level;
 
@@ -295,6 +372,7 @@ public:
 };
 
 class FunctionDeclarator : public Declarator {
+public:
   std::unique_ptr<Declarator> identifer;
   ParamDeclarationListType param_list;
   std::unique_ptr<Declarator> return_ptr;
@@ -317,6 +395,7 @@ public:
 
 class Statement : public ASTNode {
 public:
+public:
   explicit Statement(const Token &tk) : ASTNode(tk) {}
   virtual std::string prettyPrintInline(int lvl) {
     return "\n" + this->prettyPrint(lvl);
@@ -330,6 +409,7 @@ public:
 };
 
 class CompoundStmt : public Statement {
+public:
   ASTNodeListType block_items;
   std::string prettyPrintBlock(int lvl);
 
@@ -349,6 +429,7 @@ public:
 };
 
 class IfElse : public Statement {
+public:
   std::unique_ptr<Expression> condition;
   std::unique_ptr<Statement> ifStmt;
   std::unique_ptr<Statement> elseStmt;
@@ -371,6 +452,7 @@ public:
 };
 
 class Label : public Statement {
+public:
   std::unique_ptr<Expression> label_name;
   std::unique_ptr<Statement> stmt;
 
@@ -388,6 +470,7 @@ public:
 };
 
 class While : public Statement {
+public:
   std::unique_ptr<Expression> predicate;
   std::unique_ptr<Statement> block;
 
@@ -405,6 +488,7 @@ public:
 };
 
 class Goto : public Statement {
+public:
   std::unique_ptr<Expression> label_name;
 
 public:
@@ -420,6 +504,7 @@ public:
 };
 
 class ExpressionStmt : public Statement {
+public:
   std::unique_ptr<Expression> expr;
 
 public:
@@ -436,6 +521,7 @@ public:
 
 class Break : public Statement {
 public:
+public:
   explicit Break(const Token &tk) : Statement(tk) {}
 
   std::string prettyPrint(int lvl) override;
@@ -448,6 +534,7 @@ public:
 };
 
 class Return : public Statement {
+public:
   std::unique_ptr<Expression> expr;
 
 public:
@@ -464,7 +551,7 @@ public:
 };
 
 class Continue : public Statement {
-
+public:
 public:
   explicit Continue(const Token &tk) : Statement(tk) {}
 
@@ -479,10 +566,12 @@ public:
 
 class Expression : public ASTNode {
 public:
+public:
   explicit Expression(const Token &tk) : ASTNode(tk) {}
 };
 
 class VariableName : public Expression {
+public:
   std::string name;
 
 public:
@@ -499,6 +588,7 @@ public:
 };
 
 class Number : public Expression {
+public:
   int num_value;
 
 public:
@@ -514,6 +604,7 @@ public:
 };
 
 class Character : public Expression {
+public:
   char char_value;
 
 public:
@@ -529,6 +620,7 @@ public:
 };
 
 class String : public Expression {
+public:
   std::string str_value;
 
 public:
@@ -547,6 +639,7 @@ public:
 enum class PostFixOpValue { DOT, ARROW };
 
 class MemberAccessOp : public Expression {
+public:
   PostFixOpValue op_kind;
   std::unique_ptr<Expression> struct_name;
   std::unique_ptr<Expression> member_name;
@@ -567,6 +660,7 @@ public:
 };
 
 class ArraySubscriptOp : public Expression {
+public:
   std::unique_ptr<Expression> array_name;
   std::unique_ptr<Expression> index_value;
 
@@ -586,6 +680,7 @@ public:
 
 // Function call
 class FunctionCall : public Expression {
+public:
   std::unique_ptr<Expression> callee_name;
   ExpressionListType callee_args;
 
@@ -606,6 +701,7 @@ public:
 enum class UnaryOpValue { ADDRESS_OF = 0, DEREFERENCE, MINUS, NOT };
 
 class Unary : public Expression {
+public:
   UnaryOpValue op_kind;
   std::unique_ptr<Expression> operand;
 
@@ -623,6 +719,7 @@ public:
 };
 
 class SizeOf : public Expression {
+public:
   std::unique_ptr<Type> type_name;
   std::unique_ptr<Expression> operand;
 
@@ -653,6 +750,7 @@ enum class BinaryOpValue {
 };
 
 class Binary : public Expression {
+public:
   BinaryOpValue op_kind;
   std::unique_ptr<Expression> left_operand;
   std::unique_ptr<Expression> right_operand;
@@ -673,6 +771,7 @@ public:
 };
 
 class Ternary : public Expression {
+public:
   std::unique_ptr<Expression> predicate;
   std::unique_ptr<Expression> left_branch;
   std::unique_ptr<Expression> right_branch;
@@ -693,6 +792,7 @@ public:
 };
 
 class Assignment : public Expression {
+public:
   std::unique_ptr<Expression> left_operand;
   std::unique_ptr<Expression> right_operand;
 

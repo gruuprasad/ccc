@@ -1,4 +1,5 @@
 #include "../catch.hpp"
+#include "ast/graphviz_visitor.hpp"
 #include "lexer/fast_lexer.hpp"
 #include "parser/fast_parser.hpp"
 #include <fstream>
@@ -23,10 +24,14 @@ TEST_CASE("gv ast") {
   auto fp = FastParser(language);
   auto root = fp.parse();
   REQUIRE_SUCCESS(fp);
+
   std::cout << root->prettyPrint(0) << std::endl;
   std::ofstream ofs;
   ofs.open("ast.gv");
   ofs << root->toGraph();
+  auto *gv = new GraphvizVisitor();
+  root->accept(gv);
+  delete (gv);
   ofs.close();
   std::system("dot ast.gv -Tsvg > ast.svg");
 }
