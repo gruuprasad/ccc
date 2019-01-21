@@ -13922,10 +13922,10 @@ int main(int argc, char *const argv[]) {
 
 #define REQUIRE_SUCCESS(fp)                                                    \
   if (fp.fail())                                                               \
-    FAIL("\033[1;31mUnexpected fail\n " + fp.getError() + "\033[0m");          \
+    FAIL("\033[1;31mUnexpected fail\033[0m\n" + fp.getError());                \
   SUCCEED();
 
-#define REQUIRE_FAIL(fp)                                                       \
+#define REQUIRE_FAILURE(fp)                                                    \
   if (!fp.fail())                                                              \
     FAIL("\033[1;31mUnexpected Pass\033[0m\n");                                \
   SUCCEED();

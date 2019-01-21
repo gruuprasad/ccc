@@ -37,7 +37,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       auto gv = SemanticVisitor();
       root->accept(&gv);
       if (gv.fail()) {
-        std::cerr << gv.getError() << std::endl;
+        std::cerr << filename << ":" << gv.getError() << std::endl;
         return EXIT_FAILURE;
       }
       return EXIT_SUCCESS;
@@ -51,7 +51,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       auto gv = SemanticVisitor();
       root->accept(&gv);
       if (gv.fail()) {
-        std::cerr << gv.getError() << std::endl;
+        std::cerr << filename << ":" << gv.getError() << std::endl;
         return EXIT_FAILURE;
       }
       std::cout << root->prettyPrint(0);
