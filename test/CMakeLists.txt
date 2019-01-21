@@ -26,8 +26,6 @@ add_executable(test_ast
                ast/ast_test.cpp
                )
 target_link_libraries(test_ast test_LLIB)
-add_dependencies(check test_ast)
-add_test(NAME ast COMMAND test_ast)
 
 add_executable(test_prettyPrinter
                pretty_printer/pretty_printer_test.cpp
@@ -63,8 +61,6 @@ add_executable(test_all
                parser/parse_expression.cpp
                parser/parser_big_test.cpp
                parser/parse_test_codes.cpp
-
-               ast/ast_test.cpp
 
                pretty_printer/pretty_printer_test.cpp
                pretty_printer/pretty_printer_entry_test.cpp
