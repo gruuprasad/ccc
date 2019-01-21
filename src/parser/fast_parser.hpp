@@ -121,7 +121,8 @@ private:
   std::unique_ptr<TranslationUnit> parseTranslationUnit();
   std::unique_ptr<ExternalDeclaration> parseExternalDeclaration();
   std::unique_ptr<ExternalDeclaration>
-  parseFuncDefOrDeclaration(bool parseOnlyDecl = false);
+  parseFuncDefOrDeclaration();
+  std::unique_ptr<ExternalDeclaration> parseDeclaration();
 
   // Declarations
   std::unique_ptr<Type> parseTypeSpecifier(bool &structDefined);

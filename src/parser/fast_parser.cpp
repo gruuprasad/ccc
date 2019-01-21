@@ -25,7 +25,7 @@ static std::unordered_map<TokenType, BinaryOpValue, EnumClassHash>
 
 // (6.9) translationUnit :: external-declaration+
 unique_ptr<TranslationUnit> FastParser::parseTranslationUnit() {
-  ExternalDeclarationListType external_decls = ExternalDeclarationListType();
+    ExternalDeclarationListType external_decls = ExternalDeclarationListType();
   Token src_mark(peek());
   if (src_mark.getType() == TokenType::ENDOFFILE) {
     parser_error(Token(TokenType::ENDOFFILE, 1, 0));
@@ -45,16 +45,11 @@ unique_ptr<ExternalDeclaration> FastParser::parseExternalDeclaration() {
   return parseFuncDefOrDeclaration();
 }
 
-// (6.9.1) function-definition :: type-specifier declarator declaration+(opt)
-// compound-statement
-// (6.7)  declaration :: type-specifier declarator(opt) ;
-unique_ptr<ExternalDeclaration>
-FastParser::parseFuncDefOrDeclaration(bool parseOnlyDecl) {
-  // Presence or absence of SEMICOLON determines whether declaration or
-  // function-definition
+// Method to handle only type declaration.
+unique_ptr<ExternalDeclaration> FastParser::parseDeclaration() {
   unique_ptr<Declarator> identifier_node;
-  Token src_mark = peek();
-  bool structDefined; // XXX Better way
+  Token src_mark (peek());
+  bool structDefined = false;
   auto type_node = parseTypeSpecifier(structDefined);
 
   if (fail()) {
@@ -72,7 +67,45 @@ FastParser::parseFuncDefOrDeclaration(bool parseOnlyDecl) {
   if (peek().is(TokenType::SEMICOLON)) {
     consume(TokenType::SEMICOLON);
     if (structDefined) {
-      structDefined = false; // Reset
+      return make_unique<StructDeclaration>(src_mark, move(type_node),
+                                            move(identifier_node));
+    } {
+      return make_unique<DataDeclaration>(src_mark, move(type_node),
+                                          move(identifier_node));
+    }
+  }
+
+  parser_error(peek(), " Semicolon at the end of declaration.");
+  return unique_ptr<ExternalDeclaration>();
+}
+
+// (6.9.1) function-definition :: type-specifier declarator declaration+(opt)
+// compound-statement
+// (6.7)  declaration :: type-specifier declarator(opt) ;
+unique_ptr<ExternalDeclaration>
+  FastParser::parseFuncDefOrDeclaration() {
+  // Presence or absence of SEMICOLON determines whether declaration or
+  // function-definition
+  unique_ptr<Declarator> identifier_node;
+  Token src_mark = peek();
+  bool structDefined = false;
+  auto type_node = parseTypeSpecifier(structDefined);
+
+  if (fail()) {
+    return unique_ptr<ExternalDeclaration>();
+  }
+
+  if (peek().is_not(TokenType::SEMICOLON)) {
+    identifier_node = parseDeclarator();
+
+    if (fail()) {
+      return unique_ptr<ExternalDeclaration>();
+    }
+  }
+
+  if (peek().is(TokenType::SEMICOLON)) {
+    consume(TokenType::SEMICOLON);
+    if (structDefined) {
       return make_unique<StructDeclaration>(src_mark, move(type_node),
                                             move(identifier_node));
     }
@@ -85,13 +118,8 @@ FastParser::parseFuncDefOrDeclaration(bool parseOnlyDecl) {
                                         move(identifier_node));
   }
 
-  if (parseOnlyDecl) {
-    parser_error(peek(), " Semicolon ");
-    return unique_ptr<Declaration>();
-  }
-
   // Function definition
-  // XXX Ignore declaration-list for now
+    // XXX Ignore declaration-list for now
   if (peek().is(TokenType::BRACE_OPEN)) {
     auto fn_body = parseCompoundStatement();
     if (fail()) {
@@ -139,8 +167,8 @@ unique_ptr<StructType> FastParser::parseStructType(bool &structDefined) {
     structDefined = true;
     consume(TokenType::BRACE_OPEN);
     do {
-      auto member = parseFuncDefOrDeclaration(true);
-      member_list.push_back(move(member));
+        auto member = parseDeclaration();
+        member_list.push_back(move(member));
     } while (!fail() && !mayExpect(TokenType::BRACE_CLOSE));
 
     return make_unique<StructType>(src_mark, move(struct_name),
@@ -279,7 +307,7 @@ unique_ptr<Statement> FastParser::parseCompoundStatement() {
   mustExpect(TokenType::BRACE_OPEN, " open brace ({) ");
   while (peek().is_not(TokenType::BRACE_CLOSE)) {
     if (peek().is(C_TYPES)) {
-      stmt = parseFuncDefOrDeclaration(true);
+        stmt = parseDeclaration();
     } else {
       stmt = parseStatement();
     }
