@@ -4,12 +4,12 @@ project(c4)
 enable_testing()
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -pthread -g -ftest-coverage")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -Wall -Wextra -pedantic -pthread -g3")
 
 add_compile_definitions(GRAPHVIZ)
 
-SET(EXECUTABLE_OUTPUT_PATH      "${PROJECT_BINARY_DIR}/bin")
-SET(LIBRARY_OUTPUT_PATH         "${PROJECT_BINARY_DIR}/lib")
+SET(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
+SET(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
 
 add_custom_target(check COMMAND ctest --verbose)
 
