@@ -37,7 +37,8 @@ public:
     ss << Utils::makeGVVertice(v->hash(), "FunctionDeclaration");
     ss << Utils::makeGVEdge(v->hash(), v->return_type->hash())
        << v->return_type->accept(this);
-    ss << Utils::makeGVEdge(v->hash(), v->fn_name->hash());
+    ss << Utils::makeGVEdge(v->hash(), v->fn_name->hash())
+       << v->fn_name->accept(this);
     return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
            "}\n";
   }

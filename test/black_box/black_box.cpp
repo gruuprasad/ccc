@@ -12,7 +12,7 @@ TEST_CASE("lexer_failure_files") {
     SECTION(file) {
       std::string flag = "--tokenize";
       std::string input = dir + file;
-      std::cout << "c4 " << flag << " " << input << std::endl;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
@@ -32,7 +32,7 @@ TEST_CASE("parser_success_files") {
     SECTION(file) {
       std::string flag = "--parse";
       std::string input = dir + file;
-      std::cout << "c4 " << flag << " " << input << std::endl;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
@@ -53,7 +53,7 @@ TEST_CASE("parser_failure_files") {
     SECTION(file) {
       std::string flag = "--parse";
       std::string input = dir + file;
-      std::cout << "c4 " << flag << " " << input << std::endl;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
@@ -74,7 +74,7 @@ TEST_CASE("semantic_failure_files") {
     SECTION(file) {
       std::string flag = "--parse";
       std::string input = dir + file;
-      std::cout << "c4 " << flag << " " << input << std::endl;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
@@ -94,7 +94,7 @@ TEST_CASE("pretty_printer_files") {
     SECTION(file) {
       std::string flag = "--print-ast";
       std::string input = dir + file;
-      std::cout << "c4 " << flag << " " << input << std::endl;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
 
       std::ifstream ifs(input);
       std::stringstream buffer;
