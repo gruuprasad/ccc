@@ -1,42 +1,31 @@
-/*
 #include "../catch.hpp"
 #include "ast/ast_node.hpp"
+#include "ast/semantic_analysis.hpp"
+#include "parser/fast_parser.hpp"
 #include <iostream>
 
 namespace ccc {
 
 TEST_CASE("scope test") {
-  auto root = new TranslationUnit(
-      {new DeclarationStatement(
-           Token(),
-           new TypeExpression(TypeSpec::INT, new IdentifierExpression(Token(
-                                                 TokenType::IDENTIFIER, "a")))),
-       new CompoundStatement(
-           Token(),
-           {
-               new DeclarationStatement(
-                   Token(),
-                   new TypeExpression(TypeSpec::INT,
-                                      new IdentifierExpression(
-                                          Token(TokenType::IDENTIFIER, "b")))),
-           }),
-       new DeclarationStatement(
-           Token(),
-           new TypeExpression(TypeSpec::INT, new IdentifierExpression(Token(
-                                                 TokenType::IDENTIFIER, "c")))),
-       new CompoundStatement(
-           Token(), {
-                        new ExpressionStatement(
-                            Token(), new BinaryExpression(
-                                         Token(TokenType::PLUS),
-                                         new IdentifierExpression(
-                                             Token(TokenType::IDENTIFIER, "a")),
-                                         new IdentifierExpression(Token(
-                                             TokenType::IDENTIFIER, "d")))),
-                    })});
-  std::cout << root->prettyPrint(0) << std::endl;
-  root->runAnalysis();
-} // namespace ccc
+  std::string language = "int (f(int x, int y))\n"
+                         "{\n"
+                         "(1 + 2);\n"
+                         "char (*a);\n"
+                         "int b;\n"
+                         "foo:\n"
+                         "(1 ? b + 1 : a);\n"
+                         "goto bar;\n"
+                         "return;\n"
+                         "int *c;\n"
+                         "}\n";
+
+  auto fp = FastParser(language);
+  auto root = fp.parse();
+  REQUIRE_SUCCESS(fp);
+  auto gv = SemanticVisitor();
+  root->accept(&gv);
+  if (gv.fail())
+    std::cerr << gv.getError() << std::endl;
+}
 
 } // namespace ccc
-*/

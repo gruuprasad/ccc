@@ -358,6 +358,7 @@ public:
       : Statement(tk), label_name(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
   std::string accept(Visitor *v) override;
+  std::unique_ptr<Expression> *get_label_name() { return &label_name; }
 };
 
 class ExpressionStmt : public Statement {
