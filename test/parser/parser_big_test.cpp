@@ -15,6 +15,7 @@ using namespace ccc;
     ppArgs[1] = &flag[0];                                                      \
     ppArgs[2] = &file[0];                                                      \
     auto rc = EntryPointHandler().handle(3, ppArgs);                           \
+    delete[](ppArgs);                                                          \
     REQUIRE(rc == EXIT_FAILURE);                                               \
   }
 

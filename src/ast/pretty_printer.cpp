@@ -99,7 +99,7 @@ std::string PointerDeclarator::prettyPrint(int) {
     pre += "(*";
     post += ")";
   }
-  return pre + (identifer ? identifer->prettyPrint(0) : error) + post;
+  return pre + (identifier ? identifier->prettyPrint(0) : error) + post;
 }
 
 std::string FunctionDeclarator::prettyPrint(int) {
@@ -112,7 +112,7 @@ std::string FunctionDeclarator::prettyPrint(int) {
     if (p != param_list.back())
       ss << ", ";
   }
-  return ptr_str + "(" + identifer->prettyPrint(0) + "(" + ss.str() + "))";
+  return ptr_str + "(" + identifier->prettyPrint(0) + "(" + ss.str() + "))";
 }
 
 std::string CompoundStmt::prettyPrintBlock(int lvl) {
