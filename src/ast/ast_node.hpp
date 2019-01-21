@@ -202,7 +202,7 @@ class AbstractDeclarator : public Declarator {
 
 public:
   AbstractDeclarator(const Token &tk, AbstractDeclType t, unsigned int p)
-    : Declarator(tk), type_kind(t), pointerCount(p) {}
+      : Declarator(tk), type_kind(t), pointerCount(p) {}
 
   std::string prettyPrint(int lvl) override;
 };
@@ -226,8 +226,10 @@ class FunctionDeclarator : public Declarator {
 
 public:
   FunctionDeclarator(const Token &tk, std::unique_ptr<Declarator> i,
-                     ParamDeclarationListType p, std::unique_ptr<Declarator> r = nullptr)
-      : Declarator(tk), identifer(std::move(i)), param_list(std::move(p)), return_ptr(std::move(r)) {}
+                     ParamDeclarationListType p,
+                     std::unique_ptr<Declarator> r = nullptr)
+      : Declarator(tk), identifer(std::move(i)), param_list(std::move(p)),
+        return_ptr(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
 };
