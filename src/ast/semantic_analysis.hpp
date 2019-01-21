@@ -148,7 +148,9 @@ public:
   }
 
   std::string visitExpressionStmt(ExpressionStmt *v) override {
-    return v->expr->accept(this);
+    if (v->expr)
+      return v->expr->accept(this);
+    return error;
   }
 
   std::string visitBreak(Break *v) override {

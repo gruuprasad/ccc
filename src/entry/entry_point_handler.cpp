@@ -1,4 +1,5 @@
 #include "entry_point_handler.hpp"
+#include "../ast/semantic_analysis.hpp"
 #include "../lexer/fast_lexer.hpp"
 #include "../parser/fast_parser.hpp"
 #include "../utils/utils.hpp"
@@ -28,9 +29,15 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       return EXIT_SUCCESS;
     } else if (flagName == "--parse") {
       auto parser = FastParser(buffer, filename);
-      parser.parse();
+      auto root = parser.parse();
       if (parser.fail()) {
         std::cerr << parser.getError() << std::endl;
+        return EXIT_FAILURE;
+      }
+      auto gv = SemanticVisitor();
+      root->accept(&gv);
+      if (gv.fail()) {
+        std::cerr << gv.getError() << std::endl;
         return EXIT_FAILURE;
       }
       return EXIT_SUCCESS;
@@ -39,6 +46,12 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       auto root = parser.parse();
       if (parser.fail()) {
         std::cerr << parser.getError() << std::endl;
+        return EXIT_FAILURE;
+      }
+      auto gv = SemanticVisitor();
+      root->accept(&gv);
+      if (gv.fail()) {
+        std::cerr << gv.getError() << std::endl;
         return EXIT_FAILURE;
       }
       std::cout << root->prettyPrint(0);
