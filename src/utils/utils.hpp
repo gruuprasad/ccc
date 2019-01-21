@@ -75,8 +75,14 @@ public:
     DIR *dirp = opendir(d);
     struct dirent *dp;
     while ((dp = readdir(dirp)) != nullptr) {
-      if (dp->d_name[0] != '.')
-        files.emplace_back(dp->d_name);
+      if (dp->d_name[0] != '.') {
+        if (dp->d_type == '\u0004') {
+          for (const auto &n : dir(&std::string(
+                   std::string(d) + std::string(dp->d_name) + "/")[0]))
+            files.emplace_back(std::string(dp->d_name) + "/" + n);
+        } else
+          files.emplace_back(dp->d_name);
+      }
     }
     closedir(dirp);
     return files;
