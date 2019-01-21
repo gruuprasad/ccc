@@ -150,7 +150,7 @@ unique_ptr<Type> FastParser::parseTypeSpecifier(bool &structDefined) {
 }
 
 // (6.7.2.1) struct-or-union-specifier :: struct identifier
-// (6.7.2.1) struct-or-union-specifier :: struct identifer(opt) {
+// (6.7.2.1) struct-or-union-specifier :: struct identifier(opt) {
 // struct-declaration+ }
 unique_ptr<StructType> FastParser::parseStructType(bool &structDefined) {
   Token src_mark(peek());
@@ -214,7 +214,7 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
     return identifier;
   }
 
-  parser_error(peek(), " declarator (identifer or pointer symbol or \"(\") ");
+  parser_error(peek(), " declarator (identifier or pointer symbol or \"(\") ");
   return unique_ptr<Declarator>();
 }
 
@@ -590,7 +590,7 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
   }
 }
 
-// (6.5.1) primary: identifer | constant | string-literal | ( expression )
+// (6.5.1) primary: identifier | constant | string-literal | ( expression )
 std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
   std::unique_ptr<Expression> paren_expr;
   std::string num_str;
