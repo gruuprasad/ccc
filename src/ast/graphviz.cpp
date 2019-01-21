@@ -1,3 +1,4 @@
+#if GRAPHVIZ
 #include "ast_node.hpp"
 #include "utils/utils.hpp"
 
@@ -32,7 +33,7 @@ std::string FunctionDefinition::graphviz() {
                           std::hash<std::unique_ptr<Declarator>>()(fn_name))
      << fn_name->graphviz();
   ss << Utils::makeGVEdge((unsigned long)this,
-                          std::hash<std::unique_ptr<CompoundStmt>>()(fn_body))
+                          std::hash<std::unique_ptr<Statement>>()(fn_body))
      << fn_body->graphviz();
   return "subgraph cluster_" + std::to_string((unsigned long)this) + "{\n" +
          ss.str() + "}\n";
@@ -383,3 +384,4 @@ std::string Assignment::graphviz() {
 }
 
 } // namespace ccc
+#endif

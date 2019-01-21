@@ -60,6 +60,7 @@ public:
   virtual std::string prettyPrint(int) = 0;
   Token &getTokenRef() { return tok; }
 
+// Graphviz block
 #if GRAPHVIZ
   std::string toGraph();
   virtual std::string graphviz() = 0;
@@ -75,6 +76,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -84,10 +86,6 @@ class ExternalDeclaration : public ASTNode {
 
 public:
   explicit ExternalDeclaration(const Token &tk) : ASTNode(tk) {}
-
-#if GRAPHVIZ
-  std::string graphviz() override;
-#endif
 };
 
 class FunctionDefinition : public ExternalDeclaration {
@@ -104,6 +102,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -112,10 +111,6 @@ public:
 class Declaration : public ExternalDeclaration {
 public:
   explicit Declaration(const Token &tk) : ExternalDeclaration(tk) {}
-
-#if GRAPHVIZ
-  std::string graphviz() override;
-#endif
 };
 
 class FunctionDeclaration : public Declaration {
@@ -129,6 +124,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -145,6 +141,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -162,6 +159,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -178,6 +176,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -187,20 +186,9 @@ class Type : public ASTNode {
 public:
   explicit Type(const Token &tk) : ASTNode(tk) {}
   virtual bool isStructType() = 0;
-
-#if GRAPHVIZ
-  std::string graphviz() override;
-#endif
 };
 
-enum class ScalarTypeValue {
-  VOID,
-  CHAR,
-  INT
-#if GRAPHVIZ
-      std::string graphviz() override;
-#endif
-};
+enum class ScalarTypeValue { VOID, CHAR, INT };
 
 class ScalarType : public Type {
   ScalarTypeValue type_kind;
@@ -211,6 +199,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -229,6 +218,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -238,10 +228,6 @@ class Declarator : public ASTNode {
 
 public:
   explicit Declarator(const Token &tk) : ASTNode(tk) {}
-
-#if GRAPHVIZ
-  std::string graphviz() override;
-#endif
 };
 
 class DirectDeclarator : public Declarator {
@@ -253,18 +239,13 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
 };
 
-enum class AbstractDeclType {
-  Data,
-  Function
-#if GRAPHVIZ
-      std::string graphviz() override;
-#endif
-};
+enum class AbstractDeclType { Data, Function };
 
 class AbstractDeclarator : public Declarator {
   AbstractDeclType type_kind;
@@ -276,6 +257,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -292,6 +274,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -311,6 +294,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -328,10 +312,6 @@ public:
   virtual std::string prettyPrintInlineIf(int lvl) {
     return this->prettyPrintInline(lvl);
   }
-
-#if GRAPHVIZ
-  std::string graphviz() override;
-#endif
 };
 
 class CompoundStmt : public Statement {
@@ -346,6 +326,7 @@ public:
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -366,6 +347,7 @@ public:
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -381,6 +363,7 @@ public:
       : Statement(tk), label_name(std::move(e)), stmt(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -396,6 +379,7 @@ public:
       : Statement(tk), predicate(std::move(e)), block(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -409,6 +393,7 @@ public:
       : Statement(tk), label_name(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -422,6 +407,7 @@ public:
       : Statement(tk), expr(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -433,6 +419,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -447,6 +434,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -459,6 +447,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -467,10 +456,6 @@ public:
 class Expression : public ASTNode {
 public:
   explicit Expression(const Token &tk) : ASTNode(tk) {}
-
-#if GRAPHVIZ
-  std::string graphviz() override;
-#endif
 };
 
 class VariableName : public Expression {
@@ -482,6 +467,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -495,6 +481,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -508,6 +495,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -522,18 +510,13 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
 };
 
-enum class PostFixOpValue {
-  DOT,
-  ARROW
-#if GRAPHVIZ
-      std::string graphviz() override;
-#endif
-};
+enum class PostFixOpValue { DOT, ARROW };
 
 class MemberAccessOp : public Expression {
   PostFixOpValue op_kind;
@@ -548,6 +531,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -564,6 +548,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -581,20 +566,13 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
 };
 
-enum class UnaryOpValue {
-  ADDRESS_OF = 0,
-  DEREFERENCE,
-  MINUS,
-  NOT
-#if GRAPHVIZ
-      std::string graphviz() override;
-#endif
-};
+enum class UnaryOpValue { ADDRESS_OF = 0, DEREFERENCE, MINUS, NOT };
 
 class Unary : public Expression {
   UnaryOpValue op_kind;
@@ -606,6 +584,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -623,6 +602,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -637,11 +617,6 @@ enum class BinaryOpValue {
   NOT_EQUAL,
   LOGICAL_AND,
   LOGICAL_OR,
-//  ASSIGN XXX replaced by Assignment?
-
-#if GRAPHVIZ
-  std::string graphviz() override;
-#endif
 };
 
 class Binary : public Expression {
@@ -657,6 +632,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -675,6 +651,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
@@ -692,6 +669,7 @@ public:
 
   std::string prettyPrint(int lvl) override;
 
+// Graphviz block
 #if GRAPHVIZ
   std::string graphviz() override;
 #endif
