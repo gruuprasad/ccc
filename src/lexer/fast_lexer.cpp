@@ -15,15 +15,6 @@ inline bool FastLexer::keyWordEnd(unsigned long position) {
 
 inline Token FastLexer::failParsing() {
   std::string msg = "Unknown token " + std::string(1, getCharAt(position));
-  if (getCharAt(position + 1) != 0) {
-    msg += std::string(1, getCharAt(position + 1));
-    if (getCharAt(position + 2) != 0) {
-      msg += std::string(1, getCharAt(position + 2));
-      if (getCharAt(position + 3) != 0) {
-        msg += std::string(1, getCharAt(position + 2)) + " [truncated]";
-      }
-    }
-  }
   error = LEXER_ERROR(line, column, msg);
   return Token(TokenType::INVALIDTOK, line, column);
 }
@@ -1173,6 +1164,31 @@ Token FastLexer::lex_valid() {
   };
 }
 
+void FastLexer::tokenize() {
+  std::vector<Token> token_list{};
+  token_list.reserve(content.size());
+  Token curToken;
+  while (true) {
+    while (true) {
+      curToken = munch();
+      switch (curToken.getType()) {
+      case TokenType::BLOCKCOMMENT:
+      case TokenType::LINECOMMENT:
+      case TokenType::WHITESPACE:
+        continue;
+      default:
+        break;
+      }
+      break;
+    }
+    if (curToken.getType() == TokenType::INVALIDTOK ||
+        curToken.getType() == TokenType::ENDOFFILE) {
+      break;
+    }
+    std::cout << filename << ":" << curToken << '\n';
+  }
+}
+
 std::vector<Token> FastLexer::lex() {
   std::vector<Token> token_list{};
   token_list.reserve(content.size());
@@ -1196,7 +1212,6 @@ std::vector<Token> FastLexer::lex() {
     }
     token_list.push_back(std::move(curToken));
   }
-  //  token_list.emplace_back(TokenType::ENDOFFILE, line, column);
   return token_list;
 }
 

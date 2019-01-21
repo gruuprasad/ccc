@@ -28,8 +28,7 @@ unique_ptr<TranslationUnit> FastParser::parseTranslationUnit() {
   ExternalDeclarationListType external_decls = ExternalDeclarationListType();
   Token src_mark(peek());
   if (src_mark.getType() == TokenType::ENDOFFILE) {
-    parser_error(Token(TokenType::ENDOFFILE, 1, 0),
-                 "Empty translation unit not supported");
+    parser_error(Token(TokenType::ENDOFFILE, 1, 0));
   }
   while (!fail() && peek().is_not(TokenType::ENDOFFILE)) {
     auto external_decl = parseExternalDeclaration();
@@ -176,7 +175,8 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   if (ptrCount != 0 && peek().is_not(TokenType::PARENTHESIS_OPEN) &&
       peek().is_not(TokenType::IDENTIFIER)) {
     // Abstract-declarator::pointer
-    return make_unique<AbstractDeclarator>(global_mark, AbstractDeclType::Data, ptrCount);
+    return make_unique<AbstractDeclarator>(global_mark, AbstractDeclType::Data,
+                                           ptrCount);
   }
 
   auto identifier = parseDirectDeclarator(within_paren, ptrCount);
@@ -226,7 +226,8 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
       identifier = make_unique<PointerDeclarator>(
           global_mark, std::move(identifier), ptrCount);
     }
-    auto return_ptr = make_unique<AbstractDeclarator>(global_mark, AbstractDeclType::Data, ptrCount);
+    auto return_ptr = make_unique<AbstractDeclarator>(
+        global_mark, AbstractDeclType::Data, ptrCount);
     return make_unique<FunctionDeclarator>(src_mark, move(identifier),
                                            move(param_list), move(return_ptr));
   }
@@ -419,7 +420,7 @@ std::unique_ptr<Expression> FastParser::parseAssignmentExpression() {
   if (peek().is(BINARY_OP)) {
     return parseBinOpWithRHS(std::move(lhs), 1);
   }
-  
+
   // Expression is unary
   return lhs;
 }

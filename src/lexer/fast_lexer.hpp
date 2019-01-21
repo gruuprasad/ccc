@@ -9,6 +9,7 @@
 namespace ccc {
 
 class FastLexer {
+  std::string filename;
   const std::string &content;
   std::string error;
   unsigned long position = 0;
@@ -29,14 +30,18 @@ class FastLexer {
   inline Token munchPunctuator();
 
 public:
-  explicit FastLexer(const std::string &content) : content(content) {}
+  explicit FastLexer(const std::string &content, std::string f = "")
+      : filename(std::move(f)), content(content) {}
   std::vector<ccc::Token, std::allocator<ccc::Token>> lex();
   Token lex_valid();
   bool fail() const { return !error.empty(); }
-  const std::string &getError() const { return error; }
+  const std::string getError() const {
+    return (filename.empty() ? filename : filename + ":") + error;
+  }
   std::pair<unsigned long, unsigned long> getLexerLocation() const {
     return std::make_pair(line, column);
   }
+  void tokenize();
 };
 
 } // namespace ccc
