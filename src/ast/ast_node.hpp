@@ -59,6 +59,11 @@ public:
   virtual ~ASTNode() = default;
   virtual std::string prettyPrint(int) = 0;
   Token &getTokenRef() { return tok; }
+
+#if GRAPHVIZ
+  std::string toGraph();
+  virtual std::string graphviz() = 0;
+#endif
 };
 
 class TranslationUnit : public ASTNode {
@@ -69,12 +74,20 @@ public:
       : ASTNode(tk), extern_list(std::move(e)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class ExternalDeclaration : public ASTNode {
 
 public:
   explicit ExternalDeclaration(const Token &tk) : ASTNode(tk) {}
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class FunctionDefinition : public ExternalDeclaration {
@@ -90,11 +103,19 @@ public:
         fn_name(std::move(n)), fn_body(std::move(b)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Declaration : public ExternalDeclaration {
 public:
   explicit Declaration(const Token &tk) : ExternalDeclaration(tk) {}
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class FunctionDeclaration : public Declaration {
@@ -107,6 +128,10 @@ public:
       : Declaration(tk), return_type(std::move(r)), fn_name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class DataDeclaration : public Declaration {
@@ -119,6 +144,10 @@ public:
       : Declaration(tk), data_type(std::move(t)), data_name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class StructDeclaration : public Declaration {
@@ -132,6 +161,10 @@ public:
   }
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class ParamDeclaration : public Declaration {
@@ -144,15 +177,30 @@ public:
       : Declaration(tk), param_type(std::move(t)), param_name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Type : public ASTNode {
 public:
   explicit Type(const Token &tk) : ASTNode(tk) {}
   virtual bool isStructType() = 0;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
-enum class ScalarTypeValue { VOID, CHAR, INT };
+enum class ScalarTypeValue {
+  VOID,
+  CHAR,
+  INT
+#if GRAPHVIZ
+      std::string graphviz() override;
+#endif
+};
 
 class ScalarType : public Type {
   ScalarTypeValue type_kind;
@@ -162,6 +210,10 @@ public:
   bool isStructType() override { return false; }
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class StructType : public Type {
@@ -176,12 +228,20 @@ public:
   bool isStructType() override { return true; }
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Declarator : public ASTNode {
 
 public:
   explicit Declarator(const Token &tk) : ASTNode(tk) {}
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class DirectDeclarator : public Declarator {
@@ -192,9 +252,19 @@ public:
       : Declarator(tk), identifer(std::move(i)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
-enum class AbstractDeclType { Data, Function };
+enum class AbstractDeclType {
+  Data,
+  Function
+#if GRAPHVIZ
+      std::string graphviz() override;
+#endif
+};
 
 class AbstractDeclarator : public Declarator {
   AbstractDeclType type_kind;
@@ -205,6 +275,10 @@ public:
       : Declarator(tk), type_kind(t), pointerCount(p) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class PointerDeclarator : public Declarator {
@@ -217,6 +291,10 @@ public:
       : Declarator(tk), identifer(std::move(i)), indirection_level(l) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class FunctionDeclarator : public Declarator {
@@ -232,6 +310,10 @@ public:
         return_ptr(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Statement : public ASTNode {
@@ -246,6 +328,10 @@ public:
   virtual std::string prettyPrintInlineIf(int lvl) {
     return this->prettyPrintInline(lvl);
   }
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class CompoundStmt : public Statement {
@@ -259,6 +345,10 @@ public:
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintScopeIndent(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class IfElse : public Statement {
@@ -275,6 +365,10 @@ public:
   std::string prettyPrint(int lvl) override;
   std::string prettyPrintInline(int lvl) override;
   std::string prettyPrintInlineIf(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Label : public Statement {
@@ -286,6 +380,10 @@ public:
         std::unique_ptr<Statement> b)
       : Statement(tk), label_name(std::move(e)), stmt(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class While : public Statement {
@@ -297,6 +395,10 @@ public:
         std::unique_ptr<Statement> b)
       : Statement(tk), predicate(std::move(e)), block(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Goto : public Statement {
@@ -306,6 +408,10 @@ public:
   Goto(const Token &tk, std::unique_ptr<Expression> e)
       : Statement(tk), label_name(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class ExpressionStmt : public Statement {
@@ -315,6 +421,10 @@ public:
   ExpressionStmt(const Token &tk, std::unique_ptr<Expression> e)
       : Statement(tk), expr(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Break : public Statement {
@@ -322,6 +432,10 @@ public:
   explicit Break(const Token &tk) : Statement(tk) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Return : public Statement {
@@ -332,6 +446,10 @@ public:
       : Statement(tk), expr(std::move(e)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Continue : public Statement {
@@ -340,11 +458,19 @@ public:
   explicit Continue(const Token &tk) : Statement(tk) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Expression : public ASTNode {
 public:
   explicit Expression(const Token &tk) : ASTNode(tk) {}
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class VariableName : public Expression {
@@ -355,6 +481,10 @@ public:
       : Expression(tk), name(std::move(n)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Number : public Expression {
@@ -364,6 +494,10 @@ public:
   Number(const Token &tk, int v) : Expression(tk), num_value(v) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Character : public Expression {
@@ -373,6 +507,10 @@ public:
   Character(const Token &tk, char c) : Expression(tk), char_value(c) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class String : public Expression {
@@ -383,9 +521,19 @@ public:
       : Expression(tk), str_value(std::move(v)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
-enum class PostFixOpValue { DOT, ARROW };
+enum class PostFixOpValue {
+  DOT,
+  ARROW
+#if GRAPHVIZ
+      std::string graphviz() override;
+#endif
+};
 
 class MemberAccessOp : public Expression {
   PostFixOpValue op_kind;
@@ -399,6 +547,10 @@ public:
         member_name(std::move(m)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class ArraySubscriptOp : public Expression {
@@ -411,6 +563,10 @@ public:
       : Expression(tk), array_name(std::move(a)), index_value(std::move(i)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 // Function call
@@ -424,9 +580,21 @@ public:
       : Expression(tk), callee_name(std::move(n)), callee_args(std::move(a)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
-enum class UnaryOpValue { ADDRESS_OF = 0, DEREFERENCE, MINUS, NOT };
+enum class UnaryOpValue {
+  ADDRESS_OF = 0,
+  DEREFERENCE,
+  MINUS,
+  NOT
+#if GRAPHVIZ
+      std::string graphviz() override;
+#endif
+};
 
 class Unary : public Expression {
   UnaryOpValue op_kind;
@@ -437,6 +605,10 @@ public:
       : Expression(tk), op_kind(v), operand(std::move(o)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class SizeOf : public Expression {
@@ -450,6 +622,10 @@ public:
       : Expression(tk), operand(std::move(o)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 enum class BinaryOpValue {
@@ -461,7 +637,11 @@ enum class BinaryOpValue {
   NOT_EQUAL,
   LOGICAL_AND,
   LOGICAL_OR,
-  //  ASSIGN XXX replaced by Assignment?
+//  ASSIGN XXX replaced by Assignment?
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Binary : public Expression {
@@ -476,6 +656,10 @@ public:
         right_operand(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Ternary : public Expression {
@@ -490,6 +674,10 @@ public:
         right_branch(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 class Assignment : public Expression {
@@ -503,6 +691,10 @@ public:
         right_operand(std::move(r)) {}
 
   std::string prettyPrint(int lvl) override;
+
+#if GRAPHVIZ
+  std::string graphviz() override;
+#endif
 };
 
 } // namespace ccc
