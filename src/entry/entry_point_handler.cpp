@@ -1,4 +1,5 @@
 #include "entry_point_handler.hpp"
+#include "../ast/graphviz.hpp"
 #include "../ast/semantic_analysis.hpp"
 #include "../lexer/fast_lexer.hpp"
 #include "../parser/fast_parser.hpp"
@@ -55,6 +56,16 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
         return EXIT_FAILURE;
       }
       std::cout << root->prettyPrint(0);
+      return EXIT_SUCCESS;
+    } else if (flagName == "--graphviz") {
+      auto parser = FastParser(buffer, filename);
+      auto root = parser.parse();
+      if (parser.fail()) {
+        std::cerr << parser.getError() << std::endl;
+        return EXIT_FAILURE;
+      }
+      auto gv = GraphvizVisitor();
+      std::cout << root->graphviz(&gv) << std::endl;
       return EXIT_SUCCESS;
     }
   }
