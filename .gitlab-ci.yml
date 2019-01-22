@@ -1,8 +1,7 @@
 stages:
-- build
-- test
-- analysis
-- deploy
+  - build
+  - test
+  - deploy
 
 variables:
   GIT_SSL_NO_VERIFY: "true"
@@ -10,73 +9,53 @@ variables:
 build:make:
   stage: build
   script:
-  - mkdir -p build
-  - make -j$(nproc)
+    - mkdir -p build
+    - make -j$(nproc)
   artifacts:
     when: on_success
     paths:
-    - ./build/*
+      - ./build/*
     expire_in: 5 mins
 
 test:run:
   stage: test
   dependencies:
-  - build:make
+    - build:make
   script:
-  - cd ./build
-  - ./release/c4 --tokenize ../examples/sample.c
-  - ./release/c4 --parse ../examples/sample.c
-  - ./release/c4 --print-ast ../examples/sample.c
+    - cd ./build
+    - ./release/c4 --tokenize ../examples/sample.c
+    - ./release/c4 --parse ../examples/sample.c
+    - ./release/c4 --print-ast ../examples/sample.c
+    - ./release/c4 --graphviz ../examples/sample.c
 
 build:test:
   stage: build
   script:
-  - mkdir -p build
-  - cd ./build
-  - cmake ..
-  - make -j$(nproc)
+    - mkdir -p build
+    - cd ./build
+    - cmake ..
+    - make -j$(nproc)
 
 test:tests:
   stage: test
   dependencies:
-  - build:test
+    - build:test
   script:
-  - mkdir -p build
-  - cd ./build
-  - cmake ..
-  - make check -j$(nproc)
+    - mkdir -p build
+    - cd ./build
+    - cmake ..
+    - make check -j$(nproc)
   allow_failure: true
-
-#analysis:coverage:
-#  stage: analysis
-#  dependencies:
-#  - test:tests
-#  script:
-#  - mkdir -p build
-#  - cd ./build
-#  - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON ..
-#  - make check -j$(nproc)
-#  - cd ..
-#  - chmod +x ./scripts/coverage.sh
-#  - ./scripts/coverage.sh
-#  artifacts:
-#    when: on_success
-#    paths:
-#    - ./coverage/*
-#    expire_in: 5 mins
-#  allow_failure: true
 
 deploy:benchmark:
   stage: deploy
   script:
-  - echo "The cake is a lie."
+    - echo "The cake is a lie."
   only:
     refs:
-    - master
+      - master
   artifacts:
     paths:
-    - ./benchmark.svg
+      - ./benchmark.svg
     expire_in: 3 days
   allow_failure: true
-
-

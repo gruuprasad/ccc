@@ -90,7 +90,12 @@ std::string DirectDeclarator::prettyPrint(int) {
 }
 
 std::string AbstractDeclarator::prettyPrint(int) {
-  return std::string(pointerCount, '*');
+  std::string pre, post;
+  for (unsigned int i = 0; i < pointerCount; i++) {
+    pre += "(*";
+    post += ")";
+  }
+  return pre + post;
 }
 
 std::string PointerDeclarator::prettyPrint(int) {
