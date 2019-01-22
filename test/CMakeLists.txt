@@ -36,8 +36,7 @@ add_dependencies(check test_prettyPrinter)
 add_test(NAME pretty_printer COMMAND test_prettyPrinter)
 
 add_executable(test_semantic
-               semantic/typeAnalysis_test.cpp
-               semantic/nameAnalysis_test.cpp
+               semantic/semanticAnalysis_test.cpp
                )
 target_link_libraries(test_semantic test_LLIB)
 add_dependencies(check test_semantic)
@@ -65,8 +64,7 @@ add_executable(test_all
                pretty_printer/pretty_printer_test.cpp
                pretty_printer/pretty_printer_entry_test.cpp
 
-               semantic/typeAnalysis_test.cpp
-               semantic/nameAnalysis_test.cpp
+               semantic/semanticAnalysis_test.cpp
 
                black_box/black_box.cpp
                )
