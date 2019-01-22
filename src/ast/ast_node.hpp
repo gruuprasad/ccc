@@ -64,7 +64,7 @@ public:
            accept(v) + "}\n}\n";
   }
 
-  virtual std::string accept(Visitor *v) = 0;
+  virtual std::string accept(Visitor *) = 0;
   Token &getTokenRef() { return tok; }
 };
 
@@ -76,7 +76,7 @@ public:
   explicit TranslationUnit(const Token &tk, ExternalDeclarationListType e)
       : ASTNode(tk), extern_list(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class ExternalDeclaration : public ASTNode {
@@ -97,7 +97,7 @@ public:
       : ExternalDeclaration(tk), return_type(std::move(r)),
         fn_name(std::move(n)), fn_body(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Declaration : public ExternalDeclaration {
@@ -115,7 +115,7 @@ public:
                       std::unique_ptr<Declarator> n)
       : Declaration(tk), return_type(std::move(r)), fn_name(std::move(n)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class DataDeclaration : public Declaration {
@@ -128,7 +128,7 @@ public:
                   std::unique_ptr<Declarator> n)
       : Declaration(tk), data_type(std::move(t)), data_name(std::move(n)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class StructDeclaration : public Declaration {
@@ -142,7 +142,7 @@ public:
       : Declaration(tk), struct_type(std::move(t)), struct_alias(std::move(a)) {
   }
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class ParamDeclaration : public Declaration {
@@ -155,7 +155,7 @@ public:
                    std::unique_ptr<Declarator> n = nullptr)
       : Declaration(tk), param_type(std::move(t)), param_name(std::move(n)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Type : public ASTNode {
@@ -174,7 +174,7 @@ class ScalarType : public Type {
 public:
   ScalarType(const Token &tk, ScalarTypeValue v) : Type(tk), type_kind(v) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class StructType : public Type {
@@ -189,7 +189,7 @@ public:
   StructType(const Token &tk, std::string n, ExternalDeclarationListType m)
       : Type(tk), struct_name(std::move(n)), member_list(std::move(m)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Declarator : public ASTNode {
@@ -209,7 +209,7 @@ public:
   DirectDeclarator(const Token &tk, std::unique_ptr<VariableName> i)
       : Declarator(tk), identifer(std::move(i)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 enum class AbstractDeclType { Data, Function };
@@ -224,7 +224,7 @@ public:
   AbstractDeclarator(const Token &tk, AbstractDeclType t, unsigned int p)
       : Declarator(tk), type_kind(t), pointerCount(p) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class PointerDeclarator : public Declarator {
@@ -240,7 +240,7 @@ public:
                              std::unique_ptr<Declarator> i = nullptr, int l = 1)
       : Declarator(tk), identifier(std::move(i)), indirection_level(l) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class FunctionDeclarator : public Declarator {
@@ -259,7 +259,7 @@ public:
       : Declarator(tk), identifier(std::move(i)), param_list(std::move(p)),
         return_ptr(std::move(r)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Statement : public ASTNode {
@@ -290,7 +290,7 @@ public:
   CompoundStmt(const Token &tk, ASTNodeListType block)
       : Statement(tk), block_items(std::move(block)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class IfElse : public Statement {
@@ -307,20 +307,20 @@ public:
       : Statement(tk), condition(std::move(c)), ifStmt(std::move(i)),
         elseStmt(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Label : public Statement {
   FRIENDS
-  std::unique_ptr<Expression> label_name;
+  std::unique_ptr<VariableName> label_name;
   std::unique_ptr<Statement> stmt;
 
 public:
-  Label(const Token &tk, std::unique_ptr<Expression> e,
+  Label(const Token &tk, std::unique_ptr<VariableName> e,
         std::unique_ptr<Statement> b)
       : Statement(tk), label_name(std::move(e)), stmt(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class While : public Statement {
@@ -333,19 +333,19 @@ public:
         std::unique_ptr<Statement> b)
       : Statement(tk), predicate(std::move(e)), block(std::move(b)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Goto : public Statement {
   FRIENDS
-  std::unique_ptr<Expression> label_name;
+  std::unique_ptr<VariableName> label_name;
 
 public:
-  Goto(const Token &tk, std::unique_ptr<Expression> e)
+  Goto(const Token &tk, std::unique_ptr<VariableName> e)
       : Statement(tk), label_name(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
-  std::unique_ptr<Expression> *get_label_name() { return &label_name; }
+  std::string accept(Visitor *) override;
+  std::unique_ptr<VariableName> *get_label_name() { return &label_name; }
 };
 
 class ExpressionStmt : public Statement {
@@ -356,14 +356,14 @@ public:
   ExpressionStmt(const Token &tk, std::unique_ptr<Expression> e)
       : Statement(tk), expr(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Break : public Statement {
 public:
   explicit Break(const Token &tk) : Statement(tk) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Return : public Statement {
@@ -374,14 +374,14 @@ public:
   explicit Return(const Token &tk, std::unique_ptr<Expression> e = nullptr)
       : Statement(tk), expr(std::move(e)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Continue : public Statement {
 public:
   explicit Continue(const Token &tk) : Statement(tk) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Expression : public ASTNode {
@@ -397,7 +397,7 @@ public:
   VariableName(const Token &tk, std::string n)
       : Expression(tk), name(std::move(n)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 
   int Compare(const VariableName &d) const { return d.name == name; }
   bool operator==(const VariableName &d) const { return !Compare(d); }
@@ -410,7 +410,7 @@ class Number : public Expression {
 public:
   Number(const Token &tk, int v) : Expression(tk), num_value(v) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Character : public Expression {
@@ -420,7 +420,7 @@ class Character : public Expression {
 public:
   Character(const Token &tk, char c) : Expression(tk), char_value(c) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class String : public Expression {
@@ -431,7 +431,7 @@ public:
   String(const Token &tk, std::string v)
       : Expression(tk), str_value(std::move(v)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 enum class PostFixOpValue { DOT, ARROW };
@@ -448,7 +448,7 @@ public:
       : Expression(tk), op_kind(o), struct_name(std::move(s)),
         member_name(std::move(m)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class ArraySubscriptOp : public Expression {
@@ -461,7 +461,7 @@ public:
                    std::unique_ptr<Expression> i)
       : Expression(tk), array_name(std::move(a)), index_value(std::move(i)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 // Function call
@@ -475,7 +475,7 @@ public:
                ExpressionListType a)
       : Expression(tk), callee_name(std::move(n)), callee_args(std::move(a)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 enum class UnaryOpValue { ADDRESS_OF = 0, DEREFERENCE, MINUS, NOT };
@@ -489,7 +489,7 @@ public:
   Unary(const Token &tk, UnaryOpValue v, std::unique_ptr<Expression> o)
       : Expression(tk), op_kind(v), operand(std::move(o)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class SizeOf : public Expression {
@@ -503,7 +503,7 @@ public:
   SizeOf(const Token &tk, std::unique_ptr<Expression> o)
       : Expression(tk), operand(std::move(o)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 enum class BinaryOpValue {
@@ -529,7 +529,7 @@ public:
       : Expression(tk), op_kind(v), left_operand(std::move(l)),
         right_operand(std::move(r)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Ternary : public Expression {
@@ -544,7 +544,7 @@ public:
       : Expression(tk), predicate(std::move(c)), left_branch(std::move(l)),
         right_branch(std::move(r)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Assignment : public Expression {
@@ -558,46 +558,46 @@ public:
       : Expression(tk), left_operand(std::move(l)),
         right_operand(std::move(r)) {}
   std::string prettyPrint(int lvl) override;
-  std::string accept(Visitor *v) override;
+  std::string accept(Visitor *) override;
 };
 
 class Visitor {
 public:
   Visitor() = default;
   virtual ~Visitor() = default;
-  virtual std::string visitTranslationUnit(TranslationUnit *v) = 0;
-  virtual std::string visitFunctionDefinition(FunctionDefinition *v) = 0;
-  virtual std::string visitFunctionDeclaration(FunctionDeclaration *v) = 0;
-  virtual std::string visitDataDeclaration(DataDeclaration *v) = 0;
-  virtual std::string visitStructDeclaration(StructDeclaration *v) = 0;
-  virtual std::string visitParamDeclaration(ParamDeclaration *v) = 0;
-  virtual std::string visitScalarType(ScalarType *v) = 0;
-  virtual std::string visitStructType(StructType *v) = 0;
-  virtual std::string visitDirectDeclarator(DirectDeclarator *v) = 0;
-  virtual std::string visitAbstractDeclarator(AbstractDeclarator *v) = 0;
-  virtual std::string visitPointerDeclarator(PointerDeclarator *v) = 0;
-  virtual std::string visitFunctionDeclarator(FunctionDeclarator *v) = 0;
-  virtual std::string visitCompoundStmt(CompoundStmt *v) = 0;
-  virtual std::string visitIfElse(IfElse *v) = 0;
-  virtual std::string visitLabel(Label *v) = 0;
-  virtual std::string visitWhile(While *v) = 0;
-  virtual std::string visitGoto(Goto *v) = 0;
-  virtual std::string visitExpressionStmt(ExpressionStmt *v) = 0;
-  virtual std::string visitBreak(Break *v) = 0;
-  virtual std::string visitReturn(Return *v) = 0;
-  virtual std::string visitContinue(Continue *v) = 0;
-  virtual std::string visitVariableName(VariableName *v) = 0;
-  virtual std::string visitNumber(Number *v) = 0;
-  virtual std::string visitCharacter(Character *v) = 0;
-  virtual std::string visitString(String *v) = 0;
-  virtual std::string visitMemberAccessOp(MemberAccessOp *v) = 0;
-  virtual std::string visitArraySubscriptOp(ArraySubscriptOp *v) = 0;
-  virtual std::string visitFunctionCall(FunctionCall *v) = 0;
-  virtual std::string visitUnary(Unary *v) = 0;
-  virtual std::string visitSizeOf(SizeOf *v) = 0;
-  virtual std::string visitBinary(Binary *v) = 0;
-  virtual std::string visitTernary(Ternary *v) = 0;
-  virtual std::string visitAssignment(Assignment *v) = 0;
+  virtual std::string visitTranslationUnit(TranslationUnit *) = 0;
+  virtual std::string visitFunctionDefinition(FunctionDefinition *) = 0;
+  virtual std::string visitFunctionDeclaration(FunctionDeclaration *) = 0;
+  virtual std::string visitDataDeclaration(DataDeclaration *) = 0;
+  virtual std::string visitStructDeclaration(StructDeclaration *) = 0;
+  virtual std::string visitParamDeclaration(ParamDeclaration *) = 0;
+  virtual std::string visitScalarType(ScalarType *) = 0;
+  virtual std::string visitStructType(StructType *) = 0;
+  virtual std::string visitDirectDeclarator(DirectDeclarator *) = 0;
+  virtual std::string visitAbstractDeclarator(AbstractDeclarator *) = 0;
+  virtual std::string visitPointerDeclarator(PointerDeclarator *) = 0;
+  virtual std::string visitFunctionDeclarator(FunctionDeclarator *) = 0;
+  virtual std::string visitCompoundStmt(CompoundStmt *) = 0;
+  virtual std::string visitIfElse(IfElse *) = 0;
+  virtual std::string visitLabel(Label *) = 0;
+  virtual std::string visitWhile(While *) = 0;
+  virtual std::string visitGoto(Goto *) = 0;
+  virtual std::string visitExpressionStmt(ExpressionStmt *) = 0;
+  virtual std::string visitBreak(Break *) = 0;
+  virtual std::string visitReturn(Return *) = 0;
+  virtual std::string visitContinue(Continue *) = 0;
+  virtual std::string visitVariableName(VariableName *) = 0;
+  virtual std::string visitNumber(Number *) = 0;
+  virtual std::string visitCharacter(Character *) = 0;
+  virtual std::string visitString(String *) = 0;
+  virtual std::string visitMemberAccessOp(MemberAccessOp *) = 0;
+  virtual std::string visitArraySubscriptOp(ArraySubscriptOp *) = 0;
+  virtual std::string visitFunctionCall(FunctionCall *) = 0;
+  virtual std::string visitUnary(Unary *) = 0;
+  virtual std::string visitSizeOf(SizeOf *) = 0;
+  virtual std::string visitBinary(Binary *) = 0;
+  virtual std::string visitTernary(Ternary *) = 0;
+  virtual std::string visitAssignment(Assignment *) = 0;
 };
 
 } // namespace ccc

@@ -339,9 +339,10 @@ unique_ptr<Statement> FastParser::parseStatement() {
     consume(TokenType::GOTO);
     if (peek().is(TokenType::IDENTIFIER)) {
       auto name = peek().getExtra();
-      expr_node = make_unique<VariableName>(nextToken(), std::move(name));
+      std::unique_ptr<VariableName> identifier =
+          make_unique<VariableName>(nextToken(), std::move(name));
       mustExpect(TokenType::SEMICOLON, " Semicolon (;) ");
-      return make_unique<Goto>(src_mark, std::move(expr_node));
+      return make_unique<Goto>(src_mark, std::move(identifier));
     }
     parser_error(peek());
     return std::unique_ptr<Statement>();

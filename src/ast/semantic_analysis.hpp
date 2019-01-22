@@ -5,13 +5,13 @@ namespace ccc {
 using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
 using ScopeListType = std::vector<std::unordered_set<std::string>>;
 using IdentifierSetType = std::unordered_set<std::string>;
-using ExpressionPtrListType = std::vector<std::unique_ptr<Expression> *>;
 using IdentifierPtrListType = std::vector<std::unique_ptr<VariableName> *>;
 
 class SemanticVisitor : public Visitor {
 
   ScopeListType dataDeclarations;
   IdentifierSetType functionDeclarations;
+  IdentifierSetType functionDefinitions;
   IdentifierPtrListType uFunctionDeclarations;
   // global declarations
   // declared structs
@@ -19,7 +19,7 @@ class SemanticVisitor : public Visitor {
   // declared functions
   // defined functions
   IdentifierSetType labels;
-  ExpressionPtrListType uLabels;
+  IdentifierPtrListType uLabels;
   std::string error;
   int loop;
 
@@ -51,8 +51,8 @@ public:
     if (!uLabels.empty()) {
       error = SEMANTIC_ERROR((*uLabels[0])->getTokenRef().getLine(),
                              (*uLabels[0])->getTokenRef().getColumn(),
-                             "Use of undeclared label '" +
-                                 (*uLabels[0])->prettyPrint(0) + "'");
+                             "Use of undeclared label '" + (*uLabels[0])->name +
+                                 "'");
       return true;
     }
     //    if (!uFunctionDeclarations.empty()) {
@@ -60,7 +60,7 @@ public:
     //          SEMANTIC_ERROR((*uFunctionDeclarations[0])->getTokenRef().getLine(),
     //                         (*uFunctionDeclarations[0])->getTokenRef().getColumn(),
     //                         "Use of undefined method '" +
-    //                             (*uFunctionDeclarations[0])->prettyPrint(0) +
+    //                             (*uFunctionDeclarations[0])->name +
     //                             "'");
     //      return true;
     //    }
@@ -86,11 +86,17 @@ public:
     error = v->fn_name->accept(this);
     if (!error.empty())
       return error;
-    auto name = (*v->fn_name->getIdentifier())->prettyPrint(0);
-    for (size_t i = 0; i < uFunctionDeclarations.size(); i++)
-      if (name == (*uFunctionDeclarations.at(i))->prettyPrint(0))
-        uFunctionDeclarations.erase(uFunctionDeclarations.begin() + i);
-    functionDeclarations.insert(name);
+    const auto &identifier = *v->fn_name->getIdentifier();
+    if (functionDefinitions.find(identifier->name) != functionDefinitions.end())
+      return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
+                            identifier->getTokenRef().getLine(),
+                            "Redefinition of '" + identifier->name + "'");
+    //    for (size_t i = 0; i < uFunctionDeclarations.size(); i++)
+    //      if (name == (*uFunctionDeclarations.at(i))->name)
+    //        uFunctionDeclarations.erase(uFunctionDeclarations.begin() +
+    //        i);
+    functionDeclarations.insert(identifier->name);
+    functionDefinitions.insert(identifier->name);
     error = v->fn_body->accept(this);
     printScopes();
     dataDeclarations.pop_back();
@@ -98,40 +104,40 @@ public:
   }
 
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
-    auto name = (*v->fn_name->getIdentifier())->prettyPrint(0);
+    const auto &identifier = *v->fn_name->getIdentifier();
     //    if (functionDeclarations.find(
-    //            (*v->fn_name->getIdentifier())->prettyPrint(0)) ==
+    //            *v->fn_name->getIdentifier()->name) ==
     //        functionDeclarations.end())
     //      uFunctionDeclarations.push_back(v->fn_name->getIdentifier());
-    functionDeclarations.insert(name);
+    functionDeclarations.insert(identifier->name);
     return error;
   }
 
   std::string visitDataDeclaration(DataDeclaration *v) override {
     if (v->data_name) {
-      const auto &identifier = *(v->data_name->getIdentifier());
-      std::string name = identifier->prettyPrint(0);
+      const auto &identifier = *v->data_name->getIdentifier();
       if (dataDeclarations.size() > 1 &&
-          dataDeclarations.back().find(name) != dataDeclarations.back().end())
+          dataDeclarations.back().find(identifier->name) !=
+              dataDeclarations.back().end())
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
-                              "Redefinition of '" + name + "'");
-      dataDeclarations.back().insert(name);
+                              "Redefinition of '" + identifier->name + "'");
+      dataDeclarations.back().insert(identifier->name);
     }
     return error;
   }
 
   std::string visitStructDeclaration(StructDeclaration *v) override {
     if (v->struct_alias) {
-      const auto &identifier = *(v->struct_alias->getIdentifier());
-      std::string name = identifier->prettyPrint(0);
+      const auto &identifier = *v->struct_alias->getIdentifier();
       if (dataDeclarations.size() > 1 &&
-          dataDeclarations.back().find(name) != dataDeclarations.back().end())
+          dataDeclarations.back().find(identifier->name) !=
+              dataDeclarations.back().end())
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
-                              "Redefinition of '" + name +
+                              "Redefinition of '" + identifier->name +
                                   "' with a different type '?' vs 'struct ?'");
-      dataDeclarations.back().insert(name);
+      dataDeclarations.back().insert(identifier->name);
       printScopes();
     }
     return error;
@@ -139,26 +145,26 @@ public:
 
   std::string visitParamDeclaration(ParamDeclaration *v) override {
     if (v->param_name) {
-      const auto &identifier = *(v->param_name->getIdentifier());
-      std::string name = identifier->prettyPrint(0);
-      if (dataDeclarations.back().find(name) != dataDeclarations.back().end())
+      const auto &identifier = *v->param_name->getIdentifier();
+      if (dataDeclarations.back().find(identifier->name) !=
+          dataDeclarations.back().end())
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
-                              "Redefinition of '" + name + "'");
-      dataDeclarations.back().insert(name);
+                              "Redefinition of '" + identifier->name + "'");
+      dataDeclarations.back().insert(identifier->name);
     }
     return error;
   }
 
-  std::string visitScalarType(ScalarType *v) override { return error; }
+  std::string visitScalarType(ScalarType *) override { return error; }
 
-  std::string visitStructType(StructType *v) override { return error; }
+  std::string visitStructType(StructType *) override { return error; }
 
-  std::string visitDirectDeclarator(DirectDeclarator *v) override {
+  std::string visitDirectDeclarator(DirectDeclarator *) override {
     return error;
   }
 
-  std::string visitAbstractDeclarator(AbstractDeclarator *v) override {
+  std::string visitAbstractDeclarator(AbstractDeclarator *) override {
     return error;
   }
 
@@ -178,7 +184,7 @@ public:
   std::string visitCompoundStmt(CompoundStmt *v) override {
     dataDeclarations.emplace_back();
     if (dataDeclarations.size() == 3)
-      for (auto s : dataDeclarations[1])
+      for (const auto &s : dataDeclarations[1])
         dataDeclarations.back().insert(s);
     for (const auto &stat : v->block_items) {
       error = stat->accept(this);
@@ -208,8 +214,8 @@ public:
   }
 
   std::string visitLabel(Label *v) override {
-    auto label = v->label_name->prettyPrint(0);
-    for (auto l : labels) {
+    auto label = v->label_name->name;
+    for (const auto &l : labels) {
       if (l == label) {
         return SEMANTIC_ERROR(v->label_name->getTokenRef().getLine(),
                               v->label_name->getTokenRef().getColumn(),
@@ -218,7 +224,7 @@ public:
     }
     labels.insert(label);
     for (size_t i = 0; i < uLabels.size(); i++)
-      if (label == (*uLabels.at(i))->prettyPrint(0))
+      if (label == (*uLabels.at(i))->name)
         uLabels.erase(uLabels.begin() + i);
     return v->stmt->accept(this);
   }
@@ -237,7 +243,7 @@ public:
   }
 
   std::string visitGoto(Goto *v) override {
-    auto label = v->label_name->prettyPrint(0);
+    auto label = v->label_name->name;
     for (const auto &l : labels)
       if (l == label)
         return error;
@@ -284,17 +290,17 @@ public:
                           "Use of undeclared identifier '" + v->name + "'");
   }
 
-  std::string visitNumber(Number *v) override { return error; }
+  std::string visitNumber(Number *) override { return error; }
 
-  std::string visitCharacter(Character *v) override { return error; }
+  std::string visitCharacter(Character *) override { return error; }
 
-  std::string visitString(String *v) override { return error; }
+  std::string visitString(String *) override { return error; }
 
   std::string visitMemberAccessOp(MemberAccessOp *v) override {
     return v->struct_name->accept(this);
   }
 
-  std::string visitArraySubscriptOp(ArraySubscriptOp *v) override {
+  std::string visitArraySubscriptOp(ArraySubscriptOp *) override {
     return error;
   }
 
