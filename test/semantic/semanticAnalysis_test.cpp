@@ -103,9 +103,75 @@ TEST_CASE("continue outside loop") {
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_FAILURE(sv);
-  REQUIRE(sv.getError() == SEMANTIC_ERROR(4, 1,
-                                          "'continue' statement not in a loop "
-                                          "statement"));
+  REQUIRE(sv.getError() ==
+          SEMANTIC_ERROR(4, 1, "'continue' statement not in a loop statement"));
+}
+
+TEST_CASE("method redefifinition") {
+  std::string input = "int main() {}\n"
+                      "int main() {}\n"
+                      "\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+}
+
+TEST_CASE("duplicate int") {
+  std::string input = "int a;\n"
+                      "int a;\n"
+                      "int main(int a) {\n"
+                      "{int a;}\n"
+                      "int a;}\n"
+                      "\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 5, "Redefinition of 'a'"));
+}
+
+TEST_CASE("incomplete methode") {
+  std::string input = "int f(int);\n"
+                      "void main(int a) {\n"
+                      "a = f(a);\n"
+                      "}\n"
+                      "int f(int a) {return a;}\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_SUCCESS(sv);
+}
+
+TEST_CASE("scoping") {
+  std::string input = "int g;\n"
+                      "int g;\n"
+                      "int main(int g, int y);\n"
+                      "int(*((**p)(int)));\n"
+                      "int f(){main(5, 5);}\n"
+                      "int main(int x, int y) {\n"
+                      "int a;\n"
+                      "{\n"
+                      "int y;\n"
+                      "}\n"
+                      "y = main(5, 1) + 5;"
+                      "}\n"
+                      "int main(int, int) {}\n"
+                      "\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  auto sv = SemanticVisitor();
+  std::cout << root->prettyPrint(0) << std::endl;
+  root->accept(&sv);
+  if (sv.fail())
+    std::cerr << sv.getError() << std::endl;
 }
 
 } // namespace ccc
