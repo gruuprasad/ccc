@@ -2,21 +2,26 @@
 
 #define OPEN_SCOPE                                                             \
   dataDeclarations.emplace_back();                                             \
-  structDeclarations.emplace_back();
+  structDeclarations.emplace_back();                                           \
+  structDefinitions.emplace_back();
 
 #define CLOSE_SCOPE                                                            \
   dataDeclarations.pop_back();                                                 \
-  structDeclarations.pop_back();
+  structDeclarations.pop_back();                                               \
+  structDefinitions.pop_back()
 
 #define CLEAR_SCOPE                                                            \
   dataDeclarations.clear();                                                    \
-  structDeclarations.clear();
+  structDeclarations.clear();                                                  \
+  structDefinitions.clear()
 
 namespace ccc {
 
 using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
 // scoping
 using ScopeListType = std::vector<std::unordered_set<std::string>>;
+using ScopeStructListType = std::vector<
+    std::unordered_map<std::string, std::unordered_set<std::string>>>;
 using StructSetType = std::unordered_set<std::vector<std::string>>;
 // global
 using IdentifierSetType = std::unordered_set<std::string>;
@@ -24,10 +29,13 @@ using IdentifierPtrListType = std::vector<std::unique_ptr<VariableName> *>;
 
 class SemanticVisitor : public Visitor {
 
+  IdentifierSetType identifierList;
+
   ScopeListType dataDeclarations;
   IdentifierSetType functionDeclarations;
   IdentifierSetType functionDefinitions;
   ScopeListType structDeclarations;
+  ScopeStructListType structDefinitions;
   // global declarations
   // declared structs
   // defined structs
@@ -38,34 +46,24 @@ class SemanticVisitor : public Visitor {
   std::string error;
   int loop;
 
+  std::vector<std::string> pre = {"glob"};
+  std::string prefix(std::string s) {
+    std::string p;
+    for (const auto &i : pre)
+      p += i + ".";
+    return p + s;
+  }
+
   void printScopes() {
-    std::cout << "{";
-    for (const auto &i : functionDeclarations)
-      std::cout << i << ", ";
-    std::cout << "} {";
-    for (const auto &i : labels)
-      std::cout << i << ", ";
-    std::cout << "}\\" << uLabels.size();
-    int lvl = 0;
-    for (const auto &s : dataDeclarations) {
-      std::cout << " [" << ++lvl << ": ";
-      for (const auto &i : s)
-        std::cout << i << ", ";
-      std::cout << "]";
-    }
-    lvl = 0;
-    for (const auto &s : structDeclarations) {
-      std::cout << " [" << ++lvl << ": ";
-      for (const auto &i : s)
-        std::cout << "struct " << i << ", ";
-      std::cout << "]";
-    }
-    std::cout << std::endl;
+    std::cout << "[";
+    for (const auto &s : identifierList)
+      std::cout << s << ", ";
+    std::cout << "]" << std::endl;
   }
 
 public:
-  SemanticVisitor() : loop(0) { OPEN_SCOPE }
-  ~SemanticVisitor() { CLOSE_SCOPE }
+  SemanticVisitor() : loop(0) { OPEN_SCOPE; }
+  ~SemanticVisitor() override { CLOSE_SCOPE; }
 
   bool fail() {
     if (!error.empty())
@@ -140,19 +138,22 @@ public:
   std::string visitDataDeclaration(DataDeclaration *v) override {
     if (v->data_name) {
       const auto &identifier = *v->data_name->getIdentifier();
+      std::string name = prefix(identifier->name);
       if (dataDeclarations.size() > 1 &&
-          dataDeclarations.back().find(identifier->name) !=
-              dataDeclarations.back().end())
+          dataDeclarations.back().find(name) != dataDeclarations.back().end())
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name + "'");
-      dataDeclarations.back().insert(identifier->name);
+      dataDeclarations.back().insert(name);
+      identifierList.insert(prefix(name));
     }
     return error;
   }
 
   std::string visitStructDeclaration(StructDeclaration *v) override {
-    v->struct_type->accept(this);
+    error = v->struct_type->accept(this);
+    if (!error.empty())
+      return error;
     if (v->struct_alias) {
       const auto &identifier = *v->struct_alias->getIdentifier();
       if (dataDeclarations.size() > 1 &&
@@ -181,10 +182,27 @@ public:
     return error;
   }
 
+  struct S {
+    void f(){};
+  } s;
+
   std::string visitScalarType(ScalarType *) override { return error; }
 
   std::string visitStructType(StructType *v) override {
-    structDeclarations.back().insert(v->struct_name);
+    if (!v->member_list.empty()) {
+      if (structDefinitions.back().find(v->struct_name) !=
+          structDefinitions.back().end())
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn() + 7,
+                              "Redefinition of '" + v->struct_name + "'");
+      structDeclarations.back().insert(v->struct_name);
+      pre.push_back(v->struct_name);
+      for (const auto &d : v->member_list)
+        d->accept(this);
+      pre.pop_back();
+    } else {
+      structDeclarations.back().insert(v->struct_name);
+    }
     return error;
   }
 
@@ -375,6 +393,6 @@ public:
       return error;
     return v->right_operand->accept(this);
   }
-};
+}; // namespace ccc
 
 } // namespace ccc

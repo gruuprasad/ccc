@@ -154,26 +154,25 @@ namespace ccc {
 //  REQUIRE_SUCCESS(sv);
 //}
 //
-// TEST_CASE("duplicate struct") {
-//  std::string input = "void main(int a) {\n"
-//                      "struct S {\n"
-//                      "int a;\n"
-//                      "} s;\n"
-//                      "struct S {\n"
-//                      "int a;\n"
-//                      "} t;\n"
-//                      "}\n";
-//
-//  auto fp = FastParser(input);
-//  auto root = fp.parse();
-//  if (fp.fail())
-//    std::cerr << fp.getError() << std::endl;
-//  std::cout << root->prettyPrint(0) << std::endl;
-//  auto sv = SemanticVisitor();
-//  root->accept(&sv);
-//  REQUIRE_FAILURE(sv);
-//  //  REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 5, "Redefinition of 'a'"));
-//}
+TEST_CASE("duplicate struct") {
+  std::string input = "void main(int a) {\n"
+                      "struct S {\n"
+                      "int a;\n"
+                      "} s;\n"
+                      "struct S {\n"
+                      "int a;\n"
+                      "} t;\n"
+                      "}\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  auto pp = PrettyPrinterVisitor();
+  std::cout << root->accept(&pp) << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 8, "Redefinition of 'S'"));
+}
 //
 // TEST_CASE("duplicate field") {
 //  std::string input = "void main(int a) {\n"
