@@ -109,6 +109,7 @@ TEST_CASE("continue outside loop") {
 
 TEST_CASE("method redefifinition") {
   std::string input = "int main() {}\n"
+                      "\n"
                       "int main() {}\n"
                       "\n";
 
@@ -117,6 +118,7 @@ TEST_CASE("method redefifinition") {
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(3, 5, "Redefinition of 'main'"));
 }
 
 TEST_CASE("duplicate int") {
