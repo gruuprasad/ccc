@@ -151,21 +151,6 @@ public:
   template <class ListType> static ListType vector(ListType block) {
     return block;
   }
-
-  static std::string makeGVVertice(unsigned long hash, std::string name) {
-    std::stringstream ss;
-    ss << hash
-       << "[label=<" + name +
-              "> shape=ellipse style=filled "
-              "fillcolor=mediumaquamarine];\n";
-    return ss.str();
-  }
-
-  static std::string makeGVEdge(unsigned long left, unsigned long right) {
-    std::stringstream ss;
-    ss << left << "--" << right << ";\n";
-    return ss.str();
-  }
 };
 
 // Read translation unit from .c4 file.

@@ -1,6 +1,7 @@
 #include "../catch.hpp"
 #include "ast/ast_node.hpp"
-#include "ast/semantic_analysis.hpp"
+#include "ast/visitor/pretty_printer.hpp"
+#include "ast/visitor/semantic_analysis.hpp"
 #include "parser/fast_parser.hpp"
 #include <iostream>
 
@@ -170,7 +171,8 @@ TEST_CASE("scoping") {
   auto fp = FastParser(input);
   auto root = fp.parse();
   auto sv = SemanticVisitor();
-  std::cout << root->prettyPrint(0) << std::endl;
+  auto pp = PrettyPrinterVisitor();
+  std::cout << root->accept(&pp) << std::endl;
   root->accept(&sv);
   if (sv.fail())
     std::cerr << sv.getError() << std::endl;
