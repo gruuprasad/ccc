@@ -1,9 +1,24 @@
 #include "../ast_node.hpp"
 
+#define OPEN_SCOPE                                                             \
+  dataDeclarations.emplace_back();                                             \
+  structDeclarations.emplace_back();
+
+#define CLOSE_SCOPE                                                            \
+  dataDeclarations.pop_back();                                                 \
+  structDeclarations.pop_back();
+
+#define CLEAR_SCOPE                                                            \
+  dataDeclarations.clear();                                                    \
+  structDeclarations.clear();
+
 namespace ccc {
 
 using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
+// scoping
 using ScopeListType = std::vector<std::unordered_set<std::string>>;
+using StructSetType = std::unordered_set<std::vector<std::string>>;
+// global
 using IdentifierSetType = std::unordered_set<std::string>;
 using IdentifierPtrListType = std::vector<std::unique_ptr<VariableName> *>;
 
@@ -12,7 +27,7 @@ class SemanticVisitor : public Visitor {
   ScopeListType dataDeclarations;
   IdentifierSetType functionDeclarations;
   IdentifierSetType functionDefinitions;
-  IdentifierPtrListType uFunctionDeclarations;
+  ScopeListType structDeclarations;
   // global declarations
   // declared structs
   // defined structs
@@ -24,26 +39,33 @@ class SemanticVisitor : public Visitor {
   int loop;
 
   void printScopes() {
-    //    std::cout << "{";
-    //    for (auto i : functionDeclarations)
-    //      std::cout << i << ", ";
-    //    std::cout << "}\\" << uFunctionDeclarations.size();
-    //    std::cout << " {";
-    //    for (auto i : labels)
-    //      std::cout << i << ", ";
-    //    std::cout << "}\\" << uLabels.size();
-    //    for (auto s : dataDeclarations) {
-    //      std::cout << " [";
-    //      for (auto i : s)
-    //        std::cout << i << ", ";
-    //      std::cout << "]";
-    //    }
-    //    std::cout << std::endl;
+    std::cout << "{";
+    for (const auto &i : functionDeclarations)
+      std::cout << i << ", ";
+    std::cout << "} {";
+    for (const auto &i : labels)
+      std::cout << i << ", ";
+    std::cout << "}\\" << uLabels.size();
+    int lvl = 0;
+    for (const auto &s : dataDeclarations) {
+      std::cout << " [" << ++lvl << ": ";
+      for (const auto &i : s)
+        std::cout << i << ", ";
+      std::cout << "]";
+    }
+    lvl = 0;
+    for (const auto &s : structDeclarations) {
+      std::cout << " [" << ++lvl << ": ";
+      for (const auto &i : s)
+        std::cout << "struct " << i << ", ";
+      std::cout << "]";
+    }
+    std::cout << std::endl;
   }
 
 public:
-  SemanticVisitor() : loop(0) {}
-  ~SemanticVisitor() override = default;
+  SemanticVisitor() : loop(0) { OPEN_SCOPE }
+  ~SemanticVisitor() { CLOSE_SCOPE }
 
   bool fail() {
     if (!error.empty())
@@ -70,19 +92,21 @@ public:
   std::string getError() { return error; }
 
   std::string visitTranslationUnit(TranslationUnit *v) override {
-    dataDeclarations.emplace_back();
+    std::vector<std::string> scope = {"a"};
+    //    structDefinitions.emplace_back(std::unordered_set<std::vector<std::string>>{
+    //        std::vector<std::string>()});
     for (const auto &child : v->extern_list) {
       error = child->accept(this);
       if (!error.empty())
         break;
     }
     printScopes();
-    dataDeclarations.pop_back();
+    //    structDefinitions.pop_back();
     return error;
   }
 
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
-    dataDeclarations.emplace_back();
+    OPEN_SCOPE;
     error = v->fn_name->accept(this);
     if (!error.empty())
       return error;
@@ -99,7 +123,7 @@ public:
     functionDefinitions.insert(identifier->name);
     error = v->fn_body->accept(this);
     printScopes();
-    dataDeclarations.pop_back();
+    CLOSE_SCOPE;
     return error;
   }
 
@@ -128,6 +152,7 @@ public:
   }
 
   std::string visitStructDeclaration(StructDeclaration *v) override {
+    v->struct_type->accept(this);
     if (v->struct_alias) {
       const auto &identifier = *v->struct_alias->getIdentifier();
       if (dataDeclarations.size() > 1 &&
@@ -182,7 +207,7 @@ public:
   }
 
   std::string visitCompoundStmt(CompoundStmt *v) override {
-    dataDeclarations.emplace_back();
+    OPEN_SCOPE;
     if (dataDeclarations.size() == 3)
       for (const auto &s : dataDeclarations[1])
         dataDeclarations.back().insert(s);
@@ -192,7 +217,7 @@ public:
         break;
     }
     printScopes();
-    dataDeclarations.pop_back();
+    CLOSE_SCOPE;
     return error;
   }
 
@@ -200,16 +225,16 @@ public:
     error = v->condition->accept(this);
     if (!error.empty())
       return error;
-    dataDeclarations.emplace_back();
+    OPEN_SCOPE;
     error = v->ifStmt->accept(this);
     if (!error.empty())
       return error;
     if (v->elseStmt) {
-      dataDeclarations.back().clear();
+      CLEAR_SCOPE;
       error = v->elseStmt->accept(this);
     }
     printScopes();
-    dataDeclarations.pop_back();
+    CLOSE_SCOPE;
     return error;
   }
 
@@ -233,12 +258,12 @@ public:
     error = v->predicate->accept(this);
     if (!error.empty())
       return error;
-    dataDeclarations.emplace_back();
+    OPEN_SCOPE;
     loop++;
     error = v->block->accept(this);
     loop--;
     printScopes();
-    dataDeclarations.pop_back();
+    CLOSE_SCOPE;
     return error;
   }
 
