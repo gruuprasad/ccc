@@ -76,8 +76,9 @@ public:
     ss << makeGVVertice(v->hash(), "StructDeclaration");
     ss << makeGVEdge(v->hash(), v->struct_type->hash())
        << v->struct_type->accept(this);
-    ss << makeGVEdge(v->hash(), v->struct_alias->hash())
-       << v->struct_alias->accept(this);
+    if (v->struct_alias)
+      ss << makeGVEdge(v->hash(), v->struct_alias->hash())
+         << v->struct_alias->accept(this);
     return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
            "}\n";
   }

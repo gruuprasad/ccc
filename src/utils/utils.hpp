@@ -1,16 +1,17 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "../ast/ast_node.hpp"
 #include <cstddef>
 #include <cstdlib>
 #include <dirent.h>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <sys/types.h>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace ccc {
 
@@ -159,7 +160,7 @@ public:
 
 class Reader {
 public:
-  Reader(std::ifstream &in_) : in(in_) {}
+  explicit Reader(std::ifstream &in_) : in(in_) {}
 
   std::string readLine() {
     cur_line++;

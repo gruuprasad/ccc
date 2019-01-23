@@ -183,7 +183,10 @@ public:
 
   std::string visitScalarType(ScalarType *) override { return error; }
 
-  std::string visitStructType(StructType *) override { return error; }
+  std::string visitStructType(StructType *v) override {
+    structDeclarations.back().insert(v->struct_name);
+    return error;
+  }
 
   std::string visitDirectDeclarator(DirectDeclarator *) override {
     return error;

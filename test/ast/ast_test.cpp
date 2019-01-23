@@ -8,7 +8,8 @@
 namespace ccc {
 
 TEST_CASE("gv ast") {
-  std::string language = "struct S {\n"
+  std::string language = "struct S *s;\n"
+                         "struct S {\n"
                          "int a;\n"
                          "int x;\n"
                          "};\n";
