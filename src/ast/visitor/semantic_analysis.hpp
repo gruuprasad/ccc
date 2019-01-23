@@ -1,4 +1,4 @@
-#include "ast_node.hpp"
+#include "../ast_node.hpp"
 
 namespace ccc {
 
@@ -247,7 +247,7 @@ public:
     for (const auto &l : labels)
       if (l == label)
         return error;
-    uLabels.push_back(v->get_label_name());
+    uLabels.push_back(&v->label_name);
     return error;
   }
 

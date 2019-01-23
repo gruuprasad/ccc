@@ -1,4 +1,5 @@
 #include "../catch.hpp"
+#include "ast/visitor/pretty_printer.hpp"
 #include "parser/fast_parser.hpp"
 
 using namespace ccc;
@@ -107,7 +108,8 @@ TEST_CASE("parser/digraph") {
   auto fp = FastParser(ctx);
   auto root = fp.parse();
   REQUIRE_SUCCESS(fp);
-  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), xtc));
+  PrettyPrinterVisitor pp;
+  REQUIRE_EMPTY(Utils::compare(root->accept(&pp), xtc));
 }
 
 // Test simple expressions
@@ -141,8 +143,9 @@ TEST_CASE("parser/unary_postfix") {
 
   auto fp = FastParser(ctx);
   auto root = fp.parse();
-  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), xtc));
-  REQUIRE(fp.fail() == false);
+  PrettyPrinterVisitor pp;
+  REQUIRE_EMPTY(Utils::compare(root->accept(&pp), xtc));
+  REQUIRE(!fp.fail());
 }
 
 TEST_CASE("ast/ternary") {
@@ -159,6 +162,7 @@ TEST_CASE("ast/ternary") {
 
   auto fp = FastParser(ctx);
   auto root = fp.parse();
-  REQUIRE_EMPTY(Utils::compare(root->prettyPrint(0), xtc));
-  REQUIRE(fp.fail() == false);
+  PrettyPrinterVisitor pp;
+  REQUIRE_EMPTY(Utils::compare(root->accept(&pp), xtc));
+  REQUIRE(!fp.fail());
 }

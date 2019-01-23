@@ -1,4 +1,5 @@
 #include "../catch.hpp"
+#include "ast/visitor/pretty_printer.hpp"
 #include "parser/fast_parser.hpp"
 
 using namespace ccc;
@@ -132,6 +133,7 @@ TEST_CASE("declarations issue") {
   std::string language{"int main() { int a; int b;}"};
   auto fp = FastParser(language);
   auto root = fp.parse();
-  std::cout << root->prettyPrint(0);
+  PrettyPrinterVisitor pp;
+  std::cout << root->accept(&pp);
   REQUIRE_SUCCESS(fp);
 }
