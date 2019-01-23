@@ -89,7 +89,7 @@ public:
     const auto &identifier = *v->fn_name->getIdentifier();
     if (functionDefinitions.find(identifier->name) != functionDefinitions.end())
       return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
-                            identifier->getTokenRef().getLine(),
+                            identifier->getTokenRef().getColumn(),
                             "Redefinition of '" + identifier->name + "'");
     //    for (size_t i = 0; i < uFunctionDeclarations.size(); i++)
     //      if (name == (*uFunctionDeclarations.at(i))->name)
