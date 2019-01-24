@@ -76,7 +76,9 @@ public:
     DIR *dirp = opendir(d);
     struct dirent *dp;
     while ((dp = readdir(dirp)) != nullptr) {
-      if (dp->d_name[0] != '.') {
+      if (dp->d_name[0] != '.' &&
+          std::string(dp->d_name)
+                  .compare(std::string(dp->d_name).size() - 2, 2, ".c") == 0) {
         if (dp->d_type == '\u0004') {
           for (const auto &n : dir(&std::string(
                    std::string(d) + std::string(dp->d_name) + "/")[0]))
