@@ -25,7 +25,7 @@ static std::unordered_map<TokenType, BinaryOpValue, EnumClassHash>
 
 // (6.9) translationUnit :: external-declaration+
 unique_ptr<TranslationUnit> FastParser::parseTranslationUnit() {
-  ExternalDeclarationListType external_decls = ExternalDeclarationListType();
+  ExternalDeclarationListType external_decls;
   Token src_mark(peek());
   if (src_mark.getType() == TokenType::ENDOFFILE) {
     parser_error(Token(TokenType::ENDOFFILE, 1, 0));
@@ -49,8 +49,7 @@ unique_ptr<ExternalDeclaration> FastParser::parseExternalDeclaration() {
 unique_ptr<ExternalDeclaration> FastParser::parseDeclaration() {
   unique_ptr<Declarator> identifier_node;
   Token src_mark(peek());
-  bool structDefined = false;
-  auto type_node = parseTypeSpecifier(structDefined);
+  auto type_node = parseTypeSpecifier();
 
   if (fail()) {
     return unique_ptr<ExternalDeclaration>();
@@ -66,12 +65,12 @@ unique_ptr<ExternalDeclaration> FastParser::parseDeclaration() {
 
   if (peek().is(TokenType::SEMICOLON)) {
     consume(TokenType::SEMICOLON);
-    if (structDefined) {
-      return make_unique<StructDeclaration>(src_mark, move(type_node),
+    if (type_node.second) {
+      return make_unique<StructDeclaration>(src_mark, move(type_node.first),
                                             move(identifier_node));
     }
     {
-      return make_unique<DataDeclaration>(src_mark, move(type_node),
+      return make_unique<DataDeclaration>(src_mark, move(type_node.first),
                                           move(identifier_node));
     }
   }
@@ -88,8 +87,7 @@ unique_ptr<ExternalDeclaration> FastParser::parseFuncDefOrDeclaration() {
   // function-definition
   unique_ptr<Declarator> identifier_node;
   Token src_mark = peek();
-  bool structDefined = false;
-  auto type_node = parseTypeSpecifier(structDefined);
+  auto type_node = parseTypeSpecifier();
 
   if (fail()) {
     return unique_ptr<ExternalDeclaration>();
@@ -105,16 +103,16 @@ unique_ptr<ExternalDeclaration> FastParser::parseFuncDefOrDeclaration() {
 
   if (peek().is(TokenType::SEMICOLON)) {
     consume(TokenType::SEMICOLON);
-    if (structDefined) {
-      return make_unique<StructDeclaration>(src_mark, move(type_node),
+    if (type_node.second) {
+      return make_unique<StructDeclaration>(src_mark, move(type_node.first),
                                             move(identifier_node));
     }
     if (isFunctionIdentifer) {
       isFunctionIdentifer = false;
-      return make_unique<FunctionDeclaration>(src_mark, move(type_node),
+      return make_unique<FunctionDeclaration>(src_mark, move(type_node.first),
                                               move(identifier_node));
     }
-    return make_unique<DataDeclaration>(src_mark, move(type_node),
+    return make_unique<DataDeclaration>(src_mark, move(type_node.first),
                                         move(identifier_node));
   }
 
@@ -126,37 +124,36 @@ unique_ptr<ExternalDeclaration> FastParser::parseFuncDefOrDeclaration() {
       return unique_ptr<ExternalDeclaration>();
     }
     return make_unique<FunctionDefinition>(
-        src_mark, move(type_node), move(identifier_node), move(fn_body));
+        src_mark, move(type_node.first), move(identifier_node), move(fn_body));
   }
 
   parser_error(peek(), "Function definition or declaration");
   return unique_ptr<ExternalDeclaration>();
 }
 
-unique_ptr<Type> FastParser::parseTypeSpecifier(bool &structDefined) {
+pair<unique_ptr<Type>, bool> FastParser::parseTypeSpecifier() {
   switch (peek().getType()) {
   case TokenType::VOID:
-    return make_unique<ScalarType>(nextToken(), ScalarTypeValue::VOID);
+    return make_pair(make_unique<ScalarType>(nextToken(), ScalarTypeValue::VOID), false);
   case TokenType::CHAR:
-    return make_unique<ScalarType>(nextToken(), ScalarTypeValue::CHAR);
+    return make_pair(make_unique<ScalarType>(nextToken(), ScalarTypeValue::CHAR), false);
   case TokenType::INT:
-    return make_unique<ScalarType>(nextToken(), ScalarTypeValue::INT);
+    return make_pair(make_unique<ScalarType>(nextToken(), ScalarTypeValue::INT), false);
   case TokenType::STRUCT:
-    return parseStructType(structDefined);
+    return parseStructType();
   default:
     parser_error(peek(), "Type-specifier");
-    return unique_ptr<ScalarType>();
+    return make_pair(unique_ptr<ScalarType>(), false);
   }
 }
 
 // (6.7.2.1) struct-or-union-specifier :: struct identifier
 // (6.7.2.1) struct-or-union-specifier :: struct identifier(opt) {
 // struct-declaration+ }
-unique_ptr<StructType> FastParser::parseStructType(bool &structDefined) {
+pair<unique_ptr<StructType>, bool> FastParser::parseStructType() {
   Token src_mark(peek());
   string struct_name;
   ExternalDeclarationListType member_list = ExternalDeclarationListType();
-  structDefined = false;
 
   consume(TokenType::STRUCT); // STRUCT keyword
   if (peek().is(TokenType::IDENTIFIER)) {
@@ -164,23 +161,23 @@ unique_ptr<StructType> FastParser::parseStructType(bool &structDefined) {
   }
 
   if (peek().is(TokenType::BRACE_OPEN)) {
-    structDefined = true;
     consume(TokenType::BRACE_OPEN);
     do {
       auto member = parseDeclaration();
       member_list.push_back(move(member));
     } while (!fail() && !mayExpect(TokenType::BRACE_CLOSE));
 
-    return make_unique<StructType>(src_mark, move(struct_name),
-                                   move(member_list));
+    return make_pair(make_unique<StructType>(src_mark, move(struct_name),
+                                   move(member_list)), true);
   }
 
   if (!struct_name.empty()) {
-    return make_unique<StructType>(src_mark, move(struct_name));
+    return make_pair(make_unique<StructType>(src_mark, move(struct_name)),
+        false);
   }
 
   parser_error(peek(), "struct identifier or struct-brace-open");
-  return unique_ptr<StructType>();
+  return make_pair(unique_ptr<StructType>(), false);
 }
 
 // Function to handle all kinds of declarator.
@@ -285,8 +282,7 @@ ParamDeclarationListType FastParser::parseParameterList() {
 // abstract-declarator(opt)
 unique_ptr<ParamDeclaration> FastParser::parseParameterDeclaration() {
   Token src_mark(peek());
-  bool structDefined = false;
-  auto param_type = parseTypeSpecifier(structDefined);
+  auto param_type = parseTypeSpecifier().first;
   if (peek().is(TokenType::COMMA) || peek().is(TokenType::PARENTHESIS_CLOSE))
     return make_unique<ParamDeclaration>(
         src_mark, move(param_type),
@@ -523,8 +519,7 @@ std::unique_ptr<Expression> FastParser::parseUnaryExpression() {
     consume(TokenType::SIZEOF);
     if (peek().is(TokenType::PARENTHESIS_OPEN) && peek(1).is(C_TYPES)) {
       consume(TokenType::PARENTHESIS_OPEN);
-      bool structDefined;
-      auto type_name = parseTypeSpecifier(structDefined);
+      auto type_name = parseTypeSpecifier().first;
       mustExpect(TokenType::PARENTHESIS_CLOSE, " parenthesis close ");
       if (fail()) {
         return std::unique_ptr<Expression>();
