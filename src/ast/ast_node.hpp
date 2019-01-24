@@ -219,7 +219,9 @@ class PointerDeclarator : public Declarator {
   std::unique_ptr<Declarator> identifier;
   int indirection_level;
   std::unique_ptr<VariableName> *getIdentifier() override {
-    return identifier->getIdentifier();
+    if (identifier)
+      return identifier->getIdentifier();
+    return nullptr;
   }
 
 public:

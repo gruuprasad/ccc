@@ -155,8 +155,8 @@ public:
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
     std::stringstream ss;
     std::string ptr_str;
-    if (v->return_ptr != nullptr)
-      ptr_str = v->return_ptr->accept(this);
+    //    if (v->return_ptr != nullptr)
+    //      ptr_str = v->return_ptr->accept(this);
     for (const auto &p : v->param_list) {
       ss << p->accept(this);
       if (p != v->param_list.back())

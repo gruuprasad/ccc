@@ -70,18 +70,20 @@ public:
   }
 
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
-    const auto &identifier = *v->fn_name->getIdentifier();
-    auto name = prefix(identifier->name);
-    pre.emplace_back(identifier->name);
-    error = v->fn_name->accept(this);
-    if (!error.empty())
-      return error;
-    if (definitions.find(name) != definitions.end())
-      return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
-                            identifier->getTokenRef().getColumn(),
-                            "Redefinition of '" + identifier->name + "'");
-    definitions.insert(name);
-    declarations.insert(name);
+    if (v->fn_name->getIdentifier() != nullptr) {
+      const auto &identifier = *v->fn_name->getIdentifier();
+      auto name = prefix(identifier->name);
+      pre.emplace_back(identifier->name);
+      error = v->fn_name->accept(this);
+      if (!error.empty())
+        return error;
+      if (definitions.find(name) != definitions.end())
+        return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
+                              identifier->getTokenRef().getColumn(),
+                              "Redefinition of '" + identifier->name + "'");
+      definitions.insert(name);
+      declarations.insert(name);
+    }
     error = v->fn_body->accept(this);
     // delete all nested definitions
     for (auto it = declarations.begin(); it != declarations.end();)
@@ -93,9 +95,11 @@ public:
     return error;
   }
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
-    const auto &identifier = *v->fn_name->getIdentifier();
-    auto name = prefix(identifier->name);
-    declarations.insert(name);
+    if (v->fn_name->getIdentifier() != nullptr) {
+      const auto &identifier = *v->fn_name->getIdentifier();
+      auto name = prefix(identifier->name);
+      declarations.insert(name);
+    }
     return error;
   }
 
@@ -157,7 +161,7 @@ public:
   }
 
   std::string visitParamDeclaration(ParamDeclaration *v) override {
-    if (v->param_name) {
+    if (v->param_name && v->param_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->param_name->getIdentifier();
       std::string name = prefix(identifier->name);
       if (declarations.find(name) != declarations.end())
