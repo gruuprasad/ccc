@@ -1,69 +1,46 @@
 #include "../ast_node.hpp"
 
-#define OPEN_SCOPE                                                             \
-  dataDeclarations.emplace_back();                                             \
-  structDeclarations.emplace_back();                                           \
-  structDefinitions.emplace_back();
-
-#define CLOSE_SCOPE                                                            \
-  dataDeclarations.pop_back();                                                 \
-  structDeclarations.pop_back();                                               \
-  structDefinitions.pop_back()
-
-#define CLEAR_SCOPE                                                            \
-  dataDeclarations.clear();                                                    \
-  structDeclarations.clear();                                                  \
-  structDefinitions.clear()
-
 namespace ccc {
 
-using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
-// scoping
-using ScopeListType = std::vector<std::unordered_set<std::string>>;
-using ScopeStructListType = std::vector<
-    std::unordered_map<std::string, std::unordered_set<std::string>>>;
-using StructSetType = std::unordered_set<std::vector<std::string>>;
-// global
 using IdentifierSetType = std::unordered_set<std::string>;
-using IdentifierPtrListType = std::vector<std::unique_ptr<VariableName> *>;
+using IdentifierMapType = std::unordered_map<std::string, std::string>;
 
 class SemanticVisitor : public Visitor {
 
-  IdentifierSetType identifierList;
+  IdentifierSetType definitions;
+  IdentifierSetType declarations;
 
-  ScopeListType dataDeclarations;
-  IdentifierSetType functionDeclarations;
-  IdentifierSetType functionDefinitions;
-  ScopeListType structDeclarations;
-  ScopeStructListType structDefinitions;
-  // global declarations
-  // declared structs
-  // defined structs
-  // declared functions
-  // defined functions
-  IdentifierSetType labels;
   IdentifierPtrListType uLabels;
   std::string error;
   int loop;
 
-  std::vector<std::string> pre = {"glob"};
-  std::string prefix(std::string s) {
-    std::string p;
+  std::vector<std::string> pre = {"$"};
+  std::string prefix(const std::string &s = "") {
+    std::stringstream ss;
     for (const auto &i : pre)
-      p += i + ".";
-    return p + s;
+      ss << i << ".";
+    return ss.str() + s;
+  }
+  std::string prefix(const std::vector<std::string> &pre) {
+    std::stringstream ss;
+    for (const auto &i : pre)
+      ss << i << ".";
+    return ss.str();
   }
 
   void printScopes() {
     std::cout << "[";
-    for (const auto &s : identifierList)
+    for (const auto &s : declarations)
+      std::cout << s << ", ";
+    std::cout << "] [";
+    for (const auto &s : definitions)
       std::cout << s << ", ";
     std::cout << "]" << std::endl;
   }
 
 public:
-  SemanticVisitor() : loop(0) { OPEN_SCOPE; }
-  ~SemanticVisitor() override { CLOSE_SCOPE; }
+  SemanticVisitor() : loop(0) {}
+  ~SemanticVisitor() override = default;
 
   bool fail() {
     if (!error.empty())
@@ -75,15 +52,6 @@ public:
                                  "'");
       return true;
     }
-    //    if (!uFunctionDeclarations.empty()) {
-    //      error =
-    //          SEMANTIC_ERROR((*uFunctionDeclarations[0])->getTokenRef().getLine(),
-    //                         (*uFunctionDeclarations[0])->getTokenRef().getColumn(),
-    //                         "Use of undefined method '" +
-    //                             (*uFunctionDeclarations[0])->name +
-    //                             "'");
-    //      return true;
-    //    }
     return false;
   }
 
@@ -98,40 +66,40 @@ public:
       if (!error.empty())
         break;
     }
-    printScopes();
-    //    structDefinitions.pop_back();
     return error;
   }
 
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
-    OPEN_SCOPE;
+    const auto &identifier = *v->fn_name->getIdentifier();
+    auto name = prefix(identifier->name);
+    pre.emplace_back(identifier->name);
     error = v->fn_name->accept(this);
     if (!error.empty())
       return error;
-    const auto &identifier = *v->fn_name->getIdentifier();
-    if (functionDefinitions.find(identifier->name) != functionDefinitions.end())
+    if (definitions.find(name) != definitions.end())
       return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                             identifier->getTokenRef().getColumn(),
                             "Redefinition of '" + identifier->name + "'");
-    //    for (size_t i = 0; i < uFunctionDeclarations.size(); i++)
-    //      if (name == (*uFunctionDeclarations.at(i))->name)
-    //        uFunctionDeclarations.erase(uFunctionDeclarations.begin() +
-    //        i);
-    functionDeclarations.insert(identifier->name);
-    functionDefinitions.insert(identifier->name);
+    definitions.insert(name);
+    declarations.insert(name);
     error = v->fn_body->accept(this);
-    printScopes();
-    CLOSE_SCOPE;
+    // delete all nested definitions
+    for (auto it = declarations.begin(); it != declarations.end();)
+      if ((*it).find(prefix("$")) == 0)
+        declarations.erase(it++);
+      else
+        ++it;
+    pre.pop_back();
     return error;
   }
-
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
     const auto &identifier = *v->fn_name->getIdentifier();
+    auto name = prefix(identifier->name);
     //    if (functionDeclarations.find(
     //            *v->fn_name->getIdentifier()->name) ==
     //        functionDeclarations.end())
     //      uFunctionDeclarations.push_back(v->fn_name->getIdentifier());
-    functionDeclarations.insert(identifier->name);
+    declarations.insert(name);
     return error;
   }
 
@@ -139,13 +107,12 @@ public:
     if (v->data_name) {
       const auto &identifier = *v->data_name->getIdentifier();
       std::string name = prefix(identifier->name);
-      if (dataDeclarations.size() > 1 &&
-          dataDeclarations.back().find(name) != dataDeclarations.back().end())
+
+      if (prefix() != "$." && declarations.find(name) != declarations.end())
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name + "'");
-      dataDeclarations.back().insert(name);
-      identifierList.insert(prefix(name));
+      declarations.insert(name);
     }
     return error;
   }
@@ -156,15 +123,13 @@ public:
       return error;
     if (v->struct_alias) {
       const auto &identifier = *v->struct_alias->getIdentifier();
-      if (dataDeclarations.size() > 1 &&
-          dataDeclarations.back().find(identifier->name) !=
-              dataDeclarations.back().end())
+      std::string name = prefix(identifier->name);
+      if (declarations.find(name) != declarations.end())
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name +
                                   "' with a different type '?' vs 'struct ?'");
-      dataDeclarations.back().insert(identifier->name);
-      printScopes();
+      declarations.insert(name);
     }
     return error;
   }
@@ -172,37 +137,35 @@ public:
   std::string visitParamDeclaration(ParamDeclaration *v) override {
     if (v->param_name) {
       const auto &identifier = *v->param_name->getIdentifier();
-      if (dataDeclarations.back().find(identifier->name) !=
-          dataDeclarations.back().end())
+      std::string name = prefix(identifier->name);
+      if (declarations.find(name) != declarations.end())
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name + "'");
-      dataDeclarations.back().insert(identifier->name);
+      declarations.insert(name);
     }
     return error;
   }
 
-  struct S {
-    void f(){};
-  } s;
-
   std::string visitScalarType(ScalarType *) override { return error; }
 
   std::string visitStructType(StructType *v) override {
+    auto name = prefix(v->struct_name);
     if (!v->member_list.empty()) {
-      if (structDefinitions.back().find(v->struct_name) !=
-          structDefinitions.back().end())
+      if (definitions.find(name) != definitions.end())
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn() + 7,
                               "Redefinition of '" + v->struct_name + "'");
-      structDeclarations.back().insert(v->struct_name);
       pre.push_back(v->struct_name);
-      for (const auto &d : v->member_list)
-        d->accept(this);
+      for (const auto &d : v->member_list) {
+        error = d->accept(this);
+        if (!error.empty())
+          return error;
+      }
       pre.pop_back();
-    } else {
-      structDeclarations.back().insert(v->struct_name);
+      definitions.insert(name);
     }
+    declarations.insert(name);
     return error;
   }
 
@@ -219,26 +182,35 @@ public:
   }
 
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
+    pre.emplace_back("$");
     for (const auto &p : v->param_list) {
       error = p->accept(this);
       if (!error.empty())
         return error;
     }
+    pre.pop_back();
     return error;
   }
 
   std::string visitCompoundStmt(CompoundStmt *v) override {
-    OPEN_SCOPE;
-    if (dataDeclarations.size() == 3)
-      for (const auto &s : dataDeclarations[1])
-        dataDeclarations.back().insert(s);
+    pre.emplace_back("$");
     for (const auto &stat : v->block_items) {
       error = stat->accept(this);
       if (!error.empty())
         break;
     }
-    printScopes();
-    CLOSE_SCOPE;
+    // delete all nested definitions
+    for (auto it = declarations.begin(); it != declarations.end();)
+      if ((*it).find(prefix()) == 0)
+        declarations.erase(it++);
+      else
+        ++it;
+    for (auto it = definitions.begin(); it != definitions.end();)
+      if ((*it).find(prefix()) == 0)
+        definitions.erase(it++);
+      else
+        ++it;
+    pre.pop_back();
     return error;
   }
 
@@ -246,29 +218,39 @@ public:
     error = v->condition->accept(this);
     if (!error.empty())
       return error;
-    OPEN_SCOPE;
+    pre.emplace_back("if");
     error = v->ifStmt->accept(this);
     if (!error.empty())
       return error;
     if (v->elseStmt) {
-      CLEAR_SCOPE;
+      pre.emplace_back("else");
       error = v->elseStmt->accept(this);
+      pre.pop_back();
     }
-    printScopes();
-    CLOSE_SCOPE;
+    for (auto it = declarations.begin(); it != declarations.end();)
+      if ((*it).find(prefix()) == 0)
+        declarations.erase(it++);
+      else
+        ++it;
+    for (auto it = definitions.begin(); it != definitions.end();)
+      if ((*it).find(prefix()) == 0)
+        definitions.erase(it++);
+      else
+        ++it;
+    pre.pop_back();
     return error;
   }
 
   std::string visitLabel(Label *v) override {
     auto label = v->label_name->name;
-    for (const auto &l : labels) {
+    for (const auto &l : definitions) {
       if (l == label) {
         return SEMANTIC_ERROR(v->label_name->getTokenRef().getLine(),
                               v->label_name->getTokenRef().getColumn(),
                               "Redefinition of label '" + label + "'");
       }
     }
-    labels.insert(label);
+    definitions.insert(label);
     for (size_t i = 0; i < uLabels.size(); i++)
       if (label == (*uLabels.at(i))->name)
         uLabels.erase(uLabels.begin() + i);
@@ -279,18 +261,28 @@ public:
     error = v->predicate->accept(this);
     if (!error.empty())
       return error;
-    OPEN_SCOPE;
+
     loop++;
+    pre.emplace_back("while");
     error = v->block->accept(this);
     loop--;
-    printScopes();
-    CLOSE_SCOPE;
+    for (auto it = declarations.begin(); it != declarations.end();)
+      if ((*it).find(prefix()) == 0)
+        declarations.erase(it++);
+      else
+        ++it;
+    for (auto it = definitions.begin(); it != definitions.end();)
+      if ((*it).find(prefix()) == 0)
+        definitions.erase(it++);
+      else
+        ++it;
+    pre.pop_back();
     return error;
   }
 
   std::string visitGoto(Goto *v) override {
     auto label = v->label_name->name;
-    for (const auto &l : labels)
+    for (const auto &l : definitions)
       if (l == label)
         return error;
     uLabels.push_back(&v->label_name);
@@ -326,14 +318,18 @@ public:
   }
 
   std::string visitVariableName(VariableName *v) override {
-    for (auto s : dataDeclarations)
-      if (s.find(v->name) != s.end())
-        return error;
-    if (functionDeclarations.find(v->name) != functionDeclarations.end())
+    std::string name = prefix(v->name);
+    if (declarations.find(name) != declarations.end())
       return error;
+    std::string p;
+    for (const auto &s : pre) {
+      p += s + ".";
+      if (declarations.find(p + v->name) != declarations.end())
+        return error;
+    }
     return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                           v->getTokenRef().getColumn(),
-                          "Use of undeclared identifier '" + v->name + "'");
+                          "Use of undeclared identifier '" + name + "'");
   }
 
   std::string visitNumber(Number *) override { return error; }
