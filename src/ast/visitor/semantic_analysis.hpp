@@ -1,4 +1,6 @@
 #include "../ast_node.hpp"
+#include <iterator>
+#include <sstream>
 
 namespace ccc {
 
@@ -9,48 +11,46 @@ class SemanticVisitor : public Visitor {
 
   IdentifierSetType definitions;
   IdentifierSetType declarations;
-
+  IdentifierSetType labels;
   IdentifierPtrListType uLabels;
   std::string error;
   int loop;
 
   std::vector<std::string> pre = {"$"};
-  std::string prefix(const std::string &s = "") {
-    std::stringstream ss;
-    for (const auto &i : pre)
-      ss << i << ".";
-    return ss.str() + s;
-  }
-  std::string prefix(const std::vector<std::string> &pre) {
-    std::stringstream ss;
-    for (const auto &i : pre)
-      ss << i << ".";
-    return ss.str();
+
+  std::string prefix() {
+    std::ostringstream os;
+    std::copy(pre.begin(), pre.end(),
+              std::ostream_iterator<std::string>(os, "."));
+    return os.str();
   }
 
-  void printScopes() {
-    std::cout << "[";
-    for (const auto &s : declarations)
-      std::cout << s << ", ";
-    std::cout << "] [";
-    for (const auto &s : definitions)
-      std::cout << s << ", ";
-    std::cout << "]" << std::endl;
-  }
+  std::string prefix(const std::string &s) { return prefix() + s; }
 
 public:
   SemanticVisitor() : loop(0) {}
   ~SemanticVisitor() override = default;
 
+  void printScopes() {
+    std::ostringstream os;
+    std::copy(declarations.begin(), declarations.end(),
+              std::ostream_iterator<std::string>(os, ", "));
+    std::cout << "[" << os.str() << "] ";
+    std::copy(definitions.begin(), definitions.end(),
+              std::ostream_iterator<std::string>(os, ", "));
+    std::cout << "{" << os.str() << "}" << std::endl;
+  }
+
   bool fail() {
     if (!error.empty())
       return true;
-    if (!uLabels.empty()) {
-      error = SEMANTIC_ERROR((*uLabels[0])->getTokenRef().getLine(),
-                             (*uLabels[0])->getTokenRef().getColumn(),
-                             "Use of undeclared label '" + (*uLabels[0])->name +
-                                 "'");
-      return true;
+    for (const auto &l : uLabels) {
+      if (labels.find((*l)->name) == labels.end()) {
+        error = SEMANTIC_ERROR((*l)->getTokenRef().getLine(),
+                               (*l)->getTokenRef().getColumn(),
+                               "Use of undeclared label '" + (*l)->name + "'");
+        return true;
+      }
     }
     return false;
   }
@@ -85,7 +85,7 @@ public:
     error = v->fn_body->accept(this);
     // delete all nested definitions
     for (auto it = declarations.begin(); it != declarations.end();)
-      if ((*it).find(prefix("$")) == 0)
+      if ((*it).compare(0, prefix("$").size(), prefix("$")) == 0)
         declarations.erase(it++);
       else
         ++it;
@@ -124,8 +124,34 @@ public:
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name +
-                                  "' with a different type '?' vs 'struct ?'");
+                                  "' with a different type");
       declarations.insert(name);
+      if (!(*v->struct_type->getStructType()).member_list.empty()) {
+        pre.emplace_back(identifier->name);
+        for (const auto &d : (*v->struct_type->getStructType()).member_list) {
+          error = d->accept(this);
+          if (!error.empty())
+            return error;
+        }
+        pre.pop_back();
+      }
+    } else {
+      if (!(*v->struct_type->getStructType()).struct_name &&
+          !(*v->struct_type->getStructType()).member_list.empty()) {
+        pre.emplace_back("$$");
+        for (const auto &d : (*v->struct_type->getStructType()).member_list) {
+          error = d->accept(this);
+          if (!error.empty())
+            return error;
+        }
+        printScopes();
+        for (auto it = declarations.begin(); it != declarations.end();)
+          if ((*it).compare(0, prefix().size(), prefix()) == 0)
+            declarations.erase(it++);
+          else
+            ++it;
+        pre.pop_back();
+      }
     }
     return error;
   }
@@ -146,22 +172,35 @@ public:
   std::string visitScalarType(ScalarType *) override { return error; }
 
   std::string visitStructType(StructType *v) override {
-    auto name = prefix(v->struct_name);
-    if (!v->member_list.empty()) {
-      if (definitions.find(name) != definitions.end())
-        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
-                              v->getTokenRef().getColumn() + 7,
-                              "Redefinition of '" + v->struct_name + "'");
-      pre.push_back(v->struct_name);
-      for (const auto &d : v->member_list) {
-        error = d->accept(this);
-        if (!error.empty())
-          return error;
+    if (v->struct_name) {
+      auto name = "struct." + v->struct_name->name;
+      if (prefix().length() > name.length() &&
+          0 == prefix().compare(prefix().length() - name.length() - 1,
+                                name.length(), name))
+        return SEMANTIC_ERROR(v->struct_name->getTokenRef().getLine(),
+                              v->struct_name->getTokenRef().getColumn(),
+                              "Member '" + v->struct_name->name +
+                                  "' has the same name as its class");
+      pre.emplace_back("struct");
+      name = prefix(v->struct_name->name);
+      if (v->members) {
+        if (definitions.find(name) != definitions.end())
+          return SEMANTIC_ERROR(v->struct_name->getTokenRef().getLine(),
+                                v->struct_name->getTokenRef().getColumn(),
+                                "Redefinition of '" + v->struct_name->name +
+                                    "'");
+        pre.push_back(v->struct_name->name);
+        for (const auto &d : v->member_list) {
+          error = d->accept(this);
+          if (!error.empty())
+            return error;
+        }
+        pre.pop_back();
+        definitions.insert(name);
       }
       pre.pop_back();
-      definitions.insert(name);
+      declarations.insert(name);
     }
-    declarations.insert(name);
     return error;
   }
 
@@ -197,12 +236,12 @@ public:
     }
     // delete all nested definitions
     for (auto it = declarations.begin(); it != declarations.end();)
-      if ((*it).find(prefix()) == 0)
+      if ((*it).compare(0, prefix().size(), prefix()) == 0)
         declarations.erase(it++);
       else
         ++it;
     for (auto it = definitions.begin(); it != definitions.end();)
-      if ((*it).find(prefix()) == 0)
+      if ((*it).compare(0, prefix().size(), prefix()) == 0)
         definitions.erase(it++);
       else
         ++it;
@@ -224,12 +263,12 @@ public:
       pre.pop_back();
     }
     for (auto it = declarations.begin(); it != declarations.end();)
-      if ((*it).find(prefix()) == 0)
+      if ((*it).compare(0, prefix().size(), prefix()) == 0)
         declarations.erase(it++);
       else
         ++it;
     for (auto it = definitions.begin(); it != definitions.end();)
-      if ((*it).find(prefix()) == 0)
+      if ((*it).compare(0, prefix().size(), prefix()) == 0)
         definitions.erase(it++);
       else
         ++it;
@@ -239,17 +278,14 @@ public:
 
   std::string visitLabel(Label *v) override {
     auto label = v->label_name->name;
-    for (const auto &l : definitions) {
+    for (const auto &l : labels) {
       if (l == label) {
         return SEMANTIC_ERROR(v->label_name->getTokenRef().getLine(),
                               v->label_name->getTokenRef().getColumn(),
                               "Redefinition of label '" + label + "'");
       }
     }
-    definitions.insert(label);
-    for (size_t i = 0; i < uLabels.size(); i++)
-      if (label == (*uLabels.at(i))->name)
-        uLabels.erase(uLabels.begin() + i);
+    labels.insert(label);
     return v->stmt->accept(this);
   }
 
@@ -263,12 +299,12 @@ public:
     error = v->block->accept(this);
     loop--;
     for (auto it = declarations.begin(); it != declarations.end();)
-      if ((*it).find(prefix()) == 0)
+      if ((*it).compare(0, prefix().size(), prefix()) == 0)
         declarations.erase(it++);
       else
         ++it;
     for (auto it = definitions.begin(); it != definitions.end();)
-      if ((*it).find(prefix()) == 0)
+      if ((*it).compare(0, prefix().size(), prefix()) == 0)
         definitions.erase(it++);
       else
         ++it;
@@ -278,7 +314,7 @@ public:
 
   std::string visitGoto(Goto *v) override {
     auto label = v->label_name->name;
-    for (const auto &l : definitions)
+    for (const auto &l : labels)
       if (l == label)
         return error;
     uLabels.push_back(&v->label_name);
@@ -385,6 +421,6 @@ public:
       return error;
     return v->right_operand->accept(this);
   }
-}; // namespace ccc
+};
 
 } // namespace ccc

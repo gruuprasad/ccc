@@ -34,6 +34,7 @@ class Visitor;
 class SemanticVisitor;
 class GraphvizVisitor;
 class PrettyPrinterVisitor;
+class StructType;
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType =
@@ -145,6 +146,9 @@ class Type : public ASTNode {
 protected:
   explicit Type(const Token &tk) : ASTNode(tk) {}
   virtual bool isStructType() = 0;
+
+public:
+  virtual StructType *getStructType() { return nullptr; }
 };
 
 enum class ScalarTypeValue { VOID, CHAR, INT };
@@ -161,16 +165,20 @@ public:
 
 class StructType : public Type {
   FRIENDS
-  std::string struct_name;
+  std::unique_ptr<VariableName> struct_name;
   ExternalDeclarationListType member_list;
   bool isStructType() override { return true; }
+  bool members;
 
 public:
-  StructType(const Token &tk, std::string n)
-      : Type(tk), struct_name(std::move(n)) {}
-  StructType(const Token &tk, std::string n, ExternalDeclarationListType m)
-      : Type(tk), struct_name(std::move(n)), member_list(std::move(m)) {}
+  StructType(const Token &tk, std::unique_ptr<VariableName> n)
+      : Type(tk), struct_name(std::move(n)), members(false) {}
+  StructType(const Token &tk, std::unique_ptr<VariableName> n,
+             ExternalDeclarationListType m)
+      : Type(tk), struct_name(std::move(n)), member_list(std::move(m)),
+        members(true) {}
   std::string accept(Visitor *) override;
+  StructType *getStructType() override { return this; }
 };
 
 class Declarator : public ASTNode {

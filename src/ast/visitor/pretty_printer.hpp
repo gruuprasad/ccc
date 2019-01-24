@@ -114,17 +114,20 @@ public:
   }
 
   std::string visitStructType(StructType *v) override {
-    if (v->member_list.empty()) {
-      return "struct " + v->struct_name;
-    }
     std::stringstream ss;
+    ss << "struct";
+    if (v->struct_name)
+      ss << " " << v->struct_name->accept(this);
+    if (!v->members) {
+      return ss.str();
+    }
+    ss << "\n" << INDENT << "{\n";
     for (const auto &member : v->member_list) {
       indent_lvl++;
       ss << member->accept(this);
       indent_lvl--;
     }
-    return "struct " + v->struct_name + "\n" + INDENT + "{\n" + ss.str() +
-           INDENT + "}";
+    return ss.str() + INDENT + "}";
   }
 
   std::string visitDirectDeclarator(DirectDeclarator *v) override {

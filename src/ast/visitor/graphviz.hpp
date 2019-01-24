@@ -101,7 +101,11 @@ public:
 
   std::string visitStructType(StructType *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "StructType \"" + v->struct_name + "\"");
+    if (v->struct_name)
+      ss << makeGVVertice(v->hash(),
+                          "StructType \"" + v->struct_name->name + "\"");
+    else
+      ss << makeGVVertice(v->hash(), "StructType");
     for (const auto &p : v->member_list)
       ss << makeGVEdge(v->hash(),
                        std::hash<std::unique_ptr<ExternalDeclaration>>()(p))

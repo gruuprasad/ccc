@@ -154,29 +154,37 @@ unique_ptr<Type> FastParser::parseTypeSpecifier(bool &structDefined) {
 // struct-declaration+ }
 unique_ptr<StructType> FastParser::parseStructType(bool &structDefined) {
   Token src_mark(peek());
-  string struct_name;
+  Token struct_name;
   ExternalDeclarationListType member_list = ExternalDeclarationListType();
   structDefined = false;
 
   consume(TokenType::STRUCT); // STRUCT keyword
   if (peek().is(TokenType::IDENTIFIER)) {
-    struct_name = nextToken().getExtra();
+    struct_name = nextToken();
   }
 
   if (peek().is(TokenType::BRACE_OPEN)) {
     structDefined = true;
     consume(TokenType::BRACE_OPEN);
-    do {
+    while (!fail() && !mayExpect(TokenType::BRACE_CLOSE)) {
       auto member = parseDeclaration();
       member_list.push_back(move(member));
-    } while (!fail() && !mayExpect(TokenType::BRACE_CLOSE));
+    }
 
-    return make_unique<StructType>(src_mark, move(struct_name),
-                                   move(member_list));
+    if (!struct_name.getExtra().empty()) {
+      return make_unique<StructType>(
+          src_mark,
+          make_unique<VariableName>(struct_name, struct_name.getExtra()),
+          move(member_list));
+    } else {
+      return make_unique<StructType>(src_mark, nullptr, move(member_list));
+    }
   }
 
-  if (!struct_name.empty()) {
-    return make_unique<StructType>(src_mark, move(struct_name));
+  if (!struct_name.getExtra().empty()) {
+    return make_unique<StructType>(
+        src_mark,
+        make_unique<VariableName>(struct_name, struct_name.getExtra()));
   }
 
   parser_error(peek(), "struct identifier or struct-brace-open");

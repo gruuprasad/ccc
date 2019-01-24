@@ -12,14 +12,15 @@ TEST_CASE("Simpleton") {
 }
 
 TEST_CASE("Just struct name") {
-  auto root = make_unique<StructType>(Token(), "book");
+  auto root = make_unique<StructType>(
+      Token(), make_unique<VariableName>(Token(), "book"));
   auto pp = PrettyPrinterVisitor{};
   REQUIRE_EMPTY(Utils::compare(root->accept(&pp), "struct book"));
 }
 
 TEST_CASE("Add member to struct book") {
   auto root = make_unique<StructType>(
-      Token(), "book",
+      Token(), make_unique<VariableName>(Token(), "book"),
       Utils::vector<ExternalDeclarationListType>(make_unique<DataDeclaration>(
           Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
           make_unique<DirectDeclarator>(
@@ -587,12 +588,13 @@ TEST_CASE("struct") {
   auto root = make_unique<CompoundStmt>(
       Token(),
       Utils::vector<ASTNodeListType>(
-          make_unique<StructDeclaration>(Token(),
-                                         make_unique<StructType>(Token(), "S")),
+          make_unique<StructDeclaration>(
+              Token(), make_unique<StructType>(
+                           Token(), make_unique<VariableName>(Token(), "S"))),
           make_unique<StructDeclaration>(
               Token(),
               make_unique<StructType>(
-                  Token(), "S",
+                  Token(), make_unique<VariableName>(Token(), "S"),
                   Utils::vector<
                       ExternalDeclarationListType>(make_unique<DataDeclaration>(
                       Token(),
