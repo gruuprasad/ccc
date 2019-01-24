@@ -34,6 +34,10 @@ TEST_CASE("parser_success_files") {
       std::string input = dir + file;
       std::cout << "./c4 " << flag << " " << input << std::endl;
 
+      std::string gcc = "cc -w -c " + input;
+      if (std::system(&gcc[0]) != 0)
+        FAIL("\033[1;31mUnexpected fail on reference\033[0m");
+
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
       ppArgs[2] = &input[0];
@@ -96,6 +100,14 @@ TEST_CASE("pretty_printer_files") {
       std::string input = dir + file;
       std::cout << "./c4 " << flag << " " << input << std::endl;
 
+      char **ppArgs = new char *[3];
+      ppArgs[1] = &flag[0];
+      ppArgs[2] = &input[0];
+
+      std::string gcc = "cc -w -c " + input;
+      if (std::system(&gcc[0]) != 0)
+        FAIL("\033[1;31mUnexpected fail on reference\033[0m");
+
       std::ifstream ifs(input);
       std::stringstream buffer;
       buffer << ifs.rdbuf();
@@ -104,10 +116,6 @@ TEST_CASE("pretty_printer_files") {
       std::stringstream ss;
       std::streambuf *sb = std::cout.rdbuf();
       std::cout.rdbuf(ss.rdbuf());
-
-      char **ppArgs = new char *[3];
-      ppArgs[1] = &flag[0];
-      ppArgs[2] = &input[0];
 
       if (EXIT_FAILURE == EntryPointHandler().handle(3, ppArgs))
         FAIL("\033[1;31mUnexpected fail\033[0m");

@@ -1,6 +1,7 @@
 #include "entry_point_handler.hpp"
-#include "../ast/graphviz.hpp"
-#include "../ast/semantic_analysis.hpp"
+#include "../ast/visitor/graphviz.hpp"
+#include "../ast/visitor/pretty_printer.hpp"
+#include "../ast/visitor/semantic_analysis.hpp"
 #include "../lexer/fast_lexer.hpp"
 #include "../parser/fast_parser.hpp"
 #include "../utils/utils.hpp"
@@ -35,10 +36,10 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
         std::cerr << parser.getError() << std::endl;
         return EXIT_FAILURE;
       }
-      auto gv = SemanticVisitor();
-      root->accept(&gv);
-      if (gv.fail()) {
-        std::cerr << filename << ":" << gv.getError() << std::endl;
+      SemanticVisitor sv;
+      root->accept(&sv);
+      if (sv.fail()) {
+        std::cerr << filename << ":" << sv.getError() << std::endl;
         return EXIT_FAILURE;
       }
       return EXIT_SUCCESS;
@@ -49,13 +50,14 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
         std::cerr << parser.getError() << std::endl;
         return EXIT_FAILURE;
       }
-      auto gv = SemanticVisitor();
-      root->accept(&gv);
-      if (gv.fail()) {
-        std::cerr << filename << ":" << gv.getError() << std::endl;
+      SemanticVisitor sv;
+      root->accept(&sv);
+      if (sv.fail()) {
+        std::cerr << filename << ":" << sv.getError() << std::endl;
         return EXIT_FAILURE;
       }
-      std::cout << root->prettyPrint(0);
+      PrettyPrinterVisitor pp;
+      std::cout << root->accept(&pp);
       return EXIT_SUCCESS;
     } else if (flagName == "--graphviz") {
       auto parser = FastParser(buffer, filename);
@@ -64,8 +66,8 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
         std::cerr << parser.getError() << std::endl;
         return EXIT_FAILURE;
       }
-      auto gv = GraphvizVisitor();
-      std::cout << root->graphviz(&gv) << std::endl;
+      GraphvizVisitor gv;
+      std::cout << root->accept(&gv) << std::endl;
       return EXIT_SUCCESS;
     }
   }

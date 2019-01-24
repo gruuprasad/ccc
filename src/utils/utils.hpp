@@ -1,16 +1,17 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "../ast/ast_node.hpp"
 #include <cstddef>
 #include <cstdlib>
 #include <dirent.h>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <sys/types.h>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace ccc {
 
@@ -75,7 +76,9 @@ public:
     DIR *dirp = opendir(d);
     struct dirent *dp;
     while ((dp = readdir(dirp)) != nullptr) {
-      if (dp->d_name[0] != '.') {
+      if (dp->d_name[0] != '.' &&
+          std::string(dp->d_name)
+                  .compare(std::string(dp->d_name).size() - 2, 2, ".c") == 0) {
         if (dp->d_type == '\u0004') {
           for (const auto &n : dir(&std::string(
                    std::string(d) + std::string(dp->d_name) + "/")[0]))
@@ -151,21 +154,6 @@ public:
   template <class ListType> static ListType vector(ListType block) {
     return block;
   }
-
-  static std::string makeGVVertice(unsigned long hash, std::string name) {
-    std::stringstream ss;
-    ss << hash
-       << "[label=<" + name +
-              "> shape=ellipse style=filled "
-              "fillcolor=mediumaquamarine];\n";
-    return ss.str();
-  }
-
-  static std::string makeGVEdge(unsigned long left, unsigned long right) {
-    std::stringstream ss;
-    ss << left << "--" << right << ";\n";
-    return ss.str();
-  }
 };
 
 // Read translation unit from .c4 file.
@@ -174,7 +162,7 @@ public:
 
 class Reader {
 public:
-  Reader(std::ifstream &in_) : in(in_) {}
+  explicit Reader(std::ifstream &in_) : in(in_) {}
 
   std::string readLine() {
     cur_line++;
