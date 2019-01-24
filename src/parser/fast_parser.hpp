@@ -13,6 +13,7 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace ccc {
@@ -124,8 +125,8 @@ private:
   std::unique_ptr<ExternalDeclaration> parseDeclaration();
 
   // Declarations
-  std::unique_ptr<Type> parseTypeSpecifier(bool &structDefined);
-  std::unique_ptr<StructType> parseStructType(bool &structDefined);
+  std::pair<std::unique_ptr<Type>, bool> parseTypeSpecifier();
+  std::pair<std::unique_ptr<StructType>, bool> parseStructType();
   std::unique_ptr<Declarator> parseDeclarator(bool within_paren = false);
   std::unique_ptr<Declarator> parseDirectDeclarator(bool in_paren,
                                                     int ptrCount);
