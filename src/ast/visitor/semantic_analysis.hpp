@@ -95,10 +95,6 @@ public:
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
     const auto &identifier = *v->fn_name->getIdentifier();
     auto name = prefix(identifier->name);
-    //    if (functionDeclarations.find(
-    //            *v->fn_name->getIdentifier()->name) ==
-    //        functionDeclarations.end())
-    //      uFunctionDeclarations.push_back(v->fn_name->getIdentifier());
     declarations.insert(name);
     return error;
   }
