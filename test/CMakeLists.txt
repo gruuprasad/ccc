@@ -30,6 +30,7 @@ target_link_libraries(test_ast test_LLIB)
 add_executable(test_prettyPrinter
                pretty_printer/pretty_printer_test.cpp
                pretty_printer/pretty_printer_entry_test.cpp
+               pretty_printer/pretty_printer_ast.cpp
                )
 target_link_libraries(test_prettyPrinter test_LLIB)
 add_dependencies(check test_prettyPrinter)
@@ -63,6 +64,7 @@ add_executable(test_all
 
                pretty_printer/pretty_printer_test.cpp
                pretty_printer/pretty_printer_entry_test.cpp
+               pretty_printer/pretty_printer_ast.cpp
 
                semantic/semanticAnalysis_test.cpp
 
