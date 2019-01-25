@@ -154,15 +154,21 @@ public:
 
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
     std::stringstream ss;
-    std::string ptr_str;
-    //    if (v->return_ptr != nullptr)
-    //      ptr_str = v->return_ptr->accept(this);
+    std::string pre, post;
+    if (v->return_ptr != nullptr) { // FIXME abstract declarator
+      const auto &abstract = *v->return_ptr->getAbstractDeclarator();
+      for (unsigned int i = 0; i < abstract.pointerCount; i++) {
+        pre += "(*";
+        post += ")";
+      }
+    }
     for (const auto &p : v->param_list) {
       ss << p->accept(this);
       if (p != v->param_list.back())
         ss << ", ";
     }
-    return ptr_str + "(" + v->identifier->accept(this) + "(" + ss.str() + "))";
+    return pre + "(" + v->identifier->accept(this) + "(" + ss.str() + "))" +
+           post;
   }
 
   std::string visitCompoundStmt(CompoundStmt *v) override {

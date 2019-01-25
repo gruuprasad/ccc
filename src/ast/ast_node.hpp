@@ -35,6 +35,7 @@ class SemanticVisitor;
 class GraphvizVisitor;
 class PrettyPrinterVisitor;
 class StructType;
+class AbstractDeclarator;
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType =
@@ -187,6 +188,7 @@ protected:
 
 public:
   virtual std::unique_ptr<VariableName> *getIdentifier() = 0;
+  virtual AbstractDeclarator *getAbstractDeclarator() { return nullptr; };
 };
 
 class DirectDeclarator : public Declarator {
@@ -212,6 +214,7 @@ public:
   AbstractDeclarator(const Token &tk, AbstractDeclType t, unsigned int p)
       : Declarator(tk), type_kind(t), pointerCount(p) {}
   std::string accept(Visitor *) override;
+  AbstractDeclarator *getAbstractDeclarator() override { return this; };
 };
 
 class PointerDeclarator : public Declarator {
