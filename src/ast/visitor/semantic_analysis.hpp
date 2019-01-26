@@ -14,7 +14,8 @@ class SemanticVisitor : public Visitor {
   IdentifierSetType labels;
   IdentifierPtrListType uLabels;
   std::string error;
-  int loop;
+  int loop_counter;
+  bool global_scope;
 
   std::vector<std::string> pre = {"$"};
 
@@ -28,7 +29,7 @@ class SemanticVisitor : public Visitor {
   std::string prefix(const std::string &s) { return prefix() + s; }
 
 public:
-  SemanticVisitor() : loop(0) {}
+  SemanticVisitor() : loop_counter(0), global_scope(false) {}
   ~SemanticVisitor() override = default;
 
   void printScopes() {
@@ -58,10 +59,11 @@ public:
   std::string getError() { return error; }
 
   std::string visitTranslationUnit(TranslationUnit *v) override {
-    std::vector<std::string> scope = {"a"};
+    //    std::vector<std::string> scope = {"a"};
     //    structDefinitions.emplace_back(std::unordered_set<std::vector<std::string>>{
     //        std::vector<std::string>()});
     for (const auto &child : v->extern_list) {
+      global_scope = true;
       error = child->accept(this);
       if (!error.empty())
         break;
@@ -70,6 +72,7 @@ public:
   }
 
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
+    global_scope = false;
     if (v->fn_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->fn_name->getIdentifier();
       auto name = prefix(identifier->name);
@@ -108,7 +111,7 @@ public:
       const auto &identifier = *v->data_name->getIdentifier();
       std::string name = prefix(identifier->name);
 
-      if (prefix() != "$." && declarations.find(name) != declarations.end())
+      if (!global_scope && declarations.find(name) != declarations.end())
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name + "'");
@@ -122,6 +125,7 @@ public:
     if (!error.empty())
       return error;
     if (v->struct_alias) {
+      global_scope = false;
       const auto &identifier = *v->struct_alias->getIdentifier();
       std::string name = prefix(identifier->name);
       if (declarations.find(name) != declarations.end())
@@ -142,19 +146,11 @@ public:
     } else {
       if (!(*v->struct_type->getStructType()).struct_name &&
           !(*v->struct_type->getStructType()).member_list.empty()) {
-        pre.emplace_back("$$");
         for (const auto &d : (*v->struct_type->getStructType()).member_list) {
           error = d->accept(this);
           if (!error.empty())
             return error;
         }
-        printScopes();
-        for (auto it = declarations.begin(); it != declarations.end();)
-          if ((*it).compare(0, prefix().size(), prefix()) == 0)
-            declarations.erase(it++);
-          else
-            ++it;
-        pre.pop_back();
       }
     }
     return error;
@@ -177,6 +173,7 @@ public:
 
   std::string visitStructType(StructType *v) override {
     if (v->struct_name) {
+      global_scope = false;
       auto name = "struct." + v->struct_name->name;
       if (prefix().length() > name.length() &&
           0 == prefix().compare(prefix().length() - name.length() - 1,
@@ -298,10 +295,10 @@ public:
     if (!error.empty())
       return error;
 
-    loop++;
+    loop_counter++;
     pre.emplace_back("while");
     error = v->block->accept(this);
-    loop--;
+    loop_counter--;
     for (auto it = declarations.begin(); it != declarations.end();)
       if ((*it).compare(0, prefix().size(), prefix()) == 0)
         declarations.erase(it++);
@@ -332,7 +329,7 @@ public:
   }
 
   std::string visitBreak(Break *v) override {
-    if (loop <= 0)
+    if (loop_counter <= 0)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
                             "'break' statement not in a loop statement");
@@ -346,7 +343,7 @@ public:
   }
 
   std::string visitContinue(Continue *v) override {
-    if (loop <= 0)
+    if (loop_counter <= 0)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
                             "'continue' statement not in a loop statement");

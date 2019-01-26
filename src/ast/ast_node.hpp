@@ -120,7 +120,7 @@ public:
 
 class StructDeclaration : public Declaration {
   FRIENDS
-  std::unique_ptr<Type> struct_type;
+  std::unique_ptr<Type> struct_type; // TODO StructType
   std::unique_ptr<Declarator> struct_alias;
 
 public:

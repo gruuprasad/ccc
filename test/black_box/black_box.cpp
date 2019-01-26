@@ -104,9 +104,15 @@ TEST_CASE("pretty_printer_files") {
       ppArgs[1] = &flag[0];
       ppArgs[2] = &input[0];
 
+      std::stringstream se;
+      std::streambuf *sc = std::cerr.rdbuf();
+      std::cerr.rdbuf(se.rdbuf());
+
       std::string gcc = "cc -w -c " + input;
       if (std::system(&gcc[0]) != 0)
         FAIL("\033[1;31mUnexpected fail on reference\033[0m");
+
+      std::cerr.rdbuf(sc);
 
       std::ifstream ifs(input);
       std::stringstream buffer;
