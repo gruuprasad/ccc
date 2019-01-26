@@ -1,0 +1,61 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  GIT_SSL_NO_VERIFY: "true"
+
+build:make:
+  stage: build
+  script:
+    - mkdir -p build
+    - make -j$(nproc)
+  artifacts:
+    when: on_success
+    paths:
+      - ./build/*
+    expire_in: 5 mins
+
+test:run:
+  stage: test
+  dependencies:
+    - build:make
+  script:
+    - cd ./build
+    - ./release/c4 --tokenize ../examples/sample.c
+    - ./release/c4 --parse ../examples/sample.c
+    - ./release/c4 --print-ast ../examples/sample.c
+    - ./release/c4 --graphviz ../examples/sample.c
+
+build:test:
+  stage: build
+  script:
+    - mkdir -p build
+    - cd ./build
+    - cmake ..
+    - make -j$(nproc)
+
+test:tests:
+  stage: test
+  dependencies:
+    - build:test
+  script:
+    - mkdir -p build
+    - cd ./build
+    - cmake ..
+    - make check -j$(nproc)
+  allow_failure: true
+
+deploy:benchmark:
+  stage: deploy
+  script:
+    - echo "The cake is a lie."
+  only:
+    refs:
+      - master
+  artifacts:
+    paths:
+      - ./benchmark.svg
+    expire_in: 3 days
+  allow_failure: true
