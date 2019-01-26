@@ -18,11 +18,10 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
     const std::string flagName = std::string(ppArgs[1]);
     std::string path = ppArgs[2];
     std::ifstream file = std::ifstream(path);
-    auto filename = path.substr(path.find_last_of("/\\") + 1);
     std::string buffer((std::istreambuf_iterator<char>(file)),
                        std::istreambuf_iterator<char>());
     if (flagName == "--tokenize") {
-      auto lexer = FastLexer(buffer, filename);
+      auto lexer = FastLexer(buffer, path);
       lexer.tokenize();
       if (lexer.fail()) {
         std::cerr << lexer.getError() << std::endl;
@@ -30,7 +29,7 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       }
       return EXIT_SUCCESS;
     } else if (flagName == "--parse") {
-      auto parser = FastParser(buffer, filename);
+      auto parser = FastParser(buffer, path);
       auto root = parser.parse();
       if (parser.fail()) {
         std::cerr << parser.getError() << std::endl;
@@ -39,12 +38,12 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       SemanticVisitor sv;
       root->accept(&sv);
       if (sv.fail()) {
-        std::cerr << filename << ":" << sv.getError() << std::endl;
+        std::cerr << path << ":" << sv.getError() << std::endl;
         return EXIT_FAILURE;
       }
       return EXIT_SUCCESS;
     } else if (flagName == "--print-ast") {
-      auto parser = FastParser(buffer, filename);
+      auto parser = FastParser(buffer, path);
       auto root = parser.parse();
       if (parser.fail()) {
         std::cerr << parser.getError() << std::endl;
@@ -53,14 +52,14 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
       SemanticVisitor sv;
       root->accept(&sv);
       if (sv.fail()) {
-        std::cerr << filename << ":" << sv.getError() << std::endl;
+        std::cerr << path << ":" << sv.getError() << std::endl;
         return EXIT_FAILURE;
       }
       PrettyPrinterVisitor pp;
       std::cout << root->accept(&pp);
       return EXIT_SUCCESS;
     } else if (flagName == "--graphviz") {
-      auto parser = FastParser(buffer, filename);
+      auto parser = FastParser(buffer, path);
       auto root = parser.parse();
       if (parser.fail()) {
         std::cerr << parser.getError() << std::endl;

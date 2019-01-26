@@ -19,7 +19,6 @@ TEST_CASE("duplicate label") {
   REQUIRE_SUCCESS(fp);
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() == SEMANTIC_ERROR(3, 1, "Redefinition of label 'foo'"));
 }
@@ -34,7 +33,6 @@ TEST_CASE("undeclared label") {
   REQUIRE_SUCCESS(fp);
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() ==
           SEMANTIC_ERROR(2, 8, "Use of undeclared label 'foo'"));
@@ -53,7 +51,6 @@ TEST_CASE("double goto") {
   REQUIRE_SUCCESS(fp);
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_SUCCESS(sv);
 }
 
@@ -70,7 +67,6 @@ TEST_CASE("cross label") {
   REQUIRE_SUCCESS(fp);
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_SUCCESS(sv);
 }
 
@@ -90,7 +86,6 @@ TEST_CASE("break & continue in loop") {
   REQUIRE_SUCCESS(fp);
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_SUCCESS(sv);
 }
 
@@ -106,7 +101,6 @@ TEST_CASE("break outside loop") {
   REQUIRE_SUCCESS(fp);
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() == SEMANTIC_ERROR(4, 1,
                                           "'break' statement not in a loop "
@@ -125,7 +119,6 @@ TEST_CASE("continue outside loop") {
   REQUIRE_SUCCESS(fp);
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() ==
           SEMANTIC_ERROR(4, 1, "'continue' statement not in a loop statement"));
@@ -141,7 +134,6 @@ TEST_CASE("method redefinition") {
   auto root = fp.parse();
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() == SEMANTIC_ERROR(3, 5, "Redefinition of 'main'"));
 }
@@ -158,7 +150,6 @@ TEST_CASE("duplicate int") {
   auto root = fp.parse();
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 5, "Redefinition of 'a'"));
 }
@@ -175,7 +166,6 @@ TEST_CASE("incomplete method") {
   auto root = fp.parse();
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_SUCCESS(sv);
 }
 
@@ -193,7 +183,6 @@ TEST_CASE("duplicate struct") {
   auto root = fp.parse();
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 8, "Redefinition of 'S'"));
 }
@@ -213,7 +202,6 @@ TEST_CASE("duplicate field") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 5, "Redefinition of 'x'"));
 }
@@ -240,7 +228,6 @@ TEST_CASE("duplicate field nested struct") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() == SEMANTIC_ERROR(11, 10, "Redefinition of 'x'"));
 }
@@ -259,7 +246,6 @@ TEST_CASE("redfinition struct name") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_SUCCESS(sv);
 }
 
@@ -280,7 +266,6 @@ TEST_CASE("anaonymous struct") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_SUCCESS(sv);
 }
 
@@ -297,7 +282,6 @@ TEST_CASE("anaonymous struct redifinition") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() ==
           SEMANTIC_ERROR(5, 3, "Redefinition of 's' with a different type"));
@@ -315,7 +299,6 @@ TEST_CASE("anaonymous struct redifinition ugly") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() == SEMANTIC_ERROR(3, 6, "Redefinition of 'x'"));
 }
@@ -338,7 +321,6 @@ TEST_CASE("struct nested same name") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_FAILURE(sv);
   REQUIRE(sv.getError() ==
           SEMANTIC_ERROR(9, 10, "Member 'a' has the same name as its class"));
@@ -358,7 +340,6 @@ TEST_CASE("use struct") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  sv.printScopes();
   REQUIRE_SUCCESS(sv);
 }
 
@@ -379,8 +360,6 @@ TEST_CASE("use struct") {
 //  auto root = fp.parse();
 //  if (fp.fail())
 //    std::cerr << fp.getError() << std::endl;
-//  auto pp = PrettyPrinterVisitor();
-//  std::cout << root->accept(&pp) << std::endl;
 //  auto sv = SemanticVisitor();
 //  root->accept(&sv);sv.printScopes();
 //  REQUIRE_SUCCESS(sv);
@@ -404,10 +383,9 @@ TEST_CASE("scoping") {
   auto fp = FastParser(input);
   auto root = fp.parse();
   auto sv = SemanticVisitor();
-  auto pp = PrettyPrinterVisitor();
-  std::cout << root->accept(&pp) << std::endl;
+  //  auto pp = PrettyPrinterVisitor();
+  //  std::cout << root->accept(&pp) << std::endl;
   root->accept(&sv);
-  sv.printScopes();
   if (sv.fail())
     std::cerr << sv.getError() << std::endl;
   REQUIRE_FAILURE(sv);

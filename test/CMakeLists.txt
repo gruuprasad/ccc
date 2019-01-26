@@ -6,7 +6,6 @@ add_executable(test_lexer
                lexer/lexer_punctuation_test.cpp
                lexer/lexer_keyword_test.cpp
                lexer/lexer_big_test.cpp
-               lexer/first_test.cpp
                )
 target_link_libraries(test_lexer test_LLIB)
 add_dependencies(check test_lexer)
@@ -55,7 +54,6 @@ add_executable(test_all
                lexer/lexer_punctuation_test.cpp
                lexer/lexer_keyword_test.cpp
                lexer/lexer_big_test.cpp
-               lexer/first_test.cpp
 
                parser/parse_declaration.cpp
                parser/parse_expression.cpp
