@@ -148,7 +148,6 @@ public:
           if (!error.empty())
             return error;
         }
-        printScopes();
         for (auto it = declarations.begin(); it != declarations.end();)
           if ((*it).compare(0, prefix().size(), prefix()) == 0)
             declarations.erase(it++);

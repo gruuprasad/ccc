@@ -1,13 +1,17 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <array>
 #include <cstddef>
+#include <cstdio>
 #include <cstdlib>
 #include <dirent.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
+#include <string>
 #include <sys/types.h>
 #include <type_traits>
 #include <utility>
@@ -153,6 +157,26 @@ public:
   }
   template <class ListType> static ListType vector(ListType block) {
     return block;
+  }
+
+  // Reference:
+  // https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-output-of-command-within-c-using-posix
+  static std::string exec(const char *cmd) {
+    char buffer[128];
+    std::string result;
+    FILE *pipe = popen(cmd, "r");
+    if (!pipe)
+      throw std::runtime_error("popen() failed!");
+    try {
+      while (fgets(buffer, sizeof buffer, pipe) != nullptr) {
+        result += buffer;
+      }
+    } catch (...) {
+      pclose(pipe);
+      throw;
+    }
+    pclose(pipe);
+    return result;
   }
 };
 
