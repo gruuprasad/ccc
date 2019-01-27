@@ -133,7 +133,7 @@ TEST_CASE("declarations issue") {
   std::string language{"int main() { int a; int b;}"};
   auto fp = FastParser(language);
   auto root = fp.parse();
-  PrettyPrinterVisitor pp;
-  std::cout << root->accept(&pp);
+  //  PrettyPrinterVisitor pp;
+  //  std::cout << root->accept(&pp);
   REQUIRE_SUCCESS(fp);
 }

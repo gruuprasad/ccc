@@ -1,5 +1,5 @@
 int (main())
 {
-  int a;
-  x = 0$23;
+  int x;
+  x = 0@23;
 }
