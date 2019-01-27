@@ -169,33 +169,33 @@ TEST_CASE("semantic_failure_files") {
   }
 }
 
-TEST_CASE("pretty_printer_files") {
-  std::string dir = ROOT_DIR + "pretty_printer_files/";
-  for (const auto &file : Utils::dir(&dir[0])) {
-    SECTION(file) {
-      std::string flag = "--print-ast";
-      std::string input = dir + file;
-
-      char **ppArgs = new char *[3];
-      ppArgs[1] = &flag[0];
-      ppArgs[2] = &input[0];
-
-      GCC_SUCCESS;
-      PIPE_COUT;
-
-      if (EXIT_FAILURE == EntryPointHandler().handle(3, ppArgs))
-        FAIL("\033[1;31mUnexpected fail\033[0m");
-
-      PIPE_COUT_RESET;
-
-      std::ifstream ifs(input);
-      std::stringstream buffer;
-      buffer << ifs.rdbuf();
-      std::string expected = buffer.str();
-
-      REQUIRE_EMPTY(Utils::compare(content, expected));
-
-      delete[] ppArgs;
-    }
-  }
-}
+// TEST_CASE("pretty_printer_files") {
+//  std::string dir = ROOT_DIR + "pretty_printer_files/";
+//  for (const auto &file : Utils::dir(&dir[0])) {
+//    SECTION(file) {
+//      std::string flag = "--print-ast";
+//      std::string input = dir + file;
+//
+//      char **ppArgs = new char *[3];
+//      ppArgs[1] = &flag[0];
+//      ppArgs[2] = &input[0];
+//
+//      GCC_SUCCESS;
+//      PIPE_COUT;
+//
+//      if (EXIT_FAILURE == EntryPointHandler().handle(3, ppArgs))
+//        FAIL("\033[1;31mUnexpected fail\033[0m");
+//
+//      PIPE_COUT_RESET;
+//
+//      std::ifstream ifs(input);
+//      std::stringstream buffer;
+//      buffer << ifs.rdbuf();
+//      std::string expected = buffer.str();
+//
+//      REQUIRE_EMPTY(Utils::compare(content, expected));
+//
+//      delete[] ppArgs;
+//    }
+//  }
+//}
