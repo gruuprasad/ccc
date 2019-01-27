@@ -299,8 +299,7 @@ TEST_CASE("anaonymous struct redifinition ugly") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  REQUIRE_FAILURE(sv);
-  REQUIRE(sv.getError() == SEMANTIC_ERROR(3, 6, "Redefinition of 'x'"));
+  REQUIRE_SUCCESS(sv);
 }
 
 TEST_CASE("struct nested same name") {
@@ -386,8 +385,6 @@ TEST_CASE("scoping") {
   //  auto pp = PrettyPrinterVisitor();
   //  std::cout << root->accept(&pp) << std::endl;
   root->accept(&sv);
-  if (sv.fail())
-    std::cerr << sv.getError() << std::endl;
   REQUIRE_FAILURE(sv);
 }
 
