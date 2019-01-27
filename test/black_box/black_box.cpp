@@ -15,7 +15,7 @@
     std::cerr << "black box c4 " << flag << std::endl                          \
               << "gcc: " << error << std::endl                                 \
               << std::endl;                                                    \
-    FAIL("\033[1;31mUnexpected fail\033[0m");                                  \
+    FAIL("\033[1;31mUnexpected gcc fail\033[0m");                              \
   }
 
 #define GCC_FAILURE                                                            \
@@ -57,6 +57,15 @@
   std::string content = ss.str();
 
 using namespace ccc;
+
+TEST_CASE("list dir") {
+  std::string dir = ROOT_DIR;
+  for (const auto &file : Utils::dir(&dir[0])) {
+    REQUIRE(!file.empty());
+    std::cout << dir << file << "\n";
+  }
+  std::cout << std::endl;
+}
 
 TEST_CASE("lexer_failure_files") {
   std::string dir = ROOT_DIR + "lexer_failure_files/";
