@@ -345,8 +345,9 @@ TEST_CASE("access") {
   std::string input = "struct A {int x;} s;\n"
                       "struct B {struct A *p;} *a;\n"
                       "int foo () {\n"
-                      "struct A *p;\n"
-                      "return a->p->x;"
+                      "void *p;\n"
+                      "p = a;\n"
+                      "return p->p->x;"
                       "}\n";
 
   auto fp = FastParser(input);

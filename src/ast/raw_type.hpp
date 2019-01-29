@@ -70,7 +70,7 @@ public:
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
     switch (b->getRawTypeValue()) {
     case RawTypeValue::POINTER:
-      if (ptr->getRawTypeValue() == RawTypeValue::VOID &&
+      if (ptr->getRawTypeValue() == RawTypeValue::VOID ||
           b->deref()->getRawTypeValue() == RawTypeValue::VOID)
         return true;
       return ptr->compare_equal(b->deref());
