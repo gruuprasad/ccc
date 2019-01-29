@@ -600,6 +600,7 @@ public:
   }
 
   std::string visitUnary(Unary *v) override {
+    temporary = true;
     error = v->operand->accept(this);
     if (!error.empty())
       return error;
@@ -624,7 +625,6 @@ public:
       raw_type = raw_type->deref();
       break;
     case UnaryOpValue::ADDRESS_OF:
-      temporary = true;
       raw_type = make_unique<RawPointerType>(raw_type);
       if (temporary)
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
