@@ -8,22 +8,18 @@ std::string TranslationUnit::accept(Visitor *v) {
 std::string FunctionDefinition::accept(Visitor *v) {
   return v->visitFunctionDefinition(this);
 }
-
 std::string FunctionDeclaration::accept(Visitor *v) {
   return v->visitFunctionDeclaration(this);
 }
-
 std::string DataDeclaration::accept(Visitor *v) {
   return v->visitDataDeclaration(this);
 }
-
 std::string StructDeclaration::accept(Visitor *v) {
   return v->visitStructDeclaration(this);
 }
 std::string ParamDeclaration::accept(Visitor *v) {
   return v->visitParamDeclaration(this);
 }
-
 std::string ScalarType::accept(Visitor *v) { return v->visitScalarType(this); }
 std::string StructType::accept(Visitor *v) { return v->visitStructType(this); }
 std::string DirectDeclarator::accept(Visitor *v) {

@@ -8,9 +8,8 @@
 namespace ccc {
 
 TEST_CASE("gv ast") {
-  std::string language = "int a;\n"
-                         "struct A;\n"
-                         "\n";
+  std::string language = "int *f(int);"
+                         "int (*f)(int);";
 
   auto fp = FastParser(language);
   auto root = fp.parse();
