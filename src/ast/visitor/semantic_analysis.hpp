@@ -94,7 +94,16 @@ public:
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name + "'");
       definitions.insert(name);
-      declarations[name] = raw_type;
+      if (declarations.find(name) != declarations.end()) {
+        if (!declarations[name]->compare_equal(raw_type))
+          return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
+                                identifier->getTokenRef().getColumn(),
+                                "Redefinition of '" + identifier->name +
+                                    "' of type " + declarations[name]->print() +
+                                    " with differtent type " +
+                                    raw_type->print());
+      } else
+        declarations[name] = raw_type;
       jump_type = raw_type->get_return();
     } else {
       v->fn_name->accept(this);
@@ -116,7 +125,16 @@ public:
       const auto &identifier = *v->fn_name->getIdentifier();
       auto name = prefix(identifier->name);
       v->fn_name->accept(this);
-      declarations[name] = raw_type;
+      if (declarations.find(name) != declarations.end()) {
+        if (!declarations[name]->compare_equal(raw_type))
+          return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
+                                identifier->getTokenRef().getColumn(),
+                                "Redefinition of '" + identifier->name +
+                                    "' of type " + declarations[name]->print() +
+                                    " with differtent type " +
+                                    raw_type->print());
+      } else
+        declarations[name] = raw_type;
     }
     return error;
   }
@@ -126,12 +144,21 @@ public:
     if (v->data_name) {
       const auto &identifier = *v->data_name->getIdentifier();
       std::string name = prefix(identifier->name);
-      if (!global_scope && declarations.find(name) != declarations.end())
-        return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
-                              identifier->getTokenRef().getColumn(),
-                              "Redefinition of '" + identifier->name + "'");
       v->data_name->accept(this);
-      declarations[name] = raw_type;
+      if (declarations.find(name) != declarations.end()) {
+        if (!global_scope)
+          return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
+                                identifier->getTokenRef().getColumn(),
+                                "Redefinition of '" + identifier->name + "'");
+        else if (!declarations[name]->compare_equal(raw_type))
+          return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
+                                identifier->getTokenRef().getColumn(),
+                                "Redefinition of '" + identifier->name +
+                                    "' of type " + declarations[name]->print() +
+                                    " with differtent type " +
+                                    raw_type->print());
+      } else
+        declarations[name] = raw_type;
     }
     return error;
   }
@@ -144,12 +171,20 @@ public:
       global_scope = false;
       const auto &identifier = *v->struct_alias->getIdentifier();
       std::string name = prefix(identifier->name);
-      if (declarations.find(name) != declarations.end())
-        return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
-                              identifier->getTokenRef().getColumn(),
-                              "Redefinition of '" + identifier->name +
-                                  "' with a different type");
-      declarations[name] = raw_type;
+      if (declarations.find(name) != declarations.end()) {
+        if (!global_scope)
+          return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
+                                identifier->getTokenRef().getColumn(),
+                                "Redefinition of '" + identifier->name + "'");
+        else if (!declarations[name]->compare_equal(raw_type))
+          return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
+                                identifier->getTokenRef().getColumn(),
+                                "Redefinition of '" + identifier->name +
+                                    "' of type " + declarations[name]->print() +
+                                    " with differtent type " +
+                                    raw_type->print());
+      } else
+        declarations[name] = raw_type;
       if (!(*v->struct_type->getStructType()).member_list.empty()) {
         pre.emplace_back(identifier->name);
         for (const auto &d : (*v->struct_type->getStructType()).member_list) {
@@ -477,15 +512,13 @@ public:
     if (calle_arg_types.size() < v->callee_args.size())
       return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
                             v->callee_name->getTokenRef().getColumn(),
-                            "Wrong number of arguments for " +
-                                raw_type->print());
+                            "Too many arguments for " + raw_type->print());
 
     for (unsigned int i = 0; i < calle_arg_types.size(); i++) {
       if (i >= v->callee_args.size())
         return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
                               v->callee_name->getTokenRef().getColumn(),
-                              "Wrong number of arguments for " +
-                                  raw_type->print());
+                              "Too few arguments for " + raw_type->print());
       error = v->callee_args[i]->accept(this);
       if (!error.empty())
         return error;

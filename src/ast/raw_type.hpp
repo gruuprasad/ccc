@@ -102,6 +102,22 @@ public:
     return param_types;
   }
   std::shared_ptr<RawType> get_return() override { return ret_type; }
+  bool compare_equal(const std::shared_ptr<RawType> &b) override {
+    switch (b->getRawTypeValue()) {
+    case RawTypeValue::FUNCTION: {
+      auto tmp = b->getRawFunctionType()->param_types;
+      if (param_types.size() != tmp.size())
+        return false;
+      for (size_t i = 0; i < param_types.size(); i++)
+        if (!param_types[i]->compare_equal(tmp[i]))
+          return false;
+      return ret_type->compare_equal(b->getRawFunctionType()->ret_type);
+    }
+    default:
+      return false;
+    }
+  }
+  RawFunctionType *getRawFunctionType() override { return this; }
 };
 
 class RawStructType : public RawType {

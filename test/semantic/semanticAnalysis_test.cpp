@@ -283,8 +283,7 @@ TEST_CASE("anaonymous struct redifinition") {
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_FAILURE(sv);
-  REQUIRE(sv.getError() ==
-          SEMANTIC_ERROR(5, 3, "Redefinition of 's' with a different type"));
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 3, "Redefinition of 's'"));
 }
 
 TEST_CASE("anaonymous struct redifinition ugly") {
