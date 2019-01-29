@@ -79,7 +79,7 @@ TEST_CASE("Fast Lexer invalid character literal test.") {
   lexer.lex();
   REQUIRE(lexer.fail());
   REQUIRE(lexer.getError() ==
-          "1:1: error: 'Invalid character: ''''. Lexing Stopped!");
+          "1:1: error: Invalid character: '''. Lexing Stopped!");
 }
 
 TEST_CASE("Fast Lexer line comment test.") {
@@ -118,7 +118,7 @@ TEST_CASE("Fast Lexer block comment multiline unterminated.") {
   lexer.lex();
   REQUIRE(lexer.fail());
   REQUIRE(lexer.getError() ==
-          "1:2: error: 'Unterminated Comment!'. Lexing Stopped!");
+          "1:2: error: Unterminated Comment!. Lexing Stopped!");
 }
 
 TEST_CASE("Fast Lexer string empty test.") {
