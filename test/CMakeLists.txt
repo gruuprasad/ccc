@@ -14,7 +14,6 @@ add_test(NAME lexer COMMAND test_lexer)
 add_executable(test_parser
                parser/parse_declaration.cpp
                parser/parse_expression.cpp
-               parser/parser_big_test.cpp
                parser/parse_test_codes.cpp
                )
 target_link_libraries(test_parser test_LLIB)
@@ -28,7 +27,6 @@ target_link_libraries(test_ast test_LLIB)
 
 add_executable(test_prettyPrinter
                pretty_printer/pretty_printer_test.cpp
-               pretty_printer/pretty_printer_entry_test.cpp
                pretty_printer/pretty_printer_ast.cpp
                )
 target_link_libraries(test_prettyPrinter test_LLIB)
@@ -57,11 +55,9 @@ add_executable(test_all
 
                parser/parse_declaration.cpp
                parser/parse_expression.cpp
-               parser/parser_big_test.cpp
                parser/parse_test_codes.cpp
 
                pretty_printer/pretty_printer_test.cpp
-               pretty_printer/pretty_printer_entry_test.cpp
                pretty_printer/pretty_printer_ast.cpp
 
                semantic/semanticAnalysis_test.cpp

@@ -5,19 +5,28 @@
 #define ROOT_DIR std::string("../../black_box_files/")
 
 #define GCC_SUCCESS                                                            \
-  std::string gcc = "cd " + dir + ";";                                         \
-  gcc += "cc -w -c " + file + " 2>&1";                                         \
+  std::string gcc = "cc -w -c " + input + " 2>&1";                             \
   std::string error = Utils::exec(&gcc[0]);                                    \
   if (!error.empty()) {                                                        \
-    error = error.substr(error.find(":\n") + 2, error.size());                 \
-    error = error.substr(0, error.find('\n'));                                 \
-    FAIL("\033[1;31mgcc: " + error + "\033[0m");                               \
+    while (error.find("error") > error.find_first_of('\n')) {                  \
+      error = error.substr(error.find('\n') + 1, error.size());                \
+    }                                                                          \
+    error = error.substr(error.find(input), error.find_first_of('\n'));        \
+    std::cerr << "black box c4 " << flag << std::endl                          \
+              << "gcc: " << error << std::endl                                 \
+              << std::endl;                                                    \
+    FAIL("\033[1;31mUnexpected gcc fail\033[0m");                              \
   }
+
 #define GCC_FAILURE                                                            \
   std::string gcc = "gcc -w -c " + input + " 2>&1";                            \
   std::string error = Utils::exec(&gcc[0]);                                    \
-  error = error.substr(error.find('\n') + 1, error.size());                    \
-  error = error.substr(0, error.find('\n'));
+  if (!error.empty()) {                                                        \
+    while (error.find("error") > error.find_first_of('\n')) {                  \
+      error = error.substr(error.find('\n') + 1, error.size());                \
+    }                                                                          \
+    error = error.substr(error.find(input), error.find_first_of('\n'));        \
+  }
 
 #define GCC_DIFF                                                               \
   if (error.substr(0, error.find("error")) !=                                  \
@@ -48,6 +57,15 @@
   std::string content = ss.str();
 
 using namespace ccc;
+
+TEST_CASE("list dir") {
+  std::string dir = ROOT_DIR;
+  for (const auto &file : Utils::dir(&dir[0])) {
+    REQUIRE(!file.empty());
+    std::cout << dir << file << "\n";
+  }
+  std::cout << std::endl;
+}
 
 TEST_CASE("lexer_failure_files") {
   std::string dir = ROOT_DIR + "lexer_failure_files/";
@@ -83,6 +101,7 @@ TEST_CASE("parser_success_files") {
       std::string input = dir + file;
 
       GCC_SUCCESS;
+      PIPE_COUT;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
@@ -90,6 +109,8 @@ TEST_CASE("parser_success_files") {
 
       if (EXIT_FAILURE == EntryPointHandler().handle(3, ppArgs))
         FAIL("\033[1;31mUnexpected fail\033[0m");
+
+      PIPE_COUT_RESET;
 
       delete[] ppArgs;
     }
@@ -148,33 +169,33 @@ TEST_CASE("semantic_failure_files") {
   }
 }
 
-TEST_CASE("pretty_printer_files") {
-  std::string dir = ROOT_DIR + "pretty_printer_files/";
-  for (const auto &file : Utils::dir(&dir[0])) {
-    SECTION(file) {
-      std::string flag = "--print-ast";
-      std::string input = dir + file;
-
-      char **ppArgs = new char *[3];
-      ppArgs[1] = &flag[0];
-      ppArgs[2] = &input[0];
-
-      GCC_SUCCESS;
-      PIPE_COUT;
-
-      if (EXIT_FAILURE == EntryPointHandler().handle(3, ppArgs))
-        FAIL("\033[1;31mUnexpected fail\033[0m");
-
-      PIPE_COUT_RESET;
-
-      std::ifstream ifs(input);
-      std::stringstream buffer;
-      buffer << ifs.rdbuf();
-      std::string expected = buffer.str();
-
-      REQUIRE_EMPTY(Utils::compare(content, expected));
-
-      delete[] ppArgs;
-    }
-  }
-}
+// TEST_CASE("pretty_printer_files") {
+//  std::string dir = ROOT_DIR + "pretty_printer_files/";
+//  for (const auto &file : Utils::dir(&dir[0])) {
+//    SECTION(file) {
+//      std::string flag = "--print-ast";
+//      std::string input = dir + file;
+//
+//      char **ppArgs = new char *[3];
+//      ppArgs[1] = &flag[0];
+//      ppArgs[2] = &input[0];
+//
+//      GCC_SUCCESS;
+//      PIPE_COUT;
+//
+//      if (EXIT_FAILURE == EntryPointHandler().handle(3, ppArgs))
+//        FAIL("\033[1;31mUnexpected fail\033[0m");
+//
+//      PIPE_COUT_RESET;
+//
+//      std::ifstream ifs(input);
+//      std::stringstream buffer;
+//      buffer << ifs.rdbuf();
+//      std::string expected = buffer.str();
+//
+//      REQUIRE_EMPTY(Utils::compare(content, expected));
+//
+//      delete[] ppArgs;
+//    }
+//  }
+//}
