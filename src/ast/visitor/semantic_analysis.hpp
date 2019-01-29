@@ -17,8 +17,10 @@ class SemanticVisitor : public Visitor {
   std::string error;
   int loop_counter;
   bool global_scope;
+  bool temporary = true;
 
   std::shared_ptr<RawType> raw_type = nullptr;
+  std::shared_ptr<RawType> jump_type = nullptr;
 
   std::vector<std::string> pre = {"$"};
 
@@ -73,7 +75,6 @@ public:
       error = child->accept(this);
       if (!error.empty())
         break;
-      printScopes();
     }
     return error;
   }
@@ -94,6 +95,10 @@ public:
                               "Redefinition of '" + identifier->name + "'");
       definitions.insert(name);
       declarations[name] = raw_type;
+      jump_type = raw_type->get_return();
+    } else {
+      v->fn_name->accept(this);
+      jump_type = raw_type->get_return();
     }
     error = v->fn_body->accept(this);
     // delete all nested definitions
@@ -132,7 +137,6 @@ public:
   }
 
   std::string visitStructDeclaration(StructDeclaration *v) override {
-    std::cout << "test 0" << std::endl;
     error = v->struct_type->accept(this);
     if (!error.empty())
       return error;
@@ -198,7 +202,6 @@ public:
   }
 
   std::string visitStructType(StructType *v) override {
-    std::cout << "test" << std::endl;
     if (v->struct_name) {
       global_scope = false;
       auto name = "@" + v->struct_name->name;
@@ -386,8 +389,21 @@ public:
   }
 
   std::string visitReturn(Return *v) override {
-    if (v->expr)
-      return v->expr->accept(this);
+    if (v->expr) {
+      error = v->expr->accept(this);
+      if (!error.empty())
+        return error;
+      if (!raw_type->compare_equal(jump_type))
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
+                              "Can't return " + raw_type->print() +
+                                  " instead of " + jump_type->print());
+      return error;
+    }
+    if (jump_type->getRawTypeValue() != RawTypeValue::VOID)
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't return void instead of " + jump_type->print());
     return error;
   }
 
@@ -400,6 +416,7 @@ public:
   }
 
   std::string visitVariableName(VariableName *v) override {
+    temporary = false;
     std::string name;
     std::string tmp_pre = prefix();
     while (tmp_pre.find('.') != std::string::npos) {
@@ -416,27 +433,33 @@ public:
   }
 
   std::string visitNumber(Number *) override {
+    temporary = true;
     raw_type = make_unique<RawScalarType>(RawTypeValue::INT);
     return error;
   }
 
   std::string visitCharacter(Character *) override {
+    temporary = true;
     raw_type = make_unique<RawScalarType>(RawTypeValue::CHAR);
     return error;
   }
 
   std::string visitString(String *) override {
+    temporary = true;
     raw_type = make_unique<RawPointerType>(
-        make_unique<RawScalarType>(RawTypeValue::INT));
+        make_unique<RawScalarType>(RawTypeValue::CHAR));
     return error;
   }
 
   std::string visitMemberAccessOp(MemberAccessOp *v) override {
-    return v->struct_name->accept(this);
+    error = v->struct_name->accept(this);
+    temporary = false; // FIXME
+    return error;
   }
 
   std::string visitArraySubscriptOp(ArraySubscriptOp *) override {
-    return error;
+    temporary = false;
+    return error; // FIXME
   }
 
   std::string visitFunctionCall(FunctionCall *v) override {
@@ -447,24 +470,34 @@ public:
       return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
                             v->callee_name->getTokenRef().getColumn(),
                             "Can't call " + raw_type->print());
-    std::shared_ptr<RawType> return_type = raw_type->get_return();
-    std::vector<std::shared_ptr<RawType>> calle_arg_types =
-        raw_type->get_param();
-    if (calle_arg_types.size() != v->callee_args.size())
+
+    auto return_type = raw_type->get_return();
+    auto calle_arg_types = raw_type->get_param();
+
+    if (calle_arg_types.size() < v->callee_args.size())
       return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
                             v->callee_name->getTokenRef().getColumn(),
                             "Wrong number of arguments for " +
                                 raw_type->print());
-    for (unsigned int i = 0; i < v->callee_args.size(); i++) {
+
+    for (unsigned int i = 0; i < calle_arg_types.size(); i++) {
+      if (i >= v->callee_args.size())
+        return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
+                              v->callee_name->getTokenRef().getColumn(),
+                              "Wrong number of arguments for " +
+                                  raw_type->print());
       error = v->callee_args[i]->accept(this);
       if (!error.empty())
         return error;
-      std::cout << calle_arg_types[i]->print() << " <- " << raw_type->print()
-                << std::endl;
-      std::cout << (calle_arg_types[i]->print() == raw_type->print())
-                << std::endl;
+      if (calle_arg_types[i]->getRawTypeValue() != RawTypeValue::VOID &&
+          !calle_arg_types[i]->compare_equal(raw_type))
+        return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
+                              v->callee_name->getTokenRef().getColumn(),
+                              "Can't call " + calle_arg_types[i]->print() +
+                                  " with " + raw_type->print());
     }
     raw_type = return_type;
+    temporary = true;
     return error;
   }
 
@@ -476,12 +509,14 @@ public:
     case UnaryOpValue::MINUS:
       if (raw_type->getRawTypeValue() != RawTypeValue::INT)
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
-                              v->getTokenRef().getColumn(), "Can't minus");
+                              v->getTokenRef().getColumn(),
+                              "Can't minus " + raw_type->print());
       break;
     case UnaryOpValue::NOT:
       if (raw_type->getRawTypeValue() != RawTypeValue::INT)
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
-                              v->getTokenRef().getColumn(), "Can't negate");
+                              v->getTokenRef().getColumn(),
+                              "Can't negate " + raw_type->print());
       break;
     case UnaryOpValue::DEREFERENCE:
       if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
@@ -491,31 +526,40 @@ public:
       raw_type = raw_type->deref();
       break;
     case UnaryOpValue::ADDRESS_OF:
+      temporary = true;
       raw_type = make_unique<RawPointerType>(raw_type);
+      if (temporary)
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
+                              "Can't get address of temporay object");
       break;
     }
-    std::cout << raw_type->print() << std::endl;
     return error;
   }
 
   std::string visitSizeOf(SizeOf *v) override {
     if (v->operand)
-      return v->operand->accept(this);
+      error = v->operand->accept(this);
+    temporary = true;
+    raw_type = make_unique<RawScalarType>(RawTypeValue::INT);
     return error;
   }
 
   std::string visitBinary(Binary *v) override {
-    printScopes();
     error = v->left_operand->accept(this);
     if (!error.empty())
       return error;
-    std::shared_ptr<RawType> left_type = raw_type;
+    auto lhs_type = raw_type;
     error = v->right_operand->accept(this);
     if (!error.empty())
       return error;
-    std::shared_ptr<RawType> right_type = raw_type;
-    std::cout << left_type->print() << " <-> " << right_type->print()
-              << std::endl;
+    auto rhs_type = raw_type;
+    if (!lhs_type->compare_equal(rhs_type)) {
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't handle " + lhs_type->print() + " and " + rhs_type->print());
+    }
+    temporary = true;
     return error;
   }
 
@@ -523,23 +567,44 @@ public:
     error = v->predicate->accept(this);
     if (!error.empty())
       return error;
+    if (raw_type->getRawTypeValue() != RawTypeValue::INT) {
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Predicate has to be int, found " + raw_type->print());
+    }
     error = v->left_branch->accept(this);
     if (!error.empty())
       return error;
-    return v->right_branch->accept(this);
+    auto lhs_type = raw_type;
+    error = v->right_branch->accept(this);
+    if (!error.empty())
+      return error;
+    auto rhs_type = raw_type;
+    if (!lhs_type->compare_equal(rhs_type)) {
+      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                            v->getTokenRef().getColumn(),
+                            "Can't branch with " + lhs_type->print() + " and " +
+                                rhs_type->print());
+    }
+    temporary = true;
+    return error;
   }
 
   std::string visitAssignment(Assignment *v) override {
     error = v->left_operand->accept(this);
     if (!error.empty())
       return error;
-    std::shared_ptr<RawType> left_type = raw_type;
+    auto lhs_type = raw_type;
     error = v->right_operand->accept(this);
     if (!error.empty())
       return error;
-    std::shared_ptr<RawType> right_type = raw_type;
-    std::cout << left_type->print() << " == " << right_type->print()
-              << std::endl;
+    auto rhs_type = raw_type;
+    if (!lhs_type->compare_equal(rhs_type)) {
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't assign " + rhs_type->print() + " to " + lhs_type->print());
+    }
+    temporary = true;
     return error;
   }
 };
