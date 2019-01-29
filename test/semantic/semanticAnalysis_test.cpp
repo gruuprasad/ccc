@@ -368,25 +368,19 @@ namespace ccc {
 
 TEST_CASE("scoping") {
   std::string input = "int a;\n"
-                      "int *(*foo)(int, int);\n"
-                      "void main(int);\n"
-                      "void main(int c) {\n"
-                      "char **b;\n"
-                      "a + b;\n"
-                      "*b = &'c';\n"
-                      "main(a);\n"
-                      "{\n"
-                      "int foo;\n"
-                      "}\n"
-                      "*(*foo)(0, 1) = 2;\n"
-                      "}\n";
+                      "struct A *p;\n"
+                      "\n";
 
   auto fp = FastParser(input);
   auto root = fp.parse();
-  auto sv = SemanticVisitor();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
   auto pp = PrettyPrinterVisitor();
   std::cout << root->accept(&pp) << std::endl;
+  auto sv = SemanticVisitor();
   root->accept(&sv);
+  if (sv.fail())
+    std::cerr << sv.getError() << std::endl;
   REQUIRE_SUCCESS(sv);
 }
 

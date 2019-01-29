@@ -73,12 +73,14 @@ public:
       error = child->accept(this);
       if (!error.empty())
         break;
+      printScopes();
     }
     return error;
   }
 
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
     global_scope = false;
+    v->return_type->accept(this);
     if (v->fn_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->fn_name->getIdentifier();
       auto name = prefix(identifier->name);
@@ -91,7 +93,7 @@ public:
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name + "'");
       definitions.insert(name);
-      declarations[name] = v->buildRawType();
+      declarations[name] = raw_type;
     }
     error = v->fn_body->accept(this);
     // delete all nested definitions
@@ -104,29 +106,33 @@ public:
     return error;
   }
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
+    v->return_type->accept(this);
     if (v->fn_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->fn_name->getIdentifier();
       auto name = prefix(identifier->name);
-      declarations[name] = v->buildRawType();
+      v->fn_name->accept(this);
+      declarations[name] = raw_type;
     }
     return error;
   }
 
   std::string visitDataDeclaration(DataDeclaration *v) override {
+    v->data_type->accept(this);
     if (v->data_name) {
       const auto &identifier = *v->data_name->getIdentifier();
       std::string name = prefix(identifier->name);
-
       if (!global_scope && declarations.find(name) != declarations.end())
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name + "'");
-      declarations[name] = v->buildRawType();
+      v->data_name->accept(this);
+      declarations[name] = raw_type;
     }
     return error;
   }
 
   std::string visitStructDeclaration(StructDeclaration *v) override {
+    std::cout << "test 0" << std::endl;
     error = v->struct_type->accept(this);
     if (!error.empty())
       return error;
@@ -139,7 +145,7 @@ public:
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name +
                                   "' with a different type");
-      declarations[name] = v->struct_type->getRawType();
+      declarations[name] = raw_type;
       if (!(*v->struct_type->getStructType()).member_list.empty()) {
         pre.emplace_back(identifier->name);
         for (const auto &d : (*v->struct_type->getStructType()).member_list) {
@@ -163,6 +169,7 @@ public:
   }
 
   std::string visitParamDeclaration(ParamDeclaration *v) override {
+    v->param_type->accept(this);
     if (v->param_name && v->param_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->param_name->getIdentifier();
       std::string name = prefix(identifier->name);
@@ -170,14 +177,28 @@ public:
         return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                               identifier->getTokenRef().getColumn(),
                               "Redefinition of '" + identifier->name + "'");
-      declarations[name] = v->param_type->getRawType();
+      v->param_name->accept(this);
+      declarations[name] = raw_type;
     }
     return error;
   }
 
-  std::string visitScalarType(ScalarType *) override { return error; }
+  std::string visitScalarType(ScalarType *v) override {
+    switch (v->type_kind) {
+    case ScalarTypeValue::VOID:
+      raw_type = make_unique<RawScalarType>(RawTypeValue::VOID);
+      break;
+    case ScalarTypeValue::INT:
+      raw_type = make_unique<RawScalarType>(RawTypeValue::INT);
+      break;
+    case ScalarTypeValue::CHAR:
+      raw_type = make_unique<RawScalarType>(RawTypeValue::CHAR);
+    }
+    return error;
+  }
 
   std::string visitStructType(StructType *v) override {
+    std::cout << "test" << std::endl;
     if (v->struct_name) {
       global_scope = false;
       auto name = "@" + v->struct_name->name;
@@ -204,32 +225,44 @@ public:
         pre.pop_back();
         definitions.insert(name);
       }
-      declarations[name] = v->getRawType();
+      raw_type = make_unique<RawStructType>("struct " + v->struct_name->name);
+      declarations[name] = raw_type;
     }
     return error;
   }
 
   std::string visitDirectDeclarator(DirectDeclarator *) override {
+    // break recursive raw type generation
     return error;
   }
 
-  std::string visitAbstractDeclarator(AbstractDeclarator *) override {
+  std::string visitAbstractDeclarator(AbstractDeclarator *v) override {
+    for (unsigned int i = 0; i < v->pointerCount; i++)
+      raw_type = make_unique<RawPointerType>(raw_type);
     return error;
   }
 
   std::string visitPointerDeclarator(PointerDeclarator *v) override {
-    return v->identifier->accept(this);
+    v->identifier->accept(this);
+    for (int i = 0; i < v->indirection_level; i++)
+      raw_type = make_unique<RawPointerType>(raw_type);
+    return error;
   }
 
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
     pre.emplace_back("$");
+    v->identifier->accept(this);
+    auto return_type = raw_type;
+    auto tmp = std::vector<std::shared_ptr<RawType>>();
     for (const auto &p : v->param_list) {
       error = p->accept(this);
       if (!error.empty())
         return error;
+      tmp.emplace_back(raw_type);
     }
     pre.pop_back();
-    return error;
+    raw_type = make_unique<RawFunctionType>(return_type, tmp);
+    return v->return_ptr->accept(this);
   }
 
   std::string visitCompoundStmt(CompoundStmt *v) override {

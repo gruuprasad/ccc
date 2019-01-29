@@ -24,7 +24,6 @@ class RawScalarType : public RawType {
 
 public:
   explicit RawScalarType(RawTypeValue v) : type_kind(v) {}
-
   std::string print() override {
     switch (type_kind) {
     case RawTypeValue::VOID:
@@ -37,9 +36,7 @@ public:
       return "?";
     }
   }
-
   RawTypeValue getRawTypeValue() override { return type_kind; }
-
   bool operator==(const std::shared_ptr<RawType> &b) override {
     return getRawTypeValue() == b->getRawTypeValue();
   }
@@ -50,13 +47,9 @@ class RawPointerType : public RawType {
 
 public:
   explicit RawPointerType(std::shared_ptr<RawType> ptr) : ptr(std::move(ptr)) {}
-
   std::string print() override { return "&(" + ptr->print() + ")"; }
-
   RawTypeValue getRawTypeValue() override { return RawTypeValue::POINTER; }
-
   std::shared_ptr<RawType> deref() override { return ptr; }
-
   bool operator==(const std::shared_ptr<RawType> &b) override {
     if (b->getRawTypeValue() == RawTypeValue::POINTER)
       return ptr == b->deref();
@@ -73,19 +66,14 @@ public:
   RawFunctionType(std::shared_ptr<RawType> ret_type,
                   std::vector<std::shared_ptr<RawType>> param_types)
       : ret_type(std::move(ret_type)), param_types(std::move(param_types)) {}
-
   std::string print() override {
     std::stringstream ss;
     for (const auto &t : param_types) {
-      ss << t->print();
-      if (t != param_types.back())
-        ss << ",";
+      ss << t->print() << ",";
     }
     return "(" + ss.str() + ")->" + ret_type->print();
   }
-
   RawTypeValue getRawTypeValue() override { return RawTypeValue::FUNCTION; }
-
   std::vector<std::shared_ptr<RawType>> get_param() override {
     return param_types;
   }
@@ -97,9 +85,7 @@ class RawStructType : public RawType {
 
 public:
   explicit RawStructType(std::string name) : name(std::move(name)) {}
-
-  std::string print() override { return "struct " + name; }
-
+  std::string print() override { return name; }
   RawTypeValue getRawTypeValue() override { return RawTypeValue::STRUCT; }
 };
 

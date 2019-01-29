@@ -91,7 +91,6 @@ public:
       : ExternalDeclaration(tk), return_type(std::move(r)),
         fn_name(std::move(n)), fn_body(std::move(b)) {}
   std::string accept(Visitor *) override;
-  std::shared_ptr<RawType> buildRawType();
 };
 
 class Declaration : public ExternalDeclaration {
@@ -109,7 +108,6 @@ public:
                       std::unique_ptr<Declarator> n)
       : Declaration(tk), return_type(std::move(r)), fn_name(std::move(n)) {}
   std::string accept(Visitor *) override;
-  std::shared_ptr<RawType> buildRawType();
 };
 
 class DataDeclaration : public Declaration {
@@ -122,7 +120,6 @@ public:
                   std::unique_ptr<Declarator> n)
       : Declaration(tk), data_type(std::move(t)), data_name(std::move(n)) {}
   std::string accept(Visitor *) override;
-  std::shared_ptr<RawType> buildRawType();
 };
 
 class StructDeclaration : public Declaration {
@@ -148,7 +145,6 @@ public:
                    std::unique_ptr<Declarator> n = nullptr)
       : Declaration(tk), param_type(std::move(t)), param_name(std::move(n)) {}
   std::string accept(Visitor *) override;
-  std::shared_ptr<RawType> buildRawType();
 };
 
 class Type : public ASTNode {
@@ -158,7 +154,6 @@ protected:
 
 public:
   virtual StructType *getStructType() { return nullptr; }
-  virtual std::shared_ptr<RawType> getRawType() = 0;
 };
 
 enum class ScalarTypeValue { VOID, CHAR, INT };
@@ -170,16 +165,6 @@ class ScalarType : public Type {
 public:
   ScalarType(const Token &tk, ScalarTypeValue v) : Type(tk), type_kind(v) {}
   std::string accept(Visitor *) override;
-  std::shared_ptr<RawType> getRawType() override {
-    switch (type_kind) {
-    case ScalarTypeValue::VOID:
-      return make_unique<RawScalarType>(RawTypeValue::VOID);
-    case ScalarTypeValue::INT:
-      return make_unique<RawScalarType>(RawTypeValue::INT);
-    case ScalarTypeValue::CHAR:
-      return make_unique<RawScalarType>(RawTypeValue::CHAR);
-    }
-  }
 };
 
 class StructType : public Type {
@@ -198,9 +183,6 @@ public:
         members(true) {}
   std::string accept(Visitor *) override;
   StructType *getStructType() override { return this; }
-  std::shared_ptr<RawType> getRawType() override {
-    return make_unique<RawStructType>("struct");
-  }
 };
 
 class Declarator : public ASTNode {
@@ -210,10 +192,6 @@ protected:
 public:
   virtual std::unique_ptr<VariableName> *getIdentifier() = 0;
   virtual AbstractDeclarator *getAbstractDeclarator() { return nullptr; };
-  virtual std::shared_ptr<RawType>
-  buildRawType(std::shared_ptr<RawType> outer) {
-    return outer;
-  }
 };
 
 class DirectDeclarator : public Declarator {
@@ -240,13 +218,6 @@ public:
       : Declarator(tk), type_kind(t), pointerCount(p) {}
   std::string accept(Visitor *) override;
   AbstractDeclarator *getAbstractDeclarator() override { return this; };
-  std::shared_ptr<RawType>
-  buildRawType(std::shared_ptr<RawType> outer) override {
-    std::shared_ptr<RawType> tmp = outer;
-    for (unsigned int i = 0; i < pointerCount; i++)
-      tmp = make_unique<RawPointerType>(tmp);
-    return tmp;
-  }
 };
 
 class PointerDeclarator : public Declarator {
@@ -264,13 +235,6 @@ public:
                              std::unique_ptr<Declarator> i = nullptr, int l = 1)
       : Declarator(tk), identifier(std::move(i)), indirection_level(l) {}
   std::string accept(Visitor *) override;
-  std::shared_ptr<RawType>
-  buildRawType(std::shared_ptr<RawType> outer) override {
-    std::shared_ptr<RawType> tmp = outer;
-    for (int i = 0; i < indirection_level; i++)
-      tmp = make_unique<RawPointerType>(tmp);
-    return tmp;
-  }
 };
 
 class FunctionDeclarator : public Declarator {
@@ -288,15 +252,6 @@ public:
   std::string accept(Visitor *) override;
   std::unique_ptr<VariableName> *getIdentifier() override {
     return identifier->getIdentifier();
-  }
-  std::shared_ptr<RawType>
-  buildRawType(std::shared_ptr<RawType> outer) override {
-    std::vector<std::shared_ptr<RawType>> tmp =
-        std::vector<std::shared_ptr<RawType>>();
-    for (const auto &p : param_list)
-      tmp.emplace_back(p->buildRawType());
-    return return_ptr->buildRawType(
-        make_unique<RawFunctionType>(identifier->buildRawType(outer), tmp));
   }
 };
 

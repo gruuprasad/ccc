@@ -9,24 +9,12 @@ std::string FunctionDefinition::accept(Visitor *v) {
   return v->visitFunctionDefinition(this);
 }
 
-std::shared_ptr<RawType> FunctionDefinition::buildRawType() {
-  return fn_name->buildRawType(return_type->getRawType());
-}
-
 std::string FunctionDeclaration::accept(Visitor *v) {
   return v->visitFunctionDeclaration(this);
 }
 
-std::shared_ptr<RawType> FunctionDeclaration::buildRawType() {
-  return fn_name->buildRawType(return_type->getRawType());
-}
-
 std::string DataDeclaration::accept(Visitor *v) {
   return v->visitDataDeclaration(this);
-}
-
-std::shared_ptr<RawType> DataDeclaration::buildRawType() {
-  return data_name->buildRawType(data_type->getRawType());
 }
 
 std::string StructDeclaration::accept(Visitor *v) {
@@ -34,10 +22,6 @@ std::string StructDeclaration::accept(Visitor *v) {
 }
 std::string ParamDeclaration::accept(Visitor *v) {
   return v->visitParamDeclaration(this);
-}
-
-std::shared_ptr<RawType> ParamDeclaration::buildRawType() {
-  return param_type->getRawType();
 }
 
 std::string ScalarType::accept(Visitor *v) { return v->visitScalarType(this); }
