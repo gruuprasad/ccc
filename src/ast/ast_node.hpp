@@ -1,6 +1,3 @@
-#include "../utils/utils.hpp"
-#include <utility>
-
 #ifndef C4_ASTNODE_HPP
 #define C4_ASTNODE_HPP
 
@@ -11,7 +8,6 @@
 
 #include "../lexer/token.hpp"
 #include "../utils/macros.hpp"
-#include "raw_type.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -124,7 +120,7 @@ public:
 
 class StructDeclaration : public Declaration {
   FRIENDS
-  std::unique_ptr<Type> struct_type; // TODO StructType
+  std::unique_ptr<Type> struct_type;
   std::unique_ptr<Declarator> struct_alias;
 
 public:
@@ -150,7 +146,7 @@ public:
 class Type : public ASTNode {
 protected:
   explicit Type(const Token &tk) : ASTNode(tk) {}
-  virtual bool isStructType() { return false; }
+  virtual bool isStructType() = 0;
 
 public:
   virtual StructType *getStructType() { return nullptr; }
@@ -161,6 +157,7 @@ enum class ScalarTypeValue { VOID, CHAR, INT };
 class ScalarType : public Type {
   FRIENDS
   ScalarTypeValue type_kind;
+  bool isStructType() override { return false; }
 
 public:
   ScalarType(const Token &tk, ScalarTypeValue v) : Type(tk), type_kind(v) {}
@@ -242,6 +239,9 @@ class FunctionDeclarator : public Declarator {
   std::unique_ptr<Declarator> identifier;
   ParamDeclarationListType param_list;
   std::unique_ptr<Declarator> return_ptr;
+  std::unique_ptr<VariableName> *getIdentifier() override {
+    return identifier->getIdentifier();
+  }
 
 public:
   FunctionDeclarator(const Token &tk, std::unique_ptr<Declarator> i,
@@ -250,9 +250,6 @@ public:
       : Declarator(tk), identifier(std::move(i)), param_list(std::move(p)),
         return_ptr(std::move(r)) {}
   std::string accept(Visitor *) override;
-  std::unique_ptr<VariableName> *getIdentifier() override {
-    return identifier->getIdentifier();
-  }
 };
 
 class Statement : public ASTNode {
@@ -353,14 +350,10 @@ public:
 class Expression : public ASTNode {
 protected:
   explicit Expression(const Token &tk) : ASTNode(tk) {}
-
-public:
-  virtual VariableName *getVariableName() { return nullptr; }
 };
 
 class VariableName : public Expression {
   FRIENDS
-  friend StructType;
   std::string name;
 
 public:
@@ -370,7 +363,6 @@ public:
 
   int Compare(const VariableName &d) const { return d.name == name; }
   bool operator==(const VariableName &d) const { return !Compare(d); }
-  VariableName *getVariableName() override { return this; }
 };
 
 class Number : public Expression {

@@ -17,16 +17,16 @@
       TokenType::CONDITIONAL
 
 #define LEXER_ERROR(line, column, msg)                                         \
-  std::to_string(line) + ":" + std::to_string(column + 1) +                    \
-      ": error: " + msg + ". Lexing Stopped!"
+  std::to_string(line) + ":" + std::to_string(column + 1) + ": error: '" +     \
+      msg + "'. Lexing Stopped!"
 
 #define PARSER_ERROR(line, column, msg)                                        \
   std::to_string(line) + ":" + std::to_string(column) + ": error: '" + msg +   \
       "'. Parsing Stopped!"
 
 #define SEMANTIC_ERROR(line, column, msg)                                      \
-  std::to_string(line) + ":" + std::to_string(column) + ": error: " + msg +    \
-      ". Compiling Stopped!"
+  std::to_string(line) + ":" + std::to_string(column) + ": error: '" + msg +   \
+      "'. Compiling Stopped!"
 
 #define UNUSED(var) (void)var
 

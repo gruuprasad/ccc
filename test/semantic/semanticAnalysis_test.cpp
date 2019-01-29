@@ -283,7 +283,8 @@ TEST_CASE("anaonymous struct redifinition") {
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_FAILURE(sv);
-  REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 3, "Redefinition of 's'"));
+  REQUIRE(sv.getError() ==
+          SEMANTIC_ERROR(5, 3, "Redefinition of 's' with a different type"));
 }
 
 TEST_CASE("anaonymous struct redifinition ugly") {
@@ -298,7 +299,8 @@ TEST_CASE("anaonymous struct redifinition ugly") {
     std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
-  REQUIRE_SUCCESS(sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(3, 6, "Redefinition of 'x'"));
 }
 
 TEST_CASE("struct nested same name") {
@@ -341,49 +343,52 @@ TEST_CASE("use struct") {
   REQUIRE_SUCCESS(sv);
 }
 
-TEST_CASE("access") {
-  std::string input = "struct A {int x;} s;\n"
-                      "struct B {struct A *p;} *a;\n"
-                      "int foo () {\n"
-                      "void *p;\n"
-                      "p = a;\n"
-                      "return p->p->x;"
+// TEST_CASE("declarations ugly inline") {
+//  std::string input = "int x() {\n"
+//                      "{\n"
+//                      "int x;\n"
+//                      "}\n"
+//                      "while (1)\n"
+//                      " int x;\n" // XXX Parser Error
+//                      "if (0)\n"
+//                      " int x;\n" // XXX Parser Error
+//                      "else\n"
+//                      " int x;\n" // XXX Parser Error
+//                      "}";
+//
+//  auto fp = FastParser(input);
+//  auto root = fp.parse();
+//  if (fp.fail())
+//    std::cerr << fp.getError() << std::endl;
+//  auto sv = SemanticVisitor();
+//  root->accept(&sv);sv.printScopes();
+//  REQUIRE_SUCCESS(sv);
+//}
+
+TEST_CASE("scoping") {
+  std::string input = "int a;\n"
+                      "void main(int a) {\n"
+                      "int x;\n"
+                      "{ int a; }"
+                      "{ int a; }"
+                      "}"
+                      "void foo(int a) {\n"
+                      "struct S {\n"
+                      "int a;\n"
+                      "int x;\n"
+                      "int x;\n"
+                      "};\n"
                       "}\n";
 
   auto fp = FastParser(input);
   auto root = fp.parse();
-  if (fp.fail())
-    std::cerr << fp.getError() << std::endl;
-  auto pp = PrettyPrinterVisitor();
-  std::cout << root->accept(&pp) << std::endl;
   auto sv = SemanticVisitor();
+  //  auto pp = PrettyPrinterVisitor();
+  //  std::cout << root->accept(&pp) << std::endl;
   root->accept(&sv);
   if (sv.fail())
     std::cerr << sv.getError() << std::endl;
-  REQUIRE_SUCCESS(sv);
-}
-
-TEST_CASE("scoping") {
-  std::string input = "int *a;\n"
-                      "int foo (void, int) {\n"
-                      "}\n"
-                      "struct A *p;\n"
-                      "int main () {\n"
-                      "return foo(1, 2);\n"
-                      "}\n"
-                      "\n";
-
-  auto fp = FastParser(input);
-  auto root = fp.parse();
-  if (fp.fail())
-    std::cerr << fp.getError() << std::endl;
-  auto pp = PrettyPrinterVisitor();
-  std::cout << root->accept(&pp) << std::endl;
-  auto sv = SemanticVisitor();
-  root->accept(&sv);
-  if (sv.fail())
-    std::cerr << sv.getError() << std::endl;
-  REQUIRE_SUCCESS(sv);
+  REQUIRE_FAILURE(sv);
 }
 
 } // namespace ccc

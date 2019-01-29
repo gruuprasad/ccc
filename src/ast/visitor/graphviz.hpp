@@ -65,9 +65,8 @@ public:
     ss << makeGVVertice(v->hash(), "DataDeclaration");
     ss << makeGVEdge(v->hash(), v->data_type->hash())
        << v->data_type->accept(this);
-    if (v->data_name)
-      ss << makeGVEdge(v->hash(), v->data_name->hash())
-         << v->data_name->accept(this);
+    ss << makeGVEdge(v->hash(), v->data_name->hash())
+       << v->data_name->accept(this);
     return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
            "}\n";
   }
