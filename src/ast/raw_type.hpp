@@ -136,6 +136,7 @@ public:
     }
   }
   RawStructType *getRawStructType() override { return this; }
+  std::string getName() { return name; }
 };
 
 } // namespace ccc

@@ -171,6 +171,7 @@ public:
       global_scope = false;
       const auto &identifier = *v->struct_alias->getIdentifier();
       std::string name = prefix(identifier->name);
+      v->struct_alias->accept(this);
       if (declarations.find(name) != declarations.end()) {
         if (!global_scope)
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
@@ -265,7 +266,8 @@ public:
       }
       raw_type = make_unique<RawStructType>("struct " + v->struct_name->name);
       declarations[name] = raw_type;
-    }
+    } else
+      raw_type = make_unique<RawStructType>("struct");
     return error;
   }
 
@@ -329,6 +331,11 @@ public:
     error = v->condition->accept(this);
     if (!error.empty())
       return error;
+    if (raw_type->getRawTypeValue() != RawTypeValue::INT) {
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Condition has to be int, found " + raw_type->print());
+    }
     pre.emplace_back("if");
     error = v->ifStmt->accept(this);
     if (!error.empty())
@@ -381,7 +388,11 @@ public:
     error = v->predicate->accept(this);
     if (!error.empty())
       return error;
-
+    if (raw_type->getRawTypeValue() != RawTypeValue::INT) {
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Predicate has to be int, found " + raw_type->print());
+    }
     loop_counter++;
     pre.emplace_back("while");
     error = v->block->accept(this);
@@ -488,13 +499,67 @@ public:
 
   std::string visitMemberAccessOp(MemberAccessOp *v) override {
     error = v->struct_name->accept(this);
-    temporary = false; // FIXME
-    return error;
+    temporary = false;
+    std::string sub;
+    switch (v->op_kind) {
+    case PostFixOpValue::ARROW: {
+      if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
+                              "Can't dereference " + raw_type->print());
+      if (raw_type->deref()->getRawTypeValue() != RawTypeValue::STRUCT)
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
+                              "Can't access member of " + raw_type->print());
+      sub = raw_type->deref()->getRawStructType()->getName();
+      break;
+    }
+    case PostFixOpValue::DOT:
+      if (raw_type->getRawTypeValue() != RawTypeValue::STRUCT)
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
+                              "Can't access member of " + raw_type->print());
+      sub = raw_type->getRawStructType()->getName();
+    }
+    if (sub == "struct") {
+      std::string name;
+      std::string tmp_pre = prefix();
+      while (tmp_pre.find('.') != std::string::npos) {
+        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
+        name = tmp_pre + "." + v->struct_name->getVariableName()->name + "." +
+               v->member_name->getVariableName()->name;
+        if (declarations.find(name) != declarations.end()) {
+          raw_type = declarations[name];
+          return error;
+        }
+      }
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't find member " + v->member_name->getVariableName()->name +
+              " of " + v->struct_name->getVariableName()->name);
+    } else {
+      std::string name;
+      std::string tmp_pre = prefix();
+      while (tmp_pre.find('.') != std::string::npos) {
+        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
+        name = tmp_pre + ".@" + sub.substr(7, sub.size()) + "." +
+               v->member_name->getVariableName()->name;
+        if (declarations.find(name) != declarations.end()) {
+          raw_type = declarations[name];
+          return error;
+        }
+      }
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't find member " + v->member_name->getVariableName()->name +
+              " of " + sub);
+    }
   }
 
-  std::string visitArraySubscriptOp(ArraySubscriptOp *) override {
+  std::string visitArraySubscriptOp(ArraySubscriptOp *v) override {
+    error = v->array_name->accept(this);
     temporary = false;
-    return error; // FIXME
+    return error; // TODO
   }
 
   std::string visitFunctionCall(FunctionCall *v) override {

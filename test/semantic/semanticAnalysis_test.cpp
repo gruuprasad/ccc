@@ -341,6 +341,27 @@ TEST_CASE("use struct") {
   REQUIRE_SUCCESS(sv);
 }
 
+TEST_CASE("access") {
+  std::string input = "struct A {int x;} s;\n"
+                      "struct B {struct A *p;} *a;\n"
+                      "int foo () {\n"
+                      "struct A *p;\n"
+                      "return a->p->x;"
+                      "}\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto pp = PrettyPrinterVisitor();
+  std::cout << root->accept(&pp) << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  if (sv.fail())
+    std::cerr << sv.getError() << std::endl;
+  REQUIRE_SUCCESS(sv);
+}
+
 TEST_CASE("scoping") {
   std::string input = "int *a;\n"
                       "int foo (void, int) {\n"

@@ -353,6 +353,9 @@ public:
 class Expression : public ASTNode {
 protected:
   explicit Expression(const Token &tk) : ASTNode(tk) {}
+
+public:
+  virtual VariableName *getVariableName() { return nullptr; }
 };
 
 class VariableName : public Expression {
@@ -367,6 +370,7 @@ public:
 
   int Compare(const VariableName &d) const { return d.name == name; }
   bool operator==(const VariableName &d) const { return !Compare(d); }
+  VariableName *getVariableName() override { return this; }
 };
 
 class Number : public Expression {
