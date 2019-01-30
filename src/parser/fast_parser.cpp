@@ -615,7 +615,11 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
       parser_error(src_mark, "Bad number, cannot start with 0");
       return std::unique_ptr<Expression>();
     }
-    return make_unique<Number>(nextToken(), stoi(num_str));
+    if (num_str.size() >= std::numeric_limits<long>::digits10) {
+      parser_error(src_mark, "Bad i32");
+      return std::unique_ptr<Expression>();
+    }
+    return make_unique<Number>(nextToken(), stol(num_str));
   case TokenType::CHARACTER:
     return make_unique<Character>(nextToken(), src_mark.getExtra().front());
   case TokenType::STRING:

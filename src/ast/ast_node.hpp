@@ -40,6 +40,7 @@ class GraphvizVisitor;
 class PrettyPrinterVisitor;
 class StructType;
 class AbstractDeclarator;
+class Number;
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType =
@@ -356,6 +357,7 @@ protected:
 
 public:
   virtual VariableName *getVariableName() { return nullptr; }
+  virtual Number *getNumber() { return nullptr; }
 };
 
 class VariableName : public Expression {
@@ -375,11 +377,12 @@ public:
 
 class Number : public Expression {
   FRIENDS
-  int num_value;
+  long num_value;
 
 public:
-  Number(const Token &tk, int v) : Expression(tk), num_value(v) {}
+  Number(const Token &tk, long v) : Expression(tk), num_value(v) {}
   std::string accept(Visitor *) override;
+  Number *getNumber() override { return this; }
 };
 
 class Character : public Expression {
@@ -453,6 +456,7 @@ public:
   Unary(const Token &tk, UnaryOpValue v, std::unique_ptr<Expression> o)
       : Expression(tk), op_kind(v), operand(std::move(o)) {}
   std::string accept(Visitor *) override;
+  Number *getNumber() override { return operand->getNumber(); };
 };
 
 class SizeOf : public Expression {

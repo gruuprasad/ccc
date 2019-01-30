@@ -365,7 +365,7 @@ TEST_CASE("access") {
 
 TEST_CASE("scoping") {
   std::string input = "int *a;\n"
-                      "int foo (void, int) {\n"
+                      "int foo (int a, int b) {\n"
                       "}\n"
                       "struct A *p;\n"
                       "int main () {\n"
