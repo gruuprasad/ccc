@@ -442,9 +442,9 @@ unique_ptr<Expression> FastParser::parseExpression() {
 // assignment-expr (6.5.15) conditional-expr: logical-OR | logical-OR ?
 // expression : conditional-expr
 std::unique_ptr<Expression> FastParser::parseAssignmentExpression() {
-  Token src_mark(peek());
-  auto lhs = parseUnaryExpression(); // LHS or first operand
 
+  auto lhs = parseUnaryExpression(); // LHS or first operand
+  Token src_mark(peek());
   // Expression contains assignment op
   if (peek().is(TokenType::ASSIGN)) {
     consume(TokenType::ASSIGN);

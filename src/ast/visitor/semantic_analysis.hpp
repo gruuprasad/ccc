@@ -99,7 +99,7 @@ public:
                               "Redefinition of '" + identifier->name + "'");
       definitions.insert(name);
       if (declarations.find(name) != declarations.end()) {
-        if (!declarations[name]->compare_equal(raw_type))
+        if (!declarations[name]->compare_exact(raw_type))
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name +
@@ -132,7 +132,7 @@ public:
       auto name = prefix(identifier->name);
       v->fn_name->accept(this);
       if (declarations.find(name) != declarations.end()) {
-        if (!declarations[name]->compare_equal(raw_type))
+        if (!declarations[name]->compare_exact(raw_type))
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name +
@@ -161,7 +161,7 @@ public:
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name + "'");
-        else if (!declarations[name]->compare_equal(raw_type))
+        else if (!declarations[name]->compare_exact(raw_type))
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name +
@@ -171,6 +171,10 @@ public:
       } else
         declarations[name] = raw_type;
     }
+    if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->data_name)
+      return SEMANTIC_ERROR(v->data_name->getTokenRef().getLine(),
+                            v->data_name->getTokenRef().getColumn(),
+                            "Incomplete type");
     return error;
   }
 
@@ -192,7 +196,7 @@ public:
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name + "'");
-        else if (!declarations[name]->compare_equal(raw_type))
+        else if (!declarations[name]->compare_exact(raw_type))
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name +
@@ -238,6 +242,10 @@ public:
       v->param_name->accept(this);
       declarations[name] = raw_type;
     }
+    if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->param_name)
+      return SEMANTIC_ERROR(v->param_name->getTokenRef().getLine(),
+                            v->param_name->getTokenRef().getColumn(),
+                            "Incomplete type");
     return error;
   }
 
@@ -661,6 +669,7 @@ public:
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn(),
                               "Can't minus " + raw_type->print());
+      temporary = true;
       break;
     case UnaryOpValue::NOT:
       if (!raw_type->compare_equal(
@@ -668,6 +677,7 @@ public:
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn(),
                               "Can't negate " + raw_type->print());
+      temporary = true;
       break;
     case UnaryOpValue::DEREFERENCE:
       if (v->getNumber() && v->getNumber()->num_value == 0) {
@@ -680,6 +690,7 @@ public:
                               v->getTokenRef().getColumn(),
                               "Can't dereference " + raw_type->print());
       raw_type = raw_type->deref();
+      temporary = false;
       break;
     case UnaryOpValue::ADDRESS_OF:
       if (v->getNumber() && v->getNumber()->num_value == 0) {
@@ -690,6 +701,7 @@ public:
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn(),
                               "Can't get address of temporay object");
+      temporary = true;
       break;
     }
     return error;
@@ -712,13 +724,21 @@ public:
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    if (lhs_type->getRawTypeValue() == RawTypeValue::VOID)
+      return SEMANTIC_ERROR(v->left_operand->getTokenRef().getLine(),
+                            v->left_operand->getTokenRef().getColumn(),
+                            "handling " + lhs_type->print());
+    if (rhs_type->getRawTypeValue() == RawTypeValue::VOID)
+      return SEMANTIC_ERROR(v->right_operand->getTokenRef().getLine(),
+                            v->right_operand->getTokenRef().getColumn(),
+                            "handling " + rhs_type->print());
     if (!lhs_type->compare_equal(rhs_type)) {
       return SEMANTIC_ERROR(
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Can't handle " + lhs_type->print() + " and " + rhs_type->print());
     }
     raw_type = lhs_type;
-    temporary = !(lhs_type->getRawTypeValue() == RawTypeValue::POINTER);
+    temporary = (lhs_type->getRawTypeValue() != RawTypeValue::POINTER);
     return error;
   }
 
@@ -755,6 +775,10 @@ public:
     if (!error.empty())
       return error;
     auto lhs_type = raw_type;
+    if (temporary || !v->left_operand->isLValue())
+      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                            v->getTokenRef().getColumn(),
+                            "Can't assign to " + lhs_type->print());
     error = v->right_operand->accept(this);
     if (!error.empty())
       return error;
@@ -781,6 +805,12 @@ public:
         }
       }
     }
+    if (lhs_type->getRawTypeValue() == RawTypeValue::FUNCTION ||
+        lhs_type->getRawTypeValue() == RawTypeValue::STRUCT)
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't assign " + rhs_type->print() + " to " + lhs_type->print());
+    temporary = true;
     return error;
   }
 };
