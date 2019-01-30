@@ -81,12 +81,15 @@ TEST_CASE("lexer_failure_files") {
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
       ppArgs[2] = &input[0];
-      if (EXIT_SUCCESS == EntryPointHandler().handle(3, ppArgs))
-        FAIL("\033[1;31mUnexpected pass\033[0m");
+
+      int ret = EntryPointHandler().handle(3, ppArgs);
 
       PIPE_COUT_RESET;
       PIPE_CERR_RESET;
       GCC_DIFF;
+
+      if (ret == EXIT_SUCCESS)
+        FAIL("\033[1;31mUnexpected pass\033[0m");
 
       delete[] ppArgs;
     }
@@ -101,16 +104,15 @@ TEST_CASE("parser_success_files") {
       std::string input = dir + file;
 
       GCC_SUCCESS;
-      PIPE_COUT;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
       ppArgs[2] = &input[0];
 
-      if (EXIT_FAILURE == EntryPointHandler().handle(3, ppArgs))
-        FAIL("\033[1;31mUnexpected fail\033[0m");
+      int ret = EntryPointHandler().handle(3, ppArgs);
 
-      PIPE_COUT_RESET;
+      if (ret == EXIT_FAILURE)
+        FAIL("\033[1;31mUnexpected fail\033[0m");
 
       delete[] ppArgs;
     }
@@ -132,37 +134,13 @@ TEST_CASE("parser_failure_files") {
       ppArgs[1] = &flag[0];
       ppArgs[2] = &input[0];
 
-      if (EXIT_SUCCESS == EntryPointHandler().handle(3, ppArgs))
-        FAIL("\033[1;31mUnexpected pass\033[0m");
+      int ret = EntryPointHandler().handle(3, ppArgs);
 
       PIPE_CERR_RESET;
       GCC_DIFF;
 
-      delete[] ppArgs;
-    }
-  }
-}
-
-TEST_CASE("semantic_failure_files") {
-  std::string dir = ROOT_DIR + "semantic_failure_files/";
-  auto files = Utils::dir(&dir[0]);
-  for (const auto &file : files) {
-    SECTION(file) {
-      std::string flag = "--parse";
-      std::string input = dir + file;
-
-      GCC_FAILURE;
-      PIPE_CERR;
-
-      char **ppArgs = new char *[3];
-      ppArgs[1] = &flag[0];
-      ppArgs[2] = &input[0];
-
-      if (EXIT_SUCCESS == EntryPointHandler().handle(3, ppArgs))
+      if (ret == EXIT_SUCCESS)
         FAIL("\033[1;31mUnexpected pass\033[0m");
-
-      PIPE_CERR_RESET;
-      GCC_DIFF;
 
       delete[] ppArgs;
     }

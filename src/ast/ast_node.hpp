@@ -40,6 +40,7 @@ class GraphvizVisitor;
 class PrettyPrinterVisitor;
 class StructType;
 class AbstractDeclarator;
+class Number;
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType =
@@ -61,6 +62,7 @@ public:
   virtual std::string accept(Visitor *) = 0;
   Token &getTokenRef() { return tok; }
   unsigned long hash() { return (unsigned long)this; }
+  virtual bool isLValue() { return false; }
 };
 
 class TranslationUnit : public ASTNode {
@@ -356,6 +358,7 @@ protected:
 
 public:
   virtual VariableName *getVariableName() { return nullptr; }
+  virtual Number *getNumber() { return nullptr; }
 };
 
 class VariableName : public Expression {
@@ -371,15 +374,17 @@ public:
   int Compare(const VariableName &d) const { return d.name == name; }
   bool operator==(const VariableName &d) const { return !Compare(d); }
   VariableName *getVariableName() override { return this; }
+  bool isLValue() override { return true; }
 };
 
 class Number : public Expression {
   FRIENDS
-  int num_value;
+  long num_value;
 
 public:
-  Number(const Token &tk, int v) : Expression(tk), num_value(v) {}
+  Number(const Token &tk, long v) : Expression(tk), num_value(v) {}
   std::string accept(Visitor *) override;
+  Number *getNumber() override { return this; }
 };
 
 class Character : public Expression {
@@ -415,6 +420,7 @@ public:
       : Expression(tk), op_kind(o), struct_name(std::move(s)),
         member_name(std::move(m)) {}
   std::string accept(Visitor *) override;
+  bool isLValue() override { return true; }
 };
 
 class ArraySubscriptOp : public Expression {
@@ -427,6 +433,7 @@ public:
                    std::unique_ptr<Expression> i)
       : Expression(tk), array_name(std::move(a)), index_value(std::move(i)) {}
   std::string accept(Visitor *) override;
+  bool isLValue() override { return true; }
 };
 
 // Function call
@@ -453,6 +460,8 @@ public:
   Unary(const Token &tk, UnaryOpValue v, std::unique_ptr<Expression> o)
       : Expression(tk), op_kind(v), operand(std::move(o)) {}
   std::string accept(Visitor *) override;
+  Number *getNumber() override { return operand->getNumber(); };
+  bool isLValue() override { return true; }
 };
 
 class SizeOf : public Expression {

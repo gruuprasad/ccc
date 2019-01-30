@@ -22,62 +22,12 @@ public:
   virtual std::vector<std::shared_ptr<RawType>> get_param() { return {}; }
   virtual std::shared_ptr<RawType> get_return() { return nullptr; }
   virtual bool compare_equal(const std::shared_ptr<RawType> &) { return false; }
+  virtual bool compare_exact(const std::shared_ptr<RawType> &) { return false; }
   virtual RawScalarType *getRawScalarType() { return nullptr; }
   virtual RawPointerType *getRawPointerType() { return nullptr; }
   virtual RawFunctionType *getRawFunctionType() { return nullptr; }
   virtual RawStructType *getRawStructType() { return nullptr; }
-};
-
-class RawScalarType : public RawType {
-  RawTypeValue type_kind;
-
-public:
-  explicit RawScalarType(RawTypeValue v) : type_kind(v) {}
-  std::string print() override {
-    switch (type_kind) {
-    case RawTypeValue::VOID:
-      return "void";
-    case RawTypeValue::INT:
-      return "int";
-    case RawTypeValue::CHAR:
-      return "char";
-    default:
-      return "?";
-    }
-  }
-  RawTypeValue getRawTypeValue() override { return type_kind; }
-  bool compare_equal(const std::shared_ptr<RawType> &b) override {
-    switch (b->getRawTypeValue()) {
-    case RawTypeValue::VOID:
-    case RawTypeValue::INT:
-    case RawTypeValue::CHAR:
-      return type_kind == b->getRawTypeValue();
-    default:
-      return false;
-    }
-  }
-  RawScalarType *getRawScalarType() override { return this; }
-};
-
-class RawPointerType : public RawType {
-  std::shared_ptr<RawType> ptr;
-
-public:
-  explicit RawPointerType(std::shared_ptr<RawType> ptr) : ptr(std::move(ptr)) {}
-  std::string print() override { return "&(" + ptr->print() + ")"; }
-  RawTypeValue getRawTypeValue() override { return RawTypeValue::POINTER; }
-  std::shared_ptr<RawType> deref() override { return ptr; }
-  bool compare_equal(const std::shared_ptr<RawType> &b) override {
-    switch (b->getRawTypeValue()) {
-    case RawTypeValue::POINTER:
-      if (ptr->getRawTypeValue() == RawTypeValue::VOID ||
-          b->deref()->getRawTypeValue() == RawTypeValue::VOID)
-        return true;
-      return ptr->compare_equal(b->deref());
-    default:
-      return false;
-    }
-  }
+  virtual bool isVoidPtr() { return false; }
 };
 
 class RawFunctionType : public RawType {
@@ -113,11 +63,120 @@ public:
           return false;
       return ret_type->compare_equal(b->getRawFunctionType()->ret_type);
     }
+    case RawTypeValue::INT:
+    case RawTypeValue::CHAR:
+      return b->compare_equal(ret_type);
+    default:
+      return false;
+    }
+  }
+  bool compare_exact(const std::shared_ptr<RawType> &b) override {
+    switch (b->getRawTypeValue()) {
+    case RawTypeValue::FUNCTION: {
+      auto tmp = b->getRawFunctionType()->param_types;
+      if (param_types.size() != tmp.size())
+        return false;
+      for (size_t i = 0; i < param_types.size(); i++)
+        if (!param_types[i]->compare_exact(tmp[i]))
+          return false;
+      return ret_type->compare_exact(b->getRawFunctionType()->ret_type);
+    }
     default:
       return false;
     }
   }
   RawFunctionType *getRawFunctionType() override { return this; }
+};
+
+class RawScalarType : public RawType {
+  RawTypeValue type_kind;
+
+public:
+  explicit RawScalarType(RawTypeValue v) : type_kind(v) {}
+  std::string print() override {
+    switch (type_kind) {
+    case RawTypeValue::VOID:
+      return "void";
+    case RawTypeValue::INT:
+      return "int";
+    case RawTypeValue::CHAR:
+      return "char";
+    default:
+      return "?";
+    }
+  }
+  RawTypeValue getRawTypeValue() override { return type_kind; }
+  bool compare_equal(const std::shared_ptr<RawType> &b) override {
+    if (b == nullptr)
+      return false;
+    switch (b->getRawTypeValue()) {
+    case RawTypeValue::VOID:
+      return type_kind == RawTypeValue::VOID;
+    case RawTypeValue::INT:
+    case RawTypeValue::CHAR:
+      return type_kind == RawTypeValue::INT || type_kind == RawTypeValue::CHAR;
+    case RawTypeValue::POINTER:
+      if (type_kind == RawTypeValue::VOID)
+        return false;
+      return compare_equal(std::make_shared<RawScalarType>(RawTypeValue::INT));
+    case RawTypeValue::FUNCTION:
+      return compare_equal(b->getRawFunctionType()->get_return());
+    default:
+      return false;
+    }
+  }
+  bool compare_exact(const std::shared_ptr<RawType> &b) override {
+    if (b == nullptr)
+      return false;
+    switch (b->getRawTypeValue()) {
+    case RawTypeValue::VOID:
+      return type_kind == RawTypeValue::VOID;
+    case RawTypeValue::INT:
+      return type_kind == RawTypeValue::INT;
+    case RawTypeValue::CHAR:
+      return type_kind == RawTypeValue::CHAR;
+    default:
+      return false;
+    }
+  }
+  RawScalarType *getRawScalarType() override { return this; }
+};
+
+class RawPointerType : public RawType {
+  std::shared_ptr<RawType> ptr;
+
+public:
+  explicit RawPointerType(std::shared_ptr<RawType> ptr) : ptr(std::move(ptr)) {}
+  std::string print() override { return "&(" + ptr->print() + ")"; }
+  RawTypeValue getRawTypeValue() override { return RawTypeValue::POINTER; }
+  std::shared_ptr<RawType> deref() override { return ptr; }
+  bool compare_equal(const std::shared_ptr<RawType> &b) override {
+    switch (b->getRawTypeValue()) {
+    case RawTypeValue::POINTER:
+      if (isVoidPtr() || b->isVoidPtr())
+        return true;
+      return ptr->compare_equal(b->deref());
+    case RawTypeValue::CHAR:
+    case RawTypeValue::INT:
+      return true;
+    default:
+      return false;
+    }
+  }
+  bool compare_exact(const std::shared_ptr<RawType> &b) override {
+    switch (b->getRawTypeValue()) {
+    case RawTypeValue::POINTER:
+      return ptr->compare_equal(b->deref());
+    default:
+      return false;
+    }
+  }
+  bool isVoidPtr() override {
+    return ptr->getRawTypeValue() == RawTypeValue::VOID;
+  }
+  std::shared_ptr<RawType> get_return() override {
+    return make_unique<RawPointerType>(ptr);
+  }
 };
 
 class RawStructType : public RawType {
@@ -134,6 +193,9 @@ public:
     default:
       return false;
     }
+  }
+  bool compare_exact(const std::shared_ptr<RawType> &b) override {
+    return compare_equal(b);
   }
   RawStructType *getRawStructType() override { return this; }
   std::string getName() { return name; }

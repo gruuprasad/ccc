@@ -4,7 +4,7 @@ project(c4)
 enable_testing()
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -Wall -Wextra -pedantic -pthread -g3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -Wall -Wextra -pedantic -pthread -g3")
 
 SET(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
 SET(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")

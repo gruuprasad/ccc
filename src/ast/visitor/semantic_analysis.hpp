@@ -18,6 +18,8 @@ class SemanticVisitor : public Visitor {
   int loop_counter;
   bool global_scope;
   bool temporary = true;
+  std::string alias;
+  bool definition = false;
 
   std::shared_ptr<RawType> raw_type = nullptr;
   std::shared_ptr<RawType> jump_type = nullptr;
@@ -70,6 +72,7 @@ public:
     //    std::vector<std::string> scope = {"a"};
     //    structDefinitions.emplace_back(std::unordered_set<std::vector<std::string>>{
     //        std::vector<std::string>()});
+    raw_type = nullptr;
     for (const auto &child : v->extern_list) {
       global_scope = true;
       error = child->accept(this);
@@ -81,6 +84,7 @@ public:
 
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
     global_scope = false;
+    definition = true;
     v->return_type->accept(this);
     if (v->fn_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->fn_name->getIdentifier();
@@ -95,7 +99,7 @@ public:
                               "Redefinition of '" + identifier->name + "'");
       definitions.insert(name);
       if (declarations.find(name) != declarations.end()) {
-        if (!declarations[name]->compare_equal(raw_type))
+        if (!declarations[name]->compare_exact(raw_type))
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name +
@@ -109,6 +113,7 @@ public:
       v->fn_name->accept(this);
       jump_type = raw_type->get_return();
     }
+    definition = false;
     error = v->fn_body->accept(this);
     // delete all nested definitions
     for (auto it = declarations.begin(); it != declarations.end();)
@@ -120,13 +125,14 @@ public:
     return error;
   }
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
+    definition = false;
     v->return_type->accept(this);
     if (v->fn_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->fn_name->getIdentifier();
       auto name = prefix(identifier->name);
       v->fn_name->accept(this);
       if (declarations.find(name) != declarations.end()) {
-        if (!declarations[name]->compare_equal(raw_type))
+        if (!declarations[name]->compare_exact(raw_type))
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name +
@@ -136,6 +142,11 @@ public:
       } else
         declarations[name] = raw_type;
     }
+    for (auto it = declarations.begin(); it != declarations.end();)
+      if ((*it).first.compare(0, prefix("$").size(), prefix("$")) == 0)
+        declarations.erase(it++);
+      else
+        ++it;
     return error;
   }
 
@@ -150,7 +161,7 @@ public:
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name + "'");
-        else if (!declarations[name]->compare_equal(raw_type))
+        else if (!declarations[name]->compare_exact(raw_type))
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name +
@@ -160,24 +171,32 @@ public:
       } else
         declarations[name] = raw_type;
     }
+    if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->data_name)
+      return SEMANTIC_ERROR(v->data_name->getTokenRef().getLine(),
+                            v->data_name->getTokenRef().getColumn(),
+                            "Incomplete type");
     return error;
   }
 
   std::string visitStructDeclaration(StructDeclaration *v) override {
     error = v->struct_type->accept(this);
+    bool anonymous = raw_type == nullptr;
     if (!error.empty())
       return error;
     if (v->struct_alias) {
       global_scope = false;
       const auto &identifier = *v->struct_alias->getIdentifier();
       std::string name = prefix(identifier->name);
+      if (anonymous)
+        raw_type = std::make_shared<RawStructType>(
+            "struct " + prefix("__" + prefix(identifier->name) + "__"));
       v->struct_alias->accept(this);
       if (declarations.find(name) != declarations.end()) {
         if (!global_scope)
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name + "'");
-        else if (!declarations[name]->compare_equal(raw_type))
+        else if (!declarations[name]->compare_exact(raw_type))
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name +
@@ -186,8 +205,8 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
-      if (!(*v->struct_type->getStructType()).member_list.empty()) {
-        pre.emplace_back(identifier->name);
+      if (anonymous && (*v->struct_type->getStructType()).members) {
+        pre.emplace_back("__" + name + "__");
         for (const auto &d : (*v->struct_type->getStructType()).member_list) {
           error = d->accept(this);
           if (!error.empty())
@@ -196,8 +215,7 @@ public:
         pre.pop_back();
       }
     } else {
-      if (!(*v->struct_type->getStructType()).struct_name &&
-          !(*v->struct_type->getStructType()).member_list.empty()) {
+      if (anonymous && (*v->struct_type->getStructType()).members) {
         for (const auto &d : (*v->struct_type->getStructType()).member_list) {
           error = d->accept(this);
           if (!error.empty())
@@ -210,6 +228,10 @@ public:
 
   std::string visitParamDeclaration(ParamDeclaration *v) override {
     v->param_type->accept(this);
+    if (definition && !v->param_name)
+      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                            v->getTokenRef().getColumn(),
+                            "Expected identifier");
     if (v->param_name && v->param_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->param_name->getIdentifier();
       std::string name = prefix(identifier->name);
@@ -220,6 +242,10 @@ public:
       v->param_name->accept(this);
       declarations[name] = raw_type;
     }
+    if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->param_name)
+      return SEMANTIC_ERROR(v->param_name->getTokenRef().getLine(),
+                            v->param_name->getTokenRef().getColumn(),
+                            "Incomplete type");
     return error;
   }
 
@@ -240,7 +266,7 @@ public:
   std::string visitStructType(StructType *v) override {
     if (v->struct_name) {
       global_scope = false;
-      auto name = "@" + v->struct_name->name;
+      auto name = "__" + v->struct_name->name + "__";
       if (prefix().length() > name.length() &&
           0 == prefix().compare(prefix().length() - name.length() - 1,
                                 name.length(), name))
@@ -248,14 +274,14 @@ public:
                               v->struct_name->getTokenRef().getColumn(),
                               "Member '" + v->struct_name->name +
                                   "' has the same name as its class");
-      name = prefix("@" + v->struct_name->name);
+      name = prefix("__" + v->struct_name->name + "__");
       if (v->members) {
         if (definitions.find(name) != definitions.end())
           return SEMANTIC_ERROR(v->struct_name->getTokenRef().getLine(),
                                 v->struct_name->getTokenRef().getColumn(),
                                 "Redefinition of '" + v->struct_name->name +
                                     "'");
-        pre.push_back("@" + v->struct_name->name);
+        pre.push_back("__" + v->struct_name->name + "__");
         for (const auto &d : v->member_list) {
           error = d->accept(this);
           if (!error.empty())
@@ -264,10 +290,21 @@ public:
         pre.pop_back();
         definitions.insert(name);
       }
-      raw_type = make_unique<RawStructType>("struct " + v->struct_name->name);
+      std::string tmp;
+      std::string tmp_pre = prefix();
+      while (tmp_pre.find('.') != std::string::npos) {
+        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
+        tmp = tmp_pre + ".__" + v->struct_name->name + "__";
+        if (declarations.find(tmp) != declarations.end()) {
+          raw_type = declarations[tmp];
+          return error;
+        }
+      }
+      raw_type = make_unique<RawStructType>(
+          "struct " + prefix("__" + v->struct_name->name + "__"));
       declarations[name] = raw_type;
     } else
-      raw_type = make_unique<RawStructType>("struct");
+      raw_type = nullptr;
     return error;
   }
 
@@ -292,8 +329,22 @@ public:
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
     pre.emplace_back("$");
     v->identifier->accept(this);
+    if (!error.empty())
+      return error;
+    v->return_ptr->accept(this);
+    if (!error.empty())
+      return error;
     auto return_type = raw_type;
     auto tmp = std::vector<std::shared_ptr<RawType>>();
+    if (v->param_list.size() == 1 && !v->param_list[0]->param_name) {
+      error = v->param_list[0]->param_type->accept(this);
+      if (raw_type->compare_equal(
+              std::make_shared<RawScalarType>(RawTypeValue::VOID))) {
+        pre.pop_back();
+        raw_type = make_unique<RawFunctionType>(return_type, tmp);
+        return error;
+      }
+    }
     for (const auto &p : v->param_list) {
       error = p->accept(this);
       if (!error.empty())
@@ -302,7 +353,7 @@ public:
     }
     pre.pop_back();
     raw_type = make_unique<RawFunctionType>(return_type, tmp);
-    return v->return_ptr->accept(this);
+    return error;
   }
 
   std::string visitCompoundStmt(CompoundStmt *v) override {
@@ -331,7 +382,8 @@ public:
     error = v->condition->accept(this);
     if (!error.empty())
       return error;
-    if (raw_type->getRawTypeValue() != RawTypeValue::INT) {
+    if (!raw_type->compare_equal(
+            make_unique<RawScalarType>(RawTypeValue::INT))) {
       return SEMANTIC_ERROR(
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Condition has to be int, found " + raw_type->print());
@@ -388,7 +440,8 @@ public:
     error = v->predicate->accept(this);
     if (!error.empty())
       return error;
-    if (raw_type->getRawTypeValue() != RawTypeValue::INT) {
+    if (!raw_type->compare_equal(
+            make_unique<RawScalarType>(RawTypeValue::INT))) {
       return SEMANTIC_ERROR(
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Predicate has to be int, found " + raw_type->print());
@@ -440,8 +493,8 @@ public:
       if (!error.empty())
         return error;
       if (!raw_type->compare_equal(jump_type))
-        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
-                              v->getTokenRef().getColumn(),
+        return SEMANTIC_ERROR(v->expr->getTokenRef().getLine(),
+                              v->expr->getTokenRef().getColumn(),
                               "Can't return " + raw_type->print() +
                                   " instead of " + jump_type->print());
       return error;
@@ -478,8 +531,12 @@ public:
                           "Use of undeclared identifier '" + name + "'");
   }
 
-  std::string visitNumber(Number *) override {
-    temporary = true;
+  std::string visitNumber(Number *v) override {
+    temporary = v->num_value != 0;
+    //    if (v->num_value < 0 || v->num_value >
+    //    std::numeric_limits<int>::max())
+    //      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+    //                            v->getTokenRef().getColumn(), "Bad i32");
     raw_type = make_unique<RawScalarType>(RawTypeValue::INT);
     return error;
   }
@@ -499,6 +556,8 @@ public:
 
   std::string visitMemberAccessOp(MemberAccessOp *v) override {
     error = v->struct_name->accept(this);
+    if (!error.empty())
+      return error;
     temporary = false;
     std::string sub;
     switch (v->op_kind) {
@@ -521,43 +580,31 @@ public:
                               "Can't access member of " + raw_type->print());
       sub = raw_type->getRawStructType()->getName();
     }
-    if (sub == "struct") {
-      std::string name;
-      std::string tmp_pre = prefix();
-      while (tmp_pre.find('.') != std::string::npos) {
-        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
-        name = tmp_pre + "." + v->struct_name->getVariableName()->name + "." +
-               v->member_name->getVariableName()->name;
-        if (declarations.find(name) != declarations.end()) {
-          raw_type = declarations[name];
-          return error;
-        }
-      }
-      return SEMANTIC_ERROR(
-          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
-          "Can't find member " + v->member_name->getVariableName()->name +
-              " of " + v->struct_name->getVariableName()->name);
-    } else {
-      std::string name;
-      std::string tmp_pre = prefix();
-      while (tmp_pre.find('.') != std::string::npos) {
-        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
-        name = tmp_pre + ".@" + sub.substr(7, sub.size()) + "." +
-               v->member_name->getVariableName()->name;
-        if (declarations.find(name) != declarations.end()) {
-          raw_type = declarations[name];
-          return error;
-        }
-      }
-      return SEMANTIC_ERROR(
-          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
-          "Can't find member " + v->member_name->getVariableName()->name +
-              " of " + sub);
+    std::string name = sub.substr(7, sub.size()) + "." +
+                       v->member_name->getVariableName()->name;
+    if (declarations.find(name) != declarations.end()) {
+      raw_type = declarations[name];
+      return error;
     }
+    return SEMANTIC_ERROR(
+        v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+        "Can't find member " + v->member_name->getVariableName()->name +
+            " of " + sub);
   }
 
   std::string visitArraySubscriptOp(ArraySubscriptOp *v) override {
     error = v->array_name->accept(this);
+    if (!error.empty())
+      return error;
+    if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
+      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                            v->getTokenRef().getColumn(),
+                            "Can't subscript " + raw_type->print());
+    error = v->index_value->accept(this);
+    if (!raw_type->compare_equal(make_unique<RawScalarType>(RawTypeValue::INT)))
+      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                            v->getTokenRef().getColumn(),
+                            "Can't index with " + raw_type->print());
     temporary = false;
     return error; // TODO
   }
@@ -601,35 +648,60 @@ public:
 
   std::string visitUnary(Unary *v) override {
     temporary = true;
+    //    if (v->op_kind == UnaryOpValue::MINUS &&
+    //        v->operand->getNumber() != nullptr) {
+    //      if (v->operand->getNumber()->num_value < 0 ||
+    //          v->operand->getNumber()->num_value - 1 >
+    //              std::numeric_limits<int>::max())
+    //        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+    //                              v->getTokenRef().getColumn(), "Bad i32");
+    //      else
+    //        raw_type = make_unique<RawScalarType>(RawTypeValue::INT);
+    //    } else {
     error = v->operand->accept(this);
     if (!error.empty())
       return error;
+    //    }
     switch (v->op_kind) {
     case UnaryOpValue::MINUS:
-      if (raw_type->getRawTypeValue() != RawTypeValue::INT)
+      if (!raw_type->compare_equal(
+              make_unique<RawScalarType>(RawTypeValue::INT)))
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn(),
                               "Can't minus " + raw_type->print());
+      temporary = true;
       break;
     case UnaryOpValue::NOT:
-      if (raw_type->getRawTypeValue() != RawTypeValue::INT)
+      if (!raw_type->compare_equal(
+              make_unique<RawScalarType>(RawTypeValue::INT)))
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn(),
                               "Can't negate " + raw_type->print());
+      temporary = true;
       break;
     case UnaryOpValue::DEREFERENCE:
+      if (v->getNumber() && v->getNumber()->num_value == 0) {
+        raw_type = std::make_shared<RawPointerType>(
+            std::make_shared<RawScalarType>(RawTypeValue::VOID));
+        break;
+      }
       if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn(),
                               "Can't dereference " + raw_type->print());
       raw_type = raw_type->deref();
+      temporary = false;
       break;
     case UnaryOpValue::ADDRESS_OF:
+      if (v->getNumber() && v->getNumber()->num_value == 0) {
+        raw_type = std::make_shared<RawScalarType>(RawTypeValue::VOID);
+      }
       raw_type = make_unique<RawPointerType>(raw_type);
       if (temporary)
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn(),
                               "Can't get address of temporay object");
+      temporary = true;
       break;
     }
     return error;
@@ -652,12 +724,21 @@ public:
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    if (lhs_type->getRawTypeValue() == RawTypeValue::VOID)
+      return SEMANTIC_ERROR(v->left_operand->getTokenRef().getLine(),
+                            v->left_operand->getTokenRef().getColumn(),
+                            "handling " + lhs_type->print());
+    if (rhs_type->getRawTypeValue() == RawTypeValue::VOID)
+      return SEMANTIC_ERROR(v->right_operand->getTokenRef().getLine(),
+                            v->right_operand->getTokenRef().getColumn(),
+                            "handling " + rhs_type->print());
     if (!lhs_type->compare_equal(rhs_type)) {
       return SEMANTIC_ERROR(
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Can't handle " + lhs_type->print() + " and " + rhs_type->print());
     }
-    temporary = true;
+    raw_type = lhs_type;
+    temporary = (lhs_type->getRawTypeValue() != RawTypeValue::POINTER);
     return error;
   }
 
@@ -665,7 +746,8 @@ public:
     error = v->predicate->accept(this);
     if (!error.empty())
       return error;
-    if (raw_type->getRawTypeValue() != RawTypeValue::INT) {
+    if (!raw_type->compare_equal(
+            make_unique<RawScalarType>(RawTypeValue::INT))) {
       return SEMANTIC_ERROR(
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Predicate has to be int, found " + raw_type->print());
@@ -693,6 +775,10 @@ public:
     if (!error.empty())
       return error;
     auto lhs_type = raw_type;
+    if (temporary || !v->left_operand->isLValue())
+      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                            v->getTokenRef().getColumn(),
+                            "Can't assign to " + lhs_type->print());
     error = v->right_operand->accept(this);
     if (!error.empty())
       return error;
@@ -702,6 +788,28 @@ public:
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Can't assign " + rhs_type->print() + " to " + lhs_type->print());
     }
+    if (lhs_type->isVoidPtr()) {
+      if (v->right_operand->getNumber() &&
+          v->right_operand->getNumber()->num_value == 0)
+        return error;
+      std::string name = v->left_operand->getVariableName()->name;
+      std::string tmp_pre = prefix();
+      std::string tmp;
+      while (tmp_pre.find('.') != std::string::npos) {
+        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
+        tmp = tmp_pre;
+        tmp += "." + name;
+        if (declarations.find(tmp) != declarations.end()) {
+          declarations[tmp] = rhs_type;
+          return error;
+        }
+      }
+    }
+    if (lhs_type->getRawTypeValue() == RawTypeValue::FUNCTION ||
+        lhs_type->getRawTypeValue() == RawTypeValue::STRUCT)
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't assign " + rhs_type->print() + " to " + lhs_type->print());
     temporary = true;
     return error;
   }

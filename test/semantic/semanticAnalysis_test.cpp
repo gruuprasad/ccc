@@ -343,7 +343,7 @@ TEST_CASE("use struct") {
 
 TEST_CASE("access") {
   std::string input = "struct A {int x;} s;\n"
-                      "struct B {struct A *p;} *a;\n"
+                      "struct {struct A *p;} *a;\n"
                       "int foo () {\n"
                       "void *p;\n"
                       "p = a;\n"
@@ -365,7 +365,7 @@ TEST_CASE("access") {
 
 TEST_CASE("scoping") {
   std::string input = "int *a;\n"
-                      "int foo (void, int) {\n"
+                      "int foo (int a, int b) {\n"
                       "}\n"
                       "struct A *p;\n"
                       "int main () {\n"
