@@ -343,7 +343,7 @@ TEST_CASE("use struct") {
 
 TEST_CASE("access") {
   std::string input = "struct A {int x;} s;\n"
-                      "struct B {struct A *p;} *a;\n"
+                      "struct {struct A *p;} *a;\n"
                       "int foo () {\n"
                       "void *p;\n"
                       "p = a;\n"

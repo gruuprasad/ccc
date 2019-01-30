@@ -26,6 +26,7 @@ public:
   virtual RawPointerType *getRawPointerType() { return nullptr; }
   virtual RawFunctionType *getRawFunctionType() { return nullptr; }
   virtual RawStructType *getRawStructType() { return nullptr; }
+  virtual bool isVoidPtr() { return false; }
 };
 
 class RawScalarType : public RawType {
@@ -52,6 +53,8 @@ public:
     case RawTypeValue::INT:
     case RawTypeValue::CHAR:
       return type_kind == b->getRawTypeValue();
+    case RawTypeValue::POINTER:
+      return type_kind == RawTypeValue::INT;
     default:
       return false;
     }
@@ -70,13 +73,17 @@ public:
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
     switch (b->getRawTypeValue()) {
     case RawTypeValue::POINTER:
-      if (ptr->getRawTypeValue() == RawTypeValue::VOID ||
-          b->deref()->getRawTypeValue() == RawTypeValue::VOID)
+      if (isVoidPtr() || b->isVoidPtr())
         return true;
       return ptr->compare_equal(b->deref());
+    case RawTypeValue::INT:
+      return true;
     default:
       return false;
     }
+  }
+  bool isVoidPtr() override {
+    return ptr->getRawTypeValue() == RawTypeValue::VOID;
   }
 };
 
