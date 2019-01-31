@@ -638,30 +638,30 @@ public:
     if (!error.empty())
       return error;
     if (raw_type->getRawTypeValue() != RawTypeValue::FUNCTION)
-      return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
-                            v->callee_name->getTokenRef().getColumn(),
+      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                            v->getTokenRef().getColumn(),
                             "Can't call " + raw_type->print());
 
     auto return_type = raw_type->get_return();
     auto calle_arg_types = raw_type->get_param();
 
     if (calle_arg_types.size() < v->callee_args.size())
-      return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
-                            v->callee_name->getTokenRef().getColumn(),
+      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                            v->getTokenRef().getColumn(),
                             "Too many arguments for " + raw_type->print());
 
     for (unsigned int i = 0; i < calle_arg_types.size(); i++) {
       if (i >= v->callee_args.size())
-        return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
-                              v->callee_name->getTokenRef().getColumn(),
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
                               "Too few arguments for " + raw_type->print());
       error = v->callee_args[i]->accept(this);
       if (!error.empty())
         return error;
       if (calle_arg_types[i]->getRawTypeValue() != RawTypeValue::VOID &&
           !calle_arg_types[i]->compare_equal(raw_type))
-        return SEMANTIC_ERROR(v->callee_name->getTokenRef().getLine(),
-                              v->callee_name->getTokenRef().getColumn(),
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
                               "Can't call " + calle_arg_types[i]->print() +
                                   " with " + raw_type->print());
     }
@@ -783,9 +783,12 @@ public:
           "Can't handle " + lhs_type->print() + " and " + rhs_type->print());
     temporary = (lhs_type->getRawTypeValue() != RawTypeValue::POINTER);
     if (v->op_kind == BinaryOpValue::ADD ||
-        v->op_kind == BinaryOpValue::SUBTRACT)
-      raw_type = lhs_type;
-    else
+        v->op_kind == BinaryOpValue::SUBTRACT) {
+      if (rhs_type->getRawTypeValue() == RawTypeValue::POINTER)
+        raw_type = rhs_type;
+      else
+        raw_type = lhs_type;
+    } else
       raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
     if (v->op_kind == BinaryOpValue::SUBTRACT &&
         lhs_type->getRawTypeValue() == RawTypeValue::POINTER &&
