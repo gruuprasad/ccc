@@ -499,6 +499,7 @@ enum class BinaryOpValue {
   NOT_EQUAL,
   LOGICAL_AND,
   LOGICAL_OR,
+  ASSIGN
 };
 
 class Binary : public Expression {

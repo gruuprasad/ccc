@@ -363,6 +363,24 @@ TEST_CASE("access") {
   REQUIRE_SUCCESS(sv);
 }
 
+TEST_CASE("wrong num args") {
+  std::string input = "int foo (int a, int b) {\n"
+                      "return foo(1);\n"
+                      "}\n"
+                      "\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto pp = PrettyPrinterVisitor();
+  std::cout << root->accept(&pp) << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(2, 11, "Too few arguments for int"));
+}
+
 TEST_CASE("scoping") {
   std::string input = "int *a;\n"
                       "int foo (int a, int b) {\n"

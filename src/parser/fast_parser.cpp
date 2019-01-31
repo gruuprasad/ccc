@@ -11,17 +11,15 @@ static std::unordered_map<TokenType, UnaryOpValue, EnumClassHash>
                         {TokenType::NOT, UnaryOpValue::NOT}};
 
 static std::unordered_map<TokenType, BinaryOpValue, EnumClassHash>
-    TokenToBinaryOpValue{
-        {TokenType::STAR, BinaryOpValue::MULTIPLY},
-        {TokenType::PLUS, BinaryOpValue::ADD},
-        {TokenType::MINUS, BinaryOpValue::SUBTRACT},
-        {TokenType::LESS, BinaryOpValue::LESS_THAN},
-        {TokenType::EQUAL, BinaryOpValue::EQUAL},
-        {TokenType::NOT_EQUAL, BinaryOpValue::NOT_EQUAL},
-        {TokenType::AND, BinaryOpValue::LOGICAL_AND},
-        {TokenType::OR, BinaryOpValue::LOGICAL_OR},
-        //                         {TokenType::ASSIGN, BinaryOpValue::ASSIGN}
-    };
+    TokenToBinaryOpValue{{TokenType::STAR, BinaryOpValue::MULTIPLY},
+                         {TokenType::PLUS, BinaryOpValue::ADD},
+                         {TokenType::MINUS, BinaryOpValue::SUBTRACT},
+                         {TokenType::LESS, BinaryOpValue::LESS_THAN},
+                         {TokenType::EQUAL, BinaryOpValue::EQUAL},
+                         {TokenType::NOT_EQUAL, BinaryOpValue::NOT_EQUAL},
+                         {TokenType::AND, BinaryOpValue::LOGICAL_AND},
+                         {TokenType::OR, BinaryOpValue::LOGICAL_OR},
+                         {TokenType::ASSIGN, BinaryOpValue::ASSIGN}};
 
 // (6.9) translationUnit :: external-declaration+
 unique_ptr<TranslationUnit> FastParser::parseTranslationUnit() {
@@ -517,8 +515,12 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
       lhs = make_unique<Ternary>(binOpLeft, std::move(lhs),
                                  std::move(ternary_middle), std::move(rhs));
     } else {
-      lhs = make_unique<Binary>(binOpLeft, binOpLeftValue, std::move(lhs),
-                                std::move(rhs));
+      if (binOpLeftValue == BinaryOpValue::ASSIGN)
+        lhs =
+            make_unique<Assignment>(binOpLeft, std::move(lhs), std::move(rhs));
+      else
+        lhs = make_unique<Binary>(binOpLeft, binOpLeftValue, std::move(lhs),
+                                  std::move(rhs));
     }
     nextTokenPrec = peek().getPrecedence();
   }
@@ -602,11 +604,11 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
   if (fail()) {
     return std::unique_ptr<Expression>();
   }
-
+  src_mark = peek();
   while (true) {
     switch (peek().getType()) {
     case TokenType::BRACKET_OPEN:
-      consume(TokenType::BRACE_OPEN);
+      consume(TokenType::BRACKET_OPEN);
       post_operand = parseExpression();
       mustExpect(TokenType::BRACKET_CLOSE, " bracket close ");
       postfix = make_unique<ArraySubscriptOp>(src_mark, std::move(postfix),
