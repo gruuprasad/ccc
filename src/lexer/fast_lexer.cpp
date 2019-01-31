@@ -151,6 +151,7 @@ inline Token FastLexer::munchCharacter() {
     case 'r':
     case 't':
     case 'v':
+    case '0':
       result = Token(TokenType::CHARACTER, line, column,
                      std::string(&content[position - 1], 2));
       column += 4;
