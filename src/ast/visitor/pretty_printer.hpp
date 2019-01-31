@@ -130,6 +130,15 @@ public:
     return ss.str() + INDENT + "}";
   }
 
+  std::string visitAbstractType(AbstractType *v) override {
+    std::string pre, post;
+    for (unsigned int i = 0; i < v->ptr_count; i++) {
+      pre += "(*";
+      post += ")";
+    }
+    return v->type->accept(this) + " " + pre + post;
+  }
+
   std::string visitDirectDeclarator(DirectDeclarator *v) override {
     return v->identifer->accept(this);
   }

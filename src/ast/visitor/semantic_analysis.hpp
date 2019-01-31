@@ -191,6 +191,7 @@ public:
         raw_type = std::make_shared<RawStructType>(
             "struct " + prefix("__" + prefix(identifier->name) + "__"));
       v->struct_alias->accept(this);
+      // FIXME nested structs of parent type
       if (declarations.find(name) != declarations.end()) {
         if (!global_scope)
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
@@ -241,7 +242,8 @@ public:
                               "Redefinition of '" + identifier->name + "'");
       v->param_name->accept(this);
       declarations[name] = raw_type;
-    }
+    } else if (v->param_name)
+      v->param_name->accept(this);
     if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->param_name)
       return SEMANTIC_ERROR(v->param_name->getTokenRef().getLine(),
                             v->param_name->getTokenRef().getColumn(),
@@ -297,6 +299,7 @@ public:
         tmp = tmp_pre + ".__" + v->struct_name->name + "__";
         if (declarations.find(tmp) != declarations.end()) {
           raw_type = declarations[tmp];
+          declarations[name] = raw_type;
           return error;
         }
       }
@@ -305,6 +308,13 @@ public:
       declarations[name] = raw_type;
     } else
       raw_type = nullptr;
+    return error;
+  }
+
+  std::string visitAbstractType(AbstractType *v) override {
+    v->type->accept(this);
+    for (int i = 0; i < v->ptr_count; i++)
+      raw_type = make_unique<RawPointerType>(raw_type);
     return error;
   }
 
@@ -331,6 +341,10 @@ public:
     v->identifier->accept(this);
     if (!error.empty())
       return error;
+    int lvl = 0;
+    while (raw_type->getRawPointerType()) {
+      raw_type = raw_type->deref();
+    }
     v->return_ptr->accept(this);
     if (!error.empty())
       return error;
@@ -353,6 +367,8 @@ public:
     }
     pre.pop_back();
     raw_type = make_unique<RawFunctionType>(return_type, tmp);
+    for (int i = 0; i < lvl; i++)
+      raw_type = make_unique<RawPointerType>(raw_type);
     return error;
   }
 
@@ -537,7 +553,10 @@ public:
     //    std::numeric_limits<int>::max())
     //      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
     //                            v->getTokenRef().getColumn(), "Bad i32");
-    raw_type = make_unique<RawScalarType>(RawTypeValue::INT);
+    if (v->num_value == 0)
+      raw_type = make_unique<RawScalarType>(RawTypeValue::NIL);
+    else
+      raw_type = make_unique<RawScalarType>(RawTypeValue::INT);
     return error;
   }
 
@@ -594,18 +613,23 @@ public:
 
   std::string visitArraySubscriptOp(ArraySubscriptOp *v) override {
     error = v->array_name->accept(this);
+    auto ret_type = raw_type;
     if (!error.empty())
       return error;
-    if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
-      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
-                            v->getTokenRef().getColumn(),
-                            "Can't subscript " + raw_type->print());
+    if (raw_type->getRawTypeValue() != RawTypeValue::FUNCTION) {
+      if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
+                              "Can't subscript " + raw_type->print());
+      ret_type = raw_type->deref();
+    }
     error = v->index_value->accept(this);
     if (!raw_type->compare_equal(make_unique<RawScalarType>(RawTypeValue::INT)))
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
                             "Can't index with " + raw_type->print());
     temporary = false;
+    raw_type = ret_type;
     return error; // TODO
   }
 
@@ -685,6 +709,10 @@ public:
             std::make_shared<RawScalarType>(RawTypeValue::VOID));
         break;
       }
+      if (raw_type->getRawTypeValue() == RawTypeValue::FUNCTION) {
+        temporary = false;
+        break;
+      }
       if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn(),
@@ -724,6 +752,16 @@ public:
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    if (v->op_kind == BinaryOpValue ::MULTIPLY &&
+        ((lhs_type->getRawTypeValue() != RawTypeValue::INT &&
+          lhs_type->getRawTypeValue() != RawTypeValue::CHAR &&
+          lhs_type->getRawTypeValue() != RawTypeValue::NIL) ||
+         (rhs_type->getRawTypeValue() != RawTypeValue::INT &&
+          rhs_type->getRawTypeValue() != RawTypeValue::CHAR &&
+          rhs_type->getRawTypeValue() != RawTypeValue::NIL)))
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't handle " + lhs_type->print() + " * " + rhs_type->print());
     if (lhs_type->getRawTypeValue() == RawTypeValue::VOID)
       return SEMANTIC_ERROR(v->left_operand->getTokenRef().getLine(),
                             v->left_operand->getTokenRef().getColumn(),
@@ -737,8 +775,22 @@ public:
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Can't handle " + lhs_type->print() + " and " + rhs_type->print());
     }
-    raw_type = lhs_type;
+    if (lhs_type->getRawTypeValue() == RawTypeValue::POINTER &&
+        rhs_type->getRawTypeValue() == RawTypeValue::POINTER &&
+        !lhs_type->compare_exact(rhs_type))
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't handle " + lhs_type->print() + " and " + rhs_type->print());
     temporary = (lhs_type->getRawTypeValue() != RawTypeValue::POINTER);
+    if (v->op_kind == BinaryOpValue::ADD ||
+        v->op_kind == BinaryOpValue::SUBTRACT)
+      raw_type = lhs_type;
+    else
+      raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
+    if (v->op_kind == BinaryOpValue::SUBTRACT &&
+        lhs_type->getRawTypeValue() == RawTypeValue::POINTER &&
+        rhs_type->getRawTypeValue() == RawTypeValue::POINTER)
+      raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
     return error;
   }
 
@@ -775,7 +827,8 @@ public:
     if (!error.empty())
       return error;
     auto lhs_type = raw_type;
-    if (temporary || !v->left_operand->isLValue())
+    if (temporary || !v->left_operand->isLValue() ||
+        lhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
                             "Can't assign to " + lhs_type->print());
@@ -783,33 +836,27 @@ public:
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    //    if (lhs_type->isVoidPtr() &&
+    //        (rhs_type->getRawTypeValue() == RawTypeValue::POINTER ||
+    //         rhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)) {
+    //      std::string name = v->left_operand->getVariableName()->name;
+    //      std::string tmp_pre = prefix();
+    //      std::string tmp;
+    //      while (tmp_pre.find('.') != std::string::npos) {
+    //        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
+    //        tmp = tmp_pre;
+    //        tmp += "." + name;
+    //        if (declarations.find(tmp) != declarations.end()) {
+    //          declarations[tmp] = rhs_type;
+    //          return error;
+    //        }
+    //      }
+    //    }
     if (!lhs_type->compare_equal(rhs_type)) {
       return SEMANTIC_ERROR(
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Can't assign " + rhs_type->print() + " to " + lhs_type->print());
     }
-    if (lhs_type->isVoidPtr()) {
-      if (v->right_operand->getNumber() &&
-          v->right_operand->getNumber()->num_value == 0)
-        return error;
-      std::string name = v->left_operand->getVariableName()->name;
-      std::string tmp_pre = prefix();
-      std::string tmp;
-      while (tmp_pre.find('.') != std::string::npos) {
-        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
-        tmp = tmp_pre;
-        tmp += "." + name;
-        if (declarations.find(tmp) != declarations.end()) {
-          declarations[tmp] = rhs_type;
-          return error;
-        }
-      }
-    }
-    if (lhs_type->getRawTypeValue() == RawTypeValue::FUNCTION ||
-        lhs_type->getRawTypeValue() == RawTypeValue::STRUCT)
-      return SEMANTIC_ERROR(
-          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
-          "Can't assign " + rhs_type->print() + " to " + lhs_type->print());
     temporary = true;
     return error;
   }

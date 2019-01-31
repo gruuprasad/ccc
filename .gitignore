@@ -4,6 +4,7 @@ sample/
 cookie/
 venv/
 black_box_files/**/local/
+black_box_files/**/.local/
 *.gv
 *.svg
 *.old
