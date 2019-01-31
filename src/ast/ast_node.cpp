@@ -26,6 +26,9 @@ std::string ParamDeclaration::accept(Visitor *v) {
 
 std::string ScalarType::accept(Visitor *v) { return v->visitScalarType(this); }
 std::string StructType::accept(Visitor *v) { return v->visitStructType(this); }
+std::string AbstractType::accept(Visitor *v) {
+  return v->visitAbstractType(this);
+}
 std::string DirectDeclarator::accept(Visitor *v) {
   return v->visitDirectDeclarator(this);
 }

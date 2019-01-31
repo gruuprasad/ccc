@@ -187,13 +187,14 @@ public:
       if (ptr)
         return ptr->compare_equal(b->get_return());
     default:
-      return false;
+      break;
     }
+    return false;
   }
   bool compare_exact(const std::shared_ptr<RawType> &b) override {
     switch (b->getRawTypeValue()) {
     case RawTypeValue::POINTER:
-      return ptr->compare_equal(b->deref());
+      return ptr->compare_exact(b->deref());
     case RawTypeValue::NIL:
       return true;
     default:

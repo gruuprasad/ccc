@@ -100,6 +100,14 @@ public:
     return makeGVVertice(v->hash(), "ScalarType \"" + v->accept(&pp) + "\"");
   }
 
+  std::string visitAbstractType(AbstractType *v) override {
+    std::stringstream ss;
+    ss << makeGVVertice(v->hash(), "DataDeclaration");
+    ss << makeGVEdge(v->hash(), v->type->hash()) << v->type->accept(this);
+    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
+           "}\n";
+  }
+
   std::string visitStructType(StructType *v) override {
     std::stringstream ss;
     if (v->struct_name)

@@ -347,7 +347,7 @@ TEST_CASE("access") {
                       "int foo () {\n"
                       "void *p;\n"
                       "p = a;\n"
-                      "return p->p->x;"
+                      "return a->p->x;"
                       "}\n";
 
   auto fp = FastParser(input);

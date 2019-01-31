@@ -41,6 +41,7 @@ class PrettyPrinterVisitor;
 class StructType;
 class AbstractDeclarator;
 class Number;
+class FunctionDeclarator;
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType =
@@ -169,6 +170,17 @@ public:
   std::string accept(Visitor *) override;
 };
 
+class AbstractType : public Type {
+  FRIENDS
+  std::unique_ptr<Type> type;
+  int ptr_count;
+
+public:
+  AbstractType(const Token &tk, std::unique_ptr<Type> v, int ptr_count)
+      : Type(tk), type(move(v)), ptr_count(ptr_count) {}
+  std::string accept(Visitor *) override;
+};
+
 class StructType : public Type {
   FRIENDS
   std::unique_ptr<VariableName> struct_name;
@@ -194,6 +206,7 @@ protected:
 public:
   virtual std::unique_ptr<VariableName> *getIdentifier() = 0;
   virtual AbstractDeclarator *getAbstractDeclarator() { return nullptr; };
+  virtual FunctionDeclarator *getFunctionDeclarator() { return nullptr; }
 };
 
 class DirectDeclarator : public Declarator {
@@ -212,10 +225,10 @@ enum class AbstractDeclType { Data, Function };
 class AbstractDeclarator : public Declarator {
   FRIENDS
   AbstractDeclType type_kind;
-  unsigned int pointerCount = 0;
   std::unique_ptr<VariableName> *getIdentifier() override { return nullptr; }
 
 public:
+  unsigned int pointerCount = 0;
   AbstractDeclarator(const Token &tk, AbstractDeclType t, unsigned int p)
       : Declarator(tk), type_kind(t), pointerCount(p) {}
   std::string accept(Visitor *) override;
@@ -241,11 +254,10 @@ public:
 
 class FunctionDeclarator : public Declarator {
   FRIENDS
+public:
   std::unique_ptr<Declarator> identifier;
   ParamDeclarationListType param_list;
   std::unique_ptr<Declarator> return_ptr;
-
-public:
   FunctionDeclarator(const Token &tk, std::unique_ptr<Declarator> i,
                      ParamDeclarationListType p,
                      std::unique_ptr<Declarator> r = nullptr)
@@ -255,6 +267,7 @@ public:
   std::unique_ptr<VariableName> *getIdentifier() override {
     return identifier->getIdentifier();
   }
+  FunctionDeclarator *getFunctionDeclarator() override { return this; }
 };
 
 class Statement : public ASTNode {
@@ -541,6 +554,7 @@ public:
   virtual std::string visitParamDeclaration(ParamDeclaration *) = 0;
   virtual std::string visitScalarType(ScalarType *) = 0;
   virtual std::string visitStructType(StructType *) = 0;
+  virtual std::string visitAbstractType(AbstractType *) = 0;
   virtual std::string visitDirectDeclarator(DirectDeclarator *) = 0;
   virtual std::string visitAbstractDeclarator(AbstractDeclarator *) = 0;
   virtual std::string visitPointerDeclarator(PointerDeclarator *) = 0;

@@ -311,6 +311,13 @@ public:
     return error;
   }
 
+  std::string visitAbstractType(AbstractType *v) override {
+    v->type->accept(this);
+    for (int i = 0; i < v->ptr_count; i++)
+      raw_type = make_unique<RawPointerType>(raw_type);
+    return error;
+  }
+
   std::string visitDirectDeclarator(DirectDeclarator *) override {
     // break recursive raw type generation
     return error;
@@ -334,6 +341,10 @@ public:
     v->identifier->accept(this);
     if (!error.empty())
       return error;
+    int lvl = 0;
+    while (raw_type->getRawPointerType()) {
+      raw_type = raw_type->deref();
+    }
     v->return_ptr->accept(this);
     if (!error.empty())
       return error;
@@ -356,6 +367,8 @@ public:
     }
     pre.pop_back();
     raw_type = make_unique<RawFunctionType>(return_type, tmp);
+    for (int i = 0; i < lvl; i++)
+      raw_type = make_unique<RawPointerType>(raw_type);
     return error;
   }
 
@@ -600,13 +613,16 @@ public:
 
   std::string visitArraySubscriptOp(ArraySubscriptOp *v) override {
     error = v->array_name->accept(this);
+    auto ret_type = raw_type;
     if (!error.empty())
       return error;
-    if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
-      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
-                            v->getTokenRef().getColumn(),
-                            "Can't subscript " + raw_type->print());
-    auto ret_type = raw_type->deref();
+    if (raw_type->getRawTypeValue() != RawTypeValue::FUNCTION) {
+      if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
+                              "Can't subscript " + raw_type->print());
+      ret_type = raw_type->deref();
+    }
     error = v->index_value->accept(this);
     if (!raw_type->compare_equal(make_unique<RawScalarType>(RawTypeValue::INT)))
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
@@ -736,6 +752,16 @@ public:
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    if (v->op_kind == BinaryOpValue ::MULTIPLY &&
+        ((lhs_type->getRawTypeValue() != RawTypeValue::INT &&
+          lhs_type->getRawTypeValue() != RawTypeValue::CHAR &&
+          lhs_type->getRawTypeValue() != RawTypeValue::NIL) ||
+         (rhs_type->getRawTypeValue() != RawTypeValue::INT &&
+          rhs_type->getRawTypeValue() != RawTypeValue::CHAR &&
+          rhs_type->getRawTypeValue() != RawTypeValue::NIL)))
+      return SEMANTIC_ERROR(
+          v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+          "Can't handle " + lhs_type->print() + " * " + rhs_type->print());
     if (lhs_type->getRawTypeValue() == RawTypeValue::VOID)
       return SEMANTIC_ERROR(v->left_operand->getTokenRef().getLine(),
                             v->left_operand->getTokenRef().getColumn(),
@@ -756,14 +782,15 @@ public:
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Can't handle " + lhs_type->print() + " and " + rhs_type->print());
     temporary = (lhs_type->getRawTypeValue() != RawTypeValue::POINTER);
-    if (v->op_kind == BinaryOpValue ::LESS_THAN ||
-        v->op_kind == BinaryOpValue::EQUAL ||
-        v->op_kind == BinaryOpValue::LOGICAL_AND ||
-        v->op_kind == BinaryOpValue::LOGICAL_OR ||
-        v->op_kind == BinaryOpValue::NOT_EQUAL) {
-      raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
-    } else
+    if (v->op_kind == BinaryOpValue::ADD ||
+        v->op_kind == BinaryOpValue::SUBTRACT)
       raw_type = lhs_type;
+    else
+      raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
+    if (v->op_kind == BinaryOpValue::SUBTRACT &&
+        lhs_type->getRawTypeValue() == RawTypeValue::POINTER &&
+        rhs_type->getRawTypeValue() == RawTypeValue::POINTER)
+      raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
     return error;
   }
 
@@ -800,7 +827,8 @@ public:
     if (!error.empty())
       return error;
     auto lhs_type = raw_type;
-    if (temporary || !v->left_operand->isLValue())
+    if (temporary || !v->left_operand->isLValue() ||
+        lhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
                             "Can't assign to " + lhs_type->print());
@@ -808,22 +836,22 @@ public:
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
-    if (lhs_type->isVoidPtr() &&
-        (rhs_type->getRawTypeValue() == RawTypeValue::POINTER ||
-         rhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)) {
-      std::string name = v->left_operand->getVariableName()->name;
-      std::string tmp_pre = prefix();
-      std::string tmp;
-      while (tmp_pre.find('.') != std::string::npos) {
-        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
-        tmp = tmp_pre;
-        tmp += "." + name;
-        if (declarations.find(tmp) != declarations.end()) {
-          declarations[tmp] = rhs_type;
-          return error;
-        }
-      }
-    }
+    //    if (lhs_type->isVoidPtr() &&
+    //        (rhs_type->getRawTypeValue() == RawTypeValue::POINTER ||
+    //         rhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)) {
+    //      std::string name = v->left_operand->getVariableName()->name;
+    //      std::string tmp_pre = prefix();
+    //      std::string tmp;
+    //      while (tmp_pre.find('.') != std::string::npos) {
+    //        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
+    //        tmp = tmp_pre;
+    //        tmp += "." + name;
+    //        if (declarations.find(tmp) != declarations.end()) {
+    //          declarations[tmp] = rhs_type;
+    //          return error;
+    //        }
+    //      }
+    //    }
     if (!lhs_type->compare_equal(rhs_type)) {
       return SEMANTIC_ERROR(
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),

@@ -234,8 +234,7 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
 // ( parameter-list )
 // (6.7.6) direct-abstract-declarator :: (
 // abstract-declarator ) | direct-abstract-declarator ( parameter-list(opt) )
-unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
-                                                         int ptrCount) {
+unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool, int ptrCount) {
   std::unique_ptr<Declarator> identifier;
   Token src_mark(peek());
   if (peek().is(TokenType::PARENTHESIS_OPEN)) {
@@ -261,21 +260,32 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool in_paren,
     }
     mustExpect(TokenType::PARENTHESIS_CLOSE, " ) ");
     isFunctionIdentifer = true;
-    if (ptrCount != 0 && in_paren) {
-      identifier = make_unique<PointerDeclarator>(
-          global_mark, std::move(identifier), ptrCount);
-    }
+
+    //    if (ptrCount != 0 && in_paren) {
+    //      identifier = make_unique<PointerDeclarator>(
+    //          global_mark, std::move(identifier), ptrCount);
+    //    }
+
     auto return_ptr = make_unique<AbstractDeclarator>(
         global_mark, AbstractDeclType::Data, ptrCount);
+
     return make_unique<FunctionDeclarator>(src_mark, move(identifier),
                                            move(param_list), move(return_ptr));
   }
 
   if (ptrCount != 0) {
-    identifier = make_unique<PointerDeclarator>(
-        global_mark, std::move(identifier), ptrCount);
+    auto tmp = identifier->getFunctionDeclarator();
+    if (tmp) {
+      auto return_ptr = make_unique<AbstractDeclarator>(
+          global_mark, AbstractDeclType::Data,
+          tmp->return_ptr->getAbstractDeclarator()->pointerCount + ptrCount);
+      return make_unique<FunctionDeclarator>(
+          tmp->getTokenRef(), move(tmp->identifier), move(tmp->param_list),
+          move(return_ptr));
+    } else
+      identifier = make_unique<PointerDeclarator>(
+          global_mark, std::move(identifier), ptrCount);
   }
-
   return identifier;
 }
 
@@ -534,10 +544,37 @@ std::unique_ptr<Expression> FastParser::parseUnaryExpression() {
     if (peek().is(TokenType::PARENTHESIS_OPEN) && peek(1).is(C_TYPES)) {
       consume(TokenType::PARENTHESIS_OPEN);
       auto type_name = parseTypeSpecifier().first;
+      int par = 0;
+      int star = 0;
+      bool loop = true;
+      while (loop) {
+        switch (peek().getType()) {
+        case TokenType::STAR:
+          consume(TokenType::STAR);
+          star++;
+          break;
+        case TokenType::PARENTHESIS_OPEN:
+          consume(TokenType::PARENTHESIS_OPEN);
+          par++;
+          break;
+        case TokenType::PARENTHESIS_CLOSE:
+          if (par > 0)
+            consume(TokenType::PARENTHESIS_CLOSE);
+          loop = par > 0;
+          par--;
+          break;
+        default:
+          loop = false;
+          break;
+        }
+      }
       mustExpect(TokenType::PARENTHESIS_CLOSE, " parenthesis close ");
       if (fail()) {
         return std::unique_ptr<Expression>();
       }
+      if (star > 0)
+        type_name =
+            make_unique<AbstractType>(src_mark, std::move(type_name), star);
       return make_unique<SizeOf>(src_mark, std::move(type_name));
     }
 
