@@ -3,6 +3,21 @@ stages:
   - test
   - deploy
 
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+  - llvm/
+
+
+before_script:
+  - echo "build llvm"
+#  - bash build_llvm.sh
+  - export PATH="$PATH:$PWD/llvm/install/bin/"
+  - clang++ --version
+  - llc --version
+  - lli --version
+  - opt --version
+
 variables:
   GIT_SSL_NO_VERIFY: "true"
 
