@@ -20,6 +20,7 @@ class SemanticVisitor : public Visitor {
   bool temporary = true;
   std::string alias;
   bool definition = false;
+  bool nested = false;
 
   std::shared_ptr<RawType> raw_type = nullptr;
   std::shared_ptr<RawType> jump_type = nullptr;
@@ -45,10 +46,10 @@ public:
       ss << "  " << d.first << ":"
          << "\033[31;m" << d.second->print() << "\033[0;m,\n";
     std::cout << "[\n" << ss.str() << "]";
-    //    std::ostringstream os;
-    //    std::copy(definitions.begin(), definitions.end(),
-    //              std::ostream_iterator<std::string>(os, ", "));
-    //        std::cout << "{" << os.str() << "}";
+    std::ostringstream os;
+    std::copy(definitions.begin(), definitions.end(),
+              std::ostream_iterator<std::string>(os, ", "));
+    std::cout << "{" << os.str() << "}";
     std::cout << std::endl;
   }
 
@@ -83,6 +84,7 @@ public:
   }
 
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
+    nested = false;
     global_scope = false;
     definition = true;
     v->return_type->accept(this);
@@ -125,6 +127,7 @@ public:
     return error;
   }
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
+    nested = false;
     definition = false;
     v->return_type->accept(this);
     if (v->fn_name->getIdentifier() != nullptr) {
@@ -151,7 +154,10 @@ public:
   }
 
   std::string visitDataDeclaration(DataDeclaration *v) override {
-    v->data_type->accept(this);
+    nested = false;
+    error = v->data_type->accept(this);
+    if (!error.empty())
+      return error;
     if (v->data_name) {
       const auto &identifier = *v->data_name->getIdentifier();
       std::string name = prefix(identifier->name);
@@ -179,7 +185,9 @@ public:
   }
 
   std::string visitStructDeclaration(StructDeclaration *v) override {
+    nested = true;
     error = v->struct_type->accept(this);
+    nested = false;
     bool anonymous = raw_type == nullptr;
     if (!error.empty())
       return error;
@@ -228,6 +236,7 @@ public:
   }
 
   std::string visitParamDeclaration(ParamDeclaration *v) override {
+    nested = false;
     v->param_type->accept(this);
     if (definition && !v->param_name)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
@@ -269,7 +278,7 @@ public:
     if (v->struct_name) {
       global_scope = false;
       auto name = "__" + v->struct_name->name + "__";
-      if (prefix().length() > name.length() &&
+      if (nested && prefix().length() > name.length() &&
           0 == prefix().compare(prefix().length() - name.length() - 1,
                                 name.length(), name))
         return SEMANTIC_ERROR(v->struct_name->getTokenRef().getLine(),
@@ -277,6 +286,22 @@ public:
                               "Member '" + v->struct_name->name +
                                   "' has the same name as its class");
       name = prefix("__" + v->struct_name->name + "__");
+
+      raw_type = nullptr;
+      std::string tmp;
+      std::string tmp_pre = prefix();
+      while (tmp_pre.find('.') != std::string::npos) {
+        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
+        tmp = tmp_pre + ".__" + v->struct_name->name + "__";
+        if (declarations.find(tmp) != declarations.end()) {
+          raw_type = make_unique<RawStructType>("struct " + tmp);
+        }
+      }
+      if (!raw_type)
+        raw_type = make_unique<RawStructType>(
+            "struct " + prefix("__" + v->struct_name->name + "__"));
+      declarations[name] = raw_type;
+      auto ret = raw_type;
       if (v->members) {
         if (definitions.find(name) != definitions.end())
           return SEMANTIC_ERROR(v->struct_name->getTokenRef().getLine(),
@@ -292,20 +317,7 @@ public:
         pre.pop_back();
         definitions.insert(name);
       }
-      std::string tmp;
-      std::string tmp_pre = prefix();
-      while (tmp_pre.find('.') != std::string::npos) {
-        tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
-        tmp = tmp_pre + ".__" + v->struct_name->name + "__";
-        if (declarations.find(tmp) != declarations.end()) {
-          raw_type = declarations[tmp];
-          declarations[name] = raw_type;
-          return error;
-        }
-      }
-      raw_type = make_unique<RawStructType>(
-          "struct " + prefix("__" + v->struct_name->name + "__"));
-      declarations[name] = raw_type;
+      raw_type = ret;
     } else
       raw_type = nullptr;
     return error;
@@ -337,13 +349,17 @@ public:
   }
 
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
+    auto d = definition;
+    if (definition)
+      definition = false;
     pre.emplace_back("$");
     v->identifier->accept(this);
     if (!error.empty())
       return error;
     int lvl = 0;
-    while (raw_type->getRawPointerType()) {
+    while (raw_type->getRawTypeValue() == RawTypeValue::POINTER) {
       raw_type = raw_type->deref();
+      lvl++;
     }
     v->return_ptr->accept(this);
     if (!error.empty())
@@ -356,6 +372,7 @@ public:
               std::make_shared<RawScalarType>(RawTypeValue::VOID))) {
         pre.pop_back();
         raw_type = make_unique<RawFunctionType>(return_type, tmp);
+        definition = d;
         return error;
       }
     }
@@ -369,6 +386,7 @@ public:
     raw_type = make_unique<RawFunctionType>(return_type, tmp);
     for (int i = 0; i < lvl; i++)
       raw_type = make_unique<RawPointerType>(raw_type);
+    definition = d;
     return error;
   }
 
