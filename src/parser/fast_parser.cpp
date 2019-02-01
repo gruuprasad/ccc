@@ -608,7 +608,7 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
   while (true) {
     switch (peek().getType()) {
     case TokenType::BRACKET_OPEN:
-      consume(TokenType::BRACKET_OPEN);
+      consume(TokenType::BRACE_OPEN);
       post_operand = parseExpression();
       mustExpect(TokenType::BRACKET_CLOSE, " bracket close ");
       postfix = make_unique<ArraySubscriptOp>(src_mark, std::move(postfix),

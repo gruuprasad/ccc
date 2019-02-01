@@ -797,19 +797,25 @@ public:
       return SEMANTIC_ERROR(
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Can't handle " + lhs_type->print() + " and " + rhs_type->print());
-    temporary = (lhs_type->getRawTypeValue() != RawTypeValue::POINTER);
+    temporary = true;
+    raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
     if (v->op_kind == BinaryOpValue::ADD ||
         v->op_kind == BinaryOpValue::SUBTRACT) {
-      if (rhs_type->getRawTypeValue() == RawTypeValue::POINTER)
+      if (lhs_type->getRawTypeValue() == RawTypeValue::POINTER &&
+          rhs_type->getRawTypeValue() == RawTypeValue::POINTER) {
+        if (v->op_kind == BinaryOpValue::ADD)
+          return SEMANTIC_ERROR(
+              v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
+              "Can't handle " + lhs_type->print() + " + " + rhs_type->print());
+        raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
+      } else if (rhs_type->getRawTypeValue() == RawTypeValue::POINTER) {
         raw_type = rhs_type;
-      else
+        temporary = false;
+      } else if (lhs_type->getRawTypeValue() == RawTypeValue::POINTER) {
         raw_type = lhs_type;
-    } else
-      raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
-    if (v->op_kind == BinaryOpValue::SUBTRACT &&
-        lhs_type->getRawTypeValue() == RawTypeValue::POINTER &&
-        rhs_type->getRawTypeValue() == RawTypeValue::POINTER)
-      raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
+        temporary = false;
+      }
+    }
     return error;
   }
 
