@@ -10,8 +10,8 @@ cache:
 
 
 before_script:
-  - echo "build llvm"
-#  - bash build_llvm.sh
+#  - build_llvm.sh
+  - echo $PWD
   - export PATH="$PATH:$PWD/llvm/install/bin/"
   - clang++ --version
   - llc --version
@@ -45,6 +45,8 @@ test:run:
 
 build:test:
   stage: build
+  dependencies:
+    - build:make
   script:
     - mkdir -p build
     - cd ./build
