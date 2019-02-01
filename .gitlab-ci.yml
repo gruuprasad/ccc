@@ -4,14 +4,15 @@ stages:
   - deploy
 
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
+  key: ccc-chache
   paths:
   - llvm/
 
 
 before_script:
-  - bash build_llvm.sh
-  - echo $PWD
+  - ls
+#  - bash build_llvm.sh
+  - ls llvm/install/bin/
   - export PATH="$PATH:$PWD/llvm/install/bin/"
   - clang++ --version
   - llc --version
@@ -24,12 +25,12 @@ variables:
 build:make:
   stage: build
   script:
-    - mkdir -p build
+    - mkdir -p build/
     - make -j$(nproc)
   artifacts:
     when: on_success
     paths:
-      - ./build/*
+      - build/
     expire_in: 5 mins
 
 test:run:
@@ -37,7 +38,7 @@ test:run:
   dependencies:
     - build:make
   script:
-    - cd ./build
+    - cd build/
     - ./release/c4 --tokenize ../examples/sample.c
     - ./release/c4 --parse ../examples/sample.c
     - ./release/c4 --print-ast ../examples/sample.c
@@ -48,8 +49,7 @@ test:tests:
   dependencies:
     - build:make
   script:
-    - mkdir -p build
-    - cd ./build
+    - cd build/
     - cmake ..
     - make check -j$(nproc)
   allow_failure: true
@@ -63,6 +63,6 @@ deploy:benchmark:
       - master
   artifacts:
     paths:
-      - ./benchmark.svg
+      - benchmark.svg
     expire_in: 3 days
   allow_failure: true

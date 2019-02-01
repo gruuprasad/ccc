@@ -2,11 +2,11 @@
 set -euP
 
 COLOR="\e[33m"
-_COLOR="\e[0m"
+_COLOR="\e[0m
 
-if [ ! -e  "llvm" ]; then
+if [ ! -e  "$PWD/llvm/install" ]; then
 
-echo -e "$COLOR===> mkdir llvm...$_COLOR"
+echo -e "$COLOR===> mkdir $PWD/llvm...$_COLOR"
 mkdir -p llvm
 cd llvm
 CUR=$PWD
@@ -48,7 +48,7 @@ echo -e "$COLOR===> DONE.$_COLOR"
 
 else
 
-echo -e "$COLOR===> cache llvm...$_COLOR"
+echo -e "$COLOR===> cache $PWD/llvm/install...$_COLOR"
 echo -e "$COLOR===> DONE.$_COLOR"
 
 fi
