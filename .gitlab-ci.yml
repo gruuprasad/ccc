@@ -4,7 +4,7 @@ stages:
   - deploy
 
 cache:
-  key: ccc-chache
+  key: ${CI_COMMIT_REF_SLUG}
   paths:
   - llvm/
 
