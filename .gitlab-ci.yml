@@ -33,6 +33,8 @@ ccc:build:
     - make -j$(nproc)
   cache:
     key: one-key-to-rule-them-all
+    paths:
+      - llvm/install/
   artifacts:
     when: on_success
     paths:
@@ -62,6 +64,8 @@ ccc:test:
     - make check -j$(nproc)
   cache:
     key: one-key-to-rule-them-all
+    paths:
+      - llvm/install/
   allow_failure: true
 
 ccc:deploy:
