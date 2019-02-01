@@ -1,33 +1,38 @@
 stages:
+#  - llvm
   - build
   - run
   - test
   - deploy
 
-cache:
-  key: one-key-to-rule-them-all
-  paths:
-  - llvm/
-
-
-before_script:
-  - ls
-  - bash build_llvm.sh
-  - ls llvm/install/bin/
-  - export PATH="$PATH:$PWD/llvm/install/bin/"
-  - clang++ --version
-  - llc --version
-  - lli --version
-  - opt --version
-
 variables:
   GIT_SSL_NO_VERIFY: "true"
 
+#ccc:llvm:
+#  stage: llvm
+#  script:
+#    - ls
+#    - bash build_llvm.sh
+#    - ls llvm/install/bin/
+#    - export PATH="$PATH:$PWD/llvm/install/bin/"
+#    - clang++ --version
+#    - llc --version
+#    - lli --version
+#    - opt --version
+#  cache:
+#    key: one-key-to-rule-them-all
+#    paths:
+#    - llvm/
+
 ccc:build:
   stage: build
+#  dependencies:
+#    - ccc:llvm
   script:
     - mkdir -p build/
     - make -j$(nproc)
+  cache:
+    key: one-key-to-rule-them-all
   artifacts:
     when: on_success
     paths:
@@ -44,6 +49,8 @@ ccc:run:
     - ./release/c4 --parse ../examples/sample.c
     - ./release/c4 --print-ast ../examples/sample.c
     - ./release/c4 --graphviz ../examples/sample.c
+  cache:
+    key: one-key-to-rule-them-all
 
 ccc:test:
   stage: test
@@ -53,6 +60,8 @@ ccc:test:
     - cd build/
     - cmake ..
     - make check -j$(nproc)
+  cache:
+    key: one-key-to-rule-them-all
   allow_failure: true
 
 ccc:deploy:
