@@ -4,14 +4,14 @@ stages:
   - deploy
 
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
+  key: one-key-to-rule-them-all
   paths:
   - llvm/
 
 
 before_script:
   - ls
-#  - bash build_llvm.sh
+  - bash build_llvm.sh
   - ls llvm/install/bin/
   - export PATH="$PATH:$PWD/llvm/install/bin/"
   - clang++ --version
