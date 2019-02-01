@@ -43,20 +43,10 @@ test:run:
     - ./release/c4 --print-ast ../examples/sample.c
     - ./release/c4 --graphviz ../examples/sample.c
 
-build:test:
-  stage: build
-  dependencies:
-    - build:make
-  script:
-    - mkdir -p build
-    - cd ./build
-    - cmake ..
-    - make -j$(nproc)
-
 test:tests:
   stage: test
   dependencies:
-    - build:test
+    - build:make
   script:
     - mkdir -p build
     - cd ./build
