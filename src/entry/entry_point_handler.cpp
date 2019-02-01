@@ -1,4 +1,5 @@
 #include "entry_point_handler.hpp"
+#include "../ast/visitor/codegen.hpp"
 #include "../ast/visitor/graphviz.hpp"
 #include "../ast/visitor/pretty_printer.hpp"
 #include "../ast/visitor/semantic_analysis.hpp"

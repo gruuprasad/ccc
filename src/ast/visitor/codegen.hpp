@@ -2,106 +2,135 @@
 #define C4_CODEGEN_VISITOR_HPP
 
 #include "../ast_node.hpp"
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Verifier.h"
+#pragma GCC diagnostic pop
 namespace ccc {
 
-class CodegenVisitor : public Visitor {
-
-  std::string error;
+class CodegenVisitor : public Visitor<llvm::Value *> {
 
 public:
   CodegenVisitor() = default;
   ~CodegenVisitor() override = default;
 
-  std::string visitTranslationUnit(TranslationUnit *v) override {
-    return error;
+  llvm::Value *visitTranslationUnit(TranslationUnit *v) override {
+    return v->accept(this);
   }
 
-  std::string visitFunctionDefinition(FunctionDefinition *v) override {
-    return error;
+  llvm::Value *visitFunctionDefinition(FunctionDefinition *v) override {
+    return v->accept(this);
   }
 
-  std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
-    return error;
+  llvm::Value *visitFunctionDeclaration(FunctionDeclaration *v) override {
+    return v->accept(this);
   }
 
-  std::string visitDataDeclaration(DataDeclaration *v) override {
-    return error;
+  llvm::Value *visitDataDeclaration(DataDeclaration *v) override {
+    return v->accept(this);
   }
 
-  std::string visitStructDeclaration(StructDeclaration *v) override {
-    return error;
+  llvm::Value *visitStructDeclaration(StructDeclaration *v) override {
+    return v->accept(this);
   }
 
-  std::string visitParamDeclaration(ParamDeclaration *v) override {
-    return error;
+  llvm::Value *visitParamDeclaration(ParamDeclaration *v) override {
+    return v->accept(this);
   }
 
-  std::string visitScalarType(ScalarType *v) override { return error; }
-
-  std::string visitAbstractType(AbstractType *v) override { return error; }
-
-  std::string visitStructType(StructType *v) override { return error; }
-
-  std::string visitDirectDeclarator(DirectDeclarator *v) override {
-    return error;
+  llvm::Value *visitScalarType(ScalarType *v) override {
+    return v->accept(this);
   }
 
-  std::string visitAbstractDeclarator(AbstractDeclarator *v) override {
-    return error;
+  llvm::Value *visitAbstractType(AbstractType *v) override {
+    return v->accept(this);
   }
 
-  std::string visitPointerDeclarator(PointerDeclarator *v) override {
-    return error;
+  llvm::Value *visitStructType(StructType *v) override {
+    return v->accept(this);
   }
 
-  std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
-    return error;
+  llvm::Value *visitDirectDeclarator(DirectDeclarator *v) override {
+    return v->accept(this);
   }
 
-  std::string visitCompoundStmt(CompoundStmt *v) override { return error; }
-
-  std::string visitIfElse(IfElse *v) override { return error; }
-
-  std::string visitLabel(Label *v) override { return error; }
-
-  std::string visitWhile(While *v) override { return error; }
-
-  std::string visitGoto(Goto *v) override { return error; }
-
-  std::string visitExpressionStmt(ExpressionStmt *v) override { return error; }
-
-  std::string visitBreak(Break *v) override { return error; }
-
-  std::string visitReturn(Return *v) override { return error; }
-
-  std::string visitContinue(Continue *v) override { return error; }
-
-  std::string visitVariableName(VariableName *v) override { return error; }
-
-  std::string visitNumber(Number *v) override { return error; }
-
-  std::string visitCharacter(Character *v) override { return error; }
-
-  std::string visitString(String *v) override { return error; }
-
-  std::string visitMemberAccessOp(MemberAccessOp *v) override { return error; }
-
-  std::string visitArraySubscriptOp(ArraySubscriptOp *v) override {
-    return error;
+  llvm::Value *visitAbstractDeclarator(AbstractDeclarator *v) override {
+    return v->accept(this);
   }
 
-  std::string visitFunctionCall(FunctionCall *v) override { return error; }
+  llvm::Value *visitPointerDeclarator(PointerDeclarator *v) override {
+    return v->accept(this);
+  }
 
-  std::string visitUnary(Unary *v) override { return error; }
+  llvm::Value *visitFunctionDeclarator(FunctionDeclarator *v) override {
+    return v->accept(this);
+  }
 
-  std::string visitSizeOf(SizeOf *v) override { return error; }
+  llvm::Value *visitCompoundStmt(CompoundStmt *v) override {
+    return v->accept(this);
+  }
 
-  std::string visitBinary(Binary *v) override { return error; }
+  llvm::Value *visitIfElse(IfElse *v) override { return v->accept(this); }
 
-  std::string visitTernary(Ternary *v) override { return error; }
+  llvm::Value *visitLabel(Label *v) override { return v->accept(this); }
 
-  std::string visitAssignment(Assignment *v) override { return error; }
+  llvm::Value *visitWhile(While *v) override { return v->accept(this); }
+
+  llvm::Value *visitGoto(Goto *v) override { return v->accept(this); }
+
+  llvm::Value *visitExpressionStmt(ExpressionStmt *v) override {
+    return v->accept(this);
+  }
+
+  llvm::Value *visitBreak(Break *v) override { return v->accept(this); }
+
+  llvm::Value *visitReturn(Return *v) override { return v->accept(this); }
+
+  llvm::Value *visitContinue(Continue *v) override { return v->accept(this); }
+
+  llvm::Value *visitVariableName(VariableName *v) override {
+    return v->accept(this);
+  }
+
+  llvm::Value *visitNumber(Number *v) override { return v->accept(this); }
+
+  llvm::Value *visitCharacter(Character *v) override { return v->accept(this); }
+
+  llvm::Value *visitString(String *v) override { return v->accept(this); }
+
+  llvm::Value *visitMemberAccessOp(MemberAccessOp *v) override {
+    return v->accept(this);
+  }
+
+  llvm::Value *visitArraySubscriptOp(ArraySubscriptOp *v) override {
+    return v->accept(this);
+  }
+
+  llvm::Value *visitFunctionCall(FunctionCall *v) override {
+    return v->accept(this);
+  }
+
+  llvm::Value *visitUnary(Unary *v) override { return v->accept(this); }
+
+  llvm::Value *visitSizeOf(SizeOf *v) override { return v->accept(this); }
+
+  llvm::Value *visitBinary(Binary *v) override { return v->accept(this); }
+
+  llvm::Value *visitTernary(Ternary *v) override { return v->accept(this); }
+
+  llvm::Value *visitAssignment(Assignment *v) override {
+    return v->accept(this);
+  }
 };
 
 } // namespace ccc

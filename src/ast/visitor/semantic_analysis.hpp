@@ -8,7 +8,7 @@ using IdentifierSetType = std::unordered_set<std::string>;
 using IdentifierMapType =
     std::unordered_map<std::string, std::shared_ptr<RawType>>;
 
-class SemanticVisitor : public Visitor {
+class SemanticVisitor : public Visitor<std::string> {
 
   IdentifierSetType definitions;
   IdentifierMapType declarations;

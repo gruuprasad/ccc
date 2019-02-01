@@ -1,5 +1,6 @@
+llvm_map_components_to_libnames(llvm_libs support core irreader)
 add_library(test_LLIB OBJECT test_main.cpp)
-target_link_libraries(test_LLIB entry lexer parser ast)
+target_link_libraries(test_LLIB entry lexer parser ast ${llvm_libs})
 
 add_executable(test_lexer
                lexer/lexer_test.cpp

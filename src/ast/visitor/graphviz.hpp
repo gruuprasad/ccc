@@ -6,7 +6,7 @@
 
 namespace ccc {
 
-class GraphvizVisitor : public Visitor {
+class GraphvizVisitor : public Visitor<std::string> {
   static std::string makeGVVertice(unsigned long hash, std::string name) {
     std::stringstream ss;
     ss << hash
