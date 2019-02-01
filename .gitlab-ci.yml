@@ -10,7 +10,7 @@ cache:
 
 
 before_script:
-#  - build_llvm.sh
+  - bash build_llvm.sh
   - echo $PWD
   - export PATH="$PATH:$PWD/llvm/install/bin/"
   - clang++ --version
