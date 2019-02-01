@@ -19,7 +19,7 @@ class SemanticVisitor : public Visitor {
   bool global_scope;
   bool temporary = true;
   std::string alias;
-  bool definition = false;
+  bool function_definition = false;
   bool nested = false;
 
   std::shared_ptr<RawType> raw_type = nullptr;
@@ -86,7 +86,7 @@ public:
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
     nested = false;
     global_scope = false;
-    definition = true;
+    function_definition = true;
     v->return_type->accept(this);
     if (v->fn_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->fn_name->getIdentifier();
@@ -115,7 +115,7 @@ public:
       v->fn_name->accept(this);
       jump_type = raw_type->get_return();
     }
-    definition = false;
+    function_definition = false;
     error = v->fn_body->accept(this);
     // delete all nested definitions
     for (auto it = declarations.begin(); it != declarations.end();)
@@ -128,7 +128,7 @@ public:
   }
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
     nested = false;
-    definition = false;
+    function_definition = false;
     v->return_type->accept(this);
     if (v->fn_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->fn_name->getIdentifier();
@@ -237,11 +237,13 @@ public:
 
   std::string visitParamDeclaration(ParamDeclaration *v) override {
     nested = false;
-    v->param_type->accept(this);
-    if (definition && !v->param_name)
+    if (function_definition && !v->param_name)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
                             "Expected identifier");
+    auto tmp = function_definition;
+    function_definition = false;
+    v->param_type->accept(this);
     if (v->param_name && v->param_name->getIdentifier() != nullptr) {
       const auto &identifier = *v->param_name->getIdentifier();
       std::string name = prefix(identifier->name);
@@ -257,6 +259,7 @@ public:
       return SEMANTIC_ERROR(v->param_name->getTokenRef().getLine(),
                             v->param_name->getTokenRef().getColumn(),
                             "Incomplete type");
+    function_definition = tmp;
     return error;
   }
 
@@ -349,9 +352,6 @@ public:
   }
 
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
-    auto d = definition;
-    if (definition)
-      definition = false;
     pre.emplace_back("$");
     v->identifier->accept(this);
     if (!error.empty())
@@ -372,7 +372,6 @@ public:
               std::make_shared<RawScalarType>(RawTypeValue::VOID))) {
         pre.pop_back();
         raw_type = make_unique<RawFunctionType>(return_type, tmp);
-        definition = d;
         return error;
       }
     }
@@ -386,7 +385,6 @@ public:
     raw_type = make_unique<RawFunctionType>(return_type, tmp);
     for (int i = 0; i < lvl; i++)
       raw_type = make_unique<RawPointerType>(raw_type);
-    definition = d;
     return error;
   }
 
