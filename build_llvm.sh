@@ -32,7 +32,7 @@ echo -e "$COLOR===> make...$_COLOR"
 mkdir -p build
 mkdir -p install
 cd build
-cmake ../llvm \
+cmake ../src \
         -DCMAKE_BUILD_TYPE:STRING=Release \
         -DCMAKE_INSTALL_PREFIX:PATH=$CUR/install \
         -DLLVM_ENABLE_ASSERTIONS:BOOL=ON \
