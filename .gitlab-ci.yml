@@ -1,5 +1,5 @@
 stages:
-#  - llvm
+  - llvm
   - build
   - run
   - test
@@ -8,31 +8,33 @@ stages:
 variables:
   GIT_SSL_NO_VERIFY: "true"
 
-#ccc:llvm:
-#  stage: llvm
-#  script:
-#    - ls
-#    - bash build_llvm.sh
-#    - ls llvm/install/bin/
-#    - export PATH="$PATH:$PWD/llvm/install/bin/"
-#    - clang++ --version
-#    - llc --version
-#    - lli --version
-#    - opt --version
-#  cache:
-#    key: one-key-to-rule-them-all
-#    paths:
-#    - llvm/
+ccc:llvm:
+  stage: llvm
+  script:
+    - ls
+    - bash build_llvm.sh
+    - ls llvm/install/bin/
+    - export PATH="$PATH:$PWD/llvm/install/bin/"
+    - clang++ --version
+    - llc --version
+    - lli --version
+    - opt --version
+  cache:
+    key: one-key-to-rule-them-all
+    paths:
+    - llvm/install/
 
 ccc:build:
   stage: build
-#  dependencies:
-#    - ccc:llvm
+  dependencies:
+    - ccc:llvm
   script:
     - mkdir -p build/
     - make -j$(nproc)
   cache:
     key: one-key-to-rule-them-all
+    paths:
+      - llvm/install/
   artifacts:
     when: on_success
     paths:
@@ -62,6 +64,8 @@ ccc:test:
     - make check -j$(nproc)
   cache:
     key: one-key-to-rule-them-all
+    paths:
+      - llvm/install/
   allow_failure: true
 
 ccc:deploy:
