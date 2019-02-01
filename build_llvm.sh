@@ -2,7 +2,7 @@
 set -euP
 
 COLOR="\e[33m"
-_COLOR="\e[0m
+_COLOR="\e[0m"
 
 if [ ! -e  "$PWD/llvm/install" ]; then
 
