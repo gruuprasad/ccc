@@ -1,5 +1,6 @@
 stages:
   - build
+  - run
   - test
   - deploy
 
@@ -22,7 +23,7 @@ before_script:
 variables:
   GIT_SSL_NO_VERIFY: "true"
 
-build:make:
+ccc:build:
   stage: build
   script:
     - mkdir -p build/
@@ -31,12 +32,12 @@ build:make:
     when: on_success
     paths:
       - build/
-    expire_in: 5 mins
+    expire_in: 10 mins
 
-test:run:
-  stage: test
+ccc:run:
+  stage: run
   dependencies:
-    - build:make
+    - ccc:build
   script:
     - cd build/
     - ./release/c4 --tokenize ../examples/sample.c
@@ -44,17 +45,17 @@ test:run:
     - ./release/c4 --print-ast ../examples/sample.c
     - ./release/c4 --graphviz ../examples/sample.c
 
-test:tests:
+ccc:test:
   stage: test
   dependencies:
-    - build:make
+    - ccc:build
   script:
     - cd build/
     - cmake ..
     - make check -j$(nproc)
   allow_failure: true
 
-deploy:benchmark:
+ccc:deploy:
   stage: deploy
   script:
     - echo "The cake is a lie."
