@@ -12,7 +12,7 @@ cd llvm
 CUR=$PWD
 echo -e "$COLOR===> DONE.$_COLOR"
 
-cho -e "$COLOR===> get sources...$_COLOR"
+echo -e "$COLOR===> get sources...$_COLOR"
 if [ ! -e  "$CUR/src" ]; then
         echo -e "$COLOR===> get sources::llvm...$_COLOR"
         wget http://releases.llvm.org/7.0.1/llvm-7.0.1.src.tar.xz
