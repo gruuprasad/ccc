@@ -58,21 +58,13 @@
 
 using namespace ccc;
 
-TEST_CASE("list dir") {
-  std::string dir = ROOT_DIR;
-  for (const auto &file : Utils::dir(&dir[0])) {
-    REQUIRE(!file.empty());
-    std::cout << dir << file << "\n";
-  }
-  std::cout << std::endl;
-}
-
 TEST_CASE("lexer_failure_files") {
   std::string dir = ROOT_DIR + "lexer_failure_files/";
   for (const auto &file : Utils::dir(&dir[0])) {
     SECTION(file) {
       std::string flag = "--tokenize";
       std::string input = dir + file;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
 
       GCC_FAILURE;
       PIPE_CERR;
@@ -102,6 +94,7 @@ TEST_CASE("parser_success_files") {
     SECTION(file) {
       std::string flag = "--parse";
       std::string input = dir + file;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
 
       GCC_SUCCESS;
 
@@ -126,6 +119,7 @@ TEST_CASE("parser_failure_files") {
     SECTION(file) {
       std::string flag = "--parse";
       std::string input = dir + file;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
 
       GCC_FAILURE;
       PIPE_CERR;
@@ -153,6 +147,7 @@ TEST_CASE("pretty_printer_files") {
     SECTION(file) {
       std::string flag = "--print-ast";
       std::string input = dir + file;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
