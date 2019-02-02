@@ -78,8 +78,10 @@ public:
   }
 
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
-    return INDENT + v->return_type->accept(this) + " " +
-           v->fn_name->accept(this) + ";\n";
+    if (v->fn_name)
+      return INDENT + v->return_type->accept(this) + " " +
+             v->fn_name->accept(this) + ";\n";
+    return INDENT + v->return_type->accept(this) + ";\n";
   }
 
   std::string visitDataDeclaration(DataDeclaration *v) override {

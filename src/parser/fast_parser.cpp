@@ -113,7 +113,7 @@ unique_ptr<ExternalDeclaration> FastParser::parseFuncDefOrDeclaration() {
     return make_unique<DataDeclaration>(src_mark, move(type_node.first),
                                         move(identifier_node));
   }
-
+  isFunctionIdentifer = false;
   // Function definition
   // XXX Ignore declaration-list for now
   if (peek().is(TokenType::BRACE_OPEN)) {

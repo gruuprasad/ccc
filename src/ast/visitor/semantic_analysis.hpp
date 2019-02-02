@@ -130,7 +130,7 @@ public:
     nested = false;
     function_definition = false;
     v->return_type->accept(this);
-    if (v->fn_name->getIdentifier() != nullptr) {
+    if (v->fn_name && v->fn_name->getIdentifier()) {
       const auto &identifier = *v->fn_name->getIdentifier();
       auto name = prefix(identifier->name);
       v->fn_name->accept(this);
