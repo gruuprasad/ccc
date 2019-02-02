@@ -1,3 +1,5 @@
+int **(**foo)(int **);
+
 int main() {
   int *a;
   int **b;

@@ -128,4 +128,54 @@ TEST_CASE("sizeof number") {
                                                   "}\n"));
 }
 
+TEST_CASE("precedence") {
+  std::string input = "void main () {\n"
+                      "int a;\n"
+                      "int b;\n"
+                      "int c;\n"
+                      "int d;"
+                      "c = d ? b : c;\n"
+                      "c = d ? b : a ? c : d;\n"
+                      "i = 5 || 2 ? a = 2 : b;"
+                      "i = 5 || 2 ? a = 2 : d ? b : c;"
+                      "1 + 1 * 1 * (1 * 1) - 1;\n"
+                      "1 && 1 || 1 * 1 || 1 == 1;\n"
+                      "a = b = 0;\n"
+                      "}";
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto pp = PrettyPrinterVisitor();
+  REQUIRE_EMPTY(Utils::compare(root->accept(&pp),
+                               "void (main())\n"
+                               "{\n"
+                               "\tint a;\n"
+                               "\tint b;\n"
+                               "\tint c;\n"
+                               "\tint d;\n"
+                               "\t(c = (d ? b : c));\n"
+                               "\t(c = (d ? b : (a ? c : d)));\n"
+                               "\t(i = ((5 || 2) ? (a = 2) : b));\n"
+                               "\t(i = ((5 || 2) ? (a = 2) : (d ? b : c)));\n"
+                               "\t((1 + ((1 * 1) * (1 * 1))) - 1);\n"
+                               "\t(((1 && 1) || (1 * 1)) || (1 == 1));\n"
+                               "\t(a = (b = 0));\n"
+                               "}\n"));
+}
+
+TEST_CASE("super abstract") {
+  std::string input = "void f(int *());"
+                      "void f(int *(*()));";
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto pp = PrettyPrinterVisitor();
+  REQUIRE_EMPTY(Utils::compare(root->accept(&pp),
+                               "void (f(int (*(()))));\n"
+                               "\n"
+                               "void (f(int (*(*(())))));\n"));
+}
+
 } // namespace ccc

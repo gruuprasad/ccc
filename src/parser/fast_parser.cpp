@@ -245,6 +245,9 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool, int ptrCount) {
   } else if (peek().is(TokenType::IDENTIFIER)) {
     identifier = make_unique<DirectDeclarator>(
         src_mark, make_unique<VariableName>(nextToken(), src_mark.getExtra()));
+  } else if (peek().is(TokenType::PARENTHESIS_CLOSE)) {
+    identifier = make_unique<AbstractDeclarator>(src_mark,
+                                                 AbstractDeclType::Function, 0);
   } else {
     parser_error(peek(), "identifier or parenthesized declarator");
     return unique_ptr<DirectDeclarator>();
@@ -480,7 +483,7 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
   while (true) {
     // If precedence of BinOp encounted is smaller than current Precedence
     // level return LHS.
-    if (nextTokenPrec < minPrec) {
+    if (nextTokenPrec <= minPrec) {
       if (fail())
         return std::unique_ptr<Expression>();
       return lhs; // LHS
@@ -503,8 +506,9 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
     auto binOpLeftPrec = nextTokenPrec;
     nextTokenPrec = peek().getPrecedence(); // binOpRight
 
-    if (binOpLeftPrec < nextTokenPrec ||
-        ternayOp) { // rhs of : with maximal precedence
+    if (ternayOp) { // rhs of : with maximal precedence
+      rhs = parseBinOpWithRHS(std::move(rhs), 0);
+    } else if (binOpLeftPrec < nextTokenPrec) {
       // Evaluate RHS + binOpRight...
       rhs = parseBinOpWithRHS(std::move(rhs),
                               binOpLeftPrec); // new RHS after evaluation
