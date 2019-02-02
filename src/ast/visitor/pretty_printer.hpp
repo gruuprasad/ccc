@@ -132,7 +132,7 @@ public:
 
   std::string visitAbstractType(AbstractType *v) override {
     std::string pre, post;
-    for (unsigned int i = 0; i < v->ptr_count; i++) {
+    for (int i = 0; i < v->ptr_count; i++) {
       pre += "(*";
       post += ")";
     }

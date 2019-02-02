@@ -98,8 +98,8 @@ TEST_CASE("negative number") {
   REQUIRE_EMPTY(Utils::compare(root->accept(&pp), "int (main())\n"
                                                   "{\n"
                                                   "\tint a;\n"
-                                                  "\t(a = -5);\n"
-                                                  "\t(a - -5);\n"
+                                                  "\t(a = (-5));\n"
+                                                  "\t(a - (-5));\n"
                                                   "}\n"));
 }
 
@@ -120,7 +120,7 @@ TEST_CASE("sizeof number") {
   REQUIRE_EMPTY(Utils::compare(root->accept(&pp), "int (main())\n"
                                                   "{\n"
                                                   "\t(sizeof 5);\n"
-                                                  "\t(sizeof -5);\n"
+                                                  "\t(sizeof (-5));\n"
                                                   "\t(sizeof (5 + 1));\n"
                                                   "\t(sizeof main);\n"
                                                   "\t(sizeof(int));\n"
