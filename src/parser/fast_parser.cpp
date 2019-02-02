@@ -468,7 +468,7 @@ std::unique_ptr<Expression> FastParser::parseAssignmentExpression() {
 
   // Expression is binary
   if (peek().is(BINARY_OP)) {
-    return parseBinOpWithRHS(std::move(lhs), 1);
+    return parseBinOpWithRHS(std::move(lhs), 14);
   }
 
   // Expression is unary
@@ -483,7 +483,7 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
   while (true) {
     // If precedence of BinOp encounted is smaller than current Precedence
     // level return LHS.
-    if (nextTokenPrec <= minPrec) {
+    if (nextTokenPrec >= minPrec) {
       if (fail())
         return std::unique_ptr<Expression>();
       return lhs; // LHS
@@ -507,8 +507,8 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
     nextTokenPrec = peek().getPrecedence(); // binOpRight
 
     if (ternayOp) { // rhs of : with maximal precedence
-      rhs = parseBinOpWithRHS(std::move(rhs), 0);
-    } else if (binOpLeftPrec < nextTokenPrec) {
+      rhs = parseBinOpWithRHS(std::move(rhs), 15);
+    } else if (binOpLeftPrec > nextTokenPrec) { // XXX > or >= ?
       // Evaluate RHS + binOpRight...
       rhs = parseBinOpWithRHS(std::move(rhs),
                               binOpLeftPrec); // new RHS after evaluation

@@ -14,7 +14,7 @@
 #define BINARY_OP                                                              \
   TokenType::STAR, TokenType::PLUS, TokenType::MINUS, TokenType::LESS,         \
       TokenType::EQUAL, TokenType::NOT_EQUAL, TokenType::AND, TokenType::OR,   \
-      TokenType::CONDITIONAL
+      TokenType::CONDITIONAL, TokenType::ASSIGN
 
 #define LEXER_ERROR(line, column, msg)                                         \
   std::to_string(line) + ":" + std::to_string(column + 1) +                    \
