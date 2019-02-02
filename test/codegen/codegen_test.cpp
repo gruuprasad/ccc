@@ -13,7 +13,7 @@ TEST_CASE("ast codegen smoke test") {
   REQUIRE(cv.print(code) == "i64 1");
   std::cout << cv.print(code) << std::endl;
   cv.dump("test.ll", code);
-  system("../../llvm/install/bin/clang -o test test.ll && ./test);
+  system("../../llvm/install/bin/clang -o test test.ll && ./test");
 }
 
 } // namespace ccc
