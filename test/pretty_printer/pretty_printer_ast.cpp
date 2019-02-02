@@ -156,6 +156,7 @@ TEST_CASE("precedence") {
                       "a == b < c;"
                       "a < b == c;"
                       "sizeof &b + 1 == !a == *&b == &c;"
+                      "a = a < b ? a : a = b;"
                       "}";
   auto fp = FastParser(input);
   auto root = fp.parse();
@@ -192,6 +193,7 @@ TEST_CASE("precedence") {
                      "\t(a == (b < c));\n"
                      "\t((a < b) == c);\n"
                      "\t(((((sizeof (&b)) + 1) == (!a)) == (*(&b))) == (&c));\n"
+                     "\t(a = ((a < b) ? a : (a = b)));\n"
                      "}\n"));
 }
 
