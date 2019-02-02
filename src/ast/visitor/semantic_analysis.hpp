@@ -199,7 +199,6 @@ public:
         raw_type = std::make_shared<RawStructType>(
             "struct " + prefix("__" + prefix(identifier->name) + "__"));
       v->struct_alias->accept(this);
-      // FIXME nested structs of parent type
       if (declarations.find(name) != declarations.end()) {
         if (!global_scope)
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
@@ -657,7 +656,7 @@ public:
                                 rhs_type->print());
     }
     temporary = false;
-    return error; // TODO
+    return error;
   }
 
   std::string visitFunctionCall(FunctionCall *v) override {

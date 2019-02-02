@@ -227,7 +227,6 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   return unique_ptr<Declarator>();
 }
 
-// TODO Support for abstract function declarator type
 // (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator
 // ( parameter-list )
 // (6.7.6) direct-abstract-declarator :: (

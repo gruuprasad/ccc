@@ -170,7 +170,7 @@ public:
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
     std::stringstream ss;
     std::string pre, post;
-    if (v->return_ptr != nullptr) { // FIXME abstract declarator
+    if (v->return_ptr != nullptr) {
       const auto &abstract = *v->return_ptr->getAbstractDeclarator();
       for (unsigned int i = 0; i < abstract.pointerCount; i++) {
         pre += "(*";

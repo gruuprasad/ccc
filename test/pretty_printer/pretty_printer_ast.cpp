@@ -34,7 +34,7 @@ TEST_CASE("gv ast") {
                                                   "int ((*(*e))(int));\n"));
 }
 
-TEST_CASE("unary postfix") { // FIXME
+TEST_CASE("unary postfix") {
   std::string input = "int main() {\n"
                       "s.a;\n"
                       "*s.a;\n"
