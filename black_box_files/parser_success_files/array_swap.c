@@ -1,3 +1,5 @@
+int **(**foo)(int **);
+
 int main() {
   int *a;
   int **b;
@@ -9,4 +11,5 @@ int main() {
   *(1 + a) = a[0];
   *(a + 1) = a[0];
   b = &a;
+  0 [b] = b [0];
 }

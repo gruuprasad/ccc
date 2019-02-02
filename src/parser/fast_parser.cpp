@@ -113,7 +113,7 @@ unique_ptr<ExternalDeclaration> FastParser::parseFuncDefOrDeclaration() {
     return make_unique<DataDeclaration>(src_mark, move(type_node.first),
                                         move(identifier_node));
   }
-
+  isFunctionIdentifer = false;
   // Function definition
   // XXX Ignore declaration-list for now
   if (peek().is(TokenType::BRACE_OPEN)) {
@@ -245,6 +245,9 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool, int ptrCount) {
   } else if (peek().is(TokenType::IDENTIFIER)) {
     identifier = make_unique<DirectDeclarator>(
         src_mark, make_unique<VariableName>(nextToken(), src_mark.getExtra()));
+  } else if (peek().is(TokenType::PARENTHESIS_CLOSE)) {
+    identifier = make_unique<AbstractDeclarator>(src_mark,
+                                                 AbstractDeclType::Function, 0);
   } else {
     parser_error(peek(), "identifier or parenthesized declarator");
     return unique_ptr<DirectDeclarator>();
@@ -465,7 +468,7 @@ std::unique_ptr<Expression> FastParser::parseAssignmentExpression() {
 
   // Expression is binary
   if (peek().is(BINARY_OP)) {
-    return parseBinOpWithRHS(std::move(lhs), 1);
+    return parseBinOpWithRHS(std::move(lhs), 14);
   }
 
   // Expression is unary
@@ -480,7 +483,7 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
   while (true) {
     // If precedence of BinOp encounted is smaller than current Precedence
     // level return LHS.
-    if (nextTokenPrec < minPrec) {
+    if (nextTokenPrec >= minPrec) {
       if (fail())
         return std::unique_ptr<Expression>();
       return lhs; // LHS
@@ -503,8 +506,9 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
     auto binOpLeftPrec = nextTokenPrec;
     nextTokenPrec = peek().getPrecedence(); // binOpRight
 
-    if (binOpLeftPrec < nextTokenPrec ||
-        ternayOp) { // rhs of : with maximal precedence
+    if (ternayOp) { // rhs of : with maximal precedence
+      rhs = parseBinOpWithRHS(std::move(rhs), 15);
+    } else if (binOpLeftPrec > nextTokenPrec) { // XXX > or >= ?
       // Evaluate RHS + binOpRight...
       rhs = parseBinOpWithRHS(std::move(rhs),
                               binOpLeftPrec); // new RHS after evaluation
@@ -608,7 +612,7 @@ std::unique_ptr<Expression> FastParser::parsePostfixExpression() {
   while (true) {
     switch (peek().getType()) {
     case TokenType::BRACKET_OPEN:
-      consume(TokenType::BRACKET_OPEN);
+      consume(TokenType::BRACE_OPEN);
       post_operand = parseExpression();
       mustExpect(TokenType::BRACKET_CLOSE, " bracket close ");
       postfix = make_unique<ArraySubscriptOp>(src_mark, std::move(postfix),

@@ -12,7 +12,23 @@ class GraphvizVisitor : public Visitor<std::string> {
     ss << hash
        << "[label=<" + name +
               "> shape=ellipse style=filled "
-              "fillcolor=mediumaquamarine];\n";
+              "fillcolor=lightskyblue];\n";
+    return ss.str();
+  }
+  static std::string makeGVVerticeExpr(unsigned long hash, std::string name) {
+    std::stringstream ss;
+    ss << hash
+       << "[label=<" + name +
+              "> shape=ellipse style=filled "
+              "fillcolor=khaki];\n";
+    return ss.str();
+  }
+  static std::string makeGVVerticeBox(unsigned long hash, std::string name) {
+    std::stringstream ss;
+    ss << hash
+       << "[label=<" + name +
+              "> shape=box style=filled "
+              "fillcolor=lightgrey];\n";
     return ss.str();
   }
 
@@ -30,9 +46,10 @@ public:
 
   std::string visitTranslationUnit(TranslationUnit *v) override {
     std::stringstream ss;
-    ss << "graph ast{\nsplines=line;\nstyle=dotted;\nsubgraph cluster{\n";
+    ss << "graph ast{\nsplines=line;\nstyle=invis;\nsubgraph cluster{\n";
     ss << makeGVVertice(v->hash(), "TranslationUnit");
-    ss << "subgraph cluster_" << std::to_string(v->hash()) << "{\n";
+    ss << "subgraph cluster_" << std::to_string(v->hash())
+       << "{\nstyle=dotted\n";
     for (const auto &child : v->extern_list)
       ss << makeGVEdge(v->hash(), child->hash()) << child->accept(this);
     ss << "}\n}\n}\n";
@@ -46,8 +63,8 @@ public:
        << v->return_type->accept(this);
     ss << makeGVEdge(v->hash(), v->fn_name->hash()) << v->fn_name->accept(this);
     ss << makeGVEdge(v->hash(), v->fn_body->hash()) << v->fn_body->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
@@ -55,9 +72,11 @@ public:
     ss << makeGVVertice(v->hash(), "FunctionDeclaration");
     ss << makeGVEdge(v->hash(), v->return_type->hash())
        << v->return_type->accept(this);
-    ss << makeGVEdge(v->hash(), v->fn_name->hash()) << v->fn_name->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    if (v->fn_name)
+      ss << makeGVEdge(v->hash(), v->fn_name->hash())
+         << v->fn_name->accept(this);
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitDataDeclaration(DataDeclaration *v) override {
@@ -68,8 +87,8 @@ public:
     if (v->data_name)
       ss << makeGVEdge(v->hash(), v->data_name->hash())
          << v->data_name->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitStructDeclaration(StructDeclaration *v) override {
@@ -80,8 +99,8 @@ public:
     if (v->struct_alias)
       ss << makeGVEdge(v->hash(), v->struct_alias->hash())
          << v->struct_alias->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitParamDeclaration(ParamDeclaration *v) override {
@@ -92,35 +111,42 @@ public:
     if (v->param_name)
       ss << makeGVEdge(v->hash(), v->param_name->hash())
          << v->param_name->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitScalarType(ScalarType *v) override {
-    return makeGVVertice(v->hash(), "ScalarType \"" + v->accept(&pp) + "\"");
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" +
+           makeGVVerticeBox(v->hash(),
+                            "ScalarType \"" + v->accept(&pp) + "\"") +
+           "}\n";
   }
 
   std::string visitAbstractType(AbstractType *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "DataDeclaration");
+    ss << makeGVVerticeBox(v->hash(), "AbstractType");
     ss << makeGVEdge(v->hash(), v->type->hash()) << v->type->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitStructType(StructType *v) override {
     std::stringstream ss;
     if (v->struct_name)
-      ss << makeGVVertice(v->hash(),
-                          "StructType \"" + v->struct_name->name + "\"");
+      ss << makeGVVerticeBox(v->hash(),
+                             "StructType \"" + v->struct_name->name + "\"");
     else
-      ss << makeGVVertice(v->hash(), "StructType");
+      ss << makeGVVerticeBox(v->hash(), "StructType");
     for (const auto &p : v->member_list)
       ss << makeGVEdge(v->hash(),
                        std::hash<std::unique_ptr<ExternalDeclaration>>()(p))
          << p->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    if (v->members)
+      return "subgraph cluster_" + std::to_string(v->hash()) +
+             "{\nstyle=dotted;\n" + ss.str() + "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitDirectDeclarator(DirectDeclarator *v) override {
@@ -129,13 +155,16 @@ public:
     ss << makeGVEdge(v->hash(),
                      std::hash<std::unique_ptr<VariableName>>()(v->identifer))
        << v->identifer->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitAbstractDeclarator(AbstractDeclarator *v) override {
-    return makeGVVertice(v->hash(), "AbstractDeclarator *" +
-                                        std::to_string(v->pointerCount));
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" +
+           makeGVVertice(v->hash(), "AbstractDeclarator *" +
+                                        std::to_string(v->pointerCount)) +
+           "}\n";
   }
 
   std::string visitPointerDeclarator(PointerDeclarator *v) override {
@@ -144,8 +173,8 @@ public:
                                        std::to_string(v->indirection_level));
     ss << makeGVEdge(v->hash(), v->identifier->hash())
        << v->identifier->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
@@ -159,8 +188,8 @@ public:
          << p->accept(this);
     ss << makeGVEdge(v->hash(), v->return_ptr->hash())
        << v->return_ptr->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitCompoundStmt(CompoundStmt *v) override {
@@ -169,8 +198,8 @@ public:
     for (const auto &child : v->block_items)
       ss << makeGVEdge(v->hash(), std::hash<std::unique_ptr<ASTNode>>()(child))
          << child->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=dotted;\n" + ss.str() + "}\n";
   }
 
   std::string visitIfElse(IfElse *v) override {
@@ -182,8 +211,8 @@ public:
     if (v->elseStmt)
       ss << makeGVEdge(v->hash(), v->elseStmt->hash())
          << v->elseStmt->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitLabel(Label *v) override {
@@ -192,8 +221,8 @@ public:
     ss << makeGVEdge(v->hash(), v->label_name->hash())
        << v->label_name->accept(this);
     ss << makeGVEdge(v->hash(), v->stmt->hash()) << v->stmt->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitWhile(While *v) override {
@@ -202,8 +231,8 @@ public:
     ss << makeGVEdge(v->hash(), v->predicate->hash())
        << v->predicate->accept(this);
     ss << makeGVEdge(v->hash(), v->block->hash()) << v->block->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitGoto(Goto *v) override {
@@ -211,20 +240,21 @@ public:
     ss << makeGVVertice(v->hash(), "Goto");
     ss << makeGVEdge(v->hash(), v->label_name->hash())
        << v->label_name->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitExpressionStmt(ExpressionStmt *v) override {
     std::stringstream ss;
     ss << makeGVVertice(v->hash(), "ExpressionStmt");
     ss << makeGVEdge(v->hash(), v->expr->hash()) << v->expr->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitBreak(Break *v) override {
-    return makeGVVertice(v->hash(), "Break");
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + makeGVVertice(v->hash(), "Break") + "}\n";
   }
 
   std::string visitReturn(Return *v) override {
@@ -232,121 +262,135 @@ public:
     ss << makeGVVertice(v->hash(), "Return");
     if (v->expr) {
       ss << makeGVEdge(v->hash(), v->expr->hash()) << v->expr->accept(this);
-      return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" +
-             ss.str() + "}\n";
+      return "subgraph cluster_" + std::to_string(v->hash()) +
+             "{\nstyle=invis;\n" + ss.str() + "}\n";
     }
     return ss.str();
   }
 
   std::string visitContinue(Continue *v) override {
-    return makeGVVertice(v->hash(), "Continue");
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + makeGVVertice(v->hash(), "Continue") + "}\n";
   }
 
   std::string visitVariableName(VariableName *v) override {
-    return makeGVVertice(v->hash(), "VariableName \"" + v->name + "\"");
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" +
+           makeGVVerticeBox(v->hash(), "VariableName \"" + v->name + "\"") +
+           "}\n";
   }
 
   std::string visitNumber(Number *v) override {
-    return makeGVVertice(v->hash(),
-                         "Number \"" + std::to_string(v->num_value) + "\"");
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" +
+           makeGVVerticeBox(v->hash(),
+                            "Number \"" + std::to_string(v->num_value) + "\"") +
+           "}\n";
   }
 
   std::string visitCharacter(Character *v) override {
-    return makeGVVertice(v->hash(),
-                         "Character \"" + std::to_string(v->char_value) + "\"");
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" +
+           makeGVVerticeBox(v->hash(), "Character \"" +
+                                           std::to_string(v->char_value) +
+                                           "\"") +
+           "}\n";
   }
 
   std::string visitString(String *v) override {
-    return makeGVVertice(v->hash(), "String \"" + v->str_value + "\"");
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" +
+           makeGVVerticeBox(v->hash(), "String \"" + v->str_value + "\"") +
+           "}\n";
   }
 
   std::string visitMemberAccessOp(MemberAccessOp *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "MemberAccessOp");
+    ss << makeGVVerticeExpr(v->hash(), "MemberAccessOp");
     ss << makeGVEdge(v->hash(), v->struct_name->hash())
        << v->struct_name->accept(this);
     ss << makeGVEdge(v->hash(), v->member_name->hash())
        << v->member_name->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitArraySubscriptOp(ArraySubscriptOp *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "ArraySubscriptOp");
+    ss << makeGVVerticeExpr(v->hash(), "ArraySubscriptOp");
     ss << makeGVEdge(v->hash(), v->array_name->hash())
        << v->array_name->accept(this);
     ss << makeGVEdge(v->hash(), v->index_value->hash())
        << v->index_value->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitFunctionCall(FunctionCall *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "FunctionCall");
+    ss << makeGVVerticeExpr(v->hash(), "FunctionCall");
     ss << makeGVEdge(v->hash(), v->callee_name->hash())
        << v->callee_name->accept(this);
     for (const auto &p : v->callee_args)
       ss << makeGVEdge(v->hash(), p->hash()) << p->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitUnary(Unary *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "Unary");
+    ss << makeGVVerticeExpr(v->hash(), "Unary");
     ss << makeGVEdge(v->hash(), v->operand->hash()) << v->operand->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitSizeOf(SizeOf *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "SizeOf");
+    ss << makeGVVerticeExpr(v->hash(), "SizeOf");
     if (v->operand)
       ss << makeGVEdge(v->hash(), v->operand->hash())
          << v->operand->accept(this);
     else
       ss << makeGVEdge(v->hash(), v->type_name->hash())
          << v->type_name->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitBinary(Binary *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "Binary");
+    ss << makeGVVerticeExpr(v->hash(), "Binary");
     ss << makeGVEdge(v->hash(), v->left_operand->hash())
        << v->left_operand->accept(this);
     ss << makeGVEdge(v->hash(), v->right_operand->hash())
        << v->right_operand->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitTernary(Ternary *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "Ternary");
+    ss << makeGVVerticeExpr(v->hash(), "Ternary");
     ss << makeGVEdge(v->hash(), v->predicate->hash())
        << v->predicate->accept(this);
     ss << makeGVEdge(v->hash(), v->left_branch->hash())
        << v->left_branch->accept(this);
     ss << makeGVEdge(v->hash(), v->right_branch->hash())
        << v->right_branch->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 
   std::string visitAssignment(Assignment *v) override {
     std::stringstream ss;
-    ss << makeGVVertice(v->hash(), "Assignment");
+    ss << makeGVVerticeExpr(v->hash(), "Assignment");
     ss << makeGVEdge(v->hash(), v->left_operand->hash())
        << v->left_operand->accept(this);
     ss << makeGVEdge(v->hash(), v->right_operand->hash())
        << v->right_operand->accept(this);
-    return "subgraph cluster_" + std::to_string(v->hash()) + "{\n" + ss.str() +
-           "}\n";
+    return "subgraph cluster_" + std::to_string(v->hash()) +
+           "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 };
 

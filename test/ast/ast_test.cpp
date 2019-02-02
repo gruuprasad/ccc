@@ -8,11 +8,15 @@
 namespace ccc {
 
 TEST_CASE("gv ast") {
-  std::string language = "int z;\n"
-                         "void main() {\n"
-                         " z = 4;\n"
-                         " z + 5 = 7;\n"
-                         "}";
+  std::string language = "struct A;\n"
+                         "struct A a;\n"
+                         "\n"
+                         "void main () {\n"
+                         "  struct A *p;\n"
+                         "}\n"
+                         "\n"
+                         "int;"
+                         "struct A;";
 
   auto fp = FastParser(language);
   auto root = fp.parse();

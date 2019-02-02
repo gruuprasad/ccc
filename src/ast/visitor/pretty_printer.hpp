@@ -78,8 +78,10 @@ public:
   }
 
   std::string visitFunctionDeclaration(FunctionDeclaration *v) override {
-    return INDENT + v->return_type->accept(this) + " " +
-           v->fn_name->accept(this) + ";\n";
+    if (v->fn_name)
+      return INDENT + v->return_type->accept(this) + " " +
+             v->fn_name->accept(this) + ";\n";
+    return INDENT + v->return_type->accept(this) + ";\n";
   }
 
   std::string visitDataDeclaration(DataDeclaration *v) override {
@@ -132,7 +134,7 @@ public:
 
   std::string visitAbstractType(AbstractType *v) override {
     std::string pre, post;
-    for (unsigned int i = 0; i < v->ptr_count; i++) {
+    for (int i = 0; i < v->ptr_count; i++) {
       pre += "(*";
       post += ")";
     }
@@ -144,12 +146,16 @@ public:
   }
 
   std::string visitAbstractDeclarator(AbstractDeclarator *v) override {
-    std::string pre, post;
-    for (unsigned int i = 0; i < v->pointerCount; i++) {
-      pre += "(*";
-      post += ")";
+    if (v->type_kind == AbstractDeclType::Data) {
+      std::string pre, post;
+      for (unsigned int i = 0; i < v->pointerCount; i++) {
+        pre += "(*";
+        post += ")";
+      }
+      return pre + post;
+    } else {
+      return "(())";
     }
-    return pre + post;
   }
 
   std::string visitPointerDeclarator(PointerDeclarator *v) override {

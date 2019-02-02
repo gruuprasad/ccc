@@ -458,36 +458,37 @@ const std::string Token::token_type() const {
   }
 }
 
+// https://en.cppreference.com/w/c/language/operator_precedence
 Precedence Token::getPrecedence() const {
   switch (type) {
   case TokenType::ASSIGN:
-    return 1;
+    return 14;
   case TokenType::CONDITIONAL:
-    return 2;
+    return 13;
   case TokenType::OR:
-    return 3;
+    return 12;
   case TokenType::AND:
-    return 4;
-  case TokenType::LESS:
-    return 5;
-  case TokenType::GREATER:
-    return 5;
+    return 11;
   case TokenType::EQUAL:
-    return 5;
+    return 7;
   case TokenType::NOT_EQUAL:
+    return 7;
+  case TokenType::LESS:
+    return 6;
+  case TokenType::GREATER:
+    return 6;
+  case TokenType::LEFT_SHIFT:
+    return 5;
+  case TokenType::RIGHT_SHIFT:
     return 5;
   case TokenType::PLUS:
-    return 6;
+    return 4;
   case TokenType::MINUS:
-    return 6;
+    return 4;
   case TokenType::STAR:
-    return 7;
-  case TokenType::LEFT_SHIFT:
-    return 7;
-  case TokenType::RIGHT_SHIFT:
-    return 7;
+    return 3;
   default:
-    return 0;
+    return 15;
   }
 }
 
