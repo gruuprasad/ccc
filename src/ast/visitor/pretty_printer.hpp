@@ -328,6 +328,8 @@ public:
   }
 
   std::string visitUnary(Unary *v) override {
+    if (v->op_kind == UnaryOpValue::MINUS && v->operand->getNumber())
+      return UnaryOpValueToString[v->op_kind] + v->operand->accept(this);
     return "(" + UnaryOpValueToString[v->op_kind] + v->operand->accept(this) +
            ")";
   }
