@@ -4,7 +4,10 @@
 
 namespace ccc {
 
+using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
+using ScopeListType = std::vector<std::unordered_set<std::string>>;
 using IdentifierSetType = std::unordered_set<std::string>;
+using IdentifierPtrListType = std::vector<std::unique_ptr<VariableName> *>;
 using IdentifierMapType =
     std::unordered_map<std::string, std::shared_ptr<RawType>>;
 

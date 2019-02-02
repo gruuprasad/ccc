@@ -15,14 +15,34 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/raw_ostream.h"
 #pragma GCC diagnostic pop
 namespace ccc {
 
 class CodegenVisitor : public Visitor<llvm::Value *> {
+  llvm::LLVMContext llvmContext;
+  llvm::IRBuilder<> irBuilder;
+  std::unique_ptr<llvm::Module> llvmModule;
 
 public:
-  CodegenVisitor() = default;
+  CodegenVisitor()
+      : irBuilder(llvmContext), llvmModule(llvm::make_unique<llvm::Module>(
+                                    "root module", llvmContext)) {}
   ~CodegenVisitor() override = default;
+
+  std::string print(llvm::Value *pValue) {
+    std::string str;
+    llvm::raw_string_ostream stream(str);
+    pValue->print(stream);
+    return stream.str();
+  }
+
+  void dump(const std::string &filename, llvm::Value *pValue) {
+    std::error_code EC;
+    llvm::raw_fd_ostream stream(filename, EC, llvm::sys::fs::OpenFlags::F_Text);
+    pValue->print(stream);
+  }
 
   llvm::Value *visitTranslationUnit(TranslationUnit *v) override {
     return v->accept(this);
@@ -102,7 +122,10 @@ public:
     return v->accept(this);
   }
 
-  llvm::Value *visitNumber(Number *v) override { return v->accept(this); }
+  llvm::Value *visitNumber(Number *v) override {
+    return llvm::ConstantInt::get(
+        llvmContext, llvm::APInt(64, static_cast<uint64_t>(v->num_value)));
+  }
 
   llvm::Value *visitCharacter(Character *v) override { return v->accept(this); }
 

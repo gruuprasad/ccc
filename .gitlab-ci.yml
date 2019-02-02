@@ -15,7 +15,10 @@ ccc:llvm:
     - bash build_llvm.sh
     - ls llvm/install/bin/
     - export PATH="$PATH:$PWD/llvm/install/bin/"
+    - export CC="/llvm/install/bin/clang"
+      export CXX="/llvm/install/bin/clang++"
     - clang++ --version
+    - clang --version
     - llc --version
     - lli --version
     - opt --version
@@ -29,6 +32,9 @@ ccc:build:
   dependencies:
     - ccc:llvm
   script:
+    - export PATH="$PATH:$PWD/llvm/install/bin/"
+    - export CC="/llvm/install/bin/clang"
+    - export CXX="/llvm/install/bin/clang++"
     - mkdir -p build/
     - make -j$(nproc)
   cache:
@@ -46,6 +52,9 @@ ccc:run:
   dependencies:
     - ccc:build
   script:
+    - export PATH="$PATH:$PWD/llvm/install/bin/"
+    - export CC="/llvm/install/bin/clang"
+    - export CXX="/llvm/install/bin/clang++"
     - cd build/
     - ./release/c4 --tokenize ../examples/sample.c
     - ./release/c4 --parse ../examples/sample.c
@@ -59,6 +68,9 @@ ccc:test:
   dependencies:
     - ccc:build
   script:
+    - export PATH="$PATH:$PWD/llvm/install/bin/"
+    - export CC="/llvm/install/bin/clang"
+    - export CXX="/llvm/install/bin/clang++"
     - cd build/
     - cmake ..
     - make check -j$(nproc)

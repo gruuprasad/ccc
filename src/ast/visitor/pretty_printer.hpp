@@ -27,11 +27,6 @@
 
 namespace ccc {
 
-using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
-using ScopeListType = std::vector<std::unordered_set<std::string>>;
-using IdentifierSetType = std::unordered_set<std::string>;
-using IdentifierPtrListType = std::vector<std::unique_ptr<VariableName> *>;
-
 class PrettyPrinterVisitor : public Visitor<std::string> {
 
   std::unordered_map<BinaryOpValue, std::string, EnumClassHash>

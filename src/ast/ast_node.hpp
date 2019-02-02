@@ -7,7 +7,8 @@
 #define FRIENDS                                                                \
   friend SemanticVisitor;                                                      \
   friend GraphvizVisitor;                                                      \
-  friend PrettyPrinterVisitor;
+  friend PrettyPrinterVisitor;                                                 \
+  friend CodegenVisitor;
 
 #include "../lexer/token.hpp"
 #include "../utils/macros.hpp"
@@ -45,6 +46,7 @@ class StructType;
 class AbstractDeclarator;
 class Number;
 class FunctionDeclarator;
+class CodegenVisitor;
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType =

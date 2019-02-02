@@ -41,6 +41,13 @@ target_link_libraries(test_semantic test_LLIB)
 add_dependencies(check test_semantic)
 add_test(NAME semantic COMMAND test_semantic)
 
+add_executable(test_codegen
+               codegen/codegen_test.cpp
+               )
+target_link_libraries(test_codegen test_LLIB)
+add_dependencies(check test_codegen)
+add_test(NAME codegen COMMAND test_codegen)
+
 add_executable(test_blackBox
                black_box/black_box.cpp
                )
@@ -62,6 +69,8 @@ add_executable(test_all
                pretty_printer/pretty_printer_ast.cpp
 
                semantic/semanticAnalysis_test.cpp
+
+               codegen/codegen_test.cpp
 
                black_box/black_box.cpp
                )
