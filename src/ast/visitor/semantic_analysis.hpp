@@ -629,23 +629,34 @@ public:
 
   std::string visitArraySubscriptOp(ArraySubscriptOp *v) override {
     error = v->array_name->accept(this);
-    auto ret_type = raw_type;
     if (!error.empty())
       return error;
-    if (raw_type->getRawTypeValue() != RawTypeValue::FUNCTION) {
-      if (raw_type->getRawTypeValue() != RawTypeValue::POINTER)
+    auto lhs_type = raw_type;
+    error = v->index_value->accept(this);
+    if (!error.empty())
+      return error;
+    auto rhs_type = raw_type;
+    if (lhs_type->getRawTypeValue() == RawTypeValue::POINTER) {
+      if (!rhs_type->compare_equal(
+              make_unique<RawScalarType>(RawTypeValue::INT)))
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                               v->getTokenRef().getColumn(),
-                              "Can't subscript " + raw_type->print());
-      ret_type = raw_type->deref();
-    }
-    error = v->index_value->accept(this);
-    if (!raw_type->compare_equal(make_unique<RawScalarType>(RawTypeValue::INT)))
+                              "Can't index with " + rhs_type->print());
+      raw_type = lhs_type->deref();
+    } else if (rhs_type->compare_equal(
+                   make_unique<RawScalarType>(RawTypeValue::INT))) {
+      if (rhs_type->getRawTypeValue() != RawTypeValue::POINTER)
+        return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                              v->getTokenRef().getColumn(),
+                              "Can't subscript " + rhs_type->print());
+      raw_type = rhs_type->deref();
+    } else {
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
-                            "Can't index with " + raw_type->print());
+                            "Can't subscript " + lhs_type->print() + " with " +
+                                rhs_type->print());
+    }
     temporary = false;
-    raw_type = ret_type;
     return error; // TODO
   }
 
