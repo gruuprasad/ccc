@@ -196,7 +196,7 @@ public:
             "struct " + prefix("__" + prefix(identifier->name) + "__"));
       v->struct_alias->accept(this);
       if (declarations.find(name) != declarations.end()) {
-        if (!(prefix() == "$."))
+        if (!(prefix() == "$.") || anonymous)
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name + "'");

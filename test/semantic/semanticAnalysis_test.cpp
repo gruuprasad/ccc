@@ -184,7 +184,7 @@ TEST_CASE("duplicate struct") {
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_FAILURE(sv);
-  REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 8, "Redefinition of 'S'"));
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(5, 8, "Redefinition of 'struct S'"));
 }
 
 TEST_CASE("duplicate field") {
@@ -214,7 +214,7 @@ TEST_CASE("duplicate field nested struct") {
                       "   int* foo;\n"
                       "   int a;\n"
                       "   int x;\n"
-                      "   struct S {\n"
+                      "   struct F {\n"
                       "     int a;\n"
                       "     int x;\n"
                       "     int x;\n"
