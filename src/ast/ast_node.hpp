@@ -186,15 +186,15 @@ class StructType : public Type {
   std::unique_ptr<VariableName> struct_name;
   ExternalDeclarationListType member_list;
   bool isStructType() override { return true; }
-  bool members;
+  bool is_definition;
 
 public:
   StructType(const Token &tk, std::unique_ptr<VariableName> n)
-      : Type(tk), struct_name(std::move(n)), members(false) {}
+      : Type(tk), struct_name(std::move(n)), is_definition(false) {}
   StructType(const Token &tk, std::unique_ptr<VariableName> n,
              ExternalDeclarationListType m)
       : Type(tk), struct_name(std::move(n)), member_list(std::move(m)),
-        members(true) {}
+        is_definition(true) {}
   std::string accept(Visitor *) override;
   StructType *getStructType() override { return this; }
 };
