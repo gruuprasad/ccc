@@ -24,4 +24,5 @@ add_custom_target(check COMMAND ctest --verbose)
 include_directories(src/)
 add_subdirectory(src/)
 add_subdirectory(test/)
+add_subdirectory(LLVM_Examples/)
 
