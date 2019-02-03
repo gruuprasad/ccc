@@ -120,7 +120,7 @@ public:
     ss << "struct";
     if (v->struct_name)
       ss << " " << v->struct_name->accept(this);
-    if (!v->members) {
+    if (!v->is_definition) {
       return ss.str();
     }
     ss << "\n" << INDENT << "{\n";

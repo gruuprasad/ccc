@@ -301,28 +301,28 @@ TEST_CASE("anaonymous struct redifinition ugly") {
   REQUIRE_SUCCESS(sv);
 }
 
-TEST_CASE("struct nested same name") {
-  std::string input = "struct x;\n"
-                      "struct s;\n"
-                      "struct x {\n"
-                      "  struct a {\n"
-                      "    struct x {};\n"
-                      "  };\n"
-                      "};\n"
-                      "struct a {\n"
-                      "  struct a {};\n"
-                      "};";
-
-  auto fp = FastParser(input);
-  auto root = fp.parse();
-  if (fp.fail())
-    std::cerr << fp.getError() << std::endl;
-  auto sv = SemanticVisitor();
-  root->accept(&sv);
-  REQUIRE_FAILURE(sv);
-  REQUIRE(sv.getError() ==
-          SEMANTIC_ERROR(9, 10, "Member 'a' has the same name as its class"));
-}
+// TEST_CASE("struct nested same name") {
+//  std::string input = "struct x;\n"
+//                      "struct s;\n"
+//                      "struct x {\n"
+//                      "  struct a {\n"
+//                      "    struct x {};\n"
+//                      "  };\n"
+//                      "};\n"
+//                      "struct a {\n"
+//                      "  struct a {};\n"
+//                      "};";
+//
+//  auto fp = FastParser(input);
+//  auto root = fp.parse();
+//  if (fp.fail())
+//    std::cerr << fp.getError() << std::endl;
+//  auto sv = SemanticVisitor();
+//  root->accept(&sv);
+//  REQUIRE_FAILURE(sv);
+//  REQUIRE(sv.getError() ==
+//          SEMANTIC_ERROR(9, 10, "Member 'a' has the same name as its class"));
+//}
 
 TEST_CASE("use struct") {
   std::string input = "int foo() {\n"
@@ -378,7 +378,90 @@ TEST_CASE("wrong num args") {
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_FAILURE(sv);
-  REQUIRE(sv.getError() == SEMANTIC_ERROR(2, 11, "Too few arguments for int"));
+  REQUIRE(sv.getError() ==
+          SEMANTIC_ERROR(2, 11, "Too few arguments for (int, int)->int"));
+}
+
+TEST_CASE("declarators") {
+  std::string input = "int (){\n"
+                      "}\n"
+                      "\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto pp = PrettyPrinterVisitor();
+  std::cout << root->accept(&pp) << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(1, 6, "Missing identifier"));
+}
+
+TEST_CASE("structs advanced") {
+  std::string input = "struct B {\n"
+                      "  struct D {\n"
+                      "    struct E {\n"
+                      "      int x;\n"
+                      "    } b;\n"
+                      "  } a;\n"
+                      "};"
+                      "void foo () {\n"
+                      "  {struct A {};}"
+                      "  struct B {struct A {};}b;\n"
+                      "  {struct B {struct A {};}b;}\n"
+                      "}\n"
+                      "struct A {\n"
+                      "  struct D {\n"
+                      "  } a;\n"
+                      "};\n"
+                      "\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto pp = PrettyPrinterVisitor();
+  std::cout << root->accept(&pp) << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() ==
+          SEMANTIC_ERROR(12, 10, "Redefinition of 'struct D'"));
+}
+
+TEST_CASE("structs advanced access") {
+  std::string input = "struct B {\n"
+                      "  struct D {\n"
+                      "    struct E {\n"
+                      "      int x;\n"
+                      "    } b;\n"
+                      "  } a;\n"
+                      "};"
+                      "void foo () {\n"
+                      "  {struct A {};}"
+                      "  struct B {struct A { int  z;} a;} b;\n"
+                      "  {struct B {struct A { int w;} a;} b;\n"
+                      "   b.a.w;\n"
+                      "  }\n"
+                      "  b.a.z;\n"
+                      "}\n"
+                      "void bar () {\n"
+                      "  struct B b;\n"
+                      "  b.a.b.x;\n"
+                      "}";
+  ;
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto pp = PrettyPrinterVisitor();
+  std::cout << root->accept(&pp) << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_SUCCESS(sv);
 }
 
 TEST_CASE("scoping") {
