@@ -102,107 +102,73 @@ std::string Ternary::accept(Visitor<std::string> *v) {
 std::string Assignment::accept(Visitor<std::string> *v) {
   return v->visitAssignment(this);
 }
-llvm::Value *TranslationUnit::accept(Visitor<llvm::Value *> *v) {
+void TranslationUnit::accept(Visitor<void> *v) {
   return v->visitTranslationUnit(this);
 }
-llvm::Value *FunctionDefinition::accept(Visitor<llvm::Value *> *v) {
+void FunctionDefinition::accept(Visitor<void> *v) {
   return v->visitFunctionDefinition(this);
 }
-llvm::Value *FunctionDeclaration::accept(Visitor<llvm::Value *> *v) {
+void FunctionDeclaration::accept(Visitor<void> *v) {
   return v->visitFunctionDeclaration(this);
 }
-llvm::Value *DataDeclaration::accept(Visitor<llvm::Value *> *v) {
+void DataDeclaration::accept(Visitor<void> *v) {
   return v->visitDataDeclaration(this);
 }
-llvm::Value *StructDeclaration::accept(Visitor<llvm::Value *> *v) {
+void StructDeclaration::accept(Visitor<void> *v) {
   return v->visitStructDeclaration(this);
 }
-llvm::Value *ParamDeclaration::accept(Visitor<llvm::Value *> *v) {
+void ParamDeclaration::accept(Visitor<void> *v) {
   return v->visitParamDeclaration(this);
 }
-llvm::Value *ScalarType::accept(Visitor<llvm::Value *> *v) {
-  return v->visitScalarType(this);
-}
-llvm::Value *StructType::accept(Visitor<llvm::Value *> *v) {
-  return v->visitStructType(this);
-}
-llvm::Value *AbstractType::accept(Visitor<llvm::Value *> *v) {
+void ScalarType::accept(Visitor<void> *v) { return v->visitScalarType(this); }
+void StructType::accept(Visitor<void> *v) { return v->visitStructType(this); }
+void AbstractType::accept(Visitor<void> *v) {
   return v->visitAbstractType(this);
 }
-llvm::Value *DirectDeclarator::accept(Visitor<llvm::Value *> *v) {
+void DirectDeclarator::accept(Visitor<void> *v) {
   return v->visitDirectDeclarator(this);
 }
-llvm::Value *AbstractDeclarator::accept(Visitor<llvm::Value *> *v) {
+void AbstractDeclarator::accept(Visitor<void> *v) {
   return v->visitAbstractDeclarator(this);
 }
-llvm::Value *PointerDeclarator::accept(Visitor<llvm::Value *> *v) {
+void PointerDeclarator::accept(Visitor<void> *v) {
   return v->visitPointerDeclarator(this);
 }
-llvm::Value *FunctionDeclarator::accept(Visitor<llvm::Value *> *v) {
+void FunctionDeclarator::accept(Visitor<void> *v) {
   return v->visitFunctionDeclarator(this);
 }
-llvm::Value *CompoundStmt::accept(Visitor<llvm::Value *> *v) {
+void CompoundStmt::accept(Visitor<void> *v) {
   return v->visitCompoundStmt(this);
 }
-llvm::Value *IfElse::accept(Visitor<llvm::Value *> *v) {
-  return v->visitIfElse(this);
-}
-llvm::Value *Label::accept(Visitor<llvm::Value *> *v) {
-  return v->visitLabel(this);
-}
-llvm::Value *While::accept(Visitor<llvm::Value *> *v) {
-  return v->visitWhile(this);
-}
-llvm::Value *Goto::accept(Visitor<llvm::Value *> *v) {
-  return v->visitGoto(this);
-}
-llvm::Value *ExpressionStmt::accept(Visitor<llvm::Value *> *v) {
+void IfElse::accept(Visitor<void> *v) { return v->visitIfElse(this); }
+void Label::accept(Visitor<void> *v) { return v->visitLabel(this); }
+void While::accept(Visitor<void> *v) { return v->visitWhile(this); }
+void Goto::accept(Visitor<void> *v) { return v->visitGoto(this); }
+void ExpressionStmt::accept(Visitor<void> *v) {
   return v->visitExpressionStmt(this);
 }
-llvm::Value *Break::accept(Visitor<llvm::Value *> *v) {
-  return v->visitBreak(this);
-}
-llvm::Value *Return::accept(Visitor<llvm::Value *> *v) {
-  return v->visitReturn(this);
-}
-llvm::Value *Continue::accept(Visitor<llvm::Value *> *v) {
-  return v->visitContinue(this);
-}
-llvm::Value *VariableName::accept(Visitor<llvm::Value *> *v) {
+void Break::accept(Visitor<void> *v) { return v->visitBreak(this); }
+void Return::accept(Visitor<void> *v) { return v->visitReturn(this); }
+void Continue::accept(Visitor<void> *v) { return v->visitContinue(this); }
+void VariableName::accept(Visitor<void> *v) {
   return v->visitVariableName(this);
 }
-llvm::Value *Number::accept(Visitor<llvm::Value *> *v) {
-  return v->visitNumber(this);
-}
-llvm::Value *Character::accept(Visitor<llvm::Value *> *v) {
-  return v->visitCharacter(this);
-}
-llvm::Value *String::accept(Visitor<llvm::Value *> *v) {
-  return v->visitString(this);
-}
-llvm::Value *MemberAccessOp::accept(Visitor<llvm::Value *> *v) {
+void Number::accept(Visitor<void> *v) { return v->visitNumber(this); }
+void Character::accept(Visitor<void> *v) { return v->visitCharacter(this); }
+void String::accept(Visitor<void> *v) { return v->visitString(this); }
+void MemberAccessOp::accept(Visitor<void> *v) {
   return v->visitMemberAccessOp(this);
 }
-llvm::Value *ArraySubscriptOp::accept(Visitor<llvm::Value *> *v) {
+void ArraySubscriptOp::accept(Visitor<void> *v) {
   return v->visitArraySubscriptOp(this);
 }
-llvm::Value *FunctionCall::accept(Visitor<llvm::Value *> *v) {
+void FunctionCall::accept(Visitor<void> *v) {
   return v->visitFunctionCall(this);
 }
-llvm::Value *Unary::accept(Visitor<llvm::Value *> *v) {
-  return v->visitUnary(this);
-}
-llvm::Value *SizeOf::accept(Visitor<llvm::Value *> *v) {
-  return v->visitSizeOf(this);
-}
-llvm::Value *Binary::accept(Visitor<llvm::Value *> *v) {
-  return v->visitBinary(this);
-}
-llvm::Value *Ternary::accept(Visitor<llvm::Value *> *v) {
-  return v->visitTernary(this);
-}
-llvm::Value *Assignment::accept(Visitor<llvm::Value *> *v) {
-  return v->visitAssignment(this);
-}
+void Unary::accept(Visitor<void> *v) { return v->visitUnary(this); }
+void SizeOf::accept(Visitor<void> *v) { return v->visitSizeOf(this); }
+void Binary::accept(Visitor<void> *v) { return v->visitBinary(this); }
+void Ternary::accept(Visitor<void> *v) { return v->visitTernary(this); }
+void Assignment::accept(Visitor<void> *v) { return v->visitAssignment(this); }
 
 } // namespace ccc

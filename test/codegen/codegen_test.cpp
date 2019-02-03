@@ -7,13 +7,22 @@
 namespace ccc {
 
 TEST_CASE("ast codegen smoke test") {
-  auto root = make_unique<Number>(Token(), 1);
+  std::string input = "int main(int a) {\n"
+                      "if (a + 0) {\n"
+                      "}\n"
+                      "else{\n"
+                      "}\n"
+                      "}\n";
+  FastParser fp = FastParser(input);
+  auto root = fp.parse();
+  REQUIRE_SUCCESS(fp);
+  SemanticVisitor sv;
+  root->accept(&sv);
+  REQUIRE_SUCCESS(sv);
   CodegenVisitor cv;
-  auto code = root->accept(&cv);
-  REQUIRE(cv.print(code) == "i64 1");
-  std::cout << cv.print(code) << std::endl;
-  cv.dump("test.ll", code);
-  system("../../llvm/install/bin/clang -o test test.ll && ./test");
+  root->accept(&cv);
+  cv.dump();
+  //  system("../../llvm/install/bin/clang -o test test.ll && ./test");
 }
 
 } // namespace ccc

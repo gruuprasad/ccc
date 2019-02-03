@@ -255,6 +255,7 @@ public:
                               "Redefinition of '" + identifier->name + "'");
       v->param_name->accept(this);
       declarations[name] = raw_type;
+      (*v->param_name->getIdentifier())->setUIdentifier(name);
     } else if (v->param_name)
       v->param_name->accept(this);
     if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->param_name)
@@ -557,6 +558,7 @@ public:
       name = tmp_pre + "." + v->name;
       if (declarations.find(name) != declarations.end()) {
         raw_type = declarations[name];
+        v->setUIdentifier(name);
         return error;
       }
     }

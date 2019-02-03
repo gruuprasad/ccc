@@ -69,10 +69,10 @@ int main(int argc, char **argv) {
    * automatically convert 'max' from a declaration to a definition.
    */
   BasicBlock *FuncMaxEntryBB = BasicBlock::Create(
-          Ctx                                     /* LLVMContext &Context */,
+          Ctx                                     ,
           "entry"                                 /* const Twine &Name="" */,
-          FuncMax                                 /* Function *Parent=0 */,
-          0                                       /* BasicBlock *InsertBefore=0 */);
+          FuncMax                                 ,
+          0                                       );
   FuncMax->dump();
 
   /* Fix the names of the arguments of the function max */
@@ -137,10 +137,10 @@ int main(int argc, char **argv) {
 
   /* Add a basic block for the header of the IfStmt */
   BasicBlock *IfHeaderBlock = BasicBlock::Create(
-          Ctx                                     /* LLVMContext &Context */,
+          Ctx                                     ,
           "if-header"                             /* const Twine &Name="" */,
-          FuncMax                                 /* Function *Parent=0 */,
-          0                                       /* BasicBlock *InsertBefore=0 */);
+          FuncMax                                 ,
+          0                                       );
 
   /* Insert a branch from the current basic block to the header of the IfStmt */
   Builder.CreateBr(IfHeaderBlock);
@@ -161,24 +161,24 @@ int main(int argc, char **argv) {
 
   /* Add a basic block for the consequence of the IfStmt */
   BasicBlock *IfConsequenceBlock = BasicBlock::Create(
-          Ctx                                     /* LLVMContext &Context */,
+          Ctx                                     ,
           "if-consequence"                        /* const Twine &Name="" */,
-          FuncMax                                 /* Function *Parent=0 */,
-          0                                       /* BasicBlock *InsertBefore=0 */);
+          FuncMax                                 ,
+          0                                       );
 
-  /* Add a basic block for the alternative of the IfStmt */
+
   BasicBlock *IfAlternativeBlock = BasicBlock::Create(
-          Ctx                                     /* LLVMContext &Context */,
-          "if-alternative"                        /* const Twine &Name="" */,
-          FuncMax                                 /* Function *Parent=0 */,
-          0                                       /* BasicBlock *InsertBefore=0 */);
+          Ctx                                    ,
+          "if-alternative"                        ,
+          FuncMax                                 ,
+          0                                       );
 
   /* Add a basic block for the end of the IfStmt (after the if) */
   BasicBlock *IfEndBlock = BasicBlock::Create(
-          Ctx                                     /* LLVMContext &Context */,
+          Ctx                                     ,
           "if-end"                                /* const Twine &Name="" */,
-          FuncMax                                 /* Function *Parent=0 */,
-          0                                       /* BasicBlock *InsertBefore=0 */);
+          FuncMax                                 ,
+          0                                       );
 
   /* Create the conditional branch */
   Builder.CreateCondBr(IfCondition, IfConsequenceBlock, IfAlternativeBlock);
@@ -199,10 +199,10 @@ int main(int argc, char **argv) {
    *  the return instruction), but it will create a dead basic block instead.
    */
   BasicBlock *ReturnDeadBlock = BasicBlock::Create(
-          Ctx                                     /* LLVMContext &Context */,
+          Ctx                                     ,
           "DEAD_BLOCK"                            /* const Twine &Name="" */,
-          FuncMax                                 /* Function *Parent=0 */,
-          0                                       /* BasicBlock *InsertBefore=0 */);
+          FuncMax                                 ,
+          0                                       );
 
   /* Insert code following the return in this new 'dead' block */
   Builder.SetInsertPoint(ReturnDeadBlock);
@@ -222,10 +222,10 @@ int main(int argc, char **argv) {
 
   /* Always create a new block after a return statement */
   BasicBlock *ReturnDeadBlock2 = BasicBlock::Create(
-          Ctx                                     /* LLVMContext &Context */,
+          Ctx                                     ,
           "DEAD_BLOCK"                            /* const Twine &Name="" */,
-          FuncMax                                 /* Function *Parent=0 */,
-          0                                       /* BasicBlock *InsertBefore=0 */);
+          FuncMax                                 ,
+          0                                       );
 
   /* Insert code following the return in this new 'dead' block */
   Builder.SetInsertPoint(ReturnDeadBlock2);

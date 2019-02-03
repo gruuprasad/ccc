@@ -12,23 +12,46 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_ostream.h"
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/CallingConv.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/GlobalVariable.h>
+#include <llvm/IR/InlineAsm.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Pass.h>
+#include <llvm/Support/FormattedStream.h>
+#include <llvm/Support/MathExtras.h>
+
 #pragma GCC diagnostic pop
 namespace ccc {
 
-class CodegenVisitor : public Visitor<llvm::Value *> {
-  llvm::LLVMContext llvmContext;
-  llvm::IRBuilder<> irBuilder;
-  std::unique_ptr<llvm::Module> llvmModule;
+class CodegenVisitor : public Visitor<void> {
+  llvm::LLVMContext ctx;
+  llvm::Module mod;
+  llvm::IRBuilder<> builder, allocBuilder;
+  llvm::Function *parent;
+
+  std::unordered_map<std::string, llvm::BasicBlock *> labels;
+  std::unordered_map<std::string, llvm::BasicBlock *> ulabels;
+  std::unordered_map<std::string, llvm::Value *> declarations;
+
+  llvm::Value *rec_val;
+  llvm::Value *tmp;
 
 public:
-  CodegenVisitor()
-      : irBuilder(llvmContext), llvmModule(llvm::make_unique<llvm::Module>(
-                                    "root module", llvmContext)) {}
+  CodegenVisitor() : mod("test", ctx), builder(ctx), allocBuilder(ctx){};
   ~CodegenVisitor() override = default;
 
   std::string print(llvm::Value *pValue) {
@@ -38,122 +61,168 @@ public:
     return stream.str();
   }
 
-  void dump(const std::string &filename, llvm::Value *pValue) {
-    std::error_code EC;
-    llvm::raw_fd_ostream stream(filename, EC, llvm::sys::fs::OpenFlags::F_Text);
-    pValue->print(stream);
+  void dump() {
+    for (const auto &p : ulabels) {
+      builder.SetInsertPoint(p.second);
+      builder.CreateBr(labels[p.first]);
+    }
+
+    mod.dump();
   }
 
-  llvm::Value *visitTranslationUnit(TranslationUnit *v) override {
-    return v->accept(this);
+  void visitTranslationUnit(TranslationUnit *v) override {
+    for (const auto &e : v->extern_list)
+      e->accept(this);
   }
 
-  llvm::Value *visitFunctionDefinition(FunctionDefinition *v) override {
-    return v->accept(this);
+  void visitFunctionDefinition(FunctionDefinition *v) override {
+
+    v->fn_name->accept(this);
+
+    v->fn_body->accept(this);
   }
 
-  llvm::Value *visitFunctionDeclaration(FunctionDeclaration *v) override {
-    return v->accept(this);
+  void visitFunctionDeclaration(FunctionDeclaration *v) override { (void)v; }
+
+  void visitDataDeclaration(DataDeclaration *v) override { (void)v; }
+
+  void visitStructDeclaration(StructDeclaration *v) override { (void)v; }
+
+  void visitParamDeclaration(ParamDeclaration *v) override { (void)v; }
+
+  void visitScalarType(ScalarType *v) override { (void)v; }
+
+  void visitAbstractType(AbstractType *v) override { (void)v; }
+
+  void visitStructType(StructType *v) override { (void)v; }
+
+  void visitDirectDeclarator(DirectDeclarator *v) override { (void)v; }
+
+  void visitAbstractDeclarator(AbstractDeclarator *v) override { (void)v; }
+
+  void visitPointerDeclarator(PointerDeclarator *v) override { (void)v; }
+
+  void visitFunctionDeclarator(FunctionDeclarator *v) override {
+    llvm::Type *FuncMaxReturnType = builder.getInt32Ty();
+
+    std::vector<llvm::Type *> FuncMaxParamTypes;
+
+    FuncMaxParamTypes.push_back(builder.getInt32Ty());
+
+    llvm::FunctionType *FuncMaxType =
+        llvm::FunctionType::get(FuncMaxReturnType, FuncMaxParamTypes, false);
+
+    parent = llvm::Function::Create(
+        FuncMaxType, llvm::GlobalValue::ExternalLinkage, "main", &mod);
+
+    llvm::BasicBlock *FuncMaxEntryBB =
+        llvm::BasicBlock::Create(ctx, "entry", parent, nullptr);
+    builder.SetInsertPoint(FuncMaxEntryBB);
+    allocBuilder.SetInsertPoint(FuncMaxEntryBB);
+    int i = 0;
+    for (auto &a : parent->args()) {
+      a.setName(
+          (*v->param_list[i]->param_name->getIdentifier())->getUIdentifier());
+      allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
+                                  allocBuilder.GetInsertBlock()->begin());
+      llvm::Value *ArgVarAPtr = allocBuilder.CreateAlloca(a.getType());
+      builder.CreateStore(&a, ArgVarAPtr);
+      declarations[(*v->param_list[i]->param_name->getIdentifier())
+                       ->getUIdentifier()] = ArgVarAPtr;
+      i++;
+    };
   }
 
-  llvm::Value *visitDataDeclaration(DataDeclaration *v) override {
-    return v->accept(this);
+  void visitCompoundStmt(CompoundStmt *v) override {
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(ctx, "compound", parent, nullptr);
+    builder.CreateBr(block);
+    builder.SetInsertPoint(block);
+    for (const auto &s : v->block_items)
+      s->accept(this);
   }
 
-  llvm::Value *visitStructDeclaration(StructDeclaration *v) override {
-    return v->accept(this);
+  void visitIfElse(IfElse *v) override {
+    llvm::BasicBlock *IfHeaderBlock =
+        llvm::BasicBlock::Create(ctx, "if-header", parent, nullptr);
+    llvm::BasicBlock *IfConsequenceBlock =
+        llvm::BasicBlock::Create(ctx, "if-consequence", parent, nullptr);
+    llvm::BasicBlock *IfAlternativeBlock =
+        llvm::BasicBlock::Create(ctx, "if-alternative", parent, nullptr);
+    llvm::BasicBlock *IfEndBlock =
+        llvm::BasicBlock::Create(ctx, "if-end", parent, nullptr);
+    builder.CreateBr(IfHeaderBlock);
+    builder.SetInsertPoint(IfHeaderBlock);
+    v->condition->accept(this);
+    llvm::Value *c = builder.CreateICmpNE(rec_val, builder.getInt32(0));
+    builder.CreateCondBr(c, IfConsequenceBlock, IfAlternativeBlock);
+    builder.SetInsertPoint(IfConsequenceBlock);
+    v->ifStmt->accept(this);
+    builder.CreateBr(IfEndBlock);
+    builder.SetInsertPoint(IfAlternativeBlock);
+    v->elseStmt->accept(this);
+    builder.CreateBr(IfEndBlock);
   }
 
-  llvm::Value *visitParamDeclaration(ParamDeclaration *v) override {
-    return v->accept(this);
+  void visitLabel(Label *v) override {
+    llvm::BasicBlock *l =
+        llvm::BasicBlock::Create(ctx, v->label_name->name, parent, nullptr);
+    labels[v->label_name->name] = l;
+    builder.CreateBr(l);
+    builder.SetInsertPoint(l);
+    v->stmt->accept(this);
   }
 
-  llvm::Value *visitScalarType(ScalarType *v) override {
-    return v->accept(this);
+  void visitWhile(While *v) override { (void)v; }
+
+  void visitGoto(Goto *v) override {
+    (void)v;
+    llvm::BasicBlock *b =
+        llvm::BasicBlock::Create(ctx, v->label_name->name, parent, nullptr);
+    builder.CreateBr(b);
+    ulabels[v->label_name->name] = b;
   }
 
-  llvm::Value *visitAbstractType(AbstractType *v) override {
-    return v->accept(this);
+  void visitExpressionStmt(ExpressionStmt *v) override { (void)v; }
+
+  void visitBreak(Break *v) override { (void)v; }
+
+  void visitReturn(Return *v) override { (void)v; }
+
+  void visitContinue(Continue *v) override { (void)v; }
+
+  void visitVariableName(VariableName *v) override {
+    rec_val = builder.CreateLoad(declarations[v->getUIdentifier()]);
   }
 
-  llvm::Value *visitStructType(StructType *v) override {
-    return v->accept(this);
+  void visitNumber(Number *v) override {
+    rec_val = builder.getInt32(static_cast<uint32_t>(v->num_value));
   }
 
-  llvm::Value *visitDirectDeclarator(DirectDeclarator *v) override {
-    return v->accept(this);
+  void visitCharacter(Character *v) override { (void)v; }
+
+  void visitString(String *v) override { (void)v; }
+
+  void visitMemberAccessOp(MemberAccessOp *v) override { (void)v; }
+
+  void visitArraySubscriptOp(ArraySubscriptOp *v) override { (void)v; }
+
+  void visitFunctionCall(FunctionCall *v) override { (void)v; }
+
+  void visitUnary(Unary *v) override { (void)v; }
+
+  void visitSizeOf(SizeOf *v) override { (void)v; }
+
+  void visitBinary(Binary *v) override {
+    v->left_operand->accept(this);
+    auto lhs = rec_val;
+    v->right_operand->accept(this);
+    rec_val = builder.CreateAdd(lhs, rec_val);
   }
 
-  llvm::Value *visitAbstractDeclarator(AbstractDeclarator *v) override {
-    return v->accept(this);
-  }
+  void visitTernary(Ternary *v) override { (void)v; }
 
-  llvm::Value *visitPointerDeclarator(PointerDeclarator *v) override {
-    return v->accept(this);
-  }
-
-  llvm::Value *visitFunctionDeclarator(FunctionDeclarator *v) override {
-    return v->accept(this);
-  }
-
-  llvm::Value *visitCompoundStmt(CompoundStmt *v) override {
-    return v->accept(this);
-  }
-
-  llvm::Value *visitIfElse(IfElse *v) override { return v->accept(this); }
-
-  llvm::Value *visitLabel(Label *v) override { return v->accept(this); }
-
-  llvm::Value *visitWhile(While *v) override { return v->accept(this); }
-
-  llvm::Value *visitGoto(Goto *v) override { return v->accept(this); }
-
-  llvm::Value *visitExpressionStmt(ExpressionStmt *v) override {
-    return v->accept(this);
-  }
-
-  llvm::Value *visitBreak(Break *v) override { return v->accept(this); }
-
-  llvm::Value *visitReturn(Return *v) override { return v->accept(this); }
-
-  llvm::Value *visitContinue(Continue *v) override { return v->accept(this); }
-
-  llvm::Value *visitVariableName(VariableName *v) override {
-    return v->accept(this);
-  }
-
-  llvm::Value *visitNumber(Number *v) override {
-    return llvm::ConstantInt::get(
-        llvmContext, llvm::APInt(64, static_cast<uint64_t>(v->num_value)));
-  }
-
-  llvm::Value *visitCharacter(Character *v) override { return v->accept(this); }
-
-  llvm::Value *visitString(String *v) override { return v->accept(this); }
-
-  llvm::Value *visitMemberAccessOp(MemberAccessOp *v) override {
-    return v->accept(this);
-  }
-
-  llvm::Value *visitArraySubscriptOp(ArraySubscriptOp *v) override {
-    return v->accept(this);
-  }
-
-  llvm::Value *visitFunctionCall(FunctionCall *v) override {
-    return v->accept(this);
-  }
-
-  llvm::Value *visitUnary(Unary *v) override { return v->accept(this); }
-
-  llvm::Value *visitSizeOf(SizeOf *v) override { return v->accept(this); }
-
-  llvm::Value *visitBinary(Binary *v) override { return v->accept(this); }
-
-  llvm::Value *visitTernary(Ternary *v) override { return v->accept(this); }
-
-  llvm::Value *visitAssignment(Assignment *v) override {
-    return v->accept(this);
-  }
+  void visitAssignment(Assignment *v) override { (void)v; }
 };
 
 } // namespace ccc

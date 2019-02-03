@@ -59,6 +59,7 @@ using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
 // Base class for all nodes in AST.
 class ASTNode {
   Token tok;
+  std::string uIdentifier;
 
 protected:
   explicit ASTNode(Token tk) : tok(std::move(tk)) {}
@@ -66,10 +67,12 @@ protected:
 public:
   virtual ~ASTNode() = default;
   virtual std::string accept(Visitor<std::string> *) = 0;
-  virtual llvm::Value *accept(Visitor<llvm::Value *> *) = 0;
+  virtual void accept(Visitor<void> *) = 0;
   Token &getTokenRef() { return tok; }
   unsigned long hash() { return (unsigned long)this; }
   virtual bool isLValue() { return false; }
+  void setUIdentifier(std::string i) { uIdentifier = std::move(i); }
+  std::string getUIdentifier() { return uIdentifier; }
 };
 
 class TranslationUnit : public ASTNode {
@@ -80,7 +83,7 @@ public:
   explicit TranslationUnit(const Token &tk, ExternalDeclarationListType e)
       : ASTNode(tk), extern_list(std::move(e)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class ExternalDeclaration : public ASTNode {
@@ -101,7 +104,7 @@ public:
       : ExternalDeclaration(tk), return_type(std::move(r)),
         fn_name(std::move(n)), fn_body(std::move(b)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Declaration : public ExternalDeclaration {
@@ -119,7 +122,7 @@ public:
                       std::unique_ptr<Declarator> n)
       : Declaration(tk), return_type(std::move(r)), fn_name(std::move(n)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class DataDeclaration : public Declaration {
@@ -132,7 +135,7 @@ public:
                   std::unique_ptr<Declarator> n)
       : Declaration(tk), data_type(std::move(t)), data_name(std::move(n)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class StructDeclaration : public Declaration {
@@ -146,7 +149,7 @@ public:
       : Declaration(tk), struct_type(std::move(t)), struct_alias(std::move(a)) {
   }
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class ParamDeclaration : public Declaration {
@@ -159,7 +162,7 @@ public:
                    std::unique_ptr<Declarator> n = nullptr)
       : Declaration(tk), param_type(std::move(t)), param_name(std::move(n)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Type : public ASTNode {
@@ -180,7 +183,7 @@ class ScalarType : public Type {
 public:
   ScalarType(const Token &tk, ScalarTypeValue v) : Type(tk), type_kind(v) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class AbstractType : public Type {
@@ -192,7 +195,7 @@ public:
   AbstractType(const Token &tk, std::unique_ptr<Type> v, int ptr_count)
       : Type(tk), type(move(v)), ptr_count(ptr_count) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class StructType : public Type {
@@ -210,7 +213,7 @@ public:
       : Type(tk), struct_name(std::move(n)), member_list(std::move(m)),
         members(true) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
   StructType *getStructType() override { return this; }
 };
 
@@ -233,7 +236,7 @@ public:
   DirectDeclarator(const Token &tk, std::unique_ptr<VariableName> i)
       : Declarator(tk), identifer(std::move(i)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 enum class AbstractDeclType { Data, Function };
@@ -248,7 +251,7 @@ public:
   AbstractDeclarator(const Token &tk, AbstractDeclType t, unsigned int p)
       : Declarator(tk), type_kind(t), pointerCount(p) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
   AbstractDeclarator *getAbstractDeclarator() override { return this; };
 };
 
@@ -267,7 +270,7 @@ public:
                              std::unique_ptr<Declarator> i = nullptr, int l = 1)
       : Declarator(tk), identifier(std::move(i)), indirection_level(l) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class FunctionDeclarator : public Declarator {
@@ -282,7 +285,7 @@ public:
       : Declarator(tk), identifier(std::move(i)), param_list(std::move(p)),
         return_ptr(std::move(r)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
   std::unique_ptr<VariableName> *getIdentifier() override {
     return identifier->getIdentifier();
   }
@@ -302,7 +305,7 @@ public:
   CompoundStmt(const Token &tk, ASTNodeListType block)
       : Statement(tk), block_items(std::move(block)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class IfElse : public Statement {
@@ -317,7 +320,7 @@ public:
       : Statement(tk), condition(std::move(c)), ifStmt(std::move(i)),
         elseStmt(std::move(e)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Label : public Statement {
@@ -330,7 +333,7 @@ public:
         std::unique_ptr<Statement> b)
       : Statement(tk), label_name(std::move(e)), stmt(std::move(b)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class While : public Statement {
@@ -343,7 +346,7 @@ public:
         std::unique_ptr<Statement> b)
       : Statement(tk), predicate(std::move(e)), block(std::move(b)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Goto : public Statement {
@@ -354,7 +357,7 @@ public:
   Goto(const Token &tk, std::unique_ptr<VariableName> e)
       : Statement(tk), label_name(std::move(e)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class ExpressionStmt : public Statement {
@@ -365,14 +368,14 @@ public:
   ExpressionStmt(const Token &tk, std::unique_ptr<Expression> e)
       : Statement(tk), expr(std::move(e)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Break : public Statement {
 public:
   explicit Break(const Token &tk) : Statement(tk) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Return : public Statement {
@@ -383,14 +386,14 @@ public:
   explicit Return(const Token &tk, std::unique_ptr<Expression> e = nullptr)
       : Statement(tk), expr(std::move(e)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Continue : public Statement {
 public:
   explicit Continue(const Token &tk) : Statement(tk) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Expression : public ASTNode {
@@ -411,7 +414,7 @@ public:
   VariableName(const Token &tk, std::string n)
       : Expression(tk), name(std::move(n)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 
   int Compare(const VariableName &d) const { return d.name == name; }
   bool operator==(const VariableName &d) const { return !Compare(d); }
@@ -426,7 +429,7 @@ class Number : public Expression {
 public:
   Number(const Token &tk, long v) : Expression(tk), num_value(v) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
   Number *getNumber() override { return this; }
 };
 
@@ -437,7 +440,7 @@ class Character : public Expression {
 public:
   Character(const Token &tk, char c) : Expression(tk), char_value(c) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class String : public Expression {
@@ -448,7 +451,7 @@ public:
   String(const Token &tk, std::string v)
       : Expression(tk), str_value(std::move(v)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 enum class PostFixOpValue { DOT, ARROW };
@@ -465,7 +468,7 @@ public:
       : Expression(tk), op_kind(o), struct_name(std::move(s)),
         member_name(std::move(m)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
   bool isLValue() override { return true; }
 };
 
@@ -479,7 +482,7 @@ public:
                    std::unique_ptr<Expression> i)
       : Expression(tk), array_name(std::move(a)), index_value(std::move(i)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
   bool isLValue() override { return true; }
 };
 
@@ -494,7 +497,7 @@ public:
                ExpressionListType a)
       : Expression(tk), callee_name(std::move(n)), callee_args(std::move(a)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 enum class UnaryOpValue { ADDRESS_OF = 0, DEREFERENCE, MINUS, NOT };
@@ -508,7 +511,7 @@ public:
   Unary(const Token &tk, UnaryOpValue v, std::unique_ptr<Expression> o)
       : Expression(tk), op_kind(v), operand(std::move(o)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
   Number *getNumber() override { return operand->getNumber(); };
   bool isLValue() override { return true; }
 };
@@ -524,7 +527,7 @@ public:
   SizeOf(const Token &tk, std::unique_ptr<Expression> o)
       : Expression(tk), operand(std::move(o)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 enum class BinaryOpValue {
@@ -551,7 +554,7 @@ public:
       : Expression(tk), op_kind(v), left_operand(std::move(l)),
         right_operand(std::move(r)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Ternary : public Expression {
@@ -566,7 +569,7 @@ public:
       : Expression(tk), predicate(std::move(c)), left_branch(std::move(l)),
         right_branch(std::move(r)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 class Assignment : public Expression {
@@ -580,7 +583,7 @@ public:
       : Expression(tk), left_operand(std::move(l)),
         right_operand(std::move(r)) {}
   std::string accept(Visitor<std::string> *) override;
-  llvm::Value *accept(Visitor<llvm::Value *> *) override;
+  void accept(Visitor<void> *) override;
 };
 
 template <class T> class Visitor {
