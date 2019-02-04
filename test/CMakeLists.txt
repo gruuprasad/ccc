@@ -21,10 +21,10 @@ target_link_libraries(test_parser test_LLIB)
 add_dependencies(check test_parser)
 add_test(NAME parser COMMAND test_parser)
 
-add_executable(test_ast
+add_executable(gen_ast
                ast/ast_test.cpp
                )
-target_link_libraries(test_ast test_LLIB)
+target_link_libraries(gen_ast test_LLIB)
 
 add_executable(test_prettyPrinter
                pretty_printer/pretty_printer_test.cpp
@@ -47,6 +47,11 @@ add_executable(test_codegen
 target_link_libraries(test_codegen test_LLIB)
 add_dependencies(check test_codegen)
 add_test(NAME codegen COMMAND test_codegen)
+
+add_executable(gen_clang
+               codegen/clang_test.cpp
+               )
+target_link_libraries(gen_clang test_LLIB)
 
 add_executable(test_blackBox
                black_box/black_box.cpp

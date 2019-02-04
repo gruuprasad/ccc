@@ -8,15 +8,7 @@ namespace ccc {
 
 TEST_CASE("ast codegen smoke test") {
   std::string input = "int main(int a) {\n"
-                      "if (a < 9) {\n"
-                      "}\n"
-                      "else{\n"
-                      "while(a)\n {"
-                      "continue;"
-                      "while(1)"
-                      "break;"
-                      "}"
-                      "}\n"
+                      "return (0 ? 1 : 3);"
                       "}\n";
   FastParser fp = FastParser(input);
   auto root = fp.parse();

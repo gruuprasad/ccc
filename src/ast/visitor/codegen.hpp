@@ -48,9 +48,10 @@ class CodegenVisitor : public Visitor<void> {
   std::unordered_map<std::string, llvm::BasicBlock *> labels;
   std::unordered_map<std::string, llvm::BasicBlock *> ulabels;
   std::unordered_map<std::string, llvm::Value *> declarations;
+  std::unordered_map<std::string, llvm::Function *> functions;
 
   llvm::Value *rec_val;
-  llvm::Value *tmp;
+  llvm::Value *load;
 
 public:
   CodegenVisitor() : mod("test", ctx), builder(ctx), allocBuilder(ctx){};
@@ -61,7 +62,7 @@ public:
       builder.SetInsertPoint(p.second);
       builder.CreateBr(labels[p.first]);
     }
-
+    llvm::verifyModule(mod);
     mod.dump();
     std::error_code EC;
     llvm::raw_fd_ostream stream("test.ll", EC,
@@ -123,7 +124,7 @@ public:
     parent =
         llvm::Function::Create(FuncMaxType, llvm::GlobalValue::ExternalLinkage,
                                (*v->identifier->getIdentifier())->name, &mod);
-
+    functions[v->getUIdentifier()] = parent;
     llvm::BasicBlock *FuncMaxEntryBB =
         llvm::BasicBlock::Create(ctx, "entry", parent, nullptr);
     builder.SetInsertPoint(FuncMaxEntryBB);
@@ -152,17 +153,17 @@ public:
 
   void visitIfElse(IfElse *v) override {
     llvm::BasicBlock *IfHeaderBlock =
-        llvm::BasicBlock::Create(ctx, "if-header", parent, nullptr);
+        llvm::BasicBlock::Create(ctx, "if.header", parent, nullptr);
     llvm::BasicBlock *IfConsequenceBlock =
-        llvm::BasicBlock::Create(ctx, "if-consequence", parent, nullptr);
+        llvm::BasicBlock::Create(ctx, "if.consequence", parent, nullptr);
     llvm::BasicBlock *IfAlternativeBlock =
-        llvm::BasicBlock::Create(ctx, "if-alternative", parent, nullptr);
+        llvm::BasicBlock::Create(ctx, "if.alternative", parent, nullptr);
     llvm::BasicBlock *IfEndBlock =
-        llvm::BasicBlock::Create(ctx, "if-end", parent, nullptr);
+        llvm::BasicBlock::Create(ctx, "if.end", parent, nullptr);
     builder.CreateBr(IfHeaderBlock);
     builder.SetInsertPoint(IfHeaderBlock);
     v->condition->accept(this);
-    auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0));
+    auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0), "condition");
     builder.CreateCondBr(c, IfConsequenceBlock, IfAlternativeBlock);
     builder.SetInsertPoint(IfConsequenceBlock);
     v->ifStmt->accept(this);
@@ -174,8 +175,8 @@ public:
   }
 
   void visitLabel(Label *v) override {
-    llvm::BasicBlock *l =
-        llvm::BasicBlock::Create(ctx, v->label_name->name, parent, nullptr);
+    llvm::BasicBlock *l = llvm::BasicBlock::Create(
+        ctx, "label." + v->label_name->name, parent, nullptr);
     labels[v->label_name->name] = l;
     builder.CreateBr(l);
     builder.SetInsertPoint(l);
@@ -184,17 +185,17 @@ public:
 
   void visitWhile(While *v) override {
     llvm::BasicBlock *whileHeaderBlock =
-        llvm::BasicBlock::Create(ctx, "while-header", parent, nullptr);
+        llvm::BasicBlock::Create(ctx, "while.header", parent, nullptr);
     llvm::BasicBlock *whileBodyBlock =
-        llvm::BasicBlock::Create(ctx, "while-body", parent, nullptr);
+        llvm::BasicBlock::Create(ctx, "while.body", parent, nullptr);
     llvm::BasicBlock *whileEndBlock =
-        llvm::BasicBlock::Create(ctx, "while-end", parent, nullptr);
+        llvm::BasicBlock::Create(ctx, "while.end", parent, nullptr);
     continues.push_back(whileHeaderBlock);
     breaks.push_back(whileEndBlock);
     builder.CreateBr(whileHeaderBlock);
     builder.SetInsertPoint(whileHeaderBlock);
     v->predicate->accept(this);
-    auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0));
+    auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0), "condition");
     builder.CreateCondBr(c, whileBodyBlock, whileEndBlock);
     builder.SetInsertPoint(whileBodyBlock);
     v->block->accept(this);
@@ -206,55 +207,132 @@ public:
 
   void visitGoto(Goto *v) override {
     (void)v;
-    llvm::BasicBlock *b =
-        llvm::BasicBlock::Create(ctx, v->label_name->name, parent, nullptr);
+    llvm::BasicBlock *b = llvm::BasicBlock::Create(
+        ctx, "goto." + v->label_name->name, parent, nullptr);
     builder.CreateBr(b);
     ulabels[v->label_name->name] = b;
   }
 
-  void visitExpressionStmt(ExpressionStmt *v) override { (void)v; }
+  void visitExpressionStmt(ExpressionStmt *v) override {
+    v->expr->accept(this);
+  }
 
   void visitBreak(Break *) override { builder.CreateBr(breaks.back()); }
 
-  void visitReturn(Return *v) override { (void)v; }
+  void visitReturn(Return *v) override {
+    if (v->expr) {
+      v->expr->accept(this);
+      rec_val =
+          builder.CreateZExt(rec_val, builder.getCurrentFunctionReturnType());
+      builder.CreateRet(rec_val);
+    } else
+      builder.CreateRetVoid();
+  }
 
   void visitContinue(Continue *) override {
     builder.CreateBr(continues.back());
   }
 
   void visitVariableName(VariableName *v) override {
-    rec_val = builder.CreateLoad(declarations[v->getUIdentifier()]);
+    if (functions[v->getUIdentifier()])
+      rec_val = functions[v->getUIdentifier()];
+    else {
+      load = declarations[v->getUIdentifier()];
+      rec_val = builder.CreateLoad(load); // move to inner
+    }
   }
 
   void visitNumber(Number *v) override {
     rec_val = builder.getInt32(static_cast<uint32_t>(v->num_value));
   }
 
-  void visitCharacter(Character *v) override { (void)v; }
+  void visitCharacter(Character *v) override {
+    rec_val = builder.getInt32(static_cast<uint32_t>(v->char_value));
+  }
 
-  void visitString(String *v) override { (void)v; }
+  void visitString(String *v) override {
+    rec_val = builder.CreateGlobalString(v->str_value, "string");
+  }
 
   void visitMemberAccessOp(MemberAccessOp *v) override { (void)v; }
 
   void visitArraySubscriptOp(ArraySubscriptOp *v) override { (void)v; }
 
-  void visitFunctionCall(FunctionCall *v) override { (void)v; }
+  void visitFunctionCall(FunctionCall *v) override {
+    std::vector<llvm::Value *> args;
+    for (const auto &a : v->callee_args) {
+      a->accept(this);
+      args.push_back(rec_val);
+    }
+    v->callee_name->accept(this);
+    rec_val = builder.CreateCall(rec_val, args, "call");
+  }
 
-  void visitUnary(Unary *v) override { (void)v; }
+  void visitUnary(Unary *v) override {
+    v->operand->accept(this);
+    rec_val = builder.CreateNeg(rec_val, "unary.minus");
+  }
 
-  void visitSizeOf(SizeOf *v) override { (void)v; }
+  void visitSizeOf(SizeOf *v) override {
+    if (v->operand) {
+      v->operand->accept(this);
+      rec_val = builder.getInt32(rec_val->getType()->getIntegerBitWidth());
+    } else {
+      rec_val = builder.getInt32(1);
+    }
+  }
 
   void visitBinary(Binary *v) override {
     v->left_operand->accept(this);
     auto lhs = rec_val;
     v->right_operand->accept(this);
-    rec_val = builder.CreateICmpSLT(lhs, rec_val);
+    auto rhs = rec_val;
+    if (lhs->getType() != rhs->getType()) { // TODO
+      lhs = builder.CreateZExt(lhs, builder.getInt32Ty());
+      rhs = builder.CreateZExt(rhs, builder.getInt32Ty());
+    }
+    rec_val = builder.CreateICmpSLT(lhs, rhs, "binary.less");
     rec_val = builder.CreateZExt(rec_val, builder.getInt32Ty());
   }
 
-  void visitTernary(Ternary *v) override { (void)v; }
+  void visitTernary(Ternary *v) override {
+    llvm::BasicBlock *ternaryHeaderBlock =
+        llvm::BasicBlock::Create(ctx, "ternary.header", parent, nullptr);
+    llvm::BasicBlock *ternaryConsequenceBlock =
+        llvm::BasicBlock::Create(ctx, "ternary.consequence", parent, nullptr);
+    llvm::BasicBlock *ternaryAlternativeBlock =
+        llvm::BasicBlock::Create(ctx, "ternary.alternative", parent, nullptr);
+    llvm::BasicBlock *ternaryEndBlock =
+        llvm::BasicBlock::Create(ctx, "ternary.end", parent, nullptr);
+    builder.CreateBr(ternaryHeaderBlock);
+    builder.SetInsertPoint(ternaryHeaderBlock);
+    v->predicate->accept(this);
+    auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0), "condition");
+    builder.CreateCondBr(c, ternaryConsequenceBlock, ternaryAlternativeBlock);
+    builder.SetInsertPoint(ternaryConsequenceBlock);
+    v->left_branch->accept(this);
+    allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
+                                allocBuilder.GetInsertBlock()->begin());
+    llvm::Value *tmp = allocBuilder.CreateAlloca(rec_val->getType());
+    tmp->setName("ternary.val");
+    builder.CreateStore(rec_val, tmp);
+    builder.CreateBr(ternaryEndBlock);
+    builder.SetInsertPoint(ternaryAlternativeBlock);
+    v->right_branch->accept(this);
+    builder.CreateStore(rec_val, tmp);
+    builder.CreateBr(ternaryEndBlock);
+    builder.SetInsertPoint(ternaryEndBlock);
+    rec_val = builder.CreateLoad(tmp);
+  }
 
-  void visitAssignment(Assignment *v) override { (void)v; }
+  void visitAssignment(Assignment *v) override {
+    v->left_operand->accept(this);
+    auto lhs = load;
+    v->right_operand->accept(this);
+    auto rhs = rec_val;
+    builder.CreateStore(rhs, lhs);
+    rec_val = rhs;
+  }
 };
 
 } // namespace ccc
