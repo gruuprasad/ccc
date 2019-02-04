@@ -19,7 +19,8 @@ TEST_CASE("ast codegen smoke test") {
   CodegenVisitor cv;
   root->accept(&cv);
   cv.dump();
-  system("../../llvm/install/bin/clang -w -o test test.ll && ./test");
+  int ret = system("../../llvm/install/bin/clang -w -o test test.ll && ./test");
+  REQUIRE(WEXITSTATUS(ret) == 3);
 }
 
 } // namespace ccc
