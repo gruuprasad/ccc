@@ -8,9 +8,14 @@ namespace ccc {
 
 TEST_CASE("ast codegen smoke test") {
   std::string input = "int main(int a) {\n"
-                      "if (a + 0) {\n"
+                      "if (a < 9) {\n"
                       "}\n"
                       "else{\n"
+                      "while(a)\n {"
+                      "continue;"
+                      "while(1)"
+                      "break;"
+                      "}"
                       "}\n"
                       "}\n";
   FastParser fp = FastParser(input);
@@ -22,7 +27,7 @@ TEST_CASE("ast codegen smoke test") {
   CodegenVisitor cv;
   root->accept(&cv);
   cv.dump();
-  //  system("../../llvm/install/bin/clang -o test test.ll && ./test");
+  system("../../llvm/install/bin/clang -w -o test test.ll && ./test");
 }
 
 } // namespace ccc

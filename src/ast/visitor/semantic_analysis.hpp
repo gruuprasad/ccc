@@ -91,7 +91,7 @@ public:
     global_scope = false;
     function_definition = true;
     v->return_type->accept(this);
-    if (v->fn_name->getIdentifier() != nullptr) {
+    if (v->fn_name->getIdentifier()) {
       const auto &identifier = *v->fn_name->getIdentifier();
       auto name = prefix(identifier->name);
       pre.emplace_back(identifier->name);
@@ -113,6 +113,7 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
+      v->fn_name->setUIdentifier(name);
       jump_type = raw_type->get_return();
     } else {
       v->fn_name->accept(this);

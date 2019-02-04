@@ -43,6 +43,8 @@ class CodegenVisitor : public Visitor<void> {
   llvm::IRBuilder<> builder, allocBuilder;
   llvm::Function *parent;
 
+  std::vector<llvm::BasicBlock *> breaks;
+  std::vector<llvm::BasicBlock *> continues;
   std::unordered_map<std::string, llvm::BasicBlock *> labels;
   std::unordered_map<std::string, llvm::BasicBlock *> ulabels;
   std::unordered_map<std::string, llvm::Value *> declarations;
@@ -54,13 +56,6 @@ public:
   CodegenVisitor() : mod("test", ctx), builder(ctx), allocBuilder(ctx){};
   ~CodegenVisitor() override = default;
 
-  std::string print(llvm::Value *pValue) {
-    std::string str;
-    llvm::raw_string_ostream stream(str);
-    pValue->print(stream);
-    return stream.str();
-  }
-
   void dump() {
     for (const auto &p : ulabels) {
       builder.SetInsertPoint(p.second);
@@ -68,6 +63,10 @@ public:
     }
 
     mod.dump();
+    std::error_code EC;
+    llvm::raw_fd_ostream stream("test.ll", EC,
+                                llvm::sys::fs::OpenFlags::F_Text);
+    mod.print(stream, nullptr);
   }
 
   void visitTranslationUnit(TranslationUnit *v) override {
@@ -80,6 +79,15 @@ public:
     v->fn_name->accept(this);
 
     v->fn_body->accept(this);
+
+    if (builder.GetInsertBlock()->getTerminator() == nullptr) {
+      llvm::Type *CurFuncReturnType = builder.getCurrentFunctionReturnType();
+      if (CurFuncReturnType->isVoidTy()) {
+        builder.CreateRetVoid();
+      } else {
+        builder.CreateRet(llvm::Constant::getNullValue(CurFuncReturnType));
+      }
+    }
   }
 
   void visitFunctionDeclaration(FunctionDeclaration *v) override { (void)v; }
@@ -112,8 +120,9 @@ public:
     llvm::FunctionType *FuncMaxType =
         llvm::FunctionType::get(FuncMaxReturnType, FuncMaxParamTypes, false);
 
-    parent = llvm::Function::Create(
-        FuncMaxType, llvm::GlobalValue::ExternalLinkage, "main", &mod);
+    parent =
+        llvm::Function::Create(FuncMaxType, llvm::GlobalValue::ExternalLinkage,
+                               (*v->identifier->getIdentifier())->name, &mod);
 
     llvm::BasicBlock *FuncMaxEntryBB =
         llvm::BasicBlock::Create(ctx, "entry", parent, nullptr);
@@ -121,8 +130,7 @@ public:
     allocBuilder.SetInsertPoint(FuncMaxEntryBB);
     int i = 0;
     for (auto &a : parent->args()) {
-      a.setName(
-          (*v->param_list[i]->param_name->getIdentifier())->getUIdentifier());
+      a.setName((*v->param_list[i]->param_name->getIdentifier())->name);
       allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
                                   allocBuilder.GetInsertBlock()->begin());
       llvm::Value *ArgVarAPtr = allocBuilder.CreateAlloca(a.getType());
@@ -134,10 +142,10 @@ public:
   }
 
   void visitCompoundStmt(CompoundStmt *v) override {
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(ctx, "compound", parent, nullptr);
-    builder.CreateBr(block);
-    builder.SetInsertPoint(block);
+    //    llvm::BasicBlock *block =
+    //        llvm::BasicBlock::Create(ctx, "compound", parent, nullptr);
+    //    builder.CreateBr(block);
+    //    builder.SetInsertPoint(block);
     for (const auto &s : v->block_items)
       s->accept(this);
   }
@@ -154,7 +162,7 @@ public:
     builder.CreateBr(IfHeaderBlock);
     builder.SetInsertPoint(IfHeaderBlock);
     v->condition->accept(this);
-    llvm::Value *c = builder.CreateICmpNE(rec_val, builder.getInt32(0));
+    auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0));
     builder.CreateCondBr(c, IfConsequenceBlock, IfAlternativeBlock);
     builder.SetInsertPoint(IfConsequenceBlock);
     v->ifStmt->accept(this);
@@ -162,6 +170,7 @@ public:
     builder.SetInsertPoint(IfAlternativeBlock);
     v->elseStmt->accept(this);
     builder.CreateBr(IfEndBlock);
+    builder.SetInsertPoint(IfEndBlock);
   }
 
   void visitLabel(Label *v) override {
@@ -173,7 +182,27 @@ public:
     v->stmt->accept(this);
   }
 
-  void visitWhile(While *v) override { (void)v; }
+  void visitWhile(While *v) override {
+    llvm::BasicBlock *whileHeaderBlock =
+        llvm::BasicBlock::Create(ctx, "while-header", parent, nullptr);
+    llvm::BasicBlock *whileBodyBlock =
+        llvm::BasicBlock::Create(ctx, "while-body", parent, nullptr);
+    llvm::BasicBlock *whileEndBlock =
+        llvm::BasicBlock::Create(ctx, "while-end", parent, nullptr);
+    continues.push_back(whileHeaderBlock);
+    breaks.push_back(whileEndBlock);
+    builder.CreateBr(whileHeaderBlock);
+    builder.SetInsertPoint(whileHeaderBlock);
+    v->predicate->accept(this);
+    auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0));
+    builder.CreateCondBr(c, whileBodyBlock, whileEndBlock);
+    builder.SetInsertPoint(whileBodyBlock);
+    v->block->accept(this);
+    builder.CreateBr(whileHeaderBlock);
+    builder.SetInsertPoint(whileEndBlock);
+    continues.pop_back();
+    breaks.pop_back();
+  }
 
   void visitGoto(Goto *v) override {
     (void)v;
@@ -185,11 +214,13 @@ public:
 
   void visitExpressionStmt(ExpressionStmt *v) override { (void)v; }
 
-  void visitBreak(Break *v) override { (void)v; }
+  void visitBreak(Break *) override { builder.CreateBr(breaks.back()); }
 
   void visitReturn(Return *v) override { (void)v; }
 
-  void visitContinue(Continue *v) override { (void)v; }
+  void visitContinue(Continue *) override {
+    builder.CreateBr(continues.back());
+  }
 
   void visitVariableName(VariableName *v) override {
     rec_val = builder.CreateLoad(declarations[v->getUIdentifier()]);
@@ -217,7 +248,8 @@ public:
     v->left_operand->accept(this);
     auto lhs = rec_val;
     v->right_operand->accept(this);
-    rec_val = builder.CreateAdd(lhs, rec_val);
+    rec_val = builder.CreateICmpSLT(lhs, rec_val);
+    rec_val = builder.CreateZExt(rec_val, builder.getInt32Ty());
   }
 
   void visitTernary(Ternary *v) override { (void)v; }
