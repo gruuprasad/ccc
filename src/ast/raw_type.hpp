@@ -1,6 +1,12 @@
 #ifndef C4_RAW_TYPE_HPP
 #define C4_RAW_TYPE_HPP
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Type.h"
+#pragma GCC diagnostic pop
+
 namespace ccc {
 
 enum class RawTypeValue { NIL, VOID, CHAR, INT, POINTER, FUNCTION, STRUCT };
@@ -28,6 +34,10 @@ public:
   virtual RawFunctionType *getRawFunctionType() { return nullptr; }
   virtual RawStructType *getRawStructType() { return nullptr; }
   virtual bool isVoidPtr() { return false; }
+  virtual llvm::Type *getLLVMType(llvm::IRBuilder<>) { return nullptr; }
+  virtual llvm::FunctionType *getLLVMFunctionType(llvm::IRBuilder<>) {
+    return nullptr;
+  }
 };
 
 class RawFunctionType : public RawType {
@@ -96,6 +106,14 @@ public:
     }
   }
   RawFunctionType *getRawFunctionType() override { return this; }
+
+  llvm::FunctionType *getLLVMFunctionType(llvm::IRBuilder<> builder) override {
+    std::vector<llvm::Type *> param;
+    for (const auto &t : param_types)
+      param.push_back(t->getLLVMType(builder));
+    return llvm::FunctionType::get(ret_type->getLLVMType(builder), param,
+                                   false);
+  }
 };
 
 class RawScalarType : public RawType {
@@ -155,6 +173,20 @@ public:
     }
   }
   RawScalarType *getRawScalarType() override { return this; }
+  llvm::Type *getLLVMType(llvm::IRBuilder<> builder) override {
+    switch (type_kind) {
+    case RawTypeValue::VOID:
+      return builder.getVoidTy();
+    case RawTypeValue::INT:
+      return builder.getInt32Ty();
+    case RawTypeValue::CHAR:
+      return builder.getInt8Ty();
+    case RawTypeValue::NIL:
+      return nullptr;
+    default:
+      return nullptr;
+    }
+  }
 };
 
 class RawPointerType : public RawType {

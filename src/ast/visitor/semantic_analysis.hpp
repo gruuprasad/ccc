@@ -113,7 +113,8 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
-      v->fn_name->setUIdentifier(name);
+      v->setUType(raw_type);
+      v->setUIdentifier(name);
       jump_type = raw_type->get_return();
     } else {
       v->fn_name->accept(this);
@@ -180,6 +181,8 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
+      v->setUType(raw_type);
+      v->setUIdentifier(name);
     }
     if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->data_name)
       return SEMANTIC_ERROR(v->data_name->getTokenRef().getLine(),

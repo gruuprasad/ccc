@@ -33,8 +33,8 @@
 #include <llvm/Pass.h>
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/MathExtras.h>
-
 #pragma GCC diagnostic pop
+
 namespace ccc {
 
 class CodegenVisitor : public Visitor<void> {
@@ -76,11 +76,12 @@ public:
   }
 
   void visitFunctionDefinition(FunctionDefinition *v) override {
-
+    parent = llvm::Function::Create(v->getUType()->getLLVMFunctionType(builder),
+                                    llvm::GlobalValue::ExternalLinkage,
+                                    (*v->fn_name->getIdentifier())->name, &mod);
+    functions[v->getUIdentifier()] = parent;
     v->fn_name->accept(this);
-
     v->fn_body->accept(this);
-
     if (builder.GetInsertBlock()->getTerminator() == nullptr) {
       llvm::Type *CurFuncReturnType = builder.getCurrentFunctionReturnType();
       if (CurFuncReturnType->isVoidTy()) {
@@ -93,7 +94,14 @@ public:
 
   void visitFunctionDeclaration(FunctionDeclaration *v) override { (void)v; }
 
-  void visitDataDeclaration(DataDeclaration *v) override { (void)v; }
+  void visitDataDeclaration(DataDeclaration *v) override {
+    allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
+                                allocBuilder.GetInsertBlock()->begin());
+    llvm::Value *dec =
+        allocBuilder.CreateAlloca(v->getUType()->getLLVMType(builder));
+    dec->setName((*v->data_name->getIdentifier())->name);
+    declarations[v->getUIdentifier()] = dec;
+  }
 
   void visitStructDeclaration(StructDeclaration *v) override { (void)v; }
 
@@ -112,19 +120,6 @@ public:
   void visitPointerDeclarator(PointerDeclarator *v) override { (void)v; }
 
   void visitFunctionDeclarator(FunctionDeclarator *v) override {
-    llvm::Type *FuncMaxReturnType = builder.getInt32Ty();
-
-    std::vector<llvm::Type *> FuncMaxParamTypes;
-
-    FuncMaxParamTypes.push_back(builder.getInt32Ty());
-
-    llvm::FunctionType *FuncMaxType =
-        llvm::FunctionType::get(FuncMaxReturnType, FuncMaxParamTypes, false);
-
-    parent =
-        llvm::Function::Create(FuncMaxType, llvm::GlobalValue::ExternalLinkage,
-                               (*v->identifier->getIdentifier())->name, &mod);
-    functions[v->getUIdentifier()] = parent;
     llvm::BasicBlock *FuncMaxEntryBB =
         llvm::BasicBlock::Create(ctx, "entry", parent, nullptr);
     builder.SetInsertPoint(FuncMaxEntryBB);
@@ -169,7 +164,8 @@ public:
     v->ifStmt->accept(this);
     builder.CreateBr(IfEndBlock);
     builder.SetInsertPoint(IfAlternativeBlock);
-    v->elseStmt->accept(this);
+    if (v->elseStmt)
+      v->elseStmt->accept(this);
     builder.CreateBr(IfEndBlock);
     builder.SetInsertPoint(IfEndBlock);
   }
@@ -222,8 +218,8 @@ public:
   void visitReturn(Return *v) override {
     if (v->expr) {
       v->expr->accept(this);
-      rec_val =
-          builder.CreateZExt(rec_val, builder.getCurrentFunctionReturnType());
+      rec_val = builder.CreateZExt(
+          rec_val, builder.getCurrentFunctionReturnType(), "convert.ret");
       builder.CreateRet(rec_val);
     } else
       builder.CreateRetVoid();
@@ -238,7 +234,7 @@ public:
       rec_val = functions[v->getUIdentifier()];
     else {
       load = declarations[v->getUIdentifier()];
-      rec_val = builder.CreateLoad(load); // move to inner
+      rec_val = builder.CreateLoad(load, v->name); // move to inner
     }
   }
 
@@ -288,11 +284,47 @@ public:
     v->right_operand->accept(this);
     auto rhs = rec_val;
     if (lhs->getType() != rhs->getType()) { // TODO
-      lhs = builder.CreateZExt(lhs, builder.getInt32Ty());
-      rhs = builder.CreateZExt(rhs, builder.getInt32Ty());
+      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
+      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
     }
-    rec_val = builder.CreateICmpSLT(lhs, rhs, "binary.less");
-    rec_val = builder.CreateZExt(rec_val, builder.getInt32Ty());
+    switch (v->op_kind) {
+    case BinaryOpValue::LESS_THAN:
+      rec_val = builder.CreateICmpSLT(lhs, rhs, "binary.less");
+      rec_val =
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+      break;
+    case BinaryOpValue::MULTIPLY:
+      rec_val = builder.CreateMul(lhs, rhs, "binary.multiply");
+      break;
+    case BinaryOpValue::ADD:
+      rec_val = builder.CreateAdd(lhs, rhs, "binary.add");
+      break;
+    case BinaryOpValue::SUBTRACT:
+      rec_val = builder.CreateSub(lhs, rhs, "binary.sub");
+      break;
+    case BinaryOpValue::EQUAL:
+      rec_val = builder.CreateICmpEQ(lhs, rhs, "binary.euqal");
+      rec_val =
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+      break;
+    case BinaryOpValue::NOT_EQUAL:
+      rec_val = builder.CreateICmpNE(lhs, rhs, "binary.not");
+      rec_val =
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+      break;
+    case BinaryOpValue::LOGICAL_AND:
+      rec_val = builder.CreateAnd(lhs, rhs, "binary.and");
+      rec_val =
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+      break;
+    case BinaryOpValue::LOGICAL_OR:
+      rec_val = builder.CreateOr(lhs, rhs, "binary.or");
+      rec_val =
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+      break;
+    case BinaryOpValue::ASSIGN:
+      break;
+    }
   }
 
   void visitTernary(Ternary *v) override {

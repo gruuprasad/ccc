@@ -60,6 +60,7 @@ using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
 class ASTNode {
   Token tok;
   std::string uIdentifier;
+  std::shared_ptr<RawType> uType;
 
 protected:
   explicit ASTNode(Token tk) : tok(std::move(tk)) {}
@@ -73,6 +74,8 @@ public:
   virtual bool isLValue() { return false; }
   void setUIdentifier(std::string i) { uIdentifier = std::move(i); }
   std::string getUIdentifier() { return uIdentifier; }
+  void setUType(std::shared_ptr<RawType> t) { uType = t; }
+  std::shared_ptr<RawType> getUType() { return uType; }
 };
 
 class TranslationUnit : public ASTNode {
