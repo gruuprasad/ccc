@@ -101,7 +101,7 @@ unique_ptr<ExternalDeclaration> FastParser::parseFuncDefOrDeclaration() {
 
   if (peek().is(TokenType::SEMICOLON)) {
     consume(TokenType::SEMICOLON);
-    if (type_node.second) {
+    if (type_node.second || type_node.first->getStructType()) {
       return make_unique<StructDeclaration>(src_mark, move(type_node.first),
                                             move(identifier_node));
     }

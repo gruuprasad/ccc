@@ -142,7 +142,7 @@ public:
       ss << makeGVEdge(v->hash(),
                        std::hash<std::unique_ptr<ExternalDeclaration>>()(p))
          << p->accept(this);
-    if (v->members)
+    if (v->is_definition)
       return "subgraph cluster_" + std::to_string(v->hash()) +
              "{\nstyle=dotted;\n" + ss.str() + "}\n";
     return "subgraph cluster_" + std::to_string(v->hash()) +

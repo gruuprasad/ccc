@@ -93,7 +93,7 @@ TEST_CASE("lexer_failure_files") {
 
       if (ret == EXIT_SUCCESS)
         FAIL(input + ":0:0: Unexpected pass");
-
+      REQUIRE(ret == EXIT_FAILURE);
       delete[] ppArgs;
     }
   }
@@ -117,7 +117,7 @@ TEST_CASE("parser_success_files") {
 
       if (ret == EXIT_FAILURE)
         FAIL(input + ":0:0: Unexpected fail");
-
+      REQUIRE(ret == EXIT_SUCCESS);
       delete[] ppArgs;
     }
   }
@@ -146,7 +146,7 @@ TEST_CASE("parser_failure_files") {
 
       if (ret == EXIT_SUCCESS)
         FAIL(input + ":0:0: Unexpected pass");
-
+      REQUIRE(ret == EXIT_FAILURE);
       delete[] ppArgs;
     }
   }
@@ -173,6 +173,7 @@ TEST_CASE("pretty_printer_files") {
 
       if (ret == EXIT_FAILURE)
         FAIL(input + ":0:0: Unexpected fail");
+      REQUIRE(ret == EXIT_SUCCESS);
 
       std::ifstream ifs(input);
       std::stringstream buffer;
