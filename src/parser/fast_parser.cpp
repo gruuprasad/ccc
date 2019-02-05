@@ -227,7 +227,6 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   return unique_ptr<Declarator>();
 }
 
-// TODO Support for abstract function declarator type
 // (6.7.6)  direct-declarator :: identifier | ( declarator ) | direct-declarator
 // ( parameter-list )
 // (6.7.6) direct-abstract-declarator :: (
@@ -245,11 +244,21 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool, int ptrCount) {
   } else if (peek().is(TokenType::IDENTIFIER)) {
     identifier = make_unique<DirectDeclarator>(
         src_mark, make_unique<VariableName>(nextToken(), src_mark.getExtra()));
-  } else if (peek().is(TokenType::PARENTHESIS_CLOSE)) {
+  } else if (peek().is(C_TYPES)) {
+    auto param_list = parseParameterList();
+    isFunctionIdentifer = true;
     identifier = make_unique<AbstractDeclarator>(src_mark,
                                                  AbstractDeclType::Function, 0);
+    auto return_ptr = make_unique<AbstractDeclarator>(
+        global_mark, AbstractDeclType::Data, ptrCount);
+    return make_unique<FunctionDeclarator>(src_mark, move(identifier),
+                                           move(param_list), move(return_ptr));
+  } else if (peek().is(TokenType::PARENTHESIS_CLOSE)) {
+    return make_unique<AbstractDeclarator>(global_mark, AbstractDeclType::Data,
+                                           ptrCount);
   } else {
-    parser_error(peek(), "identifier or parenthesized declarator");
+    parser_error(peek(),
+                 "identifier, parameter list or parenthesized declarator");
     return unique_ptr<DirectDeclarator>();
   }
 
@@ -288,7 +297,7 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool, int ptrCount) {
           global_mark, std::move(identifier), ptrCount);
   }
   return identifier;
-}
+} // namespace ccc
 
 // (6.7.6)  parameter-list :: parameter-declaration (comma-separated)
 ParamDeclarationListType FastParser::parseParameterList() {

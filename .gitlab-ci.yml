@@ -1,53 +1,86 @@
 stages:
+  - llvm
   - build
+  - run
   - test
   - deploy
 
 variables:
   GIT_SSL_NO_VERIFY: "true"
 
-build:make:
-  stage: build
+ccc:llvm:
+  stage: llvm
   script:
-    - mkdir -p build
+    - ls
+    - bash build_llvm.sh
+    - ls llvm/install/bin/
+    - export PATH="$PATH:$PWD/llvm/install/bin/"
+    - export CC="$PWD/llvm/install/bin/clang"
+      export CXX="$PWD/llvm/install/bin/clang++"
+    - clang++ --version
+    - clang --version
+    - llc --version
+    - lli --version
+    - opt --version
+  cache:
+    key: one-key-to-rule-them-all
+    paths:
+    - llvm/install/
+
+ccc:build:
+  stage: build
+  dependencies:
+    - ccc:llvm
+  script:
+    - export PATH="$PATH:$PWD/llvm/install/bin/"
+    - export CC="$PWD/llvm/install/bin/clang"
+    - export CXX="$PWD/llvm/install/bin/clang++"
+    - mkdir -p build/
     - make -j$(nproc)
+  cache:
+    key: one-key-to-rule-them-all
+    paths:
+      - llvm/install/
   artifacts:
     when: on_success
     paths:
-      - ./build/*
-    expire_in: 5 mins
+      - build/
+    expire_in: 10 mins
 
-test:run:
-  stage: test
+ccc:run:
+  stage: run
   dependencies:
-    - build:make
+    - ccc:build
   script:
-    - cd ./build
+    - export PATH="$PATH:$PWD/llvm/install/bin/"
+    - export CC="$PWD/llvm/install/bin/clang"
+    - export CXX="$PWD/llvm/install/bin/clang++"
+    - cd build/
     - ./release/c4 --tokenize ../examples/sample.c
     - ./release/c4 --parse ../examples/sample.c
     - ./release/c4 --print-ast ../examples/sample.c
     - ./release/c4 --graphviz ../examples/sample.c
+  cache:
+    key: one-key-to-rule-them-all
 
-build:test:
-  stage: build
-  script:
-    - mkdir -p build
-    - cd ./build
-    - cmake ..
-    - make -j$(nproc)
-
-test:tests:
+ccc:test:
   stage: test
   dependencies:
-    - build:test
+    - ccc:build
   script:
-    - mkdir -p build
-    - cd ./build
+    - export PATH="$PATH:$PWD/llvm/install/bin/"
+    - export CC="$PWD/llvm/install/bin/clang"
+    - export CXX="$PWD/llvm/install/bin/clang++"
+    - cd build/
     - cmake ..
     - make check -j$(nproc)
+  cache:
+    key: one-key-to-rule-them-all
+    paths:
+      - llvm/install/
   allow_failure: true
 
-deploy:benchmark:
+ccc:deploy:
   stage: deploy
   script:
     - echo "The cake is a lie."
@@ -56,6 +89,6 @@ deploy:benchmark:
       - master
   artifacts:
     paths:
-      - ./benchmark.svg
+      - benchmark.svg
     expire_in: 3 days
   allow_failure: true

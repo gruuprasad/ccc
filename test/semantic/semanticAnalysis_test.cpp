@@ -354,8 +354,6 @@ TEST_CASE("access") {
   auto root = fp.parse();
   if (fp.fail())
     std::cerr << fp.getError() << std::endl;
-  auto pp = PrettyPrinterVisitor();
-  std::cout << root->accept(&pp) << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
   if (sv.fail())
@@ -373,8 +371,6 @@ TEST_CASE("wrong num args") {
   auto root = fp.parse();
   if (fp.fail())
     std::cerr << fp.getError() << std::endl;
-  auto pp = PrettyPrinterVisitor();
-  std::cout << root->accept(&pp) << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_FAILURE(sv);
@@ -464,27 +460,130 @@ TEST_CASE("structs advanced access") {
   REQUIRE_SUCCESS(sv);
 }
 
-TEST_CASE("scoping") {
-  std::string input = "int *a;\n"
-                      "int foo (int a, int b) {\n"
-                      "}\n"
-                      "struct A *p;\n"
-                      "int main () {\n"
-                      "return foo(1, 2);\n"
-                      "}\n"
-                      "\n";
+// TEST_CASE("scoping") {
+//  std::string input = "int *a;\n"
+//                      "int foo (int a, int b) {\n"
+//                      "}\n"
+//                      "struct A *p;\n"
+//                      "int main () {\n"
+//                      "return foo(1, 2);\n"
+//                      "}\n"
+//                      "\n";
+//
+//  auto fp = FastParser(input);
+//  auto root = fp.parse();
+//  if (fp.fail())
+//    std::cerr << fp.getError() << std::endl;
+//  auto sv = SemanticVisitor();
+//  root->accept(&sv);
+//  if (sv.fail())
+//    std::cerr << sv.getError() << std::endl;
+//  REQUIRE_SUCCESS(sv);
+//}
+
+TEST_CASE("abstract function") {
+  std::string input = "int main (int ((int)));";
 
   auto fp = FastParser(input);
   auto root = fp.parse();
   if (fp.fail())
     std::cerr << fp.getError() << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  if (sv.fail())
+    std::cerr << sv.getError() << std::endl;
   auto pp = PrettyPrinterVisitor();
   std::cout << root->accept(&pp) << std::endl;
+  REQUIRE_SUCCESS(sv);
+}
+
+TEST_CASE("flat struct") {
+  std::string input = "void main {\n"
+                      "  struct S {\n"
+                      "    int (*f)(int);\n"
+                      "    } s;\n"
+                      "  s.f(5);\n"
+                      "}";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
   if (sv.fail())
     std::cerr << sv.getError() << std::endl;
   REQUIRE_SUCCESS(sv);
+}
+
+TEST_CASE("declaration wo declarator1") {
+  std::string input = "int;\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() ==
+          SEMANTIC_ERROR(1, 1, "Declaration without declarator"));
+}
+
+TEST_CASE("declaration wo declarator2") {
+  std::string input = "int;\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() ==
+          SEMANTIC_ERROR(1, 1, "Declaration without declarator"));
+}
+
+TEST_CASE("declaration wo declarator3") {
+  std::string input = "int;\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() ==
+          SEMANTIC_ERROR(1, 1, "Declaration without declarator"));
+}
+
+TEST_CASE("declaration wo declarator4") {
+  std::string input = "int (void);\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() ==
+          SEMANTIC_ERROR(1, 1, "Declaration without declarator"));
+}
+
+TEST_CASE("declaration wo declarator5") {
+  std::string input = "int (*)(void);\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() ==
+          SEMANTIC_ERROR(1, 1, "Declaration without declarator"));
 }
 
 } // namespace ccc
