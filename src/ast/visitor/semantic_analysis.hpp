@@ -170,7 +170,7 @@ public:
       std::string name = prefix(identifier->name);
       v->data_name->accept(this);
       if (declarations.find(name) != declarations.end()) {
-        if (!global_scope)
+        if (!global_scope) // TODO prefix
           return SEMANTIC_ERROR(identifier->getTokenRef().getLine(),
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name + "'");
@@ -183,6 +183,7 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
+      v->global = global_scope;
       v->setUType(raw_type);
       v->setUIdentifier(name);
     }
@@ -703,6 +704,7 @@ public:
                                   " with " + raw_type->print());
     }
     raw_type = return_type;
+    v->setUType(raw_type);
     temporary = true;
     return error;
   }

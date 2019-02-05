@@ -105,12 +105,21 @@ public:
   }
 
   void visitDataDeclaration(DataDeclaration *v) override {
-    allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
-                                allocBuilder.GetInsertBlock()->begin());
-    llvm::Value *dec =
-        allocBuilder.CreateAlloca(v->getUType()->getLLVMType(builder));
-    dec->setName((*v->data_name->getIdentifier())->name);
-    declarations[v->getUIdentifier()] = dec;
+    if (!v->global) {
+      allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
+                                  allocBuilder.GetInsertBlock()->begin());
+      llvm::Value *dec =
+          allocBuilder.CreateAlloca(v->getUType()->getLLVMType(builder));
+      dec->setName((*v->data_name->getIdentifier())->name);
+      declarations[v->getUIdentifier()] = dec;
+    } else {
+      llvm::GlobalVariable *dec = new llvm::GlobalVariable(
+          mod, v->getUType()->getLLVMType(builder), false,
+          llvm::GlobalValue::CommonLinkage,
+          llvm::Constant::getNullValue(v->getUType()->getLLVMType(builder)),
+          (*v->data_name->getIdentifier())->name);
+      declarations[v->getUIdentifier()] = dec;
+    }
   }
 
   void visitStructDeclaration(StructDeclaration *v) override { (void)v; }
@@ -271,7 +280,10 @@ public:
       args.push_back(rec_val);
     }
     v->callee_name->accept(this);
-    rec_val = builder.CreateCall(rec_val, args, "call");
+    if (v->getUType()->getLLVMType(builder) == builder.getVoidTy())
+      builder.CreateCall(rec_val, args);
+    else
+      rec_val = builder.CreateCall(rec_val, args, "call");
   }
 
   void visitUnary(Unary *v) override {

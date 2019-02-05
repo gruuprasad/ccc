@@ -132,11 +132,13 @@ class DataDeclaration : public Declaration {
   FRIENDS
   std::unique_ptr<Type> data_type;
   std::unique_ptr<Declarator> data_name;
+  bool global;
 
 public:
   DataDeclaration(const Token &tk, std::unique_ptr<Type> t,
                   std::unique_ptr<Declarator> n)
-      : Declaration(tk), data_type(std::move(t)), data_name(std::move(n)) {}
+      : Declaration(tk), data_type(std::move(t)), data_name(std::move(n)),
+        global(true) {}
   std::string accept(Visitor<std::string> *) override;
   void accept(Visitor<void> *) override;
 };
