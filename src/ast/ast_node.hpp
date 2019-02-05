@@ -217,7 +217,8 @@ public:
              ExternalDeclarationListType m)
       : Type(tk), struct_name(std::move(n)), member_list(std::move(m)),
         is_definition(true) {}
-  std::string accept(Visitor *) override;
+  std::string accept(Visitor<std::string> *) override;
+  void accept(Visitor<void> *) override;
   StructType *getStructType() override { return this; }
 };
 

@@ -176,7 +176,7 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
-      v->global = global_scope;
+      v->global = prefix() == "$.";
       v->setUType(raw_type);
       v->setUIdentifier(name);
     } else if (raw_type->getRawTypeValue() != RawTypeValue::STRUCT) {
