@@ -27,12 +27,7 @@
 
 namespace ccc {
 
-using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
-using ScopeListType = std::vector<std::unordered_set<std::string>>;
-using IdentifierSetType = std::unordered_set<std::string>;
-using IdentifierPtrListType = std::vector<std::unique_ptr<VariableName> *>;
-
-class PrettyPrinterVisitor : public Visitor {
+class PrettyPrinterVisitor : public Visitor<std::string> {
 
   std::unordered_map<BinaryOpValue, std::string, EnumClassHash>
       BinaryOpValueToString{
@@ -154,7 +149,7 @@ public:
       }
       return pre + post;
     } else {
-      return "(())";
+      return error;
     }
   }
 
@@ -170,7 +165,7 @@ public:
   std::string visitFunctionDeclarator(FunctionDeclarator *v) override {
     std::stringstream ss;
     std::string pre, post;
-    if (v->return_ptr != nullptr) { // FIXME abstract declarator
+    if (v->return_ptr != nullptr) {
       const auto &abstract = *v->return_ptr->getAbstractDeclarator();
       for (unsigned int i = 0; i < abstract.pointerCount; i++) {
         pre += "(*";

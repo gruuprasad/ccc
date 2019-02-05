@@ -4,11 +4,14 @@
 
 namespace ccc {
 
+using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
+using ScopeListType = std::vector<std::unordered_set<std::string>>;
 using IdentifierSetType = std::unordered_set<std::string>;
+using IdentifierPtrListType = std::vector<std::unique_ptr<VariableName> *>;
 using IdentifierMapType =
     std::unordered_map<std::string, std::shared_ptr<RawType>>;
 
-class SemanticVisitor : public Visitor {
+class SemanticVisitor : public Visitor<std::string> {
 
   IdentifierSetType definitions;
   IdentifierMapType declarations;
@@ -68,9 +71,6 @@ public:
   std::string getError() { return error; }
 
   std::string visitTranslationUnit(TranslationUnit *v) override {
-    //    std::vector<std::string> scope = {"a"};
-    //    structDefinitions.emplace_back(std::unordered_set<std::vector<std::string>>{
-    //        std::vector<std::string>()});
     raw_type = nullptr;
     for (const auto &child : v->extern_list) {
       error = child->accept(this);
@@ -105,6 +105,8 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
+      v->setUType(raw_type);
+      v->setUIdentifier(name);
       jump_type = raw_type->get_return();
     } else if (v->fn_name)
       return SEMANTIC_ERROR(v->fn_name->getTokenRef().getLine(),
@@ -138,10 +140,12 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
-    } else if (v->fn_name)
-      return SEMANTIC_ERROR(v->fn_name->getTokenRef().getLine(),
-                            v->fn_name->getTokenRef().getColumn(),
-                            "Missing identifier");
+      v->setUType(raw_type);
+      v->setUIdentifier(name);
+    } else
+      return SEMANTIC_ERROR(v->return_type->getTokenRef().getLine(),
+                            v->return_type->getTokenRef().getColumn(),
+                            "Declaration without declarator");
     for (auto it = declarations.begin(); it != declarations.end();)
       if ((*it).first.compare(0, prefix("$").size(), prefix("$")) == 0)
         declarations.erase(it++);
@@ -172,10 +176,14 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
-    } else if (v->data_name)
-      return SEMANTIC_ERROR(v->data_name->getTokenRef().getLine(),
-                            v->data_name->getTokenRef().getColumn(),
-                            "Missing identifier");
+      v->global = prefix() == "$.";
+      v->setUType(raw_type);
+      v->setUIdentifier(name);
+    } else if (raw_type->getRawTypeValue() != RawTypeValue::STRUCT) {
+      return SEMANTIC_ERROR(v->data_type->getTokenRef().getLine(),
+                            v->data_type->getTokenRef().getColumn(),
+                            "Declaration without declarator");
+    }
     if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->data_name)
       return SEMANTIC_ERROR(v->data_name->getTokenRef().getLine(),
                             v->data_name->getTokenRef().getColumn(),
@@ -245,6 +253,7 @@ public:
                               "Redefinition of '" + identifier->name + "'");
       v->param_name->accept(this);
       declarations[name] = raw_type;
+      (*v->param_name->getIdentifier())->setUIdentifier(name);
     } else if (v->param_name)
       v->param_name->accept(this);
     if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->param_name)
@@ -556,6 +565,7 @@ public:
       name = tmp_pre + "." + v->name;
       if (declarations.find(name) != declarations.end()) {
         raw_type = declarations[name];
+        v->setUIdentifier(name);
         return error;
       }
     }
@@ -607,6 +617,12 @@ public:
                               v->getTokenRef().getColumn(),
                               "Can't access member of " + raw_type->print());
       sub = raw_type->deref()->getRawStructType()->getName();
+      std::string name = sub.substr(7, sub.size()) + "." +
+                         v->member_name->getVariableName()->name;
+      if (declarations.find(name) != declarations.end()) {
+        raw_type = declarations[name];
+        return error;
+      }
       break;
     }
     case PostFixOpValue::DOT:
@@ -615,12 +631,16 @@ public:
                               v->getTokenRef().getColumn(),
                               "Can't access member of " + raw_type->print());
       sub = raw_type->getRawStructType()->getName();
-    }
-    std::string name = sub.substr(7, sub.size()) + "." +
-                       v->member_name->getVariableName()->name;
-    if (declarations.find(name) != declarations.end()) {
-      raw_type = declarations[name];
-      return error;
+      std::string name = sub.substr(7, sub.size()) + "." +
+                         v->member_name->getVariableName()->name;
+      if (declarations.find(name) != declarations.end()) {
+        raw_type = declarations[name];
+        if (raw_type->isFunctionPointer())
+          while (raw_type->getRawTypeValue() == RawTypeValue::POINTER)
+            raw_type = raw_type->deref();
+        return error;
+      }
+      break;
     }
     return SEMANTIC_ERROR(
         v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
@@ -658,7 +678,7 @@ public:
                                 rhs_type->print());
     }
     temporary = false;
-    return error; // TODO
+    return error;
   }
 
   std::string visitFunctionCall(FunctionCall *v) override {
@@ -693,7 +713,8 @@ public:
                               "Can't call " + calle_arg_types[i]->print() +
                                   " with " + raw_type->print());
     }
-    raw_type = return_type->get_return();
+    raw_type = return_type;
+    v->setUType(raw_type);
     temporary = true;
     return error;
   }
