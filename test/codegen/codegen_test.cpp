@@ -24,9 +24,9 @@
   CodegenVisitor cv;                                                           \
   root->accept(&cv);                                                           \
   cv.dump();                                                                   \
-  REQUIRE(WEXITSTATUS(system(                                                  \
-              "../../llvm/install/bin/clang -w -o test test.ll && ./test")) == \
-          ret);
+  int run =                                                                    \
+      system("../../llvm/install/bin/clang -w -o test test.ll && ./test");     \
+  REQUIRE(WEXITSTATUS(run) == ret);
 
 namespace ccc {
 
