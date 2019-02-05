@@ -5,21 +5,23 @@
 #define ROOT_DIR std::string("../../black_box_files/")
 
 #define GCC_SUCCESS                                                            \
-  std::string gcc = "cc -w -c " + input + " 2>&1";                             \
+  std::string gcc =                                                            \
+      "gcc -pedantic-errors -std=c++11 -w -c " + input + " 2>&1";              \
   std::string error = Utils::exec(&gcc[0]);                                    \
   if (!error.empty()) {                                                        \
     while (error.find("error") > error.find_first_of('\n')) {                  \
       error = error.substr(error.find('\n') + 1, error.size());                \
     }                                                                          \
     error = error.substr(error.find(input), error.find_first_of('\n'));        \
-    std::cerr << "black box c4 " << flag << std::endl                          \
+    std::cerr << "black box c4 " << std::endl                                  \
               << "gcc: " << error << std::endl                                 \
               << std::endl;                                                    \
     FAIL("Unexpected gcc fail");                                               \
   }
 
 #define GCC_FAILURE                                                            \
-  std::string gcc = "gcc -w -c " + input + " 2>&1";                            \
+  std::string gcc =                                                            \
+      "gcc -pedantic-errors -std=c++11 -w -c " + input + " 2>&1";              \
   std::string error = Utils::exec(&gcc[0]);                                    \
   if (!error.empty()) {                                                        \
     while (error.find("error") > error.find_first_of('\n')) {                  \
@@ -31,7 +33,7 @@
 #define GCC_DIFF                                                               \
   if (error.substr(0, error.find("error")) !=                                  \
       error_content.substr(0, error_content.find("error"))) {                  \
-    std::cerr << "black box c4 " << flag << std::endl                          \
+    std::cerr << "black box c4 " << std::endl                                  \
               << "gcc: " << error << std::endl                                 \
               << "ccc: " << error_content << "\n"                              \
               << std::endl;                                                    \
@@ -57,6 +59,15 @@
   std::string content = ss.str();
 
 using namespace ccc;
+
+TEST_CASE("help") {
+  std::string flag = "--help";
+  std::cout << "./c4 " << flag << std::endl;
+  char **ppArgs = new char *[2];
+  ppArgs[1] = &flag[0];
+  EntryPointHandler().handle(2, ppArgs);
+  delete[] ppArgs;
+}
 
 TEST_CASE("lexer_failure_files") {
   std::string dir = ROOT_DIR + "lexer_failure_files/";
@@ -170,6 +181,36 @@ TEST_CASE("pretty_printer_files") {
 
       REQUIRE_EMPTY(Utils::compare(content, expected));
 
+      delete[] ppArgs;
+    }
+  }
+}
+
+TEST_CASE("compiler_success_files") {
+  std::string dir = ROOT_DIR + "compiler_success_files/";
+  for (const auto &file : Utils::dir(&dir[0])) {
+    SECTION(file) {
+      std::string flag = "--compile";
+      std::string input = dir + file;
+      std::cout << "./c4 " << flag << " " << input << std::endl;
+
+      GCC_SUCCESS;
+
+      char **ppArgs = new char *[3];
+      ppArgs[1] = &flag[0];
+      ppArgs[2] = &input[0];
+
+      int ret = EntryPointHandler().handle(3, ppArgs);
+
+      if (ret == EXIT_FAILURE)
+        FAIL(input + ":0:0: Unexpected fail");
+
+      std::string cmd = "../../llvm/install/bin/clang -w -o " +
+                        file.substr(0, file.rfind(".c")) + " " +
+                        file.substr(0, file.rfind(".c")) + ".ll && ./" +
+                        file.substr(0, file.rfind(".c"));
+      std::cout << cmd << std::endl;
+      system(&cmd[0]);
       delete[] ppArgs;
     }
   }

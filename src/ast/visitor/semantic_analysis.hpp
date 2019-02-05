@@ -73,9 +73,6 @@ public:
   std::string getError() { return error; }
 
   std::string visitTranslationUnit(TranslationUnit *v) override {
-    //    std::vector<std::string> scope = {"a"};
-    //    structDefinitions.emplace_back(std::unordered_set<std::vector<std::string>>{
-    //        std::vector<std::string>()});
     raw_type = nullptr;
     for (const auto &child : v->extern_list) {
       global_scope = true;
@@ -151,7 +148,10 @@ public:
         declarations[name] = raw_type;
       v->setUType(raw_type);
       v->setUIdentifier(name);
-    }
+    } else
+      return SEMANTIC_ERROR(v->return_type->getTokenRef().getLine(),
+                            v->return_type->getTokenRef().getColumn(),
+                            "Declaration without declarator");
     for (auto it = declarations.begin(); it != declarations.end();)
       if ((*it).first.compare(0, prefix("$").size(), prefix("$")) == 0)
         declarations.erase(it++);
@@ -186,6 +186,10 @@ public:
       v->global = global_scope;
       v->setUType(raw_type);
       v->setUIdentifier(name);
+    } else if (raw_type->getRawTypeValue() != RawTypeValue::STRUCT) {
+      return SEMANTIC_ERROR(v->data_type->getTokenRef().getLine(),
+                            v->data_type->getTokenRef().getColumn(),
+                            "Declaration without declarator");
     }
     if (raw_type->getRawTypeValue() == RawTypeValue::VOID && v->data_name)
       return SEMANTIC_ERROR(v->data_name->getTokenRef().getLine(),
@@ -617,6 +621,12 @@ public:
                               v->getTokenRef().getColumn(),
                               "Can't access member of " + raw_type->print());
       sub = raw_type->deref()->getRawStructType()->getName();
+      std::string name = sub.substr(7, sub.size()) + "." +
+                         v->member_name->getVariableName()->name;
+      if (declarations.find(name) != declarations.end()) {
+        raw_type = declarations[name];
+        return error;
+      }
       break;
     }
     case PostFixOpValue::DOT:
@@ -625,12 +635,16 @@ public:
                               v->getTokenRef().getColumn(),
                               "Can't access member of " + raw_type->print());
       sub = raw_type->getRawStructType()->getName();
-    }
-    std::string name = sub.substr(7, sub.size()) + "." +
-                       v->member_name->getVariableName()->name;
-    if (declarations.find(name) != declarations.end()) {
-      raw_type = declarations[name];
-      return error;
+      std::string name = sub.substr(7, sub.size()) + "." +
+                         v->member_name->getVariableName()->name;
+      if (declarations.find(name) != declarations.end()) {
+        raw_type = declarations[name];
+        if (raw_type->isFunctionPointer())
+          while (raw_type->getRawTypeValue() == RawTypeValue::POINTER)
+            raw_type = raw_type->deref();
+        return error;
+      }
+      break;
     }
     return SEMANTIC_ERROR(
         v->getTokenRef().getLine(), v->getTokenRef().getColumn(),

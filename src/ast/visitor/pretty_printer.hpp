@@ -149,7 +149,7 @@ public:
       }
       return pre + post;
     } else {
-      return "(())";
+      return error;
     }
   }
 

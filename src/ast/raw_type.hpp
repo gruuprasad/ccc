@@ -38,6 +38,7 @@ public:
   virtual llvm::FunctionType *getLLVMFunctionType(llvm::IRBuilder<>) {
     return nullptr;
   }
+  virtual bool isFunctionPointer() { return false; };
 };
 
 class RawFunctionType : public RawType {
@@ -240,6 +241,12 @@ public:
       return false;
   }
   std::shared_ptr<RawType> get_return() override { return ptr->get_return(); }
+  bool isFunctionPointer() override {
+    if (ptr->getRawTypeValue() == RawTypeValue::FUNCTION)
+      return true;
+    else
+      return ptr->isFunctionPointer();
+  };
 };
 
 class RawStructType : public RawType {

@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef C4_CODEGEN_VISITOR_HPP
 #define C4_CODEGEN_VISITOR_HPP
 
@@ -43,6 +45,8 @@ class CodegenVisitor : public Visitor<void> {
   llvm::IRBuilder<> builder, allocBuilder;
   llvm::Function *parent;
 
+  std::string filename;
+
   std::vector<llvm::BasicBlock *> breaks;
   std::vector<llvm::BasicBlock *> continues;
   std::unordered_map<std::string, llvm::BasicBlock *> labels;
@@ -54,19 +58,23 @@ class CodegenVisitor : public Visitor<void> {
   llvm::Value *load;
 
 public:
-  CodegenVisitor() : mod("test", ctx), builder(ctx), allocBuilder(ctx){};
+  CodegenVisitor(std::string f)
+      : mod(f, ctx), builder(ctx), allocBuilder(ctx), filename(std::move(f)){};
   ~CodegenVisitor() override = default;
 
-  void dump() {
+  void dump() { mod.dump(); }
+
+  void compile() {
     for (const auto &p : ulabels) {
       builder.SetInsertPoint(p.second);
       builder.CreateBr(labels[p.first]);
     }
     llvm::verifyModule(mod);
-    mod.dump();
     std::error_code EC;
-    llvm::raw_fd_ostream stream("test.ll", EC,
-                                llvm::sys::fs::OpenFlags::F_Text);
+    auto of = filename.substr(0, filename.rfind(".c")) + ".ll";
+    if (of.find('/'))
+      of = of.substr(of.rfind('/') + 1, of.size());
+    llvm::raw_fd_ostream stream(of, EC, llvm::sys::fs::OpenFlags::F_Text);
     mod.print(stream, nullptr);
   }
 

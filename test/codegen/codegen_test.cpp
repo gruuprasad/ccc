@@ -21,9 +21,10 @@
   SemanticVisitor sv;                                                          \
   root->accept(&sv);                                                           \
   REQUIRE_SUCCESS(sv);                                                         \
-  CodegenVisitor cv;                                                           \
+  CodegenVisitor cv("test.c");                                                 \
   root->accept(&cv);                                                           \
   cv.dump();                                                                   \
+  cv.compile();                                                                \
   int run =                                                                    \
       system("../../llvm/install/bin/clang -w -o test test.ll && ./test");     \
   REQUIRE(WEXITSTATUS(run) == ret);
@@ -33,7 +34,7 @@ namespace ccc {
 TEST_CASE("ast codegen smoke test") {
   PRINT_START("main");
   std::string input = "int main() {\n"
-                      "  return 0;\n"
+                      "  return 0 ? main() : 0;\n"
                       "}\n";
   REQUIRE_BUILD_RUN(input, 0);
 }
