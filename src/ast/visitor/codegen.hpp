@@ -76,10 +76,15 @@ public:
   }
 
   void visitFunctionDefinition(FunctionDefinition *v) override {
-    parent = llvm::Function::Create(v->getUType()->getLLVMFunctionType(builder),
-                                    llvm::GlobalValue::ExternalLinkage,
-                                    (*v->fn_name->getIdentifier())->name, &mod);
-    functions[v->getUIdentifier()] = parent;
+    if (functions.find(v->getUIdentifier()) != functions.end())
+      parent = functions[v->getUIdentifier()];
+    else {
+      parent =
+          llvm::Function::Create(v->getUType()->getLLVMFunctionType(builder),
+                                 llvm::GlobalValue::ExternalLinkage,
+                                 (*v->fn_name->getIdentifier())->name, &mod);
+      functions[v->getUIdentifier()] = parent;
+    }
     v->fn_name->accept(this);
     v->fn_body->accept(this);
     if (builder.GetInsertBlock()->getTerminator() == nullptr) {
@@ -92,7 +97,12 @@ public:
     }
   }
 
-  void visitFunctionDeclaration(FunctionDeclaration *v) override { (void)v; }
+  void visitFunctionDeclaration(FunctionDeclaration *v) override {
+    functions[v->getUIdentifier()] =
+        llvm::Function::Create(v->getUType()->getLLVMFunctionType(builder),
+                               llvm::GlobalValue::ExternalLinkage,
+                               (*v->fn_name->getIdentifier())->name, &mod);
+  }
 
   void visitDataDeclaration(DataDeclaration *v) override {
     allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),

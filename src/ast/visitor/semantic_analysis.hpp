@@ -149,6 +149,8 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
+      v->setUType(raw_type);
+      v->setUIdentifier(name);
     }
     for (auto it = declarations.begin(); it != declarations.end();)
       if ((*it).first.compare(0, prefix("$").size(), prefix("$")) == 0)
