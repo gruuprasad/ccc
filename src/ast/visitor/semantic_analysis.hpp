@@ -713,7 +713,7 @@ public:
                               "Can't call " + calle_arg_types[i]->print() +
                                   " with " + raw_type->print());
     }
-    raw_type = return_type;
+    raw_type = return_type->get_return();
     v->setUType(raw_type);
     temporary = true;
     return error;
