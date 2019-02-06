@@ -619,7 +619,7 @@ public:
   }
 
   std::string visitString(String *) override {
-    temporary = true;
+    temporary = false;
     raw_type = make_unique<RawPointerType>(
         make_unique<RawScalarType>(RawTypeValue::CHAR));
     return error;
@@ -646,6 +646,9 @@ public:
                          v->member_name->getVariableName()->name;
       if (declarations.find(name) != declarations.end()) {
         raw_type = declarations[name];
+        if (raw_type->isFunctionPointer())
+          while (raw_type->getRawTypeValue() == RawTypeValue::POINTER)
+            raw_type = raw_type->deref();
         return error;
       }
       break;
@@ -710,6 +713,8 @@ public:
     error = v->callee_name->accept(this);
     if (!error.empty())
       return error;
+    if (raw_type->isFunctionPointer())
+      raw_type = raw_type->deref();
     if (raw_type->getRawTypeValue() != RawTypeValue::FUNCTION)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
@@ -958,6 +963,9 @@ public:
     //        }
     //      }
     //    }
+    //    if (lhs_type->isFunctionPointer() &&
+    //        rhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)
+    //      lhs_type = lhs_type->deref();
     if (!lhs_type->compare_equal(rhs_type)) {
       return SEMANTIC_ERROR(
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
