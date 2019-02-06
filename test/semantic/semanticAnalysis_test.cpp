@@ -597,7 +597,7 @@ TEST_CASE("missing prameter name") {
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_FAILURE(sv);
-  REQUIRE(sv.getError() == SEMANTIC_ERROR(2, 11, " Expected identifier"));
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(2, 11, "Expected identifier"));
 }
 
 } // namespace ccc
