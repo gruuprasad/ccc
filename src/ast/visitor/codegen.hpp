@@ -98,11 +98,7 @@ public:
       v->fn_body->accept(this);
       if (builder.GetInsertBlock()->getTerminator() == nullptr) {
         llvm::Type *CurFuncReturnType = builder.getCurrentFunctionReturnType();
-        if (CurFuncReturnType->isVoidTy()) {
-          builder.CreateRetVoid();
-        } else {
-          builder.CreateRet(llvm::Constant::getNullValue(CurFuncReturnType));
-        }
+        builder.CreateRet(llvm::Constant::getNullValue(CurFuncReturnType));
       }
     }
   }
@@ -202,6 +198,8 @@ public:
     builder.CreateBr(IfHeaderBlock);
     builder.SetInsertPoint(IfHeaderBlock);
     v->condition->accept(this);
+    rec_val =
+        builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
     auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0), "condition");
     builder.CreateCondBr(c, IfConsequenceBlock, IfAlternativeBlock);
     builder.SetInsertPoint(IfConsequenceBlock);
@@ -235,6 +233,8 @@ public:
     builder.CreateBr(whileHeaderBlock);
     builder.SetInsertPoint(whileHeaderBlock);
     v->predicate->accept(this);
+    rec_val =
+        builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
     auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0), "condition");
     builder.CreateCondBr(c, whileBodyBlock, whileEndBlock);
     builder.SetInsertPoint(whileBodyBlock);
@@ -262,11 +262,11 @@ public:
   void visitReturn(Return *v) override {
     if (v->expr) {
       v->expr->accept(this);
-      rec_val = builder.CreateZExt(
+      rec_val = builder.CreateZExtOrTrunc(
           rec_val, builder.getCurrentFunctionReturnType(), "convert.ret");
       builder.CreateRet(rec_val);
     } else
-      builder.CreateRetVoid();
+      builder.CreateRet(llvm::Constant::getNullValue(parent->getReturnType()));
   }
 
   void visitContinue(Continue *) override {
@@ -292,6 +292,12 @@ public:
 
   void visitString(String *v) override {
     rec_val = builder.CreateGlobalString(v->str_value, "string");
+    //    llvm::GlobalVariable *str = new llvm::GlobalVariable(
+    //        mod, rec_val->getType(), false, llvm::GlobalValue::CommonLinkage,
+    //        llvm::Constant::getNullValue(rec_val->getType()), "string");
+    //    rec_val = builder.CreateStore(rec_val, str, "store.string");
+    rec_val = builder.CreatePointerBitCastOrAddrSpaceCast(
+        rec_val, builder.getInt8PtrTy());
   }
 
   void visitMemberAccessOp(MemberAccessOp *v) override { (void)v; } // TODO
@@ -318,10 +324,7 @@ public:
       pos++;
       args.push_back(rec_val);
     }
-    if (v->getUType()->getLLVMType(builder) == builder.getVoidTy())
-      builder.CreateCall(callee, args);
-    else
-      rec_val = builder.CreateCall(callee, args, "call");
+    rec_val = builder.CreateCall(callee, args, "call");
   }
 
   void visitUnary(Unary *v) override {
@@ -350,7 +353,7 @@ public:
             static_cast<uint32_t>(v->operand->getString()->str_value.size()));
       break;
     case RawTypeValue::NIL:
-      rec_val = builder.getInt32(4);
+      rec_val = builder.getInt32(8);
       break;
     case RawTypeValue::INT:
       rec_val = builder.getInt32(4);
@@ -370,29 +373,38 @@ public:
     auto rhs = rec_val;
     switch (v->op_kind) {
     case BinaryOpValue::LESS_THAN:
-      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
-      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+      if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
+      } else {
+        lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+        rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+      }
       rec_val = builder.CreateICmpSLT(lhs, rhs, "binary.less");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
+          builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
     case BinaryOpValue::MULTIPLY:
-      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
-      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+      if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
+      } else {
+        lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+        rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+      }
       rec_val = builder.CreateMul(lhs, rhs, "binary.multiply");
       break;
     case BinaryOpValue::ADD:
       if (v->left_operand->getUType()->getRawTypeValue() ==
           RawTypeValue::POINTER) {
-        load = builder.CreateGEP(lhs, rhs, "binary.ptr.add");
+        load = builder.CreateGEP(lhs, rhs, "ptr");
         rec_val = load;
       } else if (v->right_operand->getUType()->getRawTypeValue() ==
                  RawTypeValue::POINTER) {
-        load = builder.CreateGEP(rhs, lhs, "binary.ptr.add");
+        load = builder.CreateGEP(rhs, lhs, "ptr");
         rec_val = load;
       } else {
-        lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
-        rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+        if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
+        } else {
+          lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+          rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+        }
         rec_val = builder.CreateAdd(lhs, rhs, "binary.add");
       }
       break;
@@ -408,38 +420,53 @@ public:
             builder.CreateExactSDiv(rec_val, builder.getInt64(4), "ptr.div");
         rec_val = builder.CreateTrunc(rec_val, builder.getInt32Ty());
       } else {
-        lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
-        rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+        if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
+        } else {
+          lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+          rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+        }
         rec_val = builder.CreateSub(lhs, rhs, "binary.sub");
       }
       break;
     case BinaryOpValue::EQUAL:
-      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
-      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+      if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
+      } else {
+        lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+        rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+      }
       rec_val = builder.CreateICmpEQ(lhs, rhs, "binary.euqal");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
+          builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
     case BinaryOpValue::NOT_EQUAL:
-      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
-      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+      if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
+      } else {
+        lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+        rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+      }
       rec_val = builder.CreateICmpNE(lhs, rhs, "binary.not");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
+          builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
     case BinaryOpValue::LOGICAL_AND:
-      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
-      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+      if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
+      } else {
+        lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+        rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+      }
       rec_val = builder.CreateAnd(lhs, rhs, "binary.and");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
+          builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
     case BinaryOpValue::LOGICAL_OR:
-      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
-      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+      if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
+      } else {
+        lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+        rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+      }
       rec_val = builder.CreateOr(lhs, rhs, "binary.or");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
+          builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
     case BinaryOpValue::ASSIGN:
       // EMPTY
@@ -459,6 +486,8 @@ public:
     builder.CreateBr(ternaryHeaderBlock);
     builder.SetInsertPoint(ternaryHeaderBlock);
     v->predicate->accept(this);
+    rec_val =
+        builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
     auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0), "condition");
     builder.CreateCondBr(c, ternaryConsequenceBlock, ternaryAlternativeBlock);
     builder.SetInsertPoint(ternaryConsequenceBlock);
@@ -482,11 +511,25 @@ public:
     auto lhs = load;
     v->right_operand->accept(this);
     auto rhs = rec_val;
-    rhs = builder.CreateBitCast(rhs, v->getUType()->getLLVMType(builder));
+    if (v->left_operand->getUType()->getRawTypeValue() == RawTypeValue::INT &&
+        v->right_operand->getUType()->getRawTypeValue() == RawTypeValue::CHAR)
+      rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty());
+    else if (v->left_operand->getUType()->getRawTypeValue() ==
+                 RawTypeValue::CHAR &&
+             v->right_operand->getUType()->getRawTypeValue() ==
+                 RawTypeValue::INT)
+      rhs = builder.CreateTrunc(rhs, builder.getInt8Ty());
+    else if (v->left_operand->getUType()->getRawTypeValue() ==
+                 RawTypeValue::POINTER &&
+             v->right_operand->getUType()->getRawTypeValue() ==
+                 RawTypeValue::NIL)
+      rhs = llvm::Constant::getNullValue(lhs->getType());
+    rhs = builder.CreatePointerBitCastOrAddrSpaceCast(
+        rhs, v->getUType()->getLLVMType(builder));
     builder.CreateStore(rhs, lhs);
     rec_val = rhs;
   }
-}; // namespace ccc
+};
 
 } // namespace ccc
 

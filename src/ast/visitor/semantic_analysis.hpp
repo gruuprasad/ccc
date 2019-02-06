@@ -926,6 +926,7 @@ public:
       return error;
     auto lhs_type = raw_type;
     v->setUType(raw_type);
+    v->left_operand->setUType(raw_type);
     if (temporary || !v->left_operand->isLValue() ||
         lhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
@@ -935,6 +936,7 @@ public:
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    v->right_operand->setUType(raw_type);
     //    if (lhs_type->isVoidPtr() &&
     //        (rhs_type->getRawTypeValue() == RawTypeValue::POINTER ||
     //         rhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)) {

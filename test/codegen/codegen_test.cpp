@@ -155,6 +155,16 @@ TEST_CASE("sizeof int") {
   REQUIRE_RUN("", 4);
 }
 
+TEST_CASE("sizeof c") {
+  PRINT_START("sizeof c");
+  std::string input = "int main() {\n"
+                      "  return sizeof('c');\n"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 4);
+}
+
 TEST_CASE("sizeof char") {
   PRINT_START("sizeof char");
   std::string input = "int main() {\n"
@@ -336,6 +346,73 @@ TEST_CASE("argv access") {
   CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("a", 97);
+}
+
+TEST_CASE("string") {
+  PRINT_START("string");
+  std::string input = "int main() {"
+                      "   char * s;"
+                      "   s = \"abc\";"
+                      "   return  s[2];"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 99);
+}
+
+TEST_CASE("cast") {
+  PRINT_START("cast");
+  std::string input = "int main() {"
+                      "   int a;"
+                      "   char b;"
+                      "   a = 'c';"
+                      "   b = 1;"
+                      "   return  a + b;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 100);
+}
+
+TEST_CASE("cast 2") {
+  PRINT_START("cast 2");
+  std::string input = "int main() {"
+                      "   return  (1 < 3) + 'b';"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 99);
+}
+
+TEST_CASE("cast 3") {
+  PRINT_START("cast 3");
+  std::string input = "char main() {"
+                      "   return  1;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("cast 4") {
+  PRINT_START("cast 4");
+  std::string input = "void main() {"
+                      "   int *p;"
+                      "   p = 0;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 0);
+}
+
+TEST_CASE("return ") {
+  PRINT_START("return");
+  std::string input = "void main() {"
+                      "   return;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 0);
 }
 
 } // namespace ccc
