@@ -177,13 +177,13 @@ public:
   llvm::Type *getLLVMType(llvm::IRBuilder<> builder) override {
     switch (type_kind) {
     case RawTypeValue::VOID:
-      return builder.getVoidTy();
+      return builder.getInt8Ty();
     case RawTypeValue::INT:
       return builder.getInt32Ty();
     case RawTypeValue::CHAR:
       return builder.getInt8Ty();
     case RawTypeValue::NIL:
-      return nullptr;
+      return builder.getInt8Ty();
     default:
       return nullptr;
     }
@@ -246,7 +246,11 @@ public:
       return true;
     else
       return ptr->isFunctionPointer();
-  };
+  }
+
+  llvm::Type *getLLVMType(llvm::IRBuilder<> builder) override {
+    return llvm::PointerType::getUnqual(ptr->getLLVMType(builder));
+  }
 };
 
 class RawStructType : public RawType {

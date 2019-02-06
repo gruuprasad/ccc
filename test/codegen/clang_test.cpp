@@ -10,9 +10,10 @@
 namespace ccc {
 
 TEST_CASE("ast codegen smoke test") {
-  std::string input = "int i;"
-                      "int main() {\n"
-                      "i = 0;"
+  std::string input = "int main() {\n"
+                      "  int* p;\n"
+                      "  *p = 1;"
+                      "  return *p;"
                       "}\n";
 
   std::ofstream os("tmp.c");

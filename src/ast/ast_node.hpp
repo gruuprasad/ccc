@@ -47,6 +47,7 @@ class AbstractDeclarator;
 class Number;
 class FunctionDeclarator;
 class CodegenVisitor;
+class String;
 
 using DeclarationListType = std::vector<std::unique_ptr<Declaration>>;
 using ExternalDeclarationListType =
@@ -99,6 +100,7 @@ class FunctionDefinition : public ExternalDeclaration {
   std::unique_ptr<Type> return_type;
   std::unique_ptr<Declarator> fn_name;
   std::unique_ptr<Statement> fn_body;
+  bool isFuncPtr = false;
 
 public:
   FunctionDefinition(const Token &tk, std::unique_ptr<Type> r,
@@ -119,6 +121,7 @@ class FunctionDeclaration : public Declaration {
   FRIENDS
   std::unique_ptr<Type> return_type;
   std::unique_ptr<Declarator> fn_name;
+  bool isFuncPtr = false;
 
 public:
   FunctionDeclaration(const Token &tk, std::unique_ptr<Type> r,
@@ -408,6 +411,7 @@ protected:
 public:
   virtual VariableName *getVariableName() { return nullptr; }
   virtual Number *getNumber() { return nullptr; }
+  virtual String *getString() { return nullptr; }
 };
 
 class VariableName : public Expression {
@@ -457,6 +461,7 @@ public:
       : Expression(tk), str_value(std::move(v)) {}
   std::string accept(Visitor<std::string> *) override;
   void accept(Visitor<void> *) override;
+  String *getString() override { return this; }
 };
 
 enum class PostFixOpValue { DOT, ARROW };

@@ -105,6 +105,10 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
+      if (raw_type->isFunctionPointer())
+        return SEMANTIC_ERROR(v->fn_name->getTokenRef().getLine(),
+                              v->fn_name->getTokenRef().getColumn(),
+                              "Can't define " + raw_type->print());
       v->setUType(raw_type);
       v->setUIdentifier(name);
       jump_type = raw_type->get_return();
@@ -140,6 +144,7 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
+      v->isFuncPtr = raw_type->isFunctionPointer();
       v->setUType(raw_type);
       v->setUIdentifier(name);
     } else
@@ -274,6 +279,7 @@ public:
       break;
     case ScalarTypeValue::CHAR:
       raw_type = make_unique<RawScalarType>(RawTypeValue::CHAR);
+      break;
     }
     return error;
   }
@@ -382,9 +388,14 @@ public:
               std::make_shared<RawScalarType>(RawTypeValue::VOID))) {
         pre.pop_back();
         raw_type = make_unique<RawFunctionType>(return_type, tmp);
+        for (int i = 0; i < lvl; i++)
+          raw_type = make_unique<RawPointerType>(raw_type);
         return error;
       }
     }
+    if (function_definition)
+      function_definition =
+          return_type->getRawTypeValue() != RawTypeValue::FUNCTION;
     for (const auto &p : v->param_list) {
       error = p->accept(this);
       if (!error.empty())
@@ -392,7 +403,20 @@ public:
       tmp.emplace_back(raw_type);
     }
     pre.pop_back();
-    raw_type = make_unique<RawFunctionType>(return_type, tmp);
+    if (return_type->getRawTypeValue() == RawTypeValue::FUNCTION) {
+      auto tmp_ret = return_type->get_return();
+      auto tmp_param = return_type->get_param();
+      int lvl_p = 0;
+      while (tmp_ret->getRawTypeValue() == RawTypeValue::POINTER) {
+        tmp_ret = tmp_ret->deref();
+        lvl_p++;
+      }
+      return_type = make_unique<RawFunctionType>(tmp_ret, tmp);
+      for (int i = 0; i < lvl_p; i++)
+        return_type = make_unique<RawPointerType>(return_type);
+      raw_type = make_unique<RawFunctionType>(return_type, tmp_param);
+    } else
+      raw_type = make_unique<RawFunctionType>(return_type, tmp);
     for (int i = 0; i < lvl; i++)
       raw_type = make_unique<RawPointerType>(raw_type);
     return error;
@@ -424,6 +448,7 @@ public:
     error = v->condition->accept(this);
     if (!error.empty())
       return error;
+    v->condition->setUType(raw_type);
     if (!raw_type->compare_equal(
             make_unique<RawScalarType>(RawTypeValue::INT))) {
       return SEMANTIC_ERROR(
@@ -589,7 +614,7 @@ public:
 
   std::string visitCharacter(Character *) override {
     temporary = true;
-    raw_type = make_unique<RawScalarType>(RawTypeValue::CHAR);
+    raw_type = make_unique<RawScalarType>(RawTypeValue::INT);
     return error;
   }
 
@@ -735,6 +760,7 @@ public:
     if (!error.empty())
       return error;
     //    }
+    v->operand->setUType(raw_type);
     switch (v->op_kind) {
     case UnaryOpValue::MINUS:
       if (!raw_type->compare_equal(
@@ -787,7 +813,14 @@ public:
   std::string visitSizeOf(SizeOf *v) override {
     if (v->operand)
       error = v->operand->accept(this);
+    else if (v->type_name)
+      error = v->type_name->accept(this);
     temporary = true;
+    if (raw_type->getRawTypeValue() == RawTypeValue::FUNCTION)
+      return SEMANTIC_ERROR(v->getTokenRef().getLine(),
+                            v->getTokenRef().getColumn(),
+                            "Can't get size of " + raw_type->print());
+    v->setUType(raw_type);
     raw_type = make_unique<RawScalarType>(RawTypeValue::INT);
     return error;
   }
@@ -797,10 +830,12 @@ public:
     if (!error.empty())
       return error;
     auto lhs_type = raw_type;
+    v->left_operand->setUType(raw_type);
     error = v->right_operand->accept(this);
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    v->right_operand->setUType(raw_type);
     if (v->op_kind == BinaryOpValue ::MULTIPLY &&
         ((lhs_type->getRawTypeValue() != RawTypeValue::INT &&
           lhs_type->getRawTypeValue() != RawTypeValue::CHAR &&
@@ -831,7 +866,14 @@ public:
           v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
           "Can't handle " + lhs_type->print() + " and " + rhs_type->print());
     temporary = true;
-    raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
+    if ((v->op_kind == BinaryOpValue::MULTIPLY ||
+         v->op_kind == BinaryOpValue::ADD ||
+         v->op_kind == BinaryOpValue::SUBTRACT) &&
+        lhs_type->getRawTypeValue() == RawTypeValue::CHAR &&
+        rhs_type->getRawTypeValue() == RawTypeValue::CHAR)
+      raw_type = std::make_shared<RawScalarType>(RawTypeValue::CHAR);
+    else
+      raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
     if (v->op_kind == BinaryOpValue::ADD ||
         v->op_kind == BinaryOpValue::SUBTRACT) {
       if (lhs_type->getRawTypeValue() == RawTypeValue::POINTER &&
@@ -856,6 +898,7 @@ public:
     error = v->predicate->accept(this);
     if (!error.empty())
       return error;
+    v->predicate->setUType(raw_type);
     if (!raw_type->compare_equal(
             make_unique<RawScalarType>(RawTypeValue::INT))) {
       return SEMANTIC_ERROR(
@@ -866,10 +909,12 @@ public:
     if (!error.empty())
       return error;
     auto lhs_type = raw_type;
+    v->left_branch->setUType(raw_type);
     error = v->right_branch->accept(this);
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    v->right_branch->setUType(raw_type);
     if (!lhs_type->compare_equal(rhs_type)) {
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
@@ -885,6 +930,8 @@ public:
     if (!error.empty())
       return error;
     auto lhs_type = raw_type;
+    v->setUType(raw_type);
+    v->left_operand->setUType(raw_type);
     if (temporary || !v->left_operand->isLValue() ||
         lhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
@@ -894,6 +941,7 @@ public:
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    v->right_operand->setUType(raw_type);
     //    if (lhs_type->isVoidPtr() &&
     //        (rhs_type->getRawTypeValue() == RawTypeValue::POINTER ||
     //         rhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)) {

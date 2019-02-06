@@ -198,7 +198,7 @@ TEST_CASE("precedence") {
 }
 
 TEST_CASE("super abstract") {
-  std::string input = "void f(int *(void));"
+  std::string input = "void f(int *(int (void)));"
                       "void f(int (*)(void));";
   auto fp = FastParser(input);
   auto root = fp.parse();
@@ -206,7 +206,7 @@ TEST_CASE("super abstract") {
     std::cerr << fp.getError() << std::endl;
   auto pp = PrettyPrinterVisitor();
   REQUIRE_EMPTY(Utils::compare(root->accept(&pp),
-                               "void (f(int (*((void)))));\n"
+                               "void (f(int (*((int ((void)))))));\n"
                                "\n"
                                "void (f(int ((*)(void))));\n"));
 }
