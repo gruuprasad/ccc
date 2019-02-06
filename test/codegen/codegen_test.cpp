@@ -48,133 +48,153 @@
   }
 
 namespace ccc {
-//
-// TEST_CASE("ast codegen smoke test") {
-//  PRINT_START("main");
-//  std::string input = "int main() {\n"
-//                      "  return 0 ? main() : 0;\n"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 0);
-//}
-//
-// TEST_CASE("fac rec") {
-//  PRINT_START("fac rec");
-//  std::string input = "int fac(int);"
-//                      "int main() {\n"
-//                      "return fac(4);\n"
-//                      "}\n"
-//                      "int fac(int a) {\n"
-//                      "  if(a < 1)\n"
-//                      "    return 1;\n"
-//                      "  else\n"
-//                      "    return a * fac (a - 1);"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 24);
-//}
-//
-// TEST_CASE("fac loop") {
-//  PRINT_START("fac loop");
-//  std::string input = "int fac(int);"
-//                      "int main() {\n"
-//                      "return fac(4);\n"
-//                      "}\n"
-//                      "int fac(int a) {\n"
-//                      "  int b;\n"
-//                      "  b = 1;\n"
-//                      "  while(0 < a) {\n"
-//                      "    b = b * a;\n"
-//                      "    a = a - 1;\n"
-//                      "  }\n"
-//                      "  return b;\n"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 24);
-//}
-//
-// TEST_CASE("fib rec") {
-//  PRINT_START("fib rec");
-//  std::string input = "int fib(int);"
-//                      "int main() {\n"
-//                      "return fib(11);\n"
-//                      "}\n"
-//                      "int fib(int a) {\n"
-//                      "  if(a < 1)\n"
-//                      "    return 0;\n"
-//                      "  if(a == 1)\n"
-//                      "    return 1;\n"
-//                      "  return fib (a - 1) + fib (a - 2);"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 89);
-//}
-//
-// TEST_CASE("fib loop") {
-//  PRINT_START("fib loop");
-//  std::string input = "void fib(int);"
-//                      "int res;\n"
-//                      "int main() {\n"
-//                      "  fib(11);"
-//                      "  return res;\n"
-//                      "}\n"
-//                      "void fib(int a) {\n"
-//                      "  int i;\n"
-//                      "  int f0;\n"
-//                      "  int f1;\n"
-//                      "  i = 0;\n"
-//                      "  f0 = 0;\n"
-//                      "  f1 = 1;\n"
-//                      "  if (a < 1)\n"
-//                      "    res = f0;\n"
-//                      "  if (a == 1)\n"
-//                      "    res = f1;\n"
-//                      "  while (i + 1 < a) {\n"
-//                      "    res = f0 + f1;\n"
-//                      "    f0 = f1;\n"
-//                      "    f1 = res;\n"
-//                      "    i = i + 1;\n"
-//                      "  }\n"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 89);
-//}
 
-// TEST_CASE("sizeof int") {
-//  PRINT_START("sizeof int");
-//  std::string input = "int main() {\n"
-//                      "  return sizeof(sizeof(int));\n"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 4);
-//}
-//
-// TEST_CASE("sizeof char") {
-//  PRINT_START("sizeof char");
-//  std::string input = "int main() {\n"
-//                      "  return sizeof(char);\n"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 1);
-//}
-//
-// TEST_CASE("sizeof char*") {
-//  PRINT_START("sizeof char*");
-//  std::string input = "int main() {\n"
-//                      "  return sizeof(char*);\n"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 8);
-//}
-//
-// TEST_CASE("sizeof string") {
-//  PRINT_START("sizeof string");
-//  std::string input = "int main() {\n"
-//                      "  return sizeof(\"hello world\");\n"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 11);
-//}
-//
-// TEST_CASE("sizeof func ptr") {
-//  PRINT_START("sizeof string");
-//  std::string input = "void (*foo)(void);"
-//                      "int main() {\n"
-//                      "  return sizeof(foo);\n"
-//                      "}\n";
-//  REQUIRE_BUILD_RUN(input, 8);
-//}
+TEST_CASE("ast codegen smoke test") {
+  PRINT_START("main");
+  std::string input = "int main() {\n"
+                      "  return 0 ? main() : 0;\n"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 0);
+}
+
+TEST_CASE("fac rec") {
+  PRINT_START("fac rec");
+  std::string input = "int fac(int);"
+                      "int main() {\n"
+                      "return fac(4);\n"
+                      "}\n"
+                      "int fac(int a) {\n"
+                      "  if(a < 1)\n"
+                      "    return 1;\n"
+                      "  else\n"
+                      "    return a * fac (a - 1);"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 24);
+}
+
+TEST_CASE("fac loop") {
+  PRINT_START("fac loop");
+  std::string input = "int fac(int);"
+                      "int main() {\n"
+                      "return fac(4);\n"
+                      "}\n"
+                      "int fac(int a) {\n"
+                      "  int b;\n"
+                      "  b = 1;\n"
+                      "  while(0 < a) {\n"
+                      "    b = b * a;\n"
+                      "    a = a - 1;\n"
+                      "  }\n"
+                      "  return b;\n"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 24);
+}
+
+TEST_CASE("fib rec") {
+  PRINT_START("fib rec");
+  std::string input = "int fib(int);"
+                      "int main() {\n"
+                      "return fib(11);\n"
+                      "}\n"
+                      "int fib(int a) {\n"
+                      "  if(a < 1)\n"
+                      "    return 0;\n"
+                      "  if(a == 1)\n"
+                      "    return 1;\n"
+                      "  return fib (a - 1) + fib (a - 2);"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 89);
+}
+
+TEST_CASE("fib loop") {
+  PRINT_START("fib loop");
+  std::string input = "void fib(int);"
+                      "int res;\n"
+                      "int main() {\n"
+                      "  fib(11);"
+                      "  return res;\n"
+                      "}\n"
+                      "void fib(int a) {\n"
+                      "  int i;\n"
+                      "  int f0;\n"
+                      "  int f1;\n"
+                      "  i = 0;\n"
+                      "  f0 = 0;\n"
+                      "  f1 = 1;\n"
+                      "  if (a < 1)\n"
+                      "    res = f0;\n"
+                      "  if (a == 1)\n"
+                      "    res = f1;\n"
+                      "  while (i + 1 < a) {\n"
+                      "    res = f0 + f1;\n"
+                      "    f0 = f1;\n"
+                      "    f1 = res;\n"
+                      "    i = i + 1;\n"
+                      "  }\n"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 89);
+}
+
+TEST_CASE("sizeof int") {
+  PRINT_START("sizeof int");
+  std::string input = "int main() {\n"
+                      "  return sizeof(sizeof(int));\n"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 4);
+}
+
+TEST_CASE("sizeof char") {
+  PRINT_START("sizeof char");
+  std::string input = "int main() {\n"
+                      "  return sizeof(char);\n"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("sizeof char*") {
+  PRINT_START("sizeof char*");
+  std::string input = "int main() {\n"
+                      "  return sizeof(char*);\n"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 8);
+}
+
+TEST_CASE("sizeof string") {
+  PRINT_START("sizeof string");
+  std::string input = "int main() {\n"
+                      "  return sizeof(\"hello world\");\n"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 11);
+}
+
+TEST_CASE("sizeof func ptr") {
+  PRINT_START("sizeof string");
+  std::string input = "void (*foo)(void);"
+                      "int main() {\n"
+                      "  return sizeof(foo);\n"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 8);
+}
 
 TEST_CASE("int ptr") {
   PRINT_START("int ptr");
@@ -195,7 +215,7 @@ TEST_CASE("int ptr") {
 }
 
 TEST_CASE("int ptr 2") {
-  PRINT_START("int ptr");
+  PRINT_START("int ptr 2");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {\n"
@@ -215,7 +235,7 @@ TEST_CASE("int ptr 2") {
 }
 
 TEST_CASE("main argc") {
-  PRINT_START("int ptr");
+  PRINT_START("main argc");
   std::string input = "int printf(char *format, char*);"
                       ""
                       "int main(int argc, char **argv) {\n"
@@ -227,7 +247,7 @@ TEST_CASE("main argc") {
 }
 
 TEST_CASE("array test") {
-  PRINT_START("int ptr");
+  PRINT_START("array test");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {\n"
@@ -242,7 +262,7 @@ TEST_CASE("array test") {
 }
 
 TEST_CASE("array test 2") {
-  PRINT_START("int ptr");
+  PRINT_START("array test 2");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {\n"
@@ -255,6 +275,55 @@ TEST_CASE("array test 2") {
   CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 10);
+}
+
+TEST_CASE("ptr add test") {
+  PRINT_START("ptr add test");
+  std::string input = "void *malloc(int);"
+                      ""
+                      "int main() {\n"
+                      "  int *a;"
+                      "  a = malloc(sizeof(int) * 2);"
+                      "  *(a + 1) = 10;"
+                      "  return *(1 + a);"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 10);
+}
+
+TEST_CASE("ptr diff") {
+  PRINT_START("ptr diff");
+  std::string input = "void *malloc(int);"
+                      ""
+                      "int main() {\n"
+                      "  int *a;"
+                      "  int *b;"
+                      "  return a - b;"
+                      "}\n";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 0);
+}
+
+TEST_CASE("array loop") {
+  PRINT_START("ptr diff");
+  std::string input = "void *malloc(int);"
+                      ""
+                      "int main(int argc, char **argv) {"
+                      "   int i;"
+                      "   i = 0;"
+                      "   int *a;"
+                      "   a = malloc(sizeof(int) * argc);"
+                      "   while (i < argc) {"
+                      "     a[i] = i;"
+                      "     i = i + 1;"
+                      "   }"
+                      "   return a[argc - 1] == a[argc - 2] + 1;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("a b c d e", 1);
 }
 
 } // namespace ccc

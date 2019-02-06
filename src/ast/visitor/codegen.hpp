@@ -173,6 +173,7 @@ public:
       allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
                                   allocBuilder.GetInsertBlock()->begin());
       llvm::Value *ArgVarAPtr = allocBuilder.CreateAlloca(a.getType());
+      ArgVarAPtr->setName(a.getName());
       builder.CreateStore(&a, ArgVarAPtr);
       declarations[(*v->param_list[i]->param_name->getIdentifier())
                        ->getUIdentifier()] = ArgVarAPtr;
@@ -367,46 +368,81 @@ public:
     auto lhs = rec_val;
     v->right_operand->accept(this);
     auto rhs = rec_val;
-    if (lhs->getType() != rhs->getType()) { // TODO
-      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
-      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
-    }
     switch (v->op_kind) {
     case BinaryOpValue::LESS_THAN:
+      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
+      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
       rec_val = builder.CreateICmpSLT(lhs, rhs, "binary.less");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
       break;
     case BinaryOpValue::MULTIPLY:
+      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
+      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
       rec_val = builder.CreateMul(lhs, rhs, "binary.multiply");
       break;
     case BinaryOpValue::ADD:
-      rec_val = builder.CreateAdd(lhs, rhs, "binary.add");
+      if (v->left_operand->getUType()->getRawTypeValue() ==
+          RawTypeValue::POINTER) {
+        load = builder.CreateGEP(lhs, rhs, "binary.ptr.add");
+        rec_val = load;
+      } else if (v->right_operand->getUType()->getRawTypeValue() ==
+                 RawTypeValue::POINTER) {
+        load = builder.CreateGEP(rhs, lhs, "binary.ptr.add");
+        rec_val = load;
+      } else {
+        lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
+        rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+        rec_val = builder.CreateAdd(lhs, rhs, "binary.add");
+      }
       break;
     case BinaryOpValue::SUBTRACT:
-      rec_val = builder.CreateSub(lhs, rhs, "binary.sub");
+      if (v->left_operand->getUType()->getRawTypeValue() ==
+              RawTypeValue::POINTER &&
+          v->right_operand->getUType()->getRawTypeValue() ==
+              RawTypeValue::POINTER) {
+        lhs = builder.CreatePtrToInt(lhs, builder.getInt64Ty(), "convert.i64");
+        rhs = builder.CreatePtrToInt(rhs, builder.getInt64Ty(), "convert.i64");
+        rec_val = builder.CreateSub(lhs, rhs, "binary.ptr.sub");
+        rec_val =
+            builder.CreateExactSDiv(rec_val, builder.getInt64(4), "ptr.div");
+        rec_val = builder.CreateTrunc(rec_val, builder.getInt32Ty());
+      } else {
+        lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
+        rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
+        rec_val = builder.CreateSub(lhs, rhs, "binary.sub");
+      }
       break;
     case BinaryOpValue::EQUAL:
+      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
+      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
       rec_val = builder.CreateICmpEQ(lhs, rhs, "binary.euqal");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
       break;
     case BinaryOpValue::NOT_EQUAL:
+      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
+      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
       rec_val = builder.CreateICmpNE(lhs, rhs, "binary.not");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
       break;
     case BinaryOpValue::LOGICAL_AND:
+      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
+      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
       rec_val = builder.CreateAnd(lhs, rhs, "binary.and");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
       break;
     case BinaryOpValue::LOGICAL_OR:
+      lhs = builder.CreateZExt(lhs, builder.getInt32Ty(), "convert.i32");
+      rhs = builder.CreateZExt(rhs, builder.getInt32Ty(), "convert.i32");
       rec_val = builder.CreateOr(lhs, rhs, "binary.or");
       rec_val =
-          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.bool");
+          builder.CreateZExt(rec_val, builder.getInt32Ty(), "convert.i32");
       break;
     case BinaryOpValue::ASSIGN:
+      // EMPTY
       break;
     }
   }
