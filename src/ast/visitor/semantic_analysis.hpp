@@ -448,6 +448,7 @@ public:
     error = v->condition->accept(this);
     if (!error.empty())
       return error;
+    v->condition->setUType(raw_type);
     if (!raw_type->compare_equal(
             make_unique<RawScalarType>(RawTypeValue::INT))) {
       return SEMANTIC_ERROR(
@@ -759,6 +760,7 @@ public:
     if (!error.empty())
       return error;
     //    }
+    v->operand->setUType(raw_type);
     switch (v->op_kind) {
     case UnaryOpValue::MINUS:
       if (!raw_type->compare_equal(
@@ -896,6 +898,7 @@ public:
     error = v->predicate->accept(this);
     if (!error.empty())
       return error;
+    v->predicate->setUType(raw_type);
     if (!raw_type->compare_equal(
             make_unique<RawScalarType>(RawTypeValue::INT))) {
       return SEMANTIC_ERROR(
@@ -906,10 +909,12 @@ public:
     if (!error.empty())
       return error;
     auto lhs_type = raw_type;
+    v->left_branch->setUType(raw_type);
     error = v->right_branch->accept(this);
     if (!error.empty())
       return error;
     auto rhs_type = raw_type;
+    v->right_branch->setUType(raw_type);
     if (!lhs_type->compare_equal(rhs_type)) {
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),

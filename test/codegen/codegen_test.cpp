@@ -405,14 +405,113 @@ TEST_CASE("cast 4") {
   REQUIRE_RUN("", 0);
 }
 
-TEST_CASE("return ") {
-  PRINT_START("return");
+TEST_CASE("return void") {
+  PRINT_START("return void");
   std::string input = "void main() {"
                       "   return;"
                       "}";
   CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 0);
+}
+
+TEST_CASE("return ternary") {
+  PRINT_START("return ternary");
+  std::string input = "int main() {"
+                      "   char a;"
+                      "   a = 'a';"
+                      "   return 0 ? 3 : a;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 97);
+}
+
+TEST_CASE("ptr ternary") {
+  PRINT_START("ptr ternary");
+  std::string input = "void *malloc(int);"
+                      ""
+                      "int main() {"
+                      "   int *a;"
+                      "   a = malloc(sizeof(int));"
+                      "   *a = a ? 0 : 1;"
+                      "   return *a;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 0);
+}
+
+TEST_CASE("ptr ternary 2") {
+  PRINT_START("ptr ternary 2");
+  std::string input = "int main() {"
+                      "   int *a;"
+                      "   a = 0;"
+                      "   return a ? 0 : 1;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("ptr comp") {
+  PRINT_START("ptr comp");
+  std::string input = "int main() {"
+                      "   int *a;"
+                      "   return (a == 0 && a != 0) || a == a;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("ptr deref") {
+  PRINT_START("ptr deref");
+  std::string input = "void *malloc(int);"
+                      ""
+                      "int main() {"
+                      "  int *a;"
+                      "  int b;"
+                      "  b = 5;"
+                      "  a = malloc(sizeof(int));"
+                      "  a = &b;"
+                      "  return a[0];"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 5);
+}
+
+TEST_CASE("not") {
+  PRINT_START("not");
+  std::string input = "int main() {"
+                      "  return !(2 < 1);"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("minus") {
+  PRINT_START("minus");
+  std::string input = "int main() {"
+                      "  return -5 + 6;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("ptr not") {
+  PRINT_START("ptr not");
+  std::string input = "int main() {"
+                      "  int *a;"
+                      "  a = 0;"
+                      "  return !a;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
 }
 
 } // namespace ccc
