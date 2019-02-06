@@ -2,7 +2,7 @@ int addInt(int n, int m) {
     return n + m;
 }
 
-int (*functionFactory(int n))(int a, int b) {
+int (*functionFactory(int n))(int, int) {
     int (*functionPtr)(int,int);
     functionPtr = &addInt;
     return functionPtr;

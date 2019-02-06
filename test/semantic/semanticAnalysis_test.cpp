@@ -586,4 +586,18 @@ TEST_CASE("declaration wo declarator5") {
           SEMANTIC_ERROR(1, 1, "Declaration without declarator"));
 }
 
+TEST_CASE("missing prameter name") {
+  std::string input = "int main (int);\n"
+                      "int main (int) {};\n";
+
+  auto fp = FastParser(input);
+  auto root = fp.parse();
+  if (fp.fail())
+    std::cerr << fp.getError() << std::endl;
+  auto sv = SemanticVisitor();
+  root->accept(&sv);
+  REQUIRE_FAILURE(sv);
+  REQUIRE(sv.getError() == SEMANTIC_ERROR(2, 11, " Expected identifier"));
+}
+
 } // namespace ccc

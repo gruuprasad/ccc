@@ -393,6 +393,9 @@ public:
         return error;
       }
     }
+    if (function_definition)
+      function_definition =
+          return_type->getRawTypeValue() != RawTypeValue::FUNCTION;
     for (const auto &p : v->param_list) {
       error = p->accept(this);
       if (!error.empty())
