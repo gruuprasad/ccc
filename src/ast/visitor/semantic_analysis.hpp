@@ -923,6 +923,7 @@ public:
     if (!error.empty())
       return error;
     auto lhs_type = raw_type;
+    v->setUType(raw_type);
     if (temporary || !v->left_operand->isLValue() ||
         lhs_type->getRawTypeValue() == RawTypeValue::FUNCTION)
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),

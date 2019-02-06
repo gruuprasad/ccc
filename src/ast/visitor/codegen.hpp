@@ -136,19 +136,31 @@ public:
 
   void visitStructDeclaration(StructDeclaration *v) override { (void)v; }
 
-  void visitParamDeclaration(ParamDeclaration *v) override { (void)v; }
+  void visitParamDeclaration(ParamDeclaration *) override {
+    // EMPTY
+  }
 
-  void visitScalarType(ScalarType *v) override { (void)v; }
+  void visitScalarType(ScalarType *) override {
+    // EMPTY
+  }
 
-  void visitAbstractType(AbstractType *v) override { (void)v; }
+  void visitAbstractType(AbstractType *) override {
+    // EMPTY
+  }
 
   void visitStructType(StructType *v) override { (void)v; }
 
-  void visitDirectDeclarator(DirectDeclarator *v) override { (void)v; }
+  void visitDirectDeclarator(DirectDeclarator *) override {
+    // EMPTY
+  }
 
-  void visitAbstractDeclarator(AbstractDeclarator *v) override { (void)v; }
+  void visitAbstractDeclarator(AbstractDeclarator *) override {
+    // EMPTY
+  }
 
-  void visitPointerDeclarator(PointerDeclarator *v) override { (void)v; }
+  void visitPointerDeclarator(PointerDeclarator *) override {
+    // EMPTY
+  }
 
   void visitFunctionDeclarator(FunctionDeclarator *v) override {
     llvm::BasicBlock *FuncMaxEntryBB =
@@ -265,7 +277,7 @@ public:
       rec_val = functions[v->getUIdentifier()];
     else {
       load = declarations[v->getUIdentifier()];
-      rec_val = builder.CreateLoad(load, v->name); // move to inner
+      rec_val = builder.CreateLoad(load, v->name);
     }
   }
 
@@ -281,26 +293,51 @@ public:
     rec_val = builder.CreateGlobalString(v->str_value, "string");
   }
 
-  void visitMemberAccessOp(MemberAccessOp *v) override { (void)v; }
+  void visitMemberAccessOp(MemberAccessOp *v) override { (void)v; } // TODO
 
-  void visitArraySubscriptOp(ArraySubscriptOp *v) override { (void)v; }
+  void visitArraySubscriptOp(ArraySubscriptOp *v) override {
+    v->array_name->accept(this);
+    auto callee = rec_val;
+    v->index_value->accept(this);
+    auto index = rec_val;
+    load = builder.CreateGEP(callee, index, "idx");
+    rec_val = builder.CreateLoad(load, "array");
+  }
 
   void visitFunctionCall(FunctionCall *v) override {
+    v->callee_name->accept(this);
+    auto callee = rec_val;
     std::vector<llvm::Value *> args;
+    unsigned int pos = 0;
     for (const auto &a : v->callee_args) {
       a->accept(this);
+      if (rec_val->getType()->isPointerTy())
+        rec_val = builder.CreateBitCast(
+            rec_val, callee->getType()->getFunctionParamType(pos));
+      pos++;
       args.push_back(rec_val);
     }
-    v->callee_name->accept(this);
     if (v->getUType()->getLLVMType(builder) == builder.getVoidTy())
-      builder.CreateCall(rec_val, args);
+      builder.CreateCall(callee, args);
     else
-      rec_val = builder.CreateCall(rec_val, args, "call");
+      rec_val = builder.CreateCall(callee, args, "call");
   }
 
   void visitUnary(Unary *v) override {
     v->operand->accept(this);
-    rec_val = builder.CreateNeg(rec_val, "unary.minus");
+    switch (v->op_kind) {
+    case UnaryOpValue::ADDRESS_OF:
+      break;
+    case UnaryOpValue::DEREFERENCE:
+      load = rec_val;
+      rec_val = builder.CreateLoad(rec_val, "unary.deref");
+      break;
+    case UnaryOpValue::MINUS:
+      rec_val = builder.CreateNeg(rec_val, "unary.minus");
+      break;
+    case UnaryOpValue::NOT:
+      break;
+    }
   }
 
   void visitSizeOf(SizeOf *v) override {
@@ -409,10 +446,11 @@ public:
     auto lhs = load;
     v->right_operand->accept(this);
     auto rhs = rec_val;
+    rhs = builder.CreateBitCast(rhs, v->getUType()->getLLVMType(builder));
     builder.CreateStore(rhs, lhs);
     rec_val = rhs;
   }
-};
+}; // namespace ccc
 
 } // namespace ccc
 

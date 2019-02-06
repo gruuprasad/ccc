@@ -246,7 +246,14 @@ public:
       return true;
     else
       return ptr->isFunctionPointer();
-  };
+  }
+
+  llvm::Type *getLLVMType(llvm::IRBuilder<> builder) override {
+    if (ptr->getRawTypeValue() == RawTypeValue::POINTER) {
+      return llvm::PointerType::getUnqual(ptr->getLLVMType(builder));
+    }
+    return llvm::PointerType::getInt32PtrTy(builder.getContext());
+  }
 };
 
 class RawStructType : public RawType {
