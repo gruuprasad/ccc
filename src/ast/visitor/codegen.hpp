@@ -84,32 +84,36 @@ public:
   }
 
   void visitFunctionDefinition(FunctionDefinition *v) override {
-    if (functions.find(v->getUIdentifier()) != functions.end())
-      parent = functions[v->getUIdentifier()];
-    else {
-      parent =
-          llvm::Function::Create(v->getUType()->getLLVMFunctionType(builder),
-                                 llvm::GlobalValue::ExternalLinkage,
-                                 (*v->fn_name->getIdentifier())->name, &mod);
-      functions[v->getUIdentifier()] = parent;
-    }
-    v->fn_name->accept(this);
-    v->fn_body->accept(this);
-    if (builder.GetInsertBlock()->getTerminator() == nullptr) {
-      llvm::Type *CurFuncReturnType = builder.getCurrentFunctionReturnType();
-      if (CurFuncReturnType->isVoidTy()) {
-        builder.CreateRetVoid();
-      } else {
-        builder.CreateRet(llvm::Constant::getNullValue(CurFuncReturnType));
+    if (!v->isFuncPtr) {
+      if (functions.find(v->getUIdentifier()) != functions.end())
+        parent = functions[v->getUIdentifier()];
+      else {
+        parent =
+            llvm::Function::Create(v->getUType()->getLLVMFunctionType(builder),
+                                   llvm::GlobalValue::ExternalLinkage,
+                                   (*v->fn_name->getIdentifier())->name, &mod);
+        functions[v->getUIdentifier()] = parent;
+      }
+      v->fn_name->accept(this);
+      v->fn_body->accept(this);
+      if (builder.GetInsertBlock()->getTerminator() == nullptr) {
+        llvm::Type *CurFuncReturnType = builder.getCurrentFunctionReturnType();
+        if (CurFuncReturnType->isVoidTy()) {
+          builder.CreateRetVoid();
+        } else {
+          builder.CreateRet(llvm::Constant::getNullValue(CurFuncReturnType));
+        }
       }
     }
   }
 
   void visitFunctionDeclaration(FunctionDeclaration *v) override {
-    functions[v->getUIdentifier()] =
-        llvm::Function::Create(v->getUType()->getLLVMFunctionType(builder),
-                               llvm::GlobalValue::ExternalLinkage,
-                               (*v->fn_name->getIdentifier())->name, &mod);
+    if (!v->isFuncPtr) {
+      functions[v->getUIdentifier()] =
+          llvm::Function::Create(v->getUType()->getLLVMFunctionType(builder),
+                                 llvm::GlobalValue::ExternalLinkage,
+                                 (*v->fn_name->getIdentifier())->name, &mod);
+    }
   }
 
   void visitDataDeclaration(DataDeclaration *v) override {
@@ -300,11 +304,24 @@ public:
   }
 
   void visitSizeOf(SizeOf *v) override {
-    if (v->operand) {
-      v->operand->accept(this);
-      rec_val = builder.getInt32(rec_val->getType()->getIntegerBitWidth());
-    } else {
+    switch (v->getUType()->getRawTypeValue()) {
+    case RawTypeValue::POINTER:
+      rec_val = builder.getInt32(8);
+      if (v->operand && v->operand->getString())
+        rec_val = builder.getInt32(
+            static_cast<uint32_t>(v->operand->getString()->str_value.size()));
+      break;
+    case RawTypeValue::NIL:
+      rec_val = builder.getInt32(4);
+      break;
+    case RawTypeValue::INT:
+      rec_val = builder.getInt32(4);
+      break;
+    case RawTypeValue::CHAR:
       rec_val = builder.getInt32(1);
+      break;
+    default:
+      break;
     }
   }
 

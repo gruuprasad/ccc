@@ -9,11 +9,18 @@
 namespace ccc {
 
 TEST_CASE("gv ast") {
-  std::string language = "struct S{\n"
-                         "  struct {\n"
-                         "    int a;\n"
-                         "  };\n"
-                         "};";
+  std::string language = "int addInt(int n, int m) {\n"
+                         "    return n + m;\n"
+                         "}\n"
+                         "\n"
+                         "int (*functionFactory(char n))(int a, int b) {\n"
+                         "    int (*functionPtr)(int,int);\n"
+                         "    functionPtr = &addInt;\n"
+                         "    return functionPtr;\n"
+                         "}"
+                         "void main() {"
+                         "  (*(functionFactory(1)))(1, 2);"
+                         "}";
 
   auto fp = FastParser(language);
   auto root = fp.parse();
@@ -21,6 +28,7 @@ TEST_CASE("gv ast") {
   SemanticVisitor sv;
   root->accept(&sv);
   REQUIRE_SUCCESS(sv);
+  sv.printScopes();
   PrettyPrinterVisitor pp;
   std::cout << root->accept(&pp) << std::endl;
   std::ofstream ofs;

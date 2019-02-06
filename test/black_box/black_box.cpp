@@ -211,7 +211,8 @@ TEST_CASE("compiler_success_files") {
                         file.substr(0, file.rfind(".c")) + ".ll && ./" +
                         file.substr(0, file.rfind(".c"));
       std::cout << cmd << std::endl;
-      system(&cmd[0]);
+      int run = system(&cmd[0]);
+      std::cout << WEXITSTATUS(run) << std::endl;
       delete[] ppArgs;
     }
   }
