@@ -283,13 +283,15 @@ TEST_CASE("ptr add test") {
                       ""
                       "int main() {\n"
                       "  int *a;"
-                      "  a = malloc(sizeof(int) * 2);"
-                      "  *(a + 1) = 10;"
-                      "  return *(1 + a);"
+                      "  a = malloc(sizeof(int) * 3);"
+                      "  a[0] = 10;"
+                      "  *(a + 1) = a[0] + 2;"
+                      "  *(a + 2) = *(1 + a);"
+                      "  return *(2 + a);"
                       "}\n";
   CLANG;
   REQUIRE_BUILD;
-  REQUIRE_RUN("", 10);
+  REQUIRE_RUN("", 12);
 }
 
 TEST_CASE("ptr diff") {
@@ -307,7 +309,7 @@ TEST_CASE("ptr diff") {
 }
 
 TEST_CASE("array loop") {
-  PRINT_START("ptr diff");
+  PRINT_START("array loop");
   std::string input = "void *malloc(int);"
                       ""
                       "int main(int argc, char **argv) {"
@@ -324,6 +326,16 @@ TEST_CASE("array loop") {
   CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("a b c d e", 1);
+}
+
+TEST_CASE("argv access") {
+  PRINT_START("argv access");
+  std::string input = "int main(int argc, char **argv) {"
+                      "   return argv[1][0];"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("a", 97);
 }
 
 } // namespace ccc
