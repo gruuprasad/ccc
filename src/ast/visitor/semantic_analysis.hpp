@@ -326,13 +326,13 @@ public:
                                 v->struct_name->getTokenRef().getColumn(),
                                 "Redefinition of 'struct " +
                                     v->struct_name->name + "'");
-        definitions.insert(name);
         pre.push_back("__" + v->struct_name->name + "__");
         for (const auto &d : v->member_list) {
           error = d->accept(this);
           if (!error.empty())
             return error;
         }
+        definitions.insert(name);
         pre.pop_back();
       }
       raw_type = ret;
@@ -727,7 +727,6 @@ public:
       return SEMANTIC_ERROR(v->getTokenRef().getLine(),
                             v->getTokenRef().getColumn(),
                             "Too many arguments for " + return_type->print());
-
     for (unsigned int i = 0; i < calle_arg_types.size(); i++) {
       if (i >= v->callee_args.size())
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),
@@ -736,6 +735,7 @@ public:
       error = v->callee_args[i]->accept(this);
       if (!error.empty())
         return error;
+      v->callee_args[i]->setUType(calle_arg_types[i]);
       if (calle_arg_types[i]->getRawTypeValue() != RawTypeValue::VOID &&
           !calle_arg_types[i]->compare_equal(raw_type))
         return SEMANTIC_ERROR(v->getTokenRef().getLine(),

@@ -673,7 +673,7 @@ std::unique_ptr<Expression> FastParser::parsePrimaryExpression() {
     }
     return make_unique<Number>(nextToken(), stol(num_str));
   case TokenType::CHARACTER:
-    return make_unique<Character>(nextToken(), src_mark.getExtra().front());
+    return make_unique<Character>(nextToken(), src_mark.getExtra());
   case TokenType::STRING:
     return make_unique<String>(nextToken(), src_mark.getExtra());
   case TokenType::PARENTHESIS_OPEN:

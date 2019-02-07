@@ -444,10 +444,10 @@ public:
 
 class Character : public Expression {
   FRIENDS
-  char char_value;
+  std::string char_value;
 
 public:
-  Character(const Token &tk, char c) : Expression(tk), char_value(c) {}
+  Character(const Token &tk, std::string c) : Expression(tk), char_value(c) {}
   std::string accept(Visitor<std::string> *) override;
   void accept(Visitor<void> *) override;
 };

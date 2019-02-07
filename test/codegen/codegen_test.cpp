@@ -192,7 +192,7 @@ TEST_CASE("sizeof string") {
                       "}\n";
   CLANG;
   REQUIRE_BUILD;
-  REQUIRE_RUN("", 11);
+  REQUIRE_RUN("", 12);
 }
 
 TEST_CASE("sizeof func ptr") {
@@ -512,6 +512,58 @@ TEST_CASE("ptr not") {
   CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("args ptr") {
+  PRINT_START("args ptr");
+  std::string input = "int puts(char *str);"
+                      ""
+                      "int main() {"
+                      "  char *s;"
+                      "  s = \"test\";"
+                      "  puts(s);"
+                      "  return 0;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 0);
+}
+
+TEST_CASE("puts") {
+  PRINT_START("puts");
+  std::string input = "int puts(char *str);"
+                      ""
+                      "int main() {"
+                      "  char *s;"
+                      "  s = \"test\";"
+                      "  puts(s);"
+                      "  return 0;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 0);
+}
+
+TEST_CASE("extern vars") {
+  PRINT_START("extern vars");
+  std::string input = "void *malloc(int);"
+                      ""
+                      "int a;"
+                      "int a;"
+                      "int *b;"
+                      "int *b;"
+                      "char *s;"
+                      ""
+                      "int main() {"
+                      "  s = \"test\";"
+                      "  a = 1;"
+                      "  b = malloc(sizeof(int));"
+                      "  *b = 1;"
+                      "  return a + *b;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 2);
 }
 
 } // namespace ccc

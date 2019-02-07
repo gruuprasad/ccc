@@ -300,7 +300,7 @@ public:
   }
 
   std::string visitCharacter(Character *v) override {
-    return "\'" + std::string(1, v->char_value) + "\'";
+    return "\'" + v->char_value + "\'";
   }
 
   std::string visitString(String *v) override {
