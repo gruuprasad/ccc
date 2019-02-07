@@ -345,24 +345,24 @@ public:
         pre.pop_back();
       }
       raw_type = ret;
+      v->setUType(raw_type);
+      if (!v->elem_size.empty()) {
+        int size = 0;
+        int pad = 1;
+        for (int i : v->elem_size) {
+          size += i;
+          pad = std::max(pad, i);
+          if (size > 0 && size % i != 0) {
+            size += i - size % i;
+          }
+        }
+        if (size > 0 && size % pad != 0) {
+          size += pad - size % pad;
+        }
+        v->getUType()->setSize(size);
+      }
     } else {
       raw_type = nullptr;
-    }
-    v->setUType(raw_type);
-    if (!v->elem_size.empty()) {
-      int size = 0;
-      int pad = 1;
-      for (int i : v->elem_size) {
-        size += i;
-        pad = std::max(pad, i);
-        if (size > 0 && size % i != 0) {
-          size += i - size % i;
-        }
-      }
-      if (size > 0 && size % pad != 0) {
-        size += pad - size % pad;
-      }
-      v->getUType()->setSize(size);
     }
     return error;
   }
