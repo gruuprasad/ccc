@@ -414,7 +414,9 @@ public:
     else
       rec_val = builder.getInt32(
           static_cast<uint32_t>(v->type_name->getUType()->size()));
-    if (v->operand && v->operand->getString()) {
+    if (v->operand && v->operand->isSizeOf()) {
+      rec_val = builder.getInt32(8);
+    } else if (v->operand && v->operand->getString()) {
       auto str = v->operand->getString()->str_value;
       str.erase(std::remove(str.begin(), str.end(), '\\'), str.end());
       rec_val = builder.getInt32(static_cast<uint32_t>(str.size() + 1));

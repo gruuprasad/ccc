@@ -337,7 +337,9 @@ public:
           error = d->accept(this);
           if (!error.empty())
             return error;
-          v->size += d->getUType()->size();
+          //          if (d->getUType()->getRawTypeValue() !=
+          //          RawTypeValue::STRUCT)
+          v->elem_size.push_back(d->getUType()->size());
         }
         definitions.insert(name);
         pre.pop_back();
@@ -347,8 +349,21 @@ public:
       raw_type = nullptr;
     }
     v->setUType(raw_type);
-    if (v->size > 0)
-      v->getUType()->setSize(v->size);
+    if (!v->elem_size.empty()) {
+      int size = 0;
+      int pad = 1;
+      for (int i : v->elem_size) {
+        size += i;
+        pad = std::max(pad, i);
+        if (size > 0 && size % i != 0) {
+          size += i - size % i;
+        }
+      }
+      if (size > 0 && size % pad != 0) {
+        size += pad - size % pad;
+      }
+      v->getUType()->setSize(size);
+    }
     return error;
   }
 

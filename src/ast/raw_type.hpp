@@ -297,11 +297,7 @@ public:
   bool compare_exact(const std::shared_ptr<RawType> &b) override {
     return compare_equal(b);
   }
-  int size() override {
-    if (s % 4 != 0)
-      s += 4 - s % 4;
-    return s;
-  }
+  int size() override { return s; }
   void setSize(int s) override { this->s = s; };
   RawStructType *getRawStructType() override { return this; }
   std::string getName() { return name; }

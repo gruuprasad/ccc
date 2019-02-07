@@ -212,7 +212,7 @@ class StructType : public Type {
   ExternalDeclarationListType member_list;
   bool isStructType() override { return true; }
   bool is_definition;
-  unsigned int size = 0;
+  std::vector<int> elem_size = {};
 
 public:
   StructType(const Token &tk, std::unique_ptr<VariableName> n)
@@ -413,6 +413,7 @@ public:
   virtual VariableName *getVariableName() { return nullptr; }
   virtual Number *getNumber() { return nullptr; }
   virtual String *getString() { return nullptr; }
+  virtual bool isSizeOf() { return false; }
 };
 
 class VariableName : public Expression {
@@ -539,6 +540,7 @@ public:
       : Expression(tk), operand(std::move(o)) {}
   std::string accept(Visitor<std::string> *) override;
   void accept(Visitor<void> *) override;
+  bool isSizeOf() override { return true; }
 };
 
 enum class BinaryOpValue {
