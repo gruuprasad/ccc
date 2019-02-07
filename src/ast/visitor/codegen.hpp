@@ -411,9 +411,11 @@ public:
     if (v->operand)
       rec_val = builder.getInt32(
           static_cast<uint32_t>(v->operand->getUType()->size()));
-    else
+    else if (v->type_name->getUType())
       rec_val = builder.getInt32(
           static_cast<uint32_t>(v->type_name->getUType()->size()));
+    else
+      rec_val = builder.getInt32(0);
     if (v->operand && v->operand->isSizeOf()) {
       rec_val = builder.getInt32(8);
     } else if (v->operand && v->operand->getString()) {
