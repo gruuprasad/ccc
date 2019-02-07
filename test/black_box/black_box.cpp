@@ -212,18 +212,18 @@ TEST_CASE("compiler_success_files") {
                         file.substr(0, file.rfind(".c"));
       std::cout << cmd << std::endl;
       int run = system(&cmd[0]);
-      //      run = WEXITSTATUS(run);
-      //
-      //      cmd = "../../llvm/install/bin/clang -w -o " +
-      //            file.substr(0, file.rfind(".c")) + " " + input + " && ./" +
-      //            file.substr(0, file.rfind(".c"));
+      run = WEXITSTATUS(run);
 
-      //      int ref = system(&cmd[0]);
-      //      ref = WEXITSTATUS(ref);
-      //
-      //      if (run != ref)
-      //        std::cerr << input << ":0:0: Unexpected diff" << std::endl;
-      //      REQUIRE(run == ref);
+      cmd = "../../llvm/install/bin/clang -w -o " +
+            file.substr(0, file.rfind(".c")) + " " + input + " && ./" +
+            file.substr(0, file.rfind(".c"));
+
+      int ref = system(&cmd[0]);
+      ref = WEXITSTATUS(ref);
+
+      if (run != ref)
+        std::cerr << input << ":0:0: Unexpected diff" << std::endl;
+      REQUIRE(run == ref);
       delete[] ppArgs;
     }
   }
