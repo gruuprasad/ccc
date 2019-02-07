@@ -39,6 +39,7 @@ public:
     return nullptr;
   }
   virtual int size() { return 8; };
+  virtual void setSize(int){};
   virtual int ptr_size() { return size(); };
   virtual bool isFunctionPointer() { return false; };
 };
@@ -275,6 +276,7 @@ public:
 
 class RawStructType : public RawType {
   std::string name;
+  int s = 0;
 
 public:
   explicit RawStructType(std::string name) : name(std::move(name)) {}
@@ -295,6 +297,12 @@ public:
   bool compare_exact(const std::shared_ptr<RawType> &b) override {
     return compare_equal(b);
   }
+  int size() override {
+    if (s % 4 != 0)
+      s += 4 - s % 4;
+    return s;
+  }
+  void setSize(int s) override { this->s = s; };
   RawStructType *getRawStructType() override { return this; }
   std::string getName() { return name; }
 };

@@ -212,6 +212,7 @@ class StructType : public Type {
   ExternalDeclarationListType member_list;
   bool isStructType() override { return true; }
   bool is_definition;
+  unsigned int size = 0;
 
 public:
   StructType(const Token &tk, std::unique_ptr<VariableName> n)

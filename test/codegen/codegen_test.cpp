@@ -596,4 +596,35 @@ TEST_CASE("lazy and") {
   REQUIRE_RUN("", 1);
 }
 
+TEST_CASE("ptr arr") {
+  PRINT_START("ptr arr");
+  std::string input = "void *malloc(int);"
+                      ""
+                      "int main() {"
+                      "  int *dr;\n"
+                      "  int *aa;\n"
+                      "  aa = malloc(5 * sizeof(int));\n"
+                      "  dr = &aa[3];\n"
+                      "  aa[0] = 0;"
+                      "  aa[1] = 1;"
+                      "  aa[2] = 2;"
+                      "  aa[3] = 3;"
+                      "  return *(dr - 2);"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("struct size") {
+  PRINT_START("struct size");
+  std::string input = "int main() {"
+                      "  struct S { char y; int a; int b; int c; } s;"
+                      "  return sizeof(s);"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 16);
+}
+
 } // namespace ccc

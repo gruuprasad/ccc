@@ -256,7 +256,8 @@ public:
   }
 
   void visitExpressionStmt(ExpressionStmt *v) override {
-    v->expr->accept(this);
+    if (v->expr)
+      v->expr->accept(this);
   }
 
   void visitBreak(Break *) override { builder.CreateBr(breaks.back()); }
@@ -478,20 +479,38 @@ public:
       v->right_operand->accept(this);
       rhs = rec_val;
       if (v->left_operand->getUType()->getRawTypeValue() ==
-              RawTypeValue::POINTER &&
+              RawTypeValue::POINTER ||
           v->right_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER) {
-        lhs = builder.CreatePtrToInt(lhs, builder.getInt32Ty(), "i64");
-        rhs = builder.CreatePtrToInt(rhs, builder.getInt32Ty(), "i64");
-        rec_val = builder.CreateSub(lhs, rhs, "sub"); // TODO
-        //        if ((*v->left_operand->getUType()->getRawPointerType())
-        //                .deref()
-        //                ->getRawTypeValue() != RawTypeValue::CHAR) // TODO
-        rec_val = builder.CreateExactSDiv(
-            rec_val, builder.getInt32(v->left_operand->getUType()->ptr_size()),
-            "div");
-
-        rec_val = builder.CreateTrunc(rec_val, builder.getInt32Ty(), "trunc");
+        if (v->left_operand->getUType()->getRawTypeValue() ==
+            RawTypeValue::NIL) {
+          rec_val = rhs;
+          break;
+        } else if (v->right_operand->getUType()->getRawTypeValue() ==
+                   RawTypeValue::NIL) {
+          rec_val = lhs;
+          break;
+        } else if (v->left_operand->getUType()->getRawTypeValue() ==
+                   RawTypeValue::INT) {
+          lhs = builder.CreateNeg(lhs, "minus");
+          load = builder.CreateGEP(rhs, lhs, "ptr");
+          rec_val = load;
+        } else if (v->right_operand->getUType()->getRawTypeValue() ==
+                   RawTypeValue::INT) {
+          rhs = builder.CreateNeg(rhs, "minus");
+          load = builder.CreateGEP(lhs, rhs, "ptr");
+          rec_val = load;
+        } else {
+          lhs = builder.CreatePtrToInt(lhs, builder.getInt32Ty(), "i64");
+          rhs = builder.CreatePtrToInt(rhs, builder.getInt32Ty(), "i64");
+          rec_val = builder.CreateSub(lhs, rhs, "sub");
+          rec_val = builder.CreateExactSDiv(
+              rec_val,
+              builder.getInt32(static_cast<uint32_t>(
+                  v->left_operand->getUType()->ptr_size())),
+              "div");
+          rec_val = builder.CreateTrunc(rec_val, builder.getInt32Ty(), "trunc");
+        }
       } else {
         if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
         } else {
@@ -576,15 +595,25 @@ public:
       tmp->setName("lazy");
       v->left_operand->accept(this);
       lhs = rec_val;
-      lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
-      lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "true");
+      if (v->left_operand->getUType()->getRawTypeValue() ==
+          RawTypeValue::POINTER)
+        lhs = builder.CreateIsNotNull(lhs, "nn");
+      else {
+        lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+        lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "true");
+      }
       builder.CreateStore(lhs, tmp);
       builder.CreateCondBr(lhs, lazy_h, lazy_e);
       builder.SetInsertPoint(lazy_h);
       v->right_operand->accept(this);
       rhs = rec_val;
-      rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
-      rhs = builder.CreateICmpNE(rhs, builder.getInt32(0), "true");
+      if (v->right_operand->getUType()->getRawTypeValue() ==
+          RawTypeValue::POINTER)
+        rhs = builder.CreateIsNotNull(rhs, "nn");
+      else {
+        rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+        rhs = builder.CreateICmpNE(rhs, builder.getInt32(0), "true");
+      }
       builder.CreateStore(rhs, tmp);
       builder.CreateBr(lazy_e);
       builder.SetInsertPoint(lazy_e);
@@ -604,15 +633,25 @@ public:
       tmp->setName("lazy");
       v->left_operand->accept(this);
       lhs = rec_val;
-      lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
-      lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "true");
+      if (v->left_operand->getUType()->getRawTypeValue() ==
+          RawTypeValue::POINTER)
+        lhs = builder.CreateIsNotNull(lhs, "nn");
+      else {
+        lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
+        lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "true");
+      }
       builder.CreateStore(lhs, tmp);
       builder.CreateCondBr(lhs, lazy_e, lazy_h);
       builder.SetInsertPoint(lazy_h);
       v->right_operand->accept(this);
       rhs = rec_val;
-      rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
-      rhs = builder.CreateICmpNE(rhs, builder.getInt32(0), "true");
+      if (v->right_operand->getUType()->getRawTypeValue() ==
+          RawTypeValue::POINTER)
+        rhs = builder.CreateIsNotNull(rhs, "nn");
+      else {
+        rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
+        rhs = builder.CreateICmpNE(rhs, builder.getInt32(0), "true");
+      }
       builder.CreateStore(rhs, tmp);
       builder.CreateBr(lazy_e);
       builder.SetInsertPoint(lazy_e);

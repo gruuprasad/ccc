@@ -316,6 +316,7 @@ public:
           tmp = tmp_pre + ".__" + v->struct_name->name + "__";
           if (declarations.find(tmp) != declarations.end()) {
             raw_type = make_unique<RawStructType>("struct " + tmp);
+            raw_type->setSize(declarations.find(tmp)->second->size());
           }
         }
       }
@@ -336,6 +337,7 @@ public:
           error = d->accept(this);
           if (!error.empty())
             return error;
+          v->size += d->getUType()->size();
         }
         definitions.insert(name);
         pre.pop_back();
@@ -345,6 +347,8 @@ public:
       raw_type = nullptr;
     }
     v->setUType(raw_type);
+    if (v->size > 0)
+      v->getUType()->setSize(v->size);
     return error;
   }
 
