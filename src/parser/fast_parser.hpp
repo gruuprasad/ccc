@@ -23,6 +23,8 @@ constexpr static const std::size_t N = 3; // la_buffer size
 
 class FastParser {
   std::string filename;
+  bool abstract = false;
+  Token abstract_loc = Token();
 
 public:
   explicit FastParser(const std::string &content, std::string f = "")

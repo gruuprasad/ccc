@@ -83,6 +83,7 @@ unique_ptr<ExternalDeclaration> FastParser::parseDeclaration() {
 unique_ptr<ExternalDeclaration> FastParser::parseFuncDefOrDeclaration() {
   // Presence or absence of SEMICOLON determines whether declaration or
   // function-definition
+  abstract = false;
   unique_ptr<Declarator> identifier_node;
   Token src_mark = peek();
   auto type_node = parseTypeSpecifier();
@@ -114,6 +115,13 @@ unique_ptr<ExternalDeclaration> FastParser::parseFuncDefOrDeclaration() {
                                         move(identifier_node));
   }
   isFunctionIdentifer = false;
+
+  if (abstract) {
+    parser_error(abstract_loc,
+                 "identifier, parameter list or parenthesized declarator");
+    return unique_ptr<ExternalDeclaration>();
+  }
+
   // Function definition
   // XXX Ignore declaration-list for now
   if (peek().is(TokenType::BRACE_OPEN)) {
@@ -245,6 +253,8 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool, int ptrCount) {
     identifier = make_unique<DirectDeclarator>(
         src_mark, make_unique<VariableName>(nextToken(), src_mark.getExtra()));
   } else if (peek().is(C_TYPES)) {
+    abstract_loc = peek();
+    abstract = true;
     auto param_list = parseParameterList();
     isFunctionIdentifer = true;
     identifier = make_unique<AbstractDeclarator>(src_mark,

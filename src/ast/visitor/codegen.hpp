@@ -265,7 +265,7 @@ public:
     if (v->expr) {
       v->expr->accept(this);
       rec_val = builder.CreateZExtOrTrunc(
-          rec_val, builder.getCurrentFunctionReturnType(), "convert.ret");
+          rec_val, builder.getCurrentFunctionReturnType(), "ret");
       builder.CreateRet(rec_val);
     } else
       builder.CreateRet(llvm::Constant::getNullValue(parent->getReturnType()));
@@ -479,11 +479,13 @@ public:
               RawTypeValue::POINTER &&
           v->right_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER) {
-        lhs = builder.CreatePtrToInt(lhs, builder.getInt64Ty(), "convert.i64");
-        rhs = builder.CreatePtrToInt(rhs, builder.getInt64Ty(), "convert.i64");
-        rec_val = builder.CreateSub(lhs, rhs, "ptr.sub");
-        rec_val =
-            builder.CreateExactSDiv(rec_val, builder.getInt64(4), "ptr.div");
+        lhs = builder.CreatePtrToInt(lhs, builder.getInt32Ty(), "i32");
+        rhs = builder.CreatePtrToInt(rhs, builder.getInt32Ty(), "i32");
+        rec_val = builder.CreateSub(lhs, rhs, "sub"); // TODO
+        //        if ((*v->left_operand->getUType()->getRawPointerType())
+        //                .deref()
+        //                ->getRawTypeValue() != RawTypeValue::CHAR) // TODO
+        rec_val = builder.CreateExactSDiv(rec_val, builder.getInt32(4), "div");
         rec_val = builder.CreateTrunc(rec_val, builder.getInt32Ty(), "trunc");
       } else {
         if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {

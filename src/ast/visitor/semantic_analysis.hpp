@@ -288,21 +288,23 @@ public:
     if (v->struct_name) {
       raw_type = nullptr;
       if (v->is_definition) {
-        std::string p = prefix();
-        p = p.substr(0, p.find_first_of("__"));
-        auto name = "__" + v->struct_name->name + "__";
-        for (const auto &s : definitions) {
-          if (s.size() > name.size()) {
-            auto sub = s.substr(s.size() - name.size(), s.size());
-            if (s.substr(0, p.size()) == s.substr(0, s.find_first_of("__")) &&
-                sub == name) {
-              return SEMANTIC_ERROR(v->struct_name->getTokenRef().getLine(),
-                                    v->struct_name->getTokenRef().getColumn(),
-                                    "Redefinition of 'struct " +
-                                        v->struct_name->name + "'");
-            }
-          }
-        }
+        //        std::string p = prefix();
+        //        p = p.substr(0, p.find_first_of("__"));
+        //        auto name = "__" + v->struct_name->name + "__";
+        //        for (const auto &s : definitions) {
+        //          if (s.size() > name.size()) {
+        //            auto sub = s.substr(s.size() - name.size(), s.size());
+        //            if (s.substr(0, p.size()) == s.substr(0,
+        //            s.find_first_of("__")) &&
+        //                sub == name) {
+        //              return
+        //              SEMANTIC_ERROR(v->struct_name->getTokenRef().getLine(),
+        //                                    v->struct_name->getTokenRef().getColumn(),
+        //                                    "Redefinition of 'struct " +
+        //                                        v->struct_name->name + "'");
+        //            }
+        //          }
+        //        }
       } else {
         std::string tmp;
         std::string tmp_pre = prefix();
