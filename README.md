@@ -1,5 +1,20 @@
 ## CCCC CCC CC | Compiler Construction Core Course – Chaos Compiler Club – C Compiler
 
 [![pipeline status](https://cc.cdl.uni-saarland.de/ccc/c4/badges/master/pipeline.svg)](https://cc.cdl.uni-saarland.de/ccc/c4/commits/master)
-###
-![](https://cc.cdl.uni-saarland.de/ccc/c4/-/jobs/artifacts/master/raw/benchmark.svg?job=deploy%3Abenchmark)
+```
+   ________  ________       _____  ________          ___ _____  ________
+  |\   ____\|\   ____\     / __  \|\   __  \        /  // __  \|\  ___  \
+  \ \  \___|\ \  \___|    |\/_|\  \ \  \|\  \      /  //\/_|\  \ \____   \
+   \ \  \    \ \  \       \|/ \ \  \ \   __  \    /  //\|/ \ \  \|____|\  \
+    \ \  \____\ \  \____       \ \  \ \  \|\  \  /  //      \ \  \  __\_\  \
+     \ \_______\ \_______\      \ \__\ \_______\/_ //        \ \__\|\_______\
+      \|_______|\|_______|       \|__|\|_______|__|/          \|__|\|_______|
+                    ________  ________  ________
+                   |\   ____\|\   ____\|\   ____\
+                   \ \  \___|\ \  \___|\ \  \___|
+                    \ \  \    \ \  \    \ \  \ 
+                     \ \  \____\ \  \____\ \  \____
+                      \ \_______\ \_______\ \_______\
+                       \|_______|\|_______|\|_______|
+
+```
