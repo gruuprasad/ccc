@@ -60,8 +60,8 @@ ccc:run:
     - ./release/c4 --parse ../examples/sample.c
     - ./release/c4 --print-ast ../examples/sample.c
     - ./release/c4 --graphviz ../examples/sample.c
-    - ./release/c4 --compile ../examples/easy.c
-    - ./release/c4 ../examples/easy.c
+    - ./release/c4 --compile ../black_box_files/compiler_success_files/fib_rec.c
+    - ./release/c4 ../black_box_files/compiler_success_files/fib_rec.c
     - ./release/c4 --help
     - ./release/c4
   cache:
