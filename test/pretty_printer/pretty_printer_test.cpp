@@ -86,7 +86,7 @@ TEST_CASE("pretty print if inline") {
           Token(),
           make_unique<Binary>(Token(), BinaryOpValue::EQUAL,
                               make_unique<VariableName>(Token(), "a"),
-                              make_unique<Character>(Token(), 'a')),
+                              make_unique<Character>(Token(), "a")),
           make_unique<ExpressionStmt>(
               Token(), make_unique<Assignment>(
                            Token(), make_unique<VariableName>(Token(), "b"),

@@ -291,9 +291,7 @@ public:
   std::string visitCharacter(Character *v) override {
     return "subgraph cluster_" + std::to_string(v->hash()) +
            "{\nstyle=invis;\n" +
-           makeGVVerticeBox(v->hash(), "Character \"" +
-                                           std::to_string(v->char_value) +
-                                           "\"") +
+           makeGVVerticeBox(v->hash(), "Character \"" + v->char_value + "\"") +
            "}\n";
   }
 

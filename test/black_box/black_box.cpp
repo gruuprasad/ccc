@@ -107,7 +107,7 @@ TEST_CASE("parser_success_files") {
       std::string input = dir + file;
       std::cout << "./c4 " << flag << " " << input << std::endl;
 
-      GCC_SUCCESS;
+      //      GCC_SUCCESS;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
@@ -188,14 +188,14 @@ TEST_CASE("pretty_printer_files") {
 }
 
 TEST_CASE("compiler_success_files") {
-  std::string dir = ROOT_DIR + "compiler_success_files/";
+  std::string dir = ROOT_DIR + "compiler_success_files/local/";
   for (const auto &file : Utils::dir(&dir[0])) {
     SECTION(file) {
       std::string flag = "--compile";
       std::string input = dir + file;
       std::cout << "./c4 " << flag << " " << input << std::endl;
 
-      GCC_SUCCESS;
+      //      GCC_SUCCESS;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
@@ -212,7 +212,18 @@ TEST_CASE("compiler_success_files") {
                         file.substr(0, file.rfind(".c"));
       std::cout << cmd << std::endl;
       int run = system(&cmd[0]);
-      std::cout << WEXITSTATUS(run) << std::endl;
+      run = WEXITSTATUS(run);
+
+      cmd = "../../llvm/install/bin/clang -w -o " +
+            file.substr(0, file.rfind(".c")) + " " + input + " && ./" +
+            file.substr(0, file.rfind(".c"));
+
+      int ref = system(&cmd[0]);
+      ref = WEXITSTATUS(ref);
+
+      if (run != ref)
+        std::cerr << input << ":0:0: Unexpected diff" << std::endl;
+      REQUIRE(run == ref);
       delete[] ppArgs;
     }
   }

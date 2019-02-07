@@ -57,8 +57,6 @@ add_executable(test_blackBox
                black_box/black_box.cpp
                )
 target_link_libraries(test_blackBox test_LLIB)
-add_dependencies(check test_blackBox)
-add_test(NAME black_box COMMAND test_blackBox)
 
 add_executable(test_all
                lexer/lexer_test.cpp

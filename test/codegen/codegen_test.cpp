@@ -152,7 +152,7 @@ TEST_CASE("sizeof int") {
                       "}\n";
   CLANG;
   REQUIRE_BUILD;
-  REQUIRE_RUN("", 4);
+  REQUIRE_RUN("", 8);
 }
 
 TEST_CASE("sizeof c") {
@@ -192,7 +192,7 @@ TEST_CASE("sizeof string") {
                       "}\n";
   CLANG;
   REQUIRE_BUILD;
-  REQUIRE_RUN("", 11);
+  REQUIRE_RUN("", 12);
 }
 
 TEST_CASE("sizeof func ptr") {
@@ -512,6 +512,119 @@ TEST_CASE("ptr not") {
   CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("args ptr") {
+  PRINT_START("args ptr");
+  std::string input = "int puts(char *str);"
+                      ""
+                      "int main() {"
+                      "  char *s;"
+                      "  s = \"test\";"
+                      "  puts(s);"
+                      "  return 0;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 0);
+}
+
+TEST_CASE("puts") {
+  PRINT_START("puts");
+  std::string input = "int puts(char *str);"
+                      ""
+                      "int main() {"
+                      "  char *s;"
+                      "  s = \"test\";"
+                      "  puts(s);"
+                      "  return 0;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 0);
+}
+
+TEST_CASE("extern vars") {
+  PRINT_START("extern vars");
+  std::string input = "void *malloc(int);"
+                      ""
+                      "int a;"
+                      "int a;"
+                      "int *b;"
+                      "int *b;"
+                      "char *s;"
+                      ""
+                      "int main() {"
+                      "  s = \"test\";"
+                      "  a = 1;"
+                      "  b = malloc(sizeof(int));"
+                      "  *b = 1;"
+                      "  return a + *b;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 2);
+}
+
+TEST_CASE("lazy or") {
+  PRINT_START("lazy or");
+  std::string input = "int main() {"
+                      "  int a;"
+                      "  int b;"
+                      "  a = 0;"
+                      "  b = 1;"
+                      "  a || (b = 1) || (a = 1);"
+                      "  return a + b;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("lazy and") {
+  PRINT_START("lazy and");
+  std::string input = "int main() {"
+                      "  int a;"
+                      "  int b;"
+                      "  a = 1;"
+                      "  b = 1;"
+                      "  a && (b = 0) && (a = 0);"
+                      "  return a + b;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("ptr arr") {
+  PRINT_START("ptr arr");
+  std::string input = "void *malloc(int);"
+                      ""
+                      "int main() {"
+                      "  int *dr;\n"
+                      "  int *aa;\n"
+                      "  aa = malloc(5 * sizeof(int));\n"
+                      "  dr = &aa[3];\n"
+                      "  aa[0] = 0;"
+                      "  aa[1] = 1;"
+                      "  aa[2] = 2;"
+                      "  aa[3] = 3;"
+                      "  return *(dr - 2);"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("struct size") {
+  PRINT_START("struct size");
+  std::string input = "int main() {"
+                      "  struct S { char y; int a; int b; int c; } s;"
+                      "  return sizeof(s);"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 16);
 }
 
 } // namespace ccc

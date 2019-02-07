@@ -21,8 +21,8 @@
       ": error: " + msg + ". Lexing Stopped!"
 
 #define PARSER_ERROR(line, column, msg)                                        \
-  std::to_string(line) + ":" + std::to_string(column) + ": error: '" + msg +   \
-      "'. Parsing Stopped!"
+  std::to_string(line) + ":" + std::to_string(column) + ": error: " + msg +    \
+      ". Parsing Stopped!"
 
 #define SEMANTIC_ERROR(line, column, msg)                                      \
   std::to_string(line) + ":" + std::to_string(column) + ": error: " + msg +    \

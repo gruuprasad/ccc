@@ -9,17 +9,13 @@
 namespace ccc {
 
 TEST_CASE("gv ast") {
-  std::string language = "int addInt(int n, int m) {\n"
-                         "    return n + m;\n"
-                         "}\n"
-                         "\n"
-                         "int (*functionFactory(char n))(int a, int b) {\n"
-                         "    int (*functionPtr)(int,int);\n"
-                         "    functionPtr = &addInt;\n"
-                         "    return functionPtr;\n"
-                         "}"
-                         "void main() {"
-                         "  (*(functionFactory(1)))(1, 2);"
+  std::string language = "int main() {"
+                         "  int a;"
+                         "  int b;"
+                         "  a = 1;"
+                         "  b = 1;"
+                         "  a || (b = 0);"
+                         "  return b;"
                          "}";
 
   auto fp = FastParser(language);

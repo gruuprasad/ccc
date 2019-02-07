@@ -38,6 +38,9 @@ public:
   virtual llvm::FunctionType *getLLVMFunctionType(llvm::IRBuilder<>) {
     return nullptr;
   }
+  virtual int size() { return 8; };
+  virtual void setSize(int){};
+  virtual int ptr_size() { return size(); };
   virtual bool isFunctionPointer() { return false; };
 };
 
@@ -136,6 +139,20 @@ public:
       return "?";
     }
   }
+
+  int size() override {
+    switch (type_kind) {
+    case RawTypeValue::INT:
+      return 4;
+    case RawTypeValue::CHAR:
+      return 1;
+    case RawTypeValue::NIL:
+      return 8;
+    default:
+      return 8;
+    }
+  };
+
   RawTypeValue getRawTypeValue() override { return type_kind; }
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
     if (b == nullptr)
@@ -201,6 +218,10 @@ public:
     return "&()";
   }
   RawTypeValue getRawTypeValue() override { return RawTypeValue::POINTER; }
+
+  int size() override { return 8; }
+  int ptr_size() override { return ptr->ptr_size(); }
+
   std::shared_ptr<RawType> deref() override { return ptr; }
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
     if (b == nullptr)
@@ -255,6 +276,7 @@ public:
 
 class RawStructType : public RawType {
   std::string name;
+  int s = 0;
 
 public:
   explicit RawStructType(std::string name) : name(std::move(name)) {}
@@ -275,6 +297,8 @@ public:
   bool compare_exact(const std::shared_ptr<RawType> &b) override {
     return compare_equal(b);
   }
+  int size() override { return s; }
+  void setSize(int s) override { this->s = s; };
   RawStructType *getRawStructType() override { return this; }
   std::string getName() { return name; }
 };
