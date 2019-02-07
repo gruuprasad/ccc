@@ -407,38 +407,28 @@ public:
   }
 
   void visitSizeOf(SizeOf *v) override {
-    switch (v->getUType()->getRawTypeValue()) {
-    case RawTypeValue::POINTER:
-      rec_val = builder.getInt32(8);
-      if (v->operand && v->operand->getString()) {
-        auto str = v->operand->getString()->str_value;
-        str.erase(std::remove(str.begin(), str.end(), '\\'), str.end());
-        rec_val = builder.getInt32(static_cast<uint32_t>(str.size() + 1));
-      }
-      break;
-    case RawTypeValue::NIL:
-      rec_val = builder.getInt32(8);
-      break;
-    case RawTypeValue::INT:
-      rec_val = builder.getInt32(4);
-      break;
-    case RawTypeValue::CHAR:
-      rec_val = builder.getInt32(1);
-      break;
-    case RawTypeValue::FUNCTION:
-      rec_val = builder.getInt32(1);
-    default:
-      break;
+    if (v->operand)
+      rec_val = builder.getInt32(
+          static_cast<uint32_t>(v->operand->getUType()->size()));
+    else
+      rec_val = builder.getInt32(
+          static_cast<uint32_t>(v->type_name->getUType()->size()));
+    if (v->operand && v->operand->getString()) {
+      auto str = v->operand->getString()->str_value;
+      str.erase(std::remove(str.begin(), str.end(), '\\'), str.end());
+      rec_val = builder.getInt32(static_cast<uint32_t>(str.size() + 1));
     }
   }
 
   void visitBinary(Binary *v) override {
-    v->left_operand->accept(this);
-    auto lhs = rec_val;
-    v->right_operand->accept(this);
-    auto rhs = rec_val;
+    llvm::Value *lhs = nullptr;
+    llvm::Value *rhs = rec_val;
     switch (v->op_kind) {
     case BinaryOpValue::LESS_THAN:
+      v->left_operand->accept(this);
+      lhs = rec_val;
+      v->right_operand->accept(this);
+      rhs = rec_val;
       if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
       } else {
         lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
@@ -449,6 +439,10 @@ public:
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
     case BinaryOpValue::MULTIPLY:
+      v->left_operand->accept(this);
+      lhs = rec_val;
+      v->right_operand->accept(this);
+      rhs = rec_val;
       if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
       } else {
         lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
@@ -457,6 +451,10 @@ public:
       rec_val = builder.CreateMul(lhs, rhs, "multiply");
       break;
     case BinaryOpValue::ADD:
+      v->left_operand->accept(this);
+      lhs = rec_val;
+      v->right_operand->accept(this);
+      rhs = rec_val;
       if (v->left_operand->getUType()->getRawTypeValue() ==
           RawTypeValue::POINTER) {
         load = builder.CreateGEP(lhs, rhs, "ptr");
@@ -475,17 +473,24 @@ public:
       }
       break;
     case BinaryOpValue::SUBTRACT:
+      v->left_operand->accept(this);
+      lhs = rec_val;
+      v->right_operand->accept(this);
+      rhs = rec_val;
       if (v->left_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER &&
           v->right_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER) {
-        lhs = builder.CreatePtrToInt(lhs, builder.getInt32Ty(), "i32");
-        rhs = builder.CreatePtrToInt(rhs, builder.getInt32Ty(), "i32");
+        lhs = builder.CreatePtrToInt(lhs, builder.getInt32Ty(), "i64");
+        rhs = builder.CreatePtrToInt(rhs, builder.getInt32Ty(), "i64");
         rec_val = builder.CreateSub(lhs, rhs, "sub"); // TODO
         //        if ((*v->left_operand->getUType()->getRawPointerType())
         //                .deref()
         //                ->getRawTypeValue() != RawTypeValue::CHAR) // TODO
-        rec_val = builder.CreateExactSDiv(rec_val, builder.getInt32(4), "div");
+        rec_val = builder.CreateExactSDiv(
+            rec_val, builder.getInt32(v->left_operand->getUType()->ptr_size()),
+            "div");
+
         rec_val = builder.CreateTrunc(rec_val, builder.getInt32Ty(), "trunc");
       } else {
         if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
@@ -497,6 +502,10 @@ public:
       }
       break;
     case BinaryOpValue::EQUAL:
+      v->left_operand->accept(this);
+      lhs = rec_val;
+      v->right_operand->accept(this);
+      rhs = rec_val;
       if (v->left_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER &&
           v->right_operand->getUType()->getRawTypeValue() ==
@@ -525,6 +534,10 @@ public:
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
     case BinaryOpValue::NOT_EQUAL:
+      v->left_operand->accept(this);
+      lhs = rec_val;
+      v->right_operand->accept(this);
+      rhs = rec_val;
       if (v->left_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER &&
           v->right_operand->getUType()->getRawTypeValue() ==
@@ -552,24 +565,62 @@ public:
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
-    case BinaryOpValue::LOGICAL_AND:
+    case BinaryOpValue::LOGICAL_AND: {
+      llvm::BasicBlock *lazy_h =
+          llvm::BasicBlock::Create(ctx, "land.rhs", parent, nullptr);
+      llvm::BasicBlock *lazy_e =
+          llvm::BasicBlock::Create(ctx, "land.end", parent, nullptr);
+      allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
+                                  allocBuilder.GetInsertBlock()->begin());
+      llvm::Value *tmp = allocBuilder.CreateAlloca(builder.getInt1Ty());
+      tmp->setName("lazy");
+      v->left_operand->accept(this);
+      lhs = rec_val;
       lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
-      rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
       lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "true");
+      builder.CreateStore(lhs, tmp);
+      builder.CreateCondBr(lhs, lazy_h, lazy_e);
+      builder.SetInsertPoint(lazy_h);
+      v->right_operand->accept(this);
+      rhs = rec_val;
+      rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
       rhs = builder.CreateICmpNE(rhs, builder.getInt32(0), "true");
-      rec_val = builder.CreateAnd(lhs, rhs, "and");
+      builder.CreateStore(rhs, tmp);
+      builder.CreateBr(lazy_e);
+      builder.SetInsertPoint(lazy_e);
+      rec_val = builder.CreateLoad(tmp, "lazy");
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
-    case BinaryOpValue::LOGICAL_OR:
+    }
+    case BinaryOpValue::LOGICAL_OR: {
+      llvm::BasicBlock *lazy_h =
+          llvm::BasicBlock::Create(ctx, "lor.rhs", parent, nullptr);
+      llvm::BasicBlock *lazy_e =
+          llvm::BasicBlock::Create(ctx, "lor.end", parent, nullptr);
+      allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
+                                  allocBuilder.GetInsertBlock()->begin());
+      llvm::Value *tmp = allocBuilder.CreateAlloca(builder.getInt1Ty());
+      tmp->setName("lazy");
+      v->left_operand->accept(this);
+      lhs = rec_val;
       lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
-      rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
       lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "true");
+      builder.CreateStore(lhs, tmp);
+      builder.CreateCondBr(lhs, lazy_e, lazy_h);
+      builder.SetInsertPoint(lazy_h);
+      v->right_operand->accept(this);
+      rhs = rec_val;
+      rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
       rhs = builder.CreateICmpNE(rhs, builder.getInt32(0), "true");
-      rec_val = builder.CreateOr(lhs, rhs, "or");
+      builder.CreateStore(rhs, tmp);
+      builder.CreateBr(lazy_e);
+      builder.SetInsertPoint(lazy_e);
+      rec_val = builder.CreateLoad(tmp, "lazy");
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
+    }
     case BinaryOpValue::ASSIGN:
       // EMPTY
       break;
@@ -648,9 +699,11 @@ public:
                  RawTypeValue::POINTER &&
              v->right_operand->getUType()->getRawTypeValue() ==
                  RawTypeValue::NIL)
-      rhs = llvm::Constant::getNullValue(lhs->getType());
-    rhs = builder.CreatePointerBitCastOrAddrSpaceCast(
-        rhs, v->getUType()->getLLVMType(builder), "cast");
+      rhs = llvm::Constant::getNullValue(
+          v->left_operand->getUType()->getLLVMType(builder));
+    if (rhs->getType()->isPointerTy())
+      rhs = builder.CreatePointerBitCastOrAddrSpaceCast(
+          rhs, v->left_operand->getUType()->getLLVMType(builder), "cast");
     builder.CreateStore(rhs, lhs);
     rec_val = rhs;
   }

@@ -566,4 +566,34 @@ TEST_CASE("extern vars") {
   REQUIRE_RUN("", 2);
 }
 
+TEST_CASE("lazy or") {
+  PRINT_START("lazy or");
+  std::string input = "int main() {"
+                      "  int a;"
+                      "  int b;"
+                      "  a = 0;"
+                      "  b = 1;"
+                      "  a || (b = 1) || (a = 1);"
+                      "  return a + b;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
+TEST_CASE("lazy and") {
+  PRINT_START("lazy and");
+  std::string input = "int main() {"
+                      "  int a;"
+                      "  int b;"
+                      "  a = 1;"
+                      "  b = 1;"
+                      "  a && (b = 0) && (a = 0);"
+                      "  return a + b;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+}
+
 } // namespace ccc
