@@ -152,7 +152,7 @@ TEST_CASE("sizeof int") {
                       "}\n";
   CLANG;
   REQUIRE_BUILD;
-  REQUIRE_RUN("", 4);
+  REQUIRE_RUN("", 8);
 }
 
 TEST_CASE("sizeof c") {
