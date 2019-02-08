@@ -29,12 +29,12 @@
          "Options:\n"                                                          \
          "  --tokenize                perform lexical analysis and print "     \
          "token list\n"                                                        \
-         "  --parse                   tokenize, parse and perform semantic "   \
+         "  --parse                   tokenize, parse and perform semantical " \
          "analysis\n"                                                          \
          "  --print-ast               like --parse but pretty print from "     \
          "AST\n"                                                               \
          "  --graphviz                like --parse but print graphviz "        \
-         "represenation of AST\n"                                              \
+         "representation of AST\n"                                             \
          "  --compile                 compile to LLVM IR\n"                    \
          "  --optimize                WIP\n"                                   \
          "  --optimize-run-time       WIP\n"                                   \
