@@ -1,6 +1,5 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
-
 #include <array>
 #include <cstddef>
 #include <cstdio>
@@ -18,9 +17,6 @@
 #include <vector>
 
 namespace ccc {
-
-// XXX with C++14 wouldn't we have to call
-// std::make_unique instead of ccc::make_unique?
 //#if __cplusplus == 201103L
 // Reference:
 // https://stackoverflow.com/questions/17902405/how-to-implement-make-unique-function-in-c11
@@ -148,13 +144,16 @@ public:
   static ListType vector(Args... args) {
     return vector(ListType(), std::move(args)...);
   }
+
   template <class ListType, typename... Args>
   static ListType vector(ListType block, Args... args) = delete;
+
   template <class ListType, class T, typename... Args>
   static ListType vector(ListType block, T t, Args... args) {
     block.push_back(std::move(t));
     return vector(std::move(block), std::move(args)...);
   }
+
   template <class ListType> static ListType vector(ListType block) {
     return block;
   }
@@ -195,17 +194,14 @@ public:
     if (getline(in, line).good()) {
       return line;
     }
-
     if (in.eof()) {
       stopped = true;
       return std::string();
     }
-
     if (!in) {
       std::cerr << "Error in line " << cur_line << std::endl;
       exit(-1);
     }
-
     return line;
   }
 
@@ -240,6 +236,5 @@ private:
   bool stopped = false;
   std::ifstream &in;
 };
-
 } // namespace ccc
 #endif
