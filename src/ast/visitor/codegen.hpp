@@ -2,8 +2,8 @@
 
 #ifndef C4_CODEGEN_VISITOR_HPP
 #define C4_CODEGEN_VISITOR_HPP
-
 #include "../ast_node.hpp"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "llvm/ADT/APFloat.h"
@@ -35,14 +35,14 @@
 #include <llvm/Pass.h>
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/MathExtras.h>
+
 #pragma GCC diagnostic pop
-
 namespace ccc {
-
-// AST visitor class to generate LLVM IR - requires information from  semantical
-// analysis, so only run afterwards
+/**
+ * AST visitor class to generate LLVM IR - requires information from  semantical
+ * analysis, so only run afterwards
+ */
 class CodegenVisitor : public Visitor<void> {
-
   // constants
   llvm::LLVMContext ctx;
   llvm::Module mod;
@@ -72,15 +72,23 @@ class CodegenVisitor : public Visitor<void> {
   llvm::Value *load = nullptr;
 
 public:
-  // pass filename to constructor
+  /**
+   * pass filename to constructor
+   *
+   * @param f filename
+   */
   explicit CodegenVisitor(std::string f)
       : mod(f, ctx), builder(ctx), allocBuilder(ctx), filename(std::move(f)){};
   ~CodegenVisitor() override = default;
 
-  // enable external dumping of module to cerr
+  /**
+   * enable external dumping of module to cerr
+   */
   void dump() { mod.dump(); }
 
-  // dump LLVM IR of generated module in file
+  /**
+   * dump LLVM IR of generated module in file
+   */
   void compile() {
     for (const auto &p : ulabels) {
       builder.SetInsertPoint(p.second);
@@ -95,13 +103,21 @@ public:
     mod.print(stream, nullptr);
   }
 
-  // root of AST
+  /**
+   * root of AST
+   *
+   * @param v visitor
+   */
   void visitTranslationUnit(TranslationUnit *v) override {
     for (const auto &e : v->extern_list)
       e->accept(this);
   }
 
-  // define a global function, which can be accessed through the functions map
+  /**
+   * define a global function, which can be accessed through the functions map
+   *
+   * @param v visitor
+   */
   void visitFunctionDefinition(FunctionDefinition *v) override {
     if (!v->isFuncPtr) {
       if (functions.find(v->getUIdentifier()) != functions.end())
@@ -122,7 +138,11 @@ public:
     }
   }
 
-  // only predeclare a function, as we don't support function pointer
+  /**
+   * only predeclare a function, as we don't support function pointer
+   *
+   * @param v visitor
+   */
   void visitFunctionDeclaration(FunctionDeclaration *v) override {
     if (!v->isFuncPtr) {
       functions[v->getUIdentifier()] =
@@ -132,7 +152,11 @@ public:
     }
   }
 
-  // create LLVM IR for common declarations
+  /**
+   * create LLVM IR for common declarations
+   *
+   * @param v visitor
+   */
   void visitDataDeclaration(DataDeclaration *v) override {
     if (!v->global) {
       allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
@@ -151,8 +175,13 @@ public:
     }
   }
 
-  // TODO WIP
-  void visitStructDeclaration(StructDeclaration *v) override { (void)v; }
+  /**
+   *
+   * @param v visitor
+   */
+  void visitStructDeclaration(StructDeclaration *v) override {
+    (void)v; // TODO WIP
+  }
 
   void visitParamDeclaration(ParamDeclaration *) override {
     // EMPTY
@@ -166,8 +195,13 @@ public:
     // EMPTY
   }
 
-  // TODO WIP
-  void visitStructType(StructType *v) override { (void)v; }
+  /**
+   *
+   * @param v visitor
+   */
+  void visitStructType(StructType *v) override {
+    (void)v; // TODO WIP
+  }
 
   void visitDirectDeclarator(DirectDeclarator *) override {
     // EMPTY
@@ -181,7 +215,11 @@ public:
     // EMPTY
   }
 
-  // used in function definition to generate entry point
+  /**
+   * used in function definition to generate entry point
+   *
+   * @param v visitor
+   */
   void visitFunctionDeclarator(FunctionDeclarator *v) override {
     llvm::BasicBlock *FuncMaxEntryBB =
         llvm::BasicBlock::Create(ctx, "entry", parent, nullptr);
@@ -201,13 +239,21 @@ public:
     };
   }
 
-  // iterate over children without the need of an own block
+  /**
+   * iterate over children without the need of an own block
+   *
+   * @param v visitor
+   */
   void visitCompoundStmt(CompoundStmt *v) override {
     for (const auto &s : v->block_items)
       s->accept(this);
   }
 
-  // create branch instructions
+  /**
+   * create branch instructions
+   *
+   * @param v visitor
+   */
   void visitIfElse(IfElse *v) override {
     llvm::BasicBlock *IfHeaderBlock =
         llvm::BasicBlock::Create(ctx, "if.header", parent, nullptr);
@@ -239,7 +285,11 @@ public:
     builder.SetInsertPoint(IfEndBlock);
   }
 
-  // insert a block which can be jumped to
+  /**
+   * insert a block which can be jumped to
+   *
+   * @param v visitor
+   */
   void visitLabel(Label *v) override {
     llvm::BasicBlock *l = llvm::BasicBlock::Create(
         ctx, "label." + v->label_name->name, parent, nullptr);
@@ -249,7 +299,11 @@ public:
     v->stmt->accept(this);
   }
 
-  // gernate LLVM IR of loop
+  /**
+   * gernate LLVM IR of loop instruction
+   *
+   * @param v visitor
+   */
   void visitWhile(While *v) override {
     llvm::BasicBlock *whileHeaderBlock =
         llvm::BasicBlock::Create(ctx, "while.header", parent, nullptr);
@@ -276,8 +330,12 @@ public:
     breaks.pop_back();
   }
 
-  // insert a empty block that only gets a jump instruction in the end - in that
-  // way handling undefined labels
+  /**
+   * insert a empty block that only gets a jump instruction in the end - in that
+   * way handling undefined labels
+   *
+   * @param v visitor
+   */
   void visitGoto(Goto *v) override {
     (void)v;
     llvm::BasicBlock *b = llvm::BasicBlock::Create(
@@ -286,16 +344,27 @@ public:
     ulabels[v->label_name->name] = b;
   }
 
-  // nothing to do
+  /**
+   * nothing to do
+   *
+   * @param v visitor
+   */
   void visitExpressionStmt(ExpressionStmt *v) override {
     if (v->expr)
       v->expr->accept(this);
   }
 
-  // jump to loop end
+  /**
+   * jump to loop end
+   *
+   */
   void visitBreak(Break *) override { builder.CreateBr(breaks.back()); }
 
-  // generate return value, insert a dead block afterwards
+  /**
+   * generate return value, insert a dead block afterwards
+   *
+   * @param v visitor
+   */
   void visitReturn(Return *v) override {
     if (v->expr) {
       v->expr->accept(this);
@@ -309,14 +378,20 @@ public:
     builder.SetInsertPoint(ReturnDeadBlock);
   }
 
-  // jump to loop header
+  /**
+   * jump to loop header
+   *
+   */
   void visitContinue(Continue *) override {
     builder.CreateBr(continues.back());
   }
 
+  /**
+   * perform lookup of object in global maps
+   *
+   * @param v visitor
+   */
   void visitVariableName(VariableName *v) override {
-
-    // perform lookup of object in global maps
     if (functions[v->getUIdentifier()])
       rec_val = functions[v->getUIdentifier()];
     else {
@@ -325,12 +400,18 @@ public:
     }
   }
 
+  /**
+   * get i32 of value
+   *
+   * @param v visitor
+   */
   void visitNumber(Number *v) override {
-
-    // get i32 of value
     rec_val = builder.getInt32(static_cast<uint32_t>(v->num_value));
   }
 
+  /**
+   * @param v visitor
+   */
   void visitCharacter(Character *v) override {
     unsigned int val = 0;
 
@@ -380,6 +461,10 @@ public:
       val = (unsigned int)(v->char_value[0]);
     rec_val = builder.getInt32(val);
   }
+
+  /**
+   * @param v visitor
+   */
   void visitString(String *v) override {
     std::stringstream ss;
     for (unsigned int i = 0; i < v->str_value.size(); i++) {
@@ -430,19 +515,22 @@ public:
         ss << v->str_value[i];
     }
     rec_val = builder.CreateGlobalString(ss.str(), "string");
-    //    llvm::GlobalVariable *str = new llvm::GlobalVariable(
-    //        mod, rec_val->getType(), false,
-    //        llvm::GlobalValue::CommonLinkage,
-    //        llvm::Constant::getNullValue(rec_val->getType()), "string");
-    //    rec_val = builder.CreateStore(rec_val, str, "store.string");
     rec_val = builder.CreatePointerBitCastOrAddrSpaceCast(
         rec_val, builder.getInt8PtrTy(), "cast");
   }
 
-  // TODO WIP
-  void visitMemberAccessOp(MemberAccessOp *v) override { (void)v; }
+  /**
+   * @param v visitor
+   */
+  void visitMemberAccessOp(MemberAccessOp *v) override {
+    (void)v; // TODO WIP
+  }
 
-  // calcualte gep with offset value
+  /**
+   * calcualte element pointer with offset value
+   *
+   * @param v visitor
+   */
   void visitArraySubscriptOp(ArraySubscriptOp *v) override {
     v->array_name->accept(this);
     auto callee = rec_val;
@@ -455,7 +543,11 @@ public:
     rec_val = builder.CreateLoad(load, "array");
   }
 
-  // lookup function in map and pass arguments
+  /**
+   * lookup function in map and pass arguments
+   *
+   * @param v visitor
+   */
   void visitFunctionCall(FunctionCall *v) override {
     v->callee_name->accept(this);
     auto callee = rec_val;
@@ -475,7 +567,11 @@ public:
     rec_val = builder.CreateCall(callee, args, "call");
   }
 
-  // gernate code for unary expression
+  /**
+   * gernate code for unary expression
+   *
+   * @param v visitor
+   */
   void visitUnary(Unary *v) override {
     v->operand->accept(this);
     switch (v->op_kind) {
@@ -515,6 +611,9 @@ public:
     }
   }
 
+  /**
+   * @param v visitor
+   */
   void visitSizeOf(SizeOf *v) override {
     if (v->operand)
 
@@ -534,14 +633,19 @@ public:
       rec_val = builder.getInt32(8);
     } else if (v->operand && v->operand->getString()) {
 
-      // calculate length of string without escape sequences but with tailing \0
+      // calculate length of string without escape sequences but with tailing
+      // \0
       auto str = v->operand->getString()->str_value;
       str.erase(std::remove(str.begin(), str.end(), '\\'), str.end());
       rec_val = builder.getInt32(static_cast<uint32_t>(str.size() + 1));
     }
   }
 
-  // gernate code for binary expressions
+  /**
+   * gernate code for binary expressions
+   *
+   * @param v visitor
+   */
   void visitBinary(Binary *v) override {
     llvm::Value *lhs = nullptr;
     llvm::Value *rhs = nullptr;
@@ -822,7 +926,11 @@ public:
     }
   }
 
-  // gernate code for ternary expression
+  /**
+   * gernate code for ternary expression
+   *
+   * @param v visitor
+   */
   void visitTernary(Ternary *v) override {
     llvm::BasicBlock *ternaryHeaderBlock =
         llvm::BasicBlock::Create(ctx, "ternary.header", parent, nullptr);
@@ -888,8 +996,12 @@ public:
     rec_val = builder.CreateLoad(tmp);
   }
 
-  // assign rhs to lhs by handling pointer to object (requires load to be set to
-  // storage point) and cast accordingly (void* etc.)
+  /**
+   *  assign rhs to lhs by handling pointer to object (requires load to be set
+   * to storage point) and cast accordingly (void* etc.)
+   *
+   * @param v visitor
+   */
   void visitAssignment(Assignment *v) override {
     v->left_operand->accept(this);
     auto lhs = load;
@@ -917,7 +1029,6 @@ public:
     rec_val = rhs;
   }
 };
-
 } // namespace ccc
 
 #endif // C4_CODEGEN_VISITOR_HPP

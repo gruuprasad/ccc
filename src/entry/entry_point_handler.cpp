@@ -1,14 +1,9 @@
 #include "entry_point_handler.hpp"
 #include "../ast/visitor/codegen.hpp"
 #include "../ast/visitor/graphviz.hpp"
-#include "../ast/visitor/pretty_printer.hpp"
 #include "../ast/visitor/semantic_analysis.hpp"
 #include "../lexer/fast_lexer.hpp"
 #include "../parser/fast_parser.hpp"
-#include "../utils/utils.hpp"
-#include <fstream>
-#include <iostream>
-#include <sstream>
 
 #define PARSE                                                                  \
   auto parser = FastParser(buffer, path);                                      \
@@ -28,7 +23,6 @@
   CodegenVisitor cv(path);                                                     \
   root->accept(&cv);                                                           \
   cv.compile();
-
 #define HELP                                                                   \
   std::cout                                                                    \
       << "Usage: c4 [options] file\n"                                          \
@@ -46,9 +40,7 @@
          "  --optimize-run-time       WIP\n"                                   \
          "  --optimize-compile-time   WIP\n"                                   \
       << std::endl;
-
-using namespace ccc;
-
+namespace ccc {
 EntryPointHandler::EntryPointHandler() = default;
 
 int EntryPointHandler::handle(int argCount, char **const ppArgs) {
@@ -107,3 +99,4 @@ int EntryPointHandler::handle(int argCount, char **const ppArgs) {
   HELP;
   return EXIT_SUCCESS;
 }
+} // namespace ccc

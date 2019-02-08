@@ -1,17 +1,23 @@
 #ifndef C4_GRAPHVIZ_VISITOR_HPP
 #define C4_GRAPHVIZ_VISITOR_HPP
-
 #include "../../utils/utils.hpp"
 #include "../ast_node.hpp"
 #include "pretty_printer.hpp"
 
 namespace ccc {
-
-// AST visitor class to generate graphviz code of tree as string
+/**
+ * AST visitor class to generate graphviz code of tree as string
+ */
 class GraphvizVisitor : public Visitor<std::string> {
-
-  // generate standard blue node
-  static std::string makeGVVertice(unsigned long hash, std::string name) {
+  /**
+   * generate blue node
+   *
+   * @param hash
+   * @param name
+   * @return string
+   */
+  static std::string makeGVVertice(unsigned long hash,
+                                   const std::string &name) {
     std::stringstream ss;
     ss << hash
        << "[label=<" + name +
@@ -20,8 +26,15 @@ class GraphvizVisitor : public Visitor<std::string> {
     return ss.str();
   }
 
-  // generate khaki node
-  static std::string makeGVVerticeExpr(unsigned long hash, std::string name) {
+  /**
+   * generate yellow node
+   *
+   * @param hash
+   * @param name
+   * @return string
+   */
+  static std::string makeGVVerticeExpr(unsigned long hash,
+                                       const std::string &name) {
     std::stringstream ss;
     ss << hash
        << "[label=<" + name +
@@ -30,8 +43,15 @@ class GraphvizVisitor : public Visitor<std::string> {
     return ss.str();
   }
 
-  // generate grey leaf node
-  static std::string makeGVVerticeBox(unsigned long hash, std::string name) {
+  /**
+   * generate grey node
+   *
+   * @param hash
+   * @param name
+   * @return string
+   */
+  static std::string makeGVVerticeBox(unsigned long hash,
+                                      const std::string &name) {
     std::stringstream ss;
     ss << hash
        << "[label=<" + name +
@@ -42,7 +62,13 @@ class GraphvizVisitor : public Visitor<std::string> {
 
   PrettyPrinterVisitor pp;
 
-  // connect two nodes with an edge
+  /**
+   * connect two nodes with an edge
+   *
+   * @param left
+   * @param right
+   * @return string
+   */
   static std::string makeGVEdge(unsigned long left, unsigned long right) {
     std::stringstream ss;
     ss << left << "--" << right << ";\n";
@@ -53,7 +79,12 @@ public:
   GraphvizVisitor() = default;
   ~GraphvizVisitor() override = default;
 
-  // root of AST, return graphziv header
+  /**
+   * root of AST, return graphziv header
+   *
+   * @param v visitor
+   * @return
+   */
   std::string visitTranslationUnit(TranslationUnit *v) override {
     std::stringstream ss;
     ss << "graph ast{\nsplines=line;\nstyle=invis;\nsubgraph cluster{\n";
@@ -66,8 +97,13 @@ public:
     return ss.str();
   }
 
-  // create unique node (using hash) and connect with children - all
-  // methods work the same from here on
+  /**
+   * create unique node (using hash) and connect with children - all methods
+   * work the same from here on
+   *
+   * @param v visitor
+   * @return string
+   */
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
     std::stringstream ss;
     ss << makeGVVertice(v->hash(), "FunctionDefinition");
@@ -403,7 +439,6 @@ public:
            "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
 };
-
 } // namespace ccc
 
 #endif // C4_GRAPHVIZ_VISITOR_HPP

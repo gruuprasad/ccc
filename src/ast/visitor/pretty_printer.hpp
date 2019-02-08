@@ -1,13 +1,10 @@
 #ifndef C4_PRETTY_PRINTER_VISITOR_HPP
 #define C4_PRETTY_PRINTER_VISITOR_HPP
-
 #include "../../utils/utils.hpp"
 #include "../ast_node.hpp"
-
 #include <sstream>
 #include <string>
 
-// macros for indentation
 #define BIG_INDENT                                                             \
   switch (indent_mod) {                                                        \
   case IndentModifier::INLINE:                                                 \
@@ -23,15 +20,13 @@
     indent_mod = IndentModifier::DEFAULT;                                      \
     break;                                                                     \
   }
-
 #define INDENT std::string(indent_lvl, '\t')
 #define SMALL_INDENT std::string(indent_lvl - 1, '\t')
-
 namespace ccc {
-
-// AST visitor class to generate pretty print of input file
+/**
+ * AST visitor class to generate pretty print of input file
+ */
 class PrettyPrinterVisitor : public Visitor<std::string> {
-
   // maps instead of switch cases
   std::unordered_map<BinaryOpValue, std::string, EnumClassHash>
       BinaryOpValueToString{
@@ -44,15 +39,12 @@ class PrettyPrinterVisitor : public Visitor<std::string> {
           {BinaryOpValue::LOGICAL_AND, " && "},
           {BinaryOpValue::LOGICAL_OR, " || "},
       };
-
   std::unordered_map<UnaryOpValue, std::string, EnumClassHash>
       UnaryOpValueToString{{UnaryOpValue::ADDRESS_OF, "&"},
                            {UnaryOpValue::DEREFERENCE, "*"},
                            {UnaryOpValue::MINUS, "-"},
                            {UnaryOpValue::NOT, "!"}};
-
   enum class IndentModifier { DEFAULT, INLINE, IF, SCOPE };
-
   unsigned int indent_lvl = 0;
   IndentModifier indent_mod = IndentModifier::DEFAULT;
   std::string error;
@@ -61,7 +53,12 @@ public:
   PrettyPrinterVisitor() = default;
   ~PrettyPrinterVisitor() override = default;
 
-  // root of AST
+  /**
+   * root of AST
+   *
+   * @param v visitor
+   * @return string
+   */
   std::string visitTranslationUnit(TranslationUnit *v) override {
     std::stringstream ss;
     for (const auto &p : v->extern_list) {
@@ -72,8 +69,13 @@ public:
     return ss.str();
   }
 
-  // call children and generate string representation of nodes - all methods
-  // work the same from here on
+  /**
+   * call children and generate string representation of nodes - all methods
+   * work the same from here on
+   *
+   * @param v visitor
+   * @return string
+   */
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
     return INDENT + v->return_type->accept(this) + " " +
            v->fn_name->accept(this) + "\n" + v->fn_body->accept(this);
@@ -364,7 +366,5 @@ public:
            v->right_operand->accept(this) + ")";
   }
 };
-
 } // namespace ccc
-
 #endif

@@ -1,32 +1,39 @@
 #ifndef C4_RAW_TYPE_HPP
 #define C4_RAW_TYPE_HPP
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Type.h"
+
 #pragma GCC diagnostic pop
-
 namespace ccc {
-
 class GraphvizVisitor;
+
 class PrettyPrinterVisitor;
+
 class SemanticVisitor;
+
 class CodegenVisitor;
 
-// object type
+/**
+ * object type
+ */
 enum class RawTypeValue { NIL, VOID, CHAR, INT, POINTER, FUNCTION, STRUCT };
 
 class RawScalarType;
+
 class RawPointerType;
+
 class RawFunctionType;
+
 class RawStructType;
 
-// object structure for type representation used in semantical analysis instead
-// of AST nodes
+/**
+ * object structure for type representation used in semantical analysis instead
+ * of AST nodes
+ */
 class RawType {
   FRIENDS
-
 protected:
   RawType() = default;
   virtual ~RawType() = default;
@@ -35,39 +42,63 @@ protected:
 public:
   virtual std::string print() = 0;
 
-  // returns type of class as enum
+  /**
+   * returns type of class as enum
+   * @return type
+   */
   virtual RawTypeValue getRawTypeValue() = 0;
 
   // handle distinct members without casting
   virtual std::shared_ptr<RawType> deref() { return nullptr; }
+
   virtual std::vector<std::shared_ptr<RawType>> get_param() { return {}; }
+
   virtual std::shared_ptr<RawType> get_return() { return nullptr; }
 
-  // decide if types are castable into each other
+  /**
+   * decide if types are castable into each other
+   *
+   * @return bool
+   */
   virtual bool compare_equal(const std::shared_ptr<RawType> &) { return false; }
 
-  // decide if types are the same
+  /**
+   * decide if types are the same
+   *
+   * @return bool
+   */
   virtual bool compare_exact(const std::shared_ptr<RawType> &) { return false; }
 
   // wrapper
   virtual RawScalarType *getRawScalarType() { return nullptr; }
+
   virtual RawPointerType *getRawPointerType() { return nullptr; }
+
   virtual RawFunctionType *getRawFunctionType() { return nullptr; }
+
   virtual RawStructType *getRawStructType() { return nullptr; }
 
-  // called on pointer to decide
+  /**
+   * called on pointer to decide
+   *
+   * @return bool
+   */
   virtual bool isVoidPtr() { return false; }
 
   // generate LLVM types
   virtual llvm::Type *getLLVMType(llvm::IRBuilder<>) { return nullptr; }
+
   virtual llvm::FunctionType *getLLVMFunctionType(llvm::IRBuilder<>) {
     return nullptr;
   }
 
   // used in codegen
   virtual int size() { return 8; };
+
   virtual void setSize(int){};
+
   virtual int ptr_size() { return size(); };
+
   virtual bool isFunctionPointer() { return false; };
 };
 
@@ -80,6 +111,7 @@ public:
   RawFunctionType(std::shared_ptr<RawType> ret_type,
                   std::vector<std::shared_ptr<RawType>> param_types)
       : ret_type(std::move(ret_type)), param_types(std::move(param_types)) {}
+
   std::string print() override {
     std::stringstream ss;
     for (const auto &t : param_types) {
@@ -89,11 +121,15 @@ public:
     }
     return "(" + ss.str() + ")->" + ret_type->print();
   }
+
   RawTypeValue getRawTypeValue() override { return RawTypeValue::FUNCTION; }
+
   std::vector<std::shared_ptr<RawType>> get_param() override {
     return param_types;
   }
+
   std::shared_ptr<RawType> get_return() override { return ret_type; }
+
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
     if (b == nullptr)
       return false;
@@ -118,6 +154,7 @@ public:
       return false;
     }
   }
+
   bool compare_exact(const std::shared_ptr<RawType> &b) override {
     if (b == nullptr)
       return false;
@@ -137,6 +174,7 @@ public:
       return false;
     }
   }
+
   RawFunctionType *getRawFunctionType() override { return this; }
 
   llvm::FunctionType *getLLVMFunctionType(llvm::IRBuilder<> builder) override {
@@ -146,6 +184,7 @@ public:
     return llvm::FunctionType::get(ret_type->getLLVMType(builder), param,
                                    false);
   }
+
   int size() override { return 1; }
 };
 
@@ -156,6 +195,7 @@ class RawScalarType : public RawType {
 
 public:
   explicit RawScalarType(RawTypeValue v) : type_kind(v) {}
+
   std::string print() override {
     switch (type_kind) {
     case RawTypeValue::VOID:
@@ -189,6 +229,7 @@ public:
   void setSize(int s) override { ptr_diff = s; }
 
   RawTypeValue getRawTypeValue() override { return type_kind; }
+
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
     if (b == nullptr)
       return false;
@@ -210,6 +251,7 @@ public:
       return false;
     }
   }
+
   bool compare_exact(const std::shared_ptr<RawType> &b) override {
     if (b == nullptr)
       return false;
@@ -225,7 +267,9 @@ public:
       return false;
     }
   }
+
   RawScalarType *getRawScalarType() override { return this; }
+
   llvm::Type *getLLVMType(llvm::IRBuilder<> builder) override {
     switch (type_kind) {
     case RawTypeValue::VOID:
@@ -248,17 +292,21 @@ class RawPointerType : public RawType {
 
 public:
   explicit RawPointerType(std::shared_ptr<RawType> ptr) : ptr(std::move(ptr)) {}
+
   std::string print() override {
     if (ptr)
       return "&(" + ptr->print() + ")";
     return "&()";
   }
+
   RawTypeValue getRawTypeValue() override { return RawTypeValue::POINTER; }
 
   int size() override { return 8; }
+
   int ptr_size() override { return ptr->ptr_size(); }
 
   std::shared_ptr<RawType> deref() override { return ptr; }
+
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
     if (b == nullptr)
       return false;
@@ -281,6 +329,7 @@ public:
     }
     return false;
   }
+
   bool compare_exact(const std::shared_ptr<RawType> &b) override {
     switch (b->getRawTypeValue()) {
     case RawTypeValue::POINTER:
@@ -291,13 +340,16 @@ public:
       return false;
     }
   }
+
   bool isVoidPtr() override {
     if (ptr)
       return ptr->getRawTypeValue() == RawTypeValue::VOID || ptr->isVoidPtr();
     else
       return false;
   }
+
   std::shared_ptr<RawType> get_return() override { return ptr->get_return(); }
+
   bool isFunctionPointer() override {
     if (ptr->getRawTypeValue() == RawTypeValue::FUNCTION)
       return true;
@@ -316,8 +368,11 @@ class RawStructType : public RawType {
 
 public:
   explicit RawStructType(std::string name) : name(std::move(name)) {}
+
   std::string print() override { return name; }
+
   RawTypeValue getRawTypeValue() override { return RawTypeValue::STRUCT; }
+
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
     if (b == nullptr)
       return false;
@@ -330,6 +385,7 @@ public:
       return false;
     }
   }
+
   bool compare_exact(const std::shared_ptr<RawType> &b) override {
     return compare_equal(b);
   }
@@ -352,10 +408,11 @@ public:
     }
     return size;
   }
+
   RawStructType *getRawStructType() override { return this; }
+
   std::string getName() { return name; }
 };
-
 } // namespace ccc
 
 #endif // C4_RAW_TYPE_HPP
