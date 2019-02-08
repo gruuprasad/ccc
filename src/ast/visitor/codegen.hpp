@@ -551,8 +551,8 @@ public:
           load = builder.CreateGEP(lhs, rhs, "gep");
           rec_val = load;
         } else {
-          lhs = builder.CreatePtrToInt(lhs, builder.getInt32Ty(), "i64");
-          rhs = builder.CreatePtrToInt(rhs, builder.getInt32Ty(), "i64");
+          lhs = builder.CreatePtrToInt(lhs, builder.getInt32Ty(), "i32");
+          rhs = builder.CreatePtrToInt(rhs, builder.getInt32Ty(), "i32");
           rec_val = builder.CreateSub(lhs, rhs, "sub");
           rec_val = builder.CreateExactSDiv(
               rec_val,
@@ -562,7 +562,10 @@ public:
           rec_val = builder.CreateTrunc(rec_val, builder.getInt32Ty(), "trunc");
         }
       } else {
-        if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
+        if (v->left_operand->getUType()->getRawTypeValue() ==
+                RawTypeValue::CHAR &&
+            v->right_operand->getUType()->getRawTypeValue() ==
+                RawTypeValue::CHAR) {
         } else {
           lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
           rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");

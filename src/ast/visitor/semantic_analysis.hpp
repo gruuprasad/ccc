@@ -911,6 +911,7 @@ public:
               v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
               "Can't handle " + lhs_type->print() + " + " + rhs_type->print());
         raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
+        raw_type->setSize(8);
       } else if (rhs_type->getRawTypeValue() == RawTypeValue::POINTER) {
         raw_type = rhs_type;
         temporary = false;

@@ -133,6 +133,7 @@ public:
 class RawScalarType : public RawType {
   FRIENDS
   RawTypeValue type_kind;
+  int ptr_diff = -1;
 
 public:
   explicit RawScalarType(RawTypeValue v) : type_kind(v) {}
@@ -152,17 +153,21 @@ public:
   }
 
   int size() override {
+    if (ptr_diff > 0)
+      return ptr_diff;
     switch (type_kind) {
     case RawTypeValue::INT:
       return 4;
     case RawTypeValue::CHAR:
       return 1;
     case RawTypeValue::NIL:
-      return 8;
+      return 4;
     default:
       return 1;
     }
   };
+
+  void setSize(int s) override { ptr_diff = s; }
 
   RawTypeValue getRawTypeValue() override { return type_kind; }
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
