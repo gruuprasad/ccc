@@ -47,25 +47,19 @@ class CodegenVisitor : public Visitor<void> {
   llvm::LLVMContext ctx;
   llvm::Module mod;
   llvm::IRBuilder<> builder, allocBuilder;
-
   // current root of function body
   llvm::Function *parent = nullptr;
-
   // saved in module and dumped with LLVM IR
   std::string filename;
-
   // save current break / continue block when entering a loop
   std::vector<llvm::BasicBlock *> breaks;
   std::vector<llvm::BasicBlock *> continues;
-
   // use temporay blocks for labeling
   std::unordered_map<std::string, llvm::BasicBlock *> labels;
   std::unordered_map<std::string, llvm::BasicBlock *> ulabels;
-
   // maps for all functions / declarations in file, identified by prefix
   std::unordered_map<std::string, llvm::Value *> declarations;
   std::unordered_map<std::string, llvm::Function *> functions;
-
   // value pointers for handling of objects, set while traversing the
   // AST recursivly from bottom up
   llvm::Value *rec_val = nullptr;
@@ -270,7 +264,6 @@ public:
       rec_val = builder.CreateIsNotNull(rec_val, "notnull");
     rec_val =
         builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
-
     // always comapare condition to false (accepting all nonzero values as
     // true)
     auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0), "condition");
@@ -311,7 +304,6 @@ public:
         llvm::BasicBlock::Create(ctx, "while.body", parent, nullptr);
     llvm::BasicBlock *whileEndBlock =
         llvm::BasicBlock::Create(ctx, "while.end", parent, nullptr);
-
     // save continue / break points
     continues.push_back(whileHeaderBlock);
     breaks.push_back(whileEndBlock);
@@ -414,7 +406,6 @@ public:
    */
   void visitCharacter(Character *v) override {
     unsigned int val = 0;
-
     // value of escaped character
     if (v->char_value[0] == '\\') {
       switch (v->char_value[1]) {
@@ -468,7 +459,6 @@ public:
   void visitString(String *v) override {
     std::stringstream ss;
     for (unsigned int i = 0; i < v->str_value.size(); i++) {
-
       // replace escaped character
       if (v->str_value[i] == '\\') {
         switch (v->str_value[++i]) {
@@ -576,34 +566,28 @@ public:
     v->operand->accept(this);
     switch (v->op_kind) {
     case UnaryOpValue::ADDRESS_OF:
-
       // already loaded
       rec_val = load;
       break;
     case UnaryOpValue::DEREFERENCE:
-
       // points to object
       load = rec_val;
       rec_val = builder.CreateLoad(rec_val, "deref");
       break;
     case UnaryOpValue::MINUS:
-
       // only appears for numbers
       rec_val = builder.CreateNeg(rec_val, "minus");
       break;
     case UnaryOpValue::NOT:
-
       // pointer not null
       if (v->operand->getUType()->getRawTypeValue() == RawTypeValue::POINTER) {
         rec_val = builder.CreateIsNull(rec_val, "isnull");
       } else {
-
         // negate boolean value
         rec_val =
             builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
         rec_val = builder.CreateICmpEQ(rec_val, builder.getInt32(0), "cmpne");
       }
-
       // return boolean value
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
@@ -616,23 +600,19 @@ public:
    */
   void visitSizeOf(SizeOf *v) override {
     if (v->operand)
-
       // expression
       rec_val = builder.getInt32(
           static_cast<uint32_t>(v->operand->getUType()->size()));
     else if (v->type_name->getUType())
-
       // type
       rec_val = builder.getInt32(
           static_cast<uint32_t>(v->type_name->getUType()->size()));
     else
       rec_val = builder.getInt32(0);
-
     // sizeof sizeof
     if (v->operand && v->operand->isSizeOf()) {
       rec_val = builder.getInt32(8);
     } else if (v->operand && v->operand->getString()) {
-
       // calculate length of string without escape sequences but with tailing
       // \0
       auto str = v->operand->getString()->str_value;
@@ -661,7 +641,6 @@ public:
         rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
       }
       rec_val = builder.CreateICmpSLT(lhs, rhs, "less");
-
       // always return i32
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
@@ -683,7 +662,6 @@ public:
       lhs = rec_val;
       v->right_operand->accept(this);
       rhs = rec_val;
-
       // pointer arithmetic
       if (v->left_operand->getUType()->getRawTypeValue() ==
           RawTypeValue::POINTER) {
@@ -694,7 +672,6 @@ public:
         load = builder.CreateGEP(rhs, lhs, "gep");
         rec_val = load;
       } else {
-
         // add numbers
         if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
         } else {
@@ -709,7 +686,6 @@ public:
       lhs = rec_val;
       v->right_operand->accept(this);
       rhs = rec_val;
-
       // pointer arithmetic
       if (v->left_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER ||
@@ -734,7 +710,6 @@ public:
           load = builder.CreateGEP(lhs, rhs, "gep");
           rec_val = load;
         } else {
-
           // ptrdiff
           lhs = builder.CreatePtrToInt(lhs, builder.getInt32Ty(), "i32");
           rhs = builder.CreatePtrToInt(rhs, builder.getInt32Ty(), "i32");
@@ -747,7 +722,6 @@ public:
           rec_val = builder.CreateTrunc(rec_val, builder.getInt32Ty(), "trunc");
         }
       } else {
-
         // subtract numbers
         if (v->left_operand->getUType()->getRawTypeValue() ==
                 RawTypeValue::CHAR &&
@@ -765,7 +739,6 @@ public:
       lhs = rec_val;
       v->right_operand->accept(this);
       rhs = rec_val;
-
       // compare pointer
       if (v->left_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER &&
@@ -784,7 +757,6 @@ public:
                  RawTypeValue::NIL) {
         rec_val = builder.CreateIsNull(lhs, "isnull");
       } else {
-
         // compare values
         if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
         } else {
@@ -793,7 +765,6 @@ public:
         }
         rec_val = builder.CreateICmpEQ(lhs, rhs, "euqal");
       }
-
       // return i32
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
@@ -803,7 +774,6 @@ public:
       lhs = rec_val;
       v->right_operand->accept(this);
       rhs = rec_val;
-
       // compare pointer
       if (v->left_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER &&
@@ -822,7 +792,6 @@ public:
                  RawTypeValue::NIL) {
         rec_val = builder.CreateIsNotNull(lhs, "notnull");
       } else {
-
         // compare values
         if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
         } else {
@@ -831,7 +800,6 @@ public:
         }
         rec_val = builder.CreateICmpNE(lhs, rhs, "cmpne");
       }
-
       // return i32
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
@@ -841,7 +809,6 @@ public:
           llvm::BasicBlock::Create(ctx, "land.rhs", parent, nullptr);
       llvm::BasicBlock *lazy_e =
           llvm::BasicBlock::Create(ctx, "land.end", parent, nullptr);
-
       // store result of lazy evaluation
       allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
                                   allocBuilder.GetInsertBlock()->begin());
@@ -857,7 +824,6 @@ public:
         lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "cmp");
       }
       builder.CreateStore(lhs, tmp);
-
       // evaluate right expression only if left returned true
       builder.CreateCondBr(lhs, lazy_h, lazy_e);
       builder.SetInsertPoint(lazy_h);
@@ -883,7 +849,6 @@ public:
           llvm::BasicBlock::Create(ctx, "lor.rhs", parent, nullptr);
       llvm::BasicBlock *lazy_e =
           llvm::BasicBlock::Create(ctx, "lor.end", parent, nullptr);
-
       // store result of lazy evaluation
       allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
                                   allocBuilder.GetInsertBlock()->begin());
@@ -899,7 +864,6 @@ public:
         lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "cmp");
       }
       builder.CreateStore(lhs, tmp);
-
       // evaluate right expression only if left returned false
       builder.CreateCondBr(lhs, lazy_e, lazy_h);
       builder.SetInsertPoint(lazy_h);
@@ -942,7 +906,6 @@ public:
         llvm::BasicBlock::Create(ctx, "ternary.end", parent, nullptr);
     builder.CreateBr(ternaryHeaderBlock);
     builder.SetInsertPoint(ternaryHeaderBlock);
-
     // gernate conditional branching
     v->predicate->accept(this);
     if (v->predicate->getUType()->getRawTypeValue() == RawTypeValue::POINTER)
@@ -952,7 +915,6 @@ public:
     auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0), "condition");
     builder.CreateCondBr(c, ternaryConsequenceBlock, ternaryAlternativeBlock);
     builder.SetInsertPoint(ternaryConsequenceBlock);
-
     // calculate result type of both branches
     llvm::Type *type = builder.getInt32Ty();
     if (v->left_branch->getUType()->getRawTypeValue() == RawTypeValue::CHAR &&
@@ -963,13 +925,11 @@ public:
     else if (v->right_branch->getUType()->getRawTypeValue() ==
              RawTypeValue::POINTER)
       type = v->right_branch->getUType()->getLLVMType(builder);
-
     // use a temporay variable to store result of branch evaluation
     allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
                                 allocBuilder.GetInsertBlock()->begin());
     llvm::Value *tmp = allocBuilder.CreateAlloca(type);
     tmp->setName("ternary.val");
-
     // calculate result of left branch
     if (v->left_branch->getUType()->getRawTypeValue() == RawTypeValue::NIL)
       rec_val = llvm::Constant::getNullValue(type);
@@ -979,7 +939,6 @@ public:
     }
     builder.CreateStore(rec_val, tmp);
     builder.CreateBr(ternaryEndBlock);
-
     // calculate result of right branch
     builder.SetInsertPoint(ternaryAlternativeBlock);
     if (v->right_branch->getUType()->getRawTypeValue() == RawTypeValue::NIL)
@@ -991,7 +950,6 @@ public:
     builder.CreateStore(rec_val, tmp);
     builder.CreateBr(ternaryEndBlock);
     builder.SetInsertPoint(ternaryEndBlock);
-
     // load result which contains value of executed branch
     rec_val = builder.CreateLoad(tmp);
   }
@@ -1030,5 +988,4 @@ public:
   }
 };
 } // namespace ccc
-
 #endif // C4_CODEGEN_VISITOR_HPP
