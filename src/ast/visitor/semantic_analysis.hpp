@@ -431,7 +431,7 @@ public:
       raw_type->elem_size = v->elem_size;
       v->setUType(raw_type);
     } else {
-      // nameless struct, ignore in global scope
+      // nameless struct type, exists only inside sizeof
       if (prefix() != "$.") {
         pre.emplace_back("__" + std::to_string(v->hash()) + "__");
         v->elem_size.clear();
