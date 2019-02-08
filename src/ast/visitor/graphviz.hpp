@@ -295,7 +295,8 @@ public:
   std::string visitExpressionStmt(ExpressionStmt *v) override {
     std::stringstream ss;
     ss << makeGVVertice(v->hash(), "ExpressionStmt");
-    ss << makeGVEdge(v->hash(), v->expr->hash()) << v->expr->accept(this);
+    if (v->expr)
+      ss << makeGVEdge(v->hash(), v->expr->hash()) << v->expr->accept(this);
     return "subgraph cluster_" + std::to_string(v->hash()) +
            "{\nstyle=invis;\n" + ss.str() + "}\n";
   }
