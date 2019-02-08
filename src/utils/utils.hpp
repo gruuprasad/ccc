@@ -162,7 +162,7 @@ public:
   // Reference:
   // https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-output-of-command-within-c-using-posix
   static std::string exec(const char *cmd) {
-    char buffer[128];
+    char buffer[256];
     std::string result;
     FILE *pipe = popen(cmd, "r");
     if (!pipe)

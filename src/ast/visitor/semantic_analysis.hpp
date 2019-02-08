@@ -317,14 +317,16 @@ public:
           if (declarations.find(tmp) != declarations.end()) {
             raw_type = make_unique<RawStructType>("struct " + tmp);
             raw_type->setSize(declarations.find(tmp)->second->size());
+            break;
           }
         }
       }
-      if (!raw_type)
+      auto name = prefix("__" + v->struct_name->name + "__");
+      if (!raw_type) {
         raw_type = make_unique<RawStructType>(
             "struct " + prefix("__" + v->struct_name->name + "__"));
-      auto name = prefix("__" + v->struct_name->name + "__");
-      declarations[name] = raw_type;
+        declarations[name] = raw_type;
+      }
       auto ret = raw_type;
       if (v->is_definition) {
         if (definitions.find(name) != definitions.end())

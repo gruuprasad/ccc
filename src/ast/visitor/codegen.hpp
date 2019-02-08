@@ -337,7 +337,53 @@ public:
     rec_val = builder.getInt32(val);
   }
   void visitString(String *v) override {
-    rec_val = builder.CreateGlobalString(v->str_value, "string");
+    std::stringstream ss;
+    for (unsigned int i = 0; i < v->str_value.size(); i++) {
+      if (v->str_value[i] == '\\') {
+        switch (v->str_value[++i]) {
+        case 'a':
+          ss << '\a';
+          break;
+        case 'b':
+          ss << '\b';
+          break;
+        case 'f':
+          ss << '\f';
+          break;
+        case 'n':
+          ss << '\n';
+          break;
+        case 'r':
+          ss << '\r';
+          break;
+        case 't':
+          ss << '\t';
+          break;
+        case 'v':
+          ss << '\v';
+          break;
+        case '\\':
+          ss << '\\';
+          break;
+        case '\'':
+          ss << '\'';
+          break;
+        case '\"':
+          ss << '\"';
+          break;
+        case '?':
+          ss << '\?';
+          break;
+        case '0':
+          ss << '\0';
+          break;
+        default:
+          break;
+        }
+      } else
+        ss << v->str_value[i];
+    }
+    rec_val = builder.CreateGlobalString(ss.str(), "string");
     //    llvm::GlobalVariable *str = new llvm::GlobalVariable(
     //        mod, rec_val->getType(), false,
     //        llvm::GlobalValue::CommonLinkage,
