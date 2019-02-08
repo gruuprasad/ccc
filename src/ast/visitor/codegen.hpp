@@ -270,6 +270,9 @@ public:
       builder.CreateRet(rec_val);
     } else
       builder.CreateRet(llvm::Constant::getNullValue(parent->getReturnType()));
+    llvm::BasicBlock *ReturnDeadBlock =
+        llvm::BasicBlock::Create(ctx, "DEAD_BLOCK", parent, nullptr);
+    builder.SetInsertPoint(ReturnDeadBlock);
   }
 
   void visitContinue(Continue *) override {
