@@ -96,7 +96,7 @@ TEST_CASE("parser_success_files") {
       std::string input = dir + file;
       std::cout << "./c4 " << flag << " " << input << std::endl;
 
-      GCC_SUCCESS;
+      //      GCC_SUCCESS;
 
       char **ppArgs = new char *[3];
       ppArgs[1] = &flag[0];
