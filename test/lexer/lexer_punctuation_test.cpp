@@ -1,14 +1,11 @@
 #include "../catch.hpp"
 #include "entry/entry_point_handler.hpp"
 #include "lexer/fast_lexer.hpp"
-#include "lexer/lexer_exception.hpp"
-#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <sstream>
 
 using namespace ccc;
-
 #define PUNCTUATOR_TESTS(keyword, token)                                       \
   TEST_CASE("Fast Lexer keyword " #keyword " positive.") {                     \
     auto firstToken = FastLexer(keyword).lex().front();                        \
@@ -45,7 +42,6 @@ using namespace ccc;
     std::string result = buffer.str();                                         \
     REQUIRE("1:1: punctuator " #keyword);                                      \
   }
-
 PUNCTUATOR_TESTS("{", TokenType::BRACE_OPEN)
 PUNCTUATOR_TESTS("}", TokenType::BRACE_CLOSE)
 PUNCTUATOR_TESTS("<%", TokenType::BRACE_OPEN_ALT)

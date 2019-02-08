@@ -1,14 +1,11 @@
 #include "../catch.hpp"
 #include "entry/entry_point_handler.hpp"
 #include "lexer/fast_lexer.hpp"
-#include "lexer/lexer_exception.hpp"
-#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <sstream>
 
 using namespace ccc;
-
 TEST_CASE("Lexer Smoke test.") {
   auto token_list =
       FastLexer("{a+z-3*55aa case }}// }}\na a1 +++++ \"aa\"ee").lex();
@@ -165,17 +162,14 @@ TEST_CASE("Fast Lexer invalid string literal test.") {
 TEST_CASE("::") {
   auto tokenList = FastLexer(":::").lex();
   REQUIRE(tokenList.size() == 3);
-
   auto &firstToken = tokenList.front();
   REQUIRE(firstToken.getType() == TokenType::COLON);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
-
   auto &secondToken = tokenList[1];
   REQUIRE(secondToken.getType() == TokenType::COLON);
   REQUIRE(secondToken.getLine() == 1);
   REQUIRE(secondToken.getColumn() == 2);
-
   auto &thirdToken = tokenList[2];
   REQUIRE(thirdToken.getType() == TokenType::COLON);
   REQUIRE(thirdToken.getLine() == 1);
@@ -185,17 +179,14 @@ TEST_CASE("::") {
 TEST_CASE(".*") {
   auto tokenList = FastLexer(".*.").lex();
   REQUIRE(tokenList.size() == 3);
-
   auto &firstToken = tokenList.front();
   REQUIRE(firstToken.getType() == TokenType::DOT);
   REQUIRE(firstToken.getLine() == 1);
   REQUIRE(firstToken.getColumn() == 1);
-
   auto &secondToken = tokenList[1];
   REQUIRE(secondToken.getType() == TokenType::STAR);
   REQUIRE(secondToken.getLine() == 1);
   REQUIRE(secondToken.getColumn() == 2);
-
   auto &thirdToken = tokenList[2];
   REQUIRE(thirdToken.getType() == TokenType::DOT);
   REQUIRE(thirdToken.getLine() == 1);

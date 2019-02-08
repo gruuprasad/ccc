@@ -3,7 +3,6 @@
 #include "parser/fast_parser.hpp"
 
 using namespace ccc;
-
 TEST_CASE("Multiple struct Declarations") {
   std::string language{"struct vehicle {"
                        "  int n_wheels;"
@@ -50,7 +49,6 @@ TEST_CASE("Valid Declaration Tests") {
     auto root = fp.parse();
     REQUIRE_SUCCESS(fp);
   }
-
   SECTION("struct declaration test") {
     SECTION("struct without alias") {
       std::string language{"struct C { void a; int b; char c; };"};
@@ -72,7 +70,6 @@ TEST_CASE("Valid Declaration Tests") {
       REQUIRE_SUCCESS(fp);
     }
   }
-
   SECTION("Function type declaration test") {
     SECTION("prototype without parameters") {
       std::string language{"void funcA();"};
@@ -99,7 +96,6 @@ TEST_CASE("Valid Declaration Tests") {
       REQUIRE_SUCCESS(fp);
     }
   }
-
   SECTION("simple pointer type declaration test") {
     SECTION("data type pointers") {
       std::string language{"int *a; char **c;"};
@@ -133,7 +129,5 @@ TEST_CASE("declarations issue") {
   std::string language{"int main() { int a; int b;}"};
   auto fp = FastParser(language);
   auto root = fp.parse();
-  //  PrettyPrinterVisitor pp;
-  //  std::cout << root->accept(&pp);
   REQUIRE_SUCCESS(fp);
 }

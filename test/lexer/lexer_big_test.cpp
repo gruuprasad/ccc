@@ -1,40 +1,27 @@
 #include "../catch.hpp"
 #include "entry/entry_point_handler.hpp"
-#include "lexer/fast_lexer.hpp"
-#include "lexer/lexer_exception.hpp"
 #include "utils/utils.hpp"
-#include <fstream>
-#include <iostream>
 #include <iterator>
-#include <sstream>
-#include <zconf.h>
 
 using namespace ccc;
-
 #define COMPARE(name)                                                          \
   TEST_CASE("Compare " #name ".c to " #name ".txt") {                          \
     REQUIRE(lexing_of(#name ".c", to_match(#name ".txt")));                    \
   }
 
 bool lexing_of(const std::string &filename, const std::string &expected) {
-
   std::string flag = "--tokenize";
   std::string input = "../examples/" + filename;
 
   std::stringstream ss;
   std::streambuf *sb = std::cout.rdbuf();
   std::cout.rdbuf(ss.rdbuf());
-
   char **ppArgs = new char *[3];
   ppArgs[1] = &flag[0];
   ppArgs[2] = &input[0];
-
   REQUIRE(0 == EntryPointHandler().handle(3, ppArgs));
-
   delete[] ppArgs;
-
   std::cout.rdbuf(sb);
-
   std::vector<std::string> expected_lines = Utils::split_lines(expected);
   std::vector<std::string> content_lines = Utils::split_lines(ss.str());
 
@@ -59,7 +46,6 @@ bool lexing_of(const std::string &filename, const std::string &expected) {
       std::cerr << std::endl << "Output truncated after 5 lines...";
       return false;
     }
-
     return counter == 0;
   }
   return true;

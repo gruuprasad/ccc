@@ -1,14 +1,8 @@
 #include "../catch.hpp"
 #include "ast/ast_node.hpp"
 #include "ast/visitor/codegen.hpp"
-#include "ast/visitor/semantic_analysis.hpp"
-#include "parser/fast_parser.hpp"
-
-#include <fstream>
-#include <iostream>
 
 namespace ccc {
-
 TEST_CASE("ast codegen smoke test") {
   std::string input = "int main() {\n"
                       "  int* p;\n"
@@ -29,5 +23,4 @@ TEST_CASE("ast codegen smoke test") {
     is.close();
   }
 }
-
 } // namespace ccc

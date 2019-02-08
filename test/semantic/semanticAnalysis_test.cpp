@@ -1,12 +1,9 @@
 #include "../catch.hpp"
 #include "ast/ast_node.hpp"
-#include "ast/visitor/pretty_printer.hpp"
 #include "ast/visitor/semantic_analysis.hpp"
 #include "parser/fast_parser.hpp"
-#include <iostream>
 
 namespace ccc {
-
 TEST_CASE("duplicate label") {
   std::string input = "int main() {\n"
                       "foo:\n"
@@ -415,8 +412,6 @@ TEST_CASE("structs advanced") {
   auto root = fp.parse();
   if (fp.fail())
     std::cerr << fp.getError() << std::endl;
-  auto pp = PrettyPrinterVisitor();
-  std::cout << root->accept(&pp) << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_SUCCESS(sv);
@@ -446,38 +441,14 @@ TEST_CASE("structs advanced access") {
                       "  b.a.b.x;\n"
                       "}";
   ;
-
   auto fp = FastParser(input);
   auto root = fp.parse();
   if (fp.fail())
     std::cerr << fp.getError() << std::endl;
-  auto pp = PrettyPrinterVisitor();
-  std::cout << root->accept(&pp) << std::endl;
   auto sv = SemanticVisitor();
   root->accept(&sv);
   REQUIRE_SUCCESS(sv);
 }
-
-// TEST_CASE("scoping") {
-//  std::string input = "int *a;\n"
-//                      "int foo (int a, int b) {\n"
-//                      "}\n"
-//                      "struct A *p;\n"
-//                      "int main () {\n"
-//                      "return foo(1, 2);\n"
-//                      "}\n"
-//                      "\n";
-//
-//  auto fp = FastParser(input);
-//  auto root = fp.parse();
-//  if (fp.fail())
-//    std::cerr << fp.getError() << std::endl;
-//  auto sv = SemanticVisitor();
-//  root->accept(&sv);
-//  if (sv.fail())
-//    std::cerr << sv.getError() << std::endl;
-//  REQUIRE_SUCCESS(sv);
-//}
 
 TEST_CASE("abstract function") {
   std::string input = "int main (int ((int)));";
@@ -490,8 +461,6 @@ TEST_CASE("abstract function") {
   root->accept(&sv);
   if (sv.fail())
     std::cerr << sv.getError() << std::endl;
-  auto pp = PrettyPrinterVisitor();
-  std::cout << root->accept(&pp) << std::endl;
   REQUIRE_SUCCESS(sv);
 }
 
@@ -651,5 +620,4 @@ TEST_CASE("function no name 3") {
                        "Expected identifier, parameter list or parenthesized "
                        "declarator found \"int\""));
 }
-
 } // namespace ccc
