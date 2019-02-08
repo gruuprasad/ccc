@@ -74,7 +74,9 @@ using ExpressionListType = std::vector<std::unique_ptr<Expression>>;
 using StatementListType = std::vector<std::unique_ptr<Statement>>;
 using ASTNodeListType = std::vector<std::unique_ptr<ASTNode>>;
 
-// Base class for all nodes in AST.
+/**
+ * base class for all nodes in AST
+ */
 class ASTNode {
   Token tok;
   std::string uIdentifier;
@@ -690,7 +692,11 @@ public:
   void accept(Visitor<void> *) override;
 };
 
-// implementing visitor pattern on AST
+/**
+ * implementing visitor pattern on AST
+ *
+ * @tparam T
+ */
 template <class T> class Visitor {
 protected:
   Visitor() = default;
