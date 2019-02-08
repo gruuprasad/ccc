@@ -92,7 +92,11 @@ public:
     return nullptr;
   }
 
-  // used in codegen
+  /**
+   * used in codegen
+   *
+   * @return int
+   */
   virtual int size() { return 8; };
 
   virtual void setSize(int){};

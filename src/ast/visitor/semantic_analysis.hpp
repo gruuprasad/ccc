@@ -23,13 +23,13 @@ class SemanticVisitor : public Visitor<std::string> {
   std::string error;
   // detect nested loops
   int loop_counter;
-  // passes beetween visits
+  // passes between visits
   bool temporary = true;
   std::string alias;
   bool function_definition = false;
   // set by walking the tree bottom up, used to pass information to parent nodes
   std::shared_ptr<RawType> raw_type = nullptr;
-  // return type of current funtion body
+  // return type of current function body
   std::shared_ptr<RawType> jump_type = nullptr;
   // prefixcode for identifiers
   std::vector<std::string> pre;
@@ -501,7 +501,7 @@ public:
     if (!error.empty())
       return error;
     // wrapping function pointer - fixing an issue resulting from parsing
-    // abstract return type instead of funtion pointer
+    // abstract return type instead of function pointer
     int lvl = 0;
     while (raw_type->getRawTypeValue() == RawTypeValue::POINTER) {
       raw_type = raw_type->deref();
@@ -617,7 +617,7 @@ public:
     pre.pop_back();
     // else can be empty
     if (v->elseStmt) {
-      // else statemnt in own scope
+      // else statement in own scope
       pre.emplace_back("else");
       error = v->elseStmt->accept(this);
       if (!error.empty())

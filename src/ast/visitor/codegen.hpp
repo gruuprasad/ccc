@@ -622,7 +622,7 @@ public:
   }
 
   /**
-   * gernate code for binary expressions
+   * generate code for binary expressions
    *
    * @param v visitor
    */
@@ -891,7 +891,7 @@ public:
   }
 
   /**
-   * gernate code for ternary expression
+   * generate code for ternary expression
    *
    * @param v visitor
    */
@@ -906,7 +906,7 @@ public:
         llvm::BasicBlock::Create(ctx, "ternary.end", parent, nullptr);
     builder.CreateBr(ternaryHeaderBlock);
     builder.SetInsertPoint(ternaryHeaderBlock);
-    // gernate conditional branching
+    // generate conditional branching
     v->predicate->accept(this);
     if (v->predicate->getUType()->getRawTypeValue() == RawTypeValue::POINTER)
       rec_val = builder.CreateIsNotNull(rec_val);
