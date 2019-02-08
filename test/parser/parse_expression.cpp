@@ -3,8 +3,6 @@
 #include "parser/fast_parser.hpp"
 
 using namespace ccc;
-
-// Test simple expressions
 TEST_CASE("Fast Parser:primary expression test_1") {
   std::string language{" int main(int argc, char ** argv) {"
                        " printf(\"hello world!\");"
@@ -124,7 +122,6 @@ TEST_CASE("Fast Parser:bad number") {
   REQUIRE(fp.fail());
 }
 
-// Test parser failed tests
 TEST_CASE("parser/unary_postfix") {
   std::string ctx{" int main() {"
                   " &a[1];"

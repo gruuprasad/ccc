@@ -1,13 +1,9 @@
 #include "../catch.hpp"
 #include "ast/visitor/graphviz.hpp"
 #include "ast/visitor/semantic_analysis.hpp"
-#include "lexer/fast_lexer.hpp"
 #include "parser/fast_parser.hpp"
-#include <fstream>
-#include <utils/utils.hpp>
 
 namespace ccc {
-
 TEST_CASE("gv ast") {
   std::string language = "int main() {"
                          "  int a;"
@@ -35,5 +31,4 @@ TEST_CASE("gv ast") {
   std::system("dot ast.gv -Tsvg > ast.svg");
   std::system("firefox ast.svg");
 }
-
 } // namespace ccc

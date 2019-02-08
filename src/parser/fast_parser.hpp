@@ -51,10 +51,6 @@ public:
     }
   }
 
-  std::pair<unsigned long, unsigned long> getParserLocation() const {
-    return lexer.getLexerLocation();
-  }
-
   bool fail() const { return !error.empty(); }
   std::string getError() { return error; }
 

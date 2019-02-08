@@ -1,12 +1,8 @@
 #include "../catch.hpp"
 #include "ast/visitor/graphviz.hpp"
-#include "lexer/fast_lexer.hpp"
 #include "parser/fast_parser.hpp"
-#include <fstream>
-#include <utils/utils.hpp>
 
 namespace ccc {
-
 TEST_CASE("gv ast") {
   std::string language = "int *a(int);\n"
                          "int *(b(int));\n"
@@ -210,5 +206,4 @@ TEST_CASE("super abstract") {
                                "\n"
                                "void (f(int ((*)(void))));\n"));
 }
-
 } // namespace ccc

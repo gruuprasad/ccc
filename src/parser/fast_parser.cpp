@@ -534,7 +534,7 @@ FastParser::parseBinOpWithRHS(std::unique_ptr<Expression> lhs,
 
     if (ternayOp) { // rhs of : with maximal precedence
       rhs = parseBinOpWithRHS(std::move(rhs), 15);
-    } else if (binOpLeftPrec > nextTokenPrec) { // XXX > or >= ?
+    } else if (binOpLeftPrec > nextTokenPrec) {
       // Evaluate RHS + binOpRight...
       rhs = parseBinOpWithRHS(std::move(rhs),
                               binOpLeftPrec); // new RHS after evaluation

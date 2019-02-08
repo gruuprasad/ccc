@@ -1,10 +1,8 @@
 #include "../catch.hpp"
 #include "ast/ast_node.hpp"
 #include "ast/visitor/pretty_printer.hpp"
-#include "parser/fast_parser.hpp"
 
 namespace ccc {
-
 TEST_CASE("Simpleton") {
   auto root = make_unique<ScalarType>(Token(), ScalarTypeValue::INT);
   auto pp = PrettyPrinterVisitor{};
@@ -448,117 +446,6 @@ TEST_CASE("pretty print if else if else goto label") {
                                                   "}\n"));
 }
 
-/*
-TEST_CASE("declaration") {
-  auto root = make_unique<CompoundStmt>(
-      Token(),
-      Utils::vector<ASTNodeListType>(
-          make_unique<DataDeclaration>(
-              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
-              make_unique<DirectDeclarator>(
-                  Token(), make_unique<VariableName>(Token(), "a"))),
-          make_unique<DataDeclaration>(
-              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
-              make_unique<PointerDeclarator>(
-                  Token(),
-                  make_unique<DirectDeclarator>(
-                      Token(), make_unique<VariableName>(Token(), "b")))),
-          make_unique<DataDeclaration>(
-              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::VOID),
-              make_unique<PointerDeclarator>(
-                  Token(),
-                  make_unique<DirectDeclarator>(
-                      Token(), make_unique<VariableName>(Token(), "c")),
-                  2)),
-          make_unique<DataDeclaration>(
-              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::VOID),
-              make_unique<PointerDeclarator>(
-                  Token(),
-                  make_unique<FunctionDeclarator>(
-                      Token(),
-                      make_unique<PointerDeclarator>(
-                          Token(),
-                          make_unique<DirectDeclarator>(
-                              Token(), make_unique<VariableName>(Token(), "d")),
-                          2),
-                      Utils::vector<ParamDeclarationListType>(
-                          make_unique<ParamDeclaration>(
-                              Token(), make_unique<ScalarType>(
-                                           Token(), ScalarTypeValue::INT)))))),
-          make_unique<FunctionDeclaration>(
-              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::CHAR),
-              make_unique<FunctionDeclarator>(
-                  Token(),
-                  make_unique<DirectDeclarator>(
-                      Token(), make_unique<VariableName>(Token(), "main")),
-                  Utils::vector<
-                      ParamDeclarationListType>(make_unique<ParamDeclaration>(
-                      Token(),
-                      make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
-                      make_unique<DirectDeclarator>(
-                          Token(), make_unique<VariableName>(Token(), "a")))))),
-          make_unique<StructDeclaration>(
-              Token(), make_unique<StructType>(Token(), "S"),
-              make_unique<PointerDeclarator>(
-                  Token(),
-                  make_unique<DirectDeclarator>(
-                      Token(), make_unique<VariableName>(Token(), "p"))))));
-
-        auto pp = PPVisitor{};
-REQUIRE_EMPTY(Utils::compare(root->accept(&pp),
-                               "{\n"
-                               "\tint a;\n"
-                               "\tint (*b);\n"
-                               "\tvoid (*(*c));\n"
-                               "\tvoid (*((*(*d))(int)));\n"
-                               "\tchar (main(int a));\n"
-                               "\tstruct S (*p);\n"
-                               "}\n"));
-}
-
-TEST_CASE("declaration init") {
-  auto root = make_unique<CompoundStmt>(
-      Token(),
-      Utils::vector<ASTNodeListType>(make_unique<FunctionDefinition>(
-          Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
-          make_unique<FunctionDeclarator>(
-              Token(),
-              make_unique<DirectDeclarator>(
-                  Token(), make_unique<VariableName>(Token(), "main")),
-              Utils::vector<ParamDeclarationListType>(
-                  make_unique<ParamDeclaration>(
-                      Token(),
-                      make_unique<ScalarType>(Token(), ScalarTypeValue::INT)),
-                  make_unique<ParamDeclaration>(
-                      Token(),
-                      make_unique<ScalarType>(Token(), ScalarTypeValue::CHAR),
-                      make_unique<PointerDeclarator>(Token())),
-                  make_unique<ParamDeclaration>(
-                      Token(),
-                      make_unique<ScalarType>(Token(), ScalarTypeValue::VOID),
-                      make_unique<PointerDeclarator>(
-                          Token(),
-                          make_unique<DirectDeclarator>(
-                              Token(), make_unique<VariableName>(Token(), "a")),
-                          2)))),
-          make_unique<CompoundStmt>(
-              Token(),
-              Utils::vector<ASTNodeListType>(make_unique<DataDeclaration>(
-                  Token(),
-                  make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
-                  make_unique<DirectDeclarator>(
-                      Token(), make_unique<VariableName>(Token(), "d"))))))));
-
-        auto pp = PPVisitor{};
-REQUIRE_EMPTY(Utils::compare(root->accept(&pp),
-                               "{\n"
-                               "\tint (main(int, char (*), void (*(*a))))\n"
-                               "\t{\n"
-                               "\t\tint d;\n"
-                               "\t}\n"
-                               "}\n"));
-}
-*/
 TEST_CASE("sizeof") {
   auto root = make_unique<CompoundStmt>(
       Token(),
@@ -697,58 +584,4 @@ TEST_CASE("call") {
                                                   "\t(f((-s), 1));\n"
                                                   "}\n"));
 }
-
-/*
-TEST_CASE("traslation") {
-  auto root = make_unique<TranslationUnit>(
-      Token(),
-      Utils::vector<ExternalDeclarationListType>(
-          make_unique<DataDeclaration>(
-              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
-              make_unique<DirectDeclarator>(
-                  Token(), make_unique<VariableName>(Token(), "a"))),
-          make_unique<DataDeclaration>(
-              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::CHAR),
-              make_unique<DirectDeclarator>(
-                  Token(), make_unique<VariableName>(Token(), "b"))),
-          make_unique<FunctionDefinition>(
-              Token(), make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
-              make_unique<FunctionDeclarator>(
-                  Token(),
-                  make_unique<DirectDeclarator>(
-                      Token(), make_unique<VariableName>(Token(), "main")),
-                  Utils::vector<ParamDeclarationListType>(
-                      make_unique<ParamDeclaration>(
-                          Token(), make_unique<ScalarType>(
-                                       Token(), ScalarTypeValue::INT)),
-                      make_unique<ParamDeclaration>(
-                          Token(), make_unique<ScalarType>(
-                                       Token(), ScalarTypeValue::CHAR)),
-                      make_unique<ParamDeclaration>(
-                          Token(),
-                          make_unique<ScalarType>(Token(),
-                                                  ScalarTypeValue::INT),
-                          make_unique<DirectDeclarator>(
-                              Token(),
-                              make_unique<VariableName>(Token(), "a"))))),
-              make_unique<CompoundStmt>(
-                  Token(),
-                  Utils::vector<ASTNodeListType>(make_unique<DataDeclaration>(
-                      Token(),
-                      make_unique<ScalarType>(Token(), ScalarTypeValue::INT),
-                      make_unique<DirectDeclarator>(
-                          Token(),
-                          make_unique<VariableName>(Token(), "d"))))))));
-        auto pp = PPVisitor{};
-REQUIRE_EMPTY(Utils::compare(root->accept(&pp),
-                               "int a;\n"
-                               "\n"
-                               "char b;\n"
-                               "\n"
-                               "int (main(int, char, int a))\n"
-                               "{\n"
-                               "\tint d;\n"
-                               "}\n"));
-}
-*/
 } // namespace ccc
