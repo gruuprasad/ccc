@@ -6,22 +6,11 @@
 
 #define GCC_SUCCESS                                                            \
   std::string gcc =                                                            \
-      "gcc -pedantic-errors -std=c++11 -w -c " + input + " 2>&1";              \
-  std::string error = Utils::exec(&gcc[0]);                                    \
-  if (!error.empty()) {                                                        \
-    while (error.find("error") > error.find_first_of('\n')) {                  \
-      error = error.substr(error.find('\n') + 1, error.size());                \
-    }                                                                          \
-    error = error.substr(error.find(input), error.find_first_of('\n'));        \
-    std::cerr << "black box c4 " << std::endl                                  \
-              << "gcc: " << error << std::endl                                 \
-              << std::endl;                                                    \
-    FAIL("Unexpected gcc fail");                                               \
-  }
+      "../../llvm/install/bin/clang -std=c11 -w -c " + input + " 2>&1";        \
+  system(&gcc[0]);
 
 #define GCC_FAILURE                                                            \
-  std::string gcc =                                                            \
-      "gcc -pedantic-errors -std=c++11 -w -c " + input + " 2>&1";              \
+  std::string gcc = "gcc -pedantic-errors -std=c11 -w -c " + input + " 2>&1";  \
   std::string error = Utils::exec(&gcc[0]);                                    \
   if (!error.empty()) {                                                        \
     while (error.find("error") > error.find_first_of('\n')) {                  \

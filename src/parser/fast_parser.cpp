@@ -220,6 +220,8 @@ unique_ptr<Declarator> FastParser::parseDeclarator(bool within_paren) {
   if (ptrCount != 0 && peek().is_not(TokenType::PARENTHESIS_OPEN) &&
       peek().is_not(TokenType::IDENTIFIER)) {
     // Abstract-declarator::pointer
+    abstract = true;
+    abstract_loc = peek();
     return make_unique<AbstractDeclarator>(global_mark, AbstractDeclType::Data,
                                            ptrCount);
   }
@@ -264,6 +266,8 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool, int ptrCount) {
     return make_unique<FunctionDeclarator>(src_mark, move(identifier),
                                            move(param_list), move(return_ptr));
   } else if (peek().is(TokenType::PARENTHESIS_CLOSE)) {
+    abstract = true;
+    abstract_loc = peek();
     return make_unique<AbstractDeclarator>(global_mark, AbstractDeclType::Data,
                                            ptrCount);
   } else {
@@ -307,10 +311,12 @@ unique_ptr<Declarator> FastParser::parseDirectDeclarator(bool, int ptrCount) {
           global_mark, std::move(identifier), ptrCount);
   }
   return identifier;
-} // namespace ccc
+}
 
 // (6.7.6)  parameter-list :: parameter-declaration (comma-separated)
 ParamDeclarationListType FastParser::parseParameterList() {
+  auto tmp = abstract;
+  abstract = false;
   ParamDeclarationListType param_list = ParamDeclarationListType();
   do {
     auto param = parseParameterDeclaration();
@@ -319,6 +325,7 @@ ParamDeclarationListType FastParser::parseParameterList() {
     }
     param_list.push_back(move(param));
   } while (mayExpect(TokenType::COMMA));
+  abstract = tmp;
   return param_list;
 }
 

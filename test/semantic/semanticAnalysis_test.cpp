@@ -379,20 +379,17 @@ TEST_CASE("wrong num args") {
 }
 
 TEST_CASE("declarators") {
-  std::string input = "int (){\n"
+  std::string input = "int ()(void){\n"
                       "}\n"
                       "\n";
 
   auto fp = FastParser(input);
   auto root = fp.parse();
-  if (fp.fail())
-    std::cerr << fp.getError() << std::endl;
-  auto pp = PrettyPrinterVisitor();
-  std::cout << root->accept(&pp) << std::endl;
-  auto sv = SemanticVisitor();
-  root->accept(&sv);
-  REQUIRE_FAILURE(sv);
-  REQUIRE(sv.getError() == SEMANTIC_ERROR(1, 6, "Missing identifier"));
+  REQUIRE_FAILURE(fp);
+  REQUIRE(fp.getError() ==
+          PARSER_ERROR(1, 6,
+                       "Expected identifier, parameter list or parenthesized "
+                       "declarator found \")\""));
 }
 
 TEST_CASE("structs advanced") {

@@ -23,7 +23,6 @@
   REQUIRE_SUCCESS(sv);                                                         \
   CodegenVisitor cv("test.c");                                                 \
   root->accept(&cv);                                                           \
-  cv.dump();                                                                   \
   cv.compile();                                                                \
   system("../../llvm/install/bin/clang -w -o test test.ll");
 
@@ -50,17 +49,17 @@
 namespace ccc {
 
 TEST_CASE("ast codegen smoke test") {
-  PRINT_START("main");
+  // PRINT_START("main");
   std::string input = "int main() {\n"
                       "  return 0 ? main() : 0;\n"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 0);
 }
 
 TEST_CASE("fac rec") {
-  PRINT_START("fac rec");
+  // PRINT_START("fac rec");
   std::string input = "int fac(int);"
                       "int main() {\n"
                       "return fac(4);\n"
@@ -71,13 +70,13 @@ TEST_CASE("fac rec") {
                       "  else\n"
                       "    return a * fac (a - 1);"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 24);
 }
 
 TEST_CASE("fac loop") {
-  PRINT_START("fac loop");
+  // PRINT_START("fac loop");
   std::string input = "int fac(int);"
                       "int main() {\n"
                       "return fac(4);\n"
@@ -91,13 +90,13 @@ TEST_CASE("fac loop") {
                       "  }\n"
                       "  return b;\n"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 24);
 }
 
 TEST_CASE("fib rec") {
-  PRINT_START("fib rec");
+  // PRINT_START("fib rec");
   std::string input = "int fib(int);"
                       "int main() {\n"
                       "return fib(11);\n"
@@ -109,13 +108,13 @@ TEST_CASE("fib rec") {
                       "    return 1;\n"
                       "  return fib (a - 1) + fib (a - 2);"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 89);
 }
 
 TEST_CASE("fib loop") {
-  PRINT_START("fib loop");
+  // PRINT_START("fib loop");
   std::string input = "void fib(int);"
                       "int res;\n"
                       "int main() {\n"
@@ -140,74 +139,74 @@ TEST_CASE("fib loop") {
                       "    i = i + 1;\n"
                       "  }\n"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 89);
 }
 
 TEST_CASE("sizeof int") {
-  PRINT_START("sizeof int");
+  // PRINT_START("sizeof int");
   std::string input = "int main() {\n"
                       "  return sizeof(sizeof(int));\n"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 8);
 }
 
 TEST_CASE("sizeof c") {
-  PRINT_START("sizeof c");
+  // PRINT_START("sizeof c");
   std::string input = "int main() {\n"
                       "  return sizeof('c');\n"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 4);
 }
 
 TEST_CASE("sizeof char") {
-  PRINT_START("sizeof char");
+  // PRINT_START("sizeof char");
   std::string input = "int main() {\n"
                       "  return sizeof(char);\n"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("sizeof char*") {
-  PRINT_START("sizeof char*");
+  // PRINT_START("sizeof char*");
   std::string input = "int main() {\n"
                       "  return sizeof(char*);\n"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 8);
 }
 
 TEST_CASE("sizeof string") {
-  PRINT_START("sizeof string");
+  // PRINT_START("sizeof string");
   std::string input = "int main() {\n"
                       "  return sizeof(\"hello world\");\n"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 12);
 }
 
 TEST_CASE("sizeof func ptr") {
-  PRINT_START("sizeof string");
+  // PRINT_START("sizeof string");
   std::string input = "void (*foo)(void);"
                       "int main() {\n"
                       "  return sizeof(foo);\n"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 8);
 }
 
 TEST_CASE("int ptr") {
-  PRINT_START("int ptr");
+  // PRINT_START("int ptr");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {\n"
@@ -219,13 +218,13 @@ TEST_CASE("int ptr") {
                       "  a = *p;"
                       "  return *p + a + 2;"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 6);
 }
 
 TEST_CASE("int ptr 2") {
-  PRINT_START("int ptr 2");
+  // PRINT_START("int ptr 2");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {\n"
@@ -239,25 +238,25 @@ TEST_CASE("int ptr 2") {
                       "  a = ***q;"
                       " return ***q;"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 7);
 }
 
 TEST_CASE("main argc") {
-  PRINT_START("main argc");
+  // PRINT_START("main argc");
   std::string input = "int printf(char *format, char*);"
                       ""
                       "int main(int argc, char **argv) {\n"
                       "   return argc;\n"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("hallo", 2);
 }
 
 TEST_CASE("array test") {
-  PRINT_START("array test");
+  // PRINT_START("array test");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {\n"
@@ -266,13 +265,13 @@ TEST_CASE("array test") {
                       "  a[0] = 10;"
                       " return a[0];"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 10);
 }
 
 TEST_CASE("array test 2") {
-  PRINT_START("array test 2");
+  // PRINT_START("array test 2");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {\n"
@@ -282,13 +281,13 @@ TEST_CASE("array test 2") {
                       "  a[0][1] = 10;"
                       " return a[0][1];"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 10);
 }
 
 TEST_CASE("ptr add test") {
-  PRINT_START("ptr add test");
+  // PRINT_START("ptr add test");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {\n"
@@ -299,13 +298,13 @@ TEST_CASE("ptr add test") {
                       "  *(a + 2) = *(1 + a);"
                       "  return *(2 + a);"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 12);
 }
 
 TEST_CASE("ptr diff") {
-  PRINT_START("ptr diff");
+  // PRINT_START("ptr diff");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {\n"
@@ -313,13 +312,13 @@ TEST_CASE("ptr diff") {
                       "  int *b;"
                       "  return a - b;"
                       "}\n";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 0);
 }
 
 TEST_CASE("array loop") {
-  PRINT_START("array loop");
+  // PRINT_START("array loop");
   std::string input = "void *malloc(int);"
                       ""
                       "int main(int argc, char **argv) {"
@@ -333,35 +332,35 @@ TEST_CASE("array loop") {
                       "   }"
                       "   return a[argc - 1] == a[argc - 2] + 1;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("a b c d e", 1);
 }
 
 TEST_CASE("argv access") {
-  PRINT_START("argv access");
+  // PRINT_START("argv access");
   std::string input = "int main(int argc, char **argv) {"
                       "   return argv[1][0];"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("a", 97);
 }
 
 TEST_CASE("string") {
-  PRINT_START("string");
+  // PRINT_START("string");
   std::string input = "int main() {"
                       "   char * s;"
                       "   s = \"abc\";"
                       "   return  s[2];"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 99);
 }
 
 TEST_CASE("cast") {
-  PRINT_START("cast");
+  // PRINT_START("cast");
   std::string input = "int main() {"
                       "   int a;"
                       "   char b;"
@@ -369,66 +368,66 @@ TEST_CASE("cast") {
                       "   b = 1;"
                       "   return  a + b;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 100);
 }
 
 TEST_CASE("cast 2") {
-  PRINT_START("cast 2");
+  // PRINT_START("cast 2");
   std::string input = "int main() {"
                       "   return  (1 < 3) + 'b';"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 99);
 }
 
 TEST_CASE("cast 3") {
-  PRINT_START("cast 3");
+  // PRINT_START("cast 3");
   std::string input = "char main() {"
                       "   return  1;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("cast 4") {
-  PRINT_START("cast 4");
+  // PRINT_START("cast 4");
   std::string input = "void main() {"
                       "   int *p;"
                       "   p = 0;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 0);
 }
 
 TEST_CASE("return void") {
-  PRINT_START("return void");
+  // PRINT_START("return void");
   std::string input = "void main() {"
                       "   return;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 0);
 }
 
 TEST_CASE("return ternary") {
-  PRINT_START("return ternary");
+  // PRINT_START("return ternary");
   std::string input = "int main() {"
                       "   char a;"
                       "   a = 'a';"
                       "   return 0 ? 3 : a;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 97);
 }
 
 TEST_CASE("ptr ternary") {
-  PRINT_START("ptr ternary");
+  // PRINT_START("ptr ternary");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {"
@@ -437,36 +436,36 @@ TEST_CASE("ptr ternary") {
                       "   *a = a ? 0 : 1;"
                       "   return *a;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 0);
 }
 
 TEST_CASE("ptr ternary 2") {
-  PRINT_START("ptr ternary 2");
+  // PRINT_START("ptr ternary 2");
   std::string input = "int main() {"
                       "   int *a;"
                       "   a = 0;"
                       "   return a ? 0 : 1;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("ptr comp") {
-  PRINT_START("ptr comp");
+  // PRINT_START("ptr comp");
   std::string input = "int main() {"
                       "   int *a;"
                       "   return (a == 0 && a != 0) || a == a;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("ptr deref") {
-  PRINT_START("ptr deref");
+  // PRINT_START("ptr deref");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {"
@@ -477,45 +476,45 @@ TEST_CASE("ptr deref") {
                       "  a = &b;"
                       "  return a[0];"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 5);
 }
 
 TEST_CASE("not") {
-  PRINT_START("not");
+  // PRINT_START("not");
   std::string input = "int main() {"
                       "  return !(2 < 1);"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("minus") {
-  PRINT_START("minus");
+  // PRINT_START("minus");
   std::string input = "int main() {"
                       "  return -5 + 6;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("ptr not") {
-  PRINT_START("ptr not");
+  // PRINT_START("ptr not");
   std::string input = "int main() {"
                       "  int *a;"
                       "  a = 0;"
                       "  return !a;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("args ptr") {
-  PRINT_START("args ptr");
+  // PRINT_START("args ptr");
   std::string input = "int puts(char *str);"
                       ""
                       "int main() {"
@@ -524,13 +523,13 @@ TEST_CASE("args ptr") {
                       "  puts(s);"
                       "  return 0;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 0);
 }
 
 TEST_CASE("puts") {
-  PRINT_START("puts");
+  // PRINT_START("puts");
   std::string input = "int puts(char *str);"
                       ""
                       "int main() {"
@@ -539,13 +538,13 @@ TEST_CASE("puts") {
                       "  puts(s);"
                       "  return 0;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 0);
 }
 
 TEST_CASE("extern vars") {
-  PRINT_START("extern vars");
+  // PRINT_START("extern vars");
   std::string input = "void *malloc(int);"
                       ""
                       "int a;"
@@ -561,13 +560,13 @@ TEST_CASE("extern vars") {
                       "  *b = 1;"
                       "  return a + *b;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 2);
 }
 
 TEST_CASE("lazy or") {
-  PRINT_START("lazy or");
+  // PRINT_START("lazy or");
   std::string input = "int main() {"
                       "  int a;"
                       "  int b;"
@@ -576,13 +575,13 @@ TEST_CASE("lazy or") {
                       "  a || (b = 1) || (a = 1);"
                       "  return a + b;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("lazy and") {
-  PRINT_START("lazy and");
+  // PRINT_START("lazy and");
   std::string input = "int main() {"
                       "  int a;"
                       "  int b;"
@@ -591,13 +590,13 @@ TEST_CASE("lazy and") {
                       "  a && (b = 0) && (a = 0);"
                       "  return a + b;"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("ptr arr") {
-  PRINT_START("ptr arr");
+  // PRINT_START("ptr arr");
   std::string input = "void *malloc(int);"
                       ""
                       "int main() {"
@@ -611,20 +610,50 @@ TEST_CASE("ptr arr") {
                       "  aa[3] = 3;"
                       "  return *(dr - 2);"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 1);
 }
 
 TEST_CASE("struct size") {
-  PRINT_START("struct size");
+  // PRINT_START("struct size");
   std::string input = "int main() {"
                       "  struct S { char y; int a; int b; int c; } s;"
                       "  return sizeof(s);"
                       "}";
-  CLANG;
+  // CLANG;
   REQUIRE_BUILD;
   REQUIRE_RUN("", 16);
+}
+
+TEST_CASE("label after return") {
+  PRINT_START("struct size");
+  std::string input = "int main() {"
+                      "  goto foo;"
+                      "  return 5;"
+                      "foo:"
+                      "  return 42;"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 42);
+  cv.dump();
+}
+
+TEST_CASE("return in while") {
+  PRINT_START("return in while");
+  std::string input = "int main() {"
+                      "  while (1) {"
+                      "   if(0)"
+                      "     return 0;"
+                      "   else"
+                      "     return 1;"
+                      "   }"
+                      "}";
+  CLANG;
+  REQUIRE_BUILD;
+  REQUIRE_RUN("", 1);
+  cv.dump();
 }
 
 } // namespace ccc

@@ -77,6 +77,7 @@ public:
   std::string getUIdentifier() { return uIdentifier; }
   void setUType(std::shared_ptr<RawType> t) { uType = t; }
   std::shared_ptr<RawType> getUType() { return uType; }
+  virtual StructType *getStructType() { return nullptr; }
 };
 
 class TranslationUnit : public ASTNode {
@@ -88,6 +89,56 @@ public:
       : ASTNode(tk), extern_list(std::move(e)) {}
   std::string accept(Visitor<std::string> *) override;
   void accept(Visitor<void> *) override;
+};
+
+class Type : public ASTNode {
+protected:
+  explicit Type(const Token &tk) : ASTNode(tk) {}
+  virtual bool isStructType() { return false; }
+};
+
+enum class ScalarTypeValue { VOID, CHAR, INT };
+
+class ScalarType : public Type {
+  FRIENDS
+  ScalarTypeValue type_kind;
+
+public:
+  ScalarType(const Token &tk, ScalarTypeValue v) : Type(tk), type_kind(v) {}
+  std::string accept(Visitor<std::string> *) override;
+  void accept(Visitor<void> *) override;
+};
+
+class AbstractType : public Type {
+  FRIENDS
+  std::unique_ptr<Type> type;
+  int ptr_count;
+
+public:
+  AbstractType(const Token &tk, std::unique_ptr<Type> v, int ptr_count)
+      : Type(tk), type(move(v)), ptr_count(ptr_count) {}
+  std::string accept(Visitor<std::string> *) override;
+  void accept(Visitor<void> *) override;
+};
+
+class StructType : public Type {
+  FRIENDS
+  std::unique_ptr<VariableName> struct_name;
+  ExternalDeclarationListType member_list;
+  bool isStructType() override { return true; }
+  bool is_definition;
+  std::vector<int> elem_size = {};
+
+public:
+  StructType(const Token &tk, std::unique_ptr<VariableName> n)
+      : Type(tk), struct_name(std::move(n)), is_definition(false) {}
+  StructType(const Token &tk, std::unique_ptr<VariableName> n,
+             ExternalDeclarationListType m)
+      : Type(tk), struct_name(std::move(n)), member_list(std::move(m)),
+        is_definition(true) {}
+  std::string accept(Visitor<std::string> *) override;
+  void accept(Visitor<void> *) override;
+  StructType *getStructType() override { return this; }
 };
 
 class ExternalDeclaration : public ASTNode {
@@ -135,6 +186,7 @@ class DataDeclaration : public Declaration {
   FRIENDS
   std::unique_ptr<Type> data_type;
   std::unique_ptr<Declarator> data_name;
+  StructType *getStructType() override { return data_type->getStructType(); }
   bool global;
 
 public:
@@ -150,6 +202,7 @@ class StructDeclaration : public Declaration {
   FRIENDS
   std::unique_ptr<Type> struct_type; // TODO StructType
   std::unique_ptr<Declarator> struct_alias;
+  StructType *getStructType() override { return struct_type->getStructType(); }
 
 public:
   StructDeclaration(const Token &tk, std::unique_ptr<Type> t,
@@ -171,59 +224,6 @@ public:
       : Declaration(tk), param_type(std::move(t)), param_name(std::move(n)) {}
   std::string accept(Visitor<std::string> *) override;
   void accept(Visitor<void> *) override;
-};
-
-class Type : public ASTNode {
-protected:
-  explicit Type(const Token &tk) : ASTNode(tk) {}
-  virtual bool isStructType() { return false; }
-
-public:
-  virtual StructType *getStructType() { return nullptr; }
-};
-
-enum class ScalarTypeValue { VOID, CHAR, INT };
-
-class ScalarType : public Type {
-  FRIENDS
-  ScalarTypeValue type_kind;
-
-public:
-  ScalarType(const Token &tk, ScalarTypeValue v) : Type(tk), type_kind(v) {}
-  std::string accept(Visitor<std::string> *) override;
-  void accept(Visitor<void> *) override;
-};
-
-class AbstractType : public Type {
-  FRIENDS
-  std::unique_ptr<Type> type;
-  int ptr_count;
-
-public:
-  AbstractType(const Token &tk, std::unique_ptr<Type> v, int ptr_count)
-      : Type(tk), type(move(v)), ptr_count(ptr_count) {}
-  std::string accept(Visitor<std::string> *) override;
-  void accept(Visitor<void> *) override;
-};
-
-class StructType : public Type {
-  FRIENDS
-  std::unique_ptr<VariableName> struct_name;
-  ExternalDeclarationListType member_list;
-  bool isStructType() override { return true; }
-  bool is_definition;
-  std::vector<int> elem_size = {};
-
-public:
-  StructType(const Token &tk, std::unique_ptr<VariableName> n)
-      : Type(tk), struct_name(std::move(n)), is_definition(false) {}
-  StructType(const Token &tk, std::unique_ptr<VariableName> n,
-             ExternalDeclarationListType m)
-      : Type(tk), struct_name(std::move(n)), member_list(std::move(m)),
-        is_definition(true) {}
-  std::string accept(Visitor<std::string> *) override;
-  void accept(Visitor<void> *) override;
-  StructType *getStructType() override { return this; }
 };
 
 class Declarator : public ASTNode {

@@ -9,6 +9,11 @@
 
 namespace ccc {
 
+class GraphvizVisitor;
+class PrettyPrinterVisitor;
+class SemanticVisitor;
+class CodegenVisitor;
+
 enum class RawTypeValue { NIL, VOID, CHAR, INT, POINTER, FUNCTION, STRUCT };
 
 class RawScalarType;
@@ -17,9 +22,12 @@ class RawFunctionType;
 class RawStructType;
 
 class RawType {
+  FRIENDS
+
 protected:
   RawType() = default;
   virtual ~RawType() = default;
+  std::vector<int> elem_size = {};
 
 public:
   virtual std::string print() = 0;
@@ -45,6 +53,7 @@ public:
 };
 
 class RawFunctionType : public RawType {
+  FRIENDS
   std::shared_ptr<RawType> ret_type;
   std::vector<std::shared_ptr<RawType>> param_types;
 
@@ -118,10 +127,13 @@ public:
     return llvm::FunctionType::get(ret_type->getLLVMType(builder), param,
                                    false);
   }
+  int size() override { return 1; }
 };
 
 class RawScalarType : public RawType {
+  FRIENDS
   RawTypeValue type_kind;
+  int ptr_diff = -1;
 
 public:
   explicit RawScalarType(RawTypeValue v) : type_kind(v) {}
@@ -141,17 +153,21 @@ public:
   }
 
   int size() override {
+    if (ptr_diff > 0)
+      return ptr_diff;
     switch (type_kind) {
     case RawTypeValue::INT:
       return 4;
     case RawTypeValue::CHAR:
       return 1;
     case RawTypeValue::NIL:
-      return 8;
+      return 4;
     default:
-      return 8;
+      return 1;
     }
   };
+
+  void setSize(int s) override { ptr_diff = s; }
 
   RawTypeValue getRawTypeValue() override { return type_kind; }
   bool compare_equal(const std::shared_ptr<RawType> &b) override {
@@ -208,6 +224,7 @@ public:
 };
 
 class RawPointerType : public RawType {
+  FRIENDS
   std::shared_ptr<RawType> ptr;
 
 public:
@@ -275,6 +292,7 @@ public:
 };
 
 class RawStructType : public RawType {
+  FRIENDS
   std::string name;
   int s = 0;
 
@@ -297,8 +315,25 @@ public:
   bool compare_exact(const std::shared_ptr<RawType> &b) override {
     return compare_equal(b);
   }
-  int size() override { return s; }
-  void setSize(int s) override { this->s = s; };
+
+  // calculate allignment of struct
+  int size() override {
+    int size = 0;
+    if (!elem_size.empty()) {
+      int pad = 1;
+      for (int i : elem_size) {
+        size += i;
+        pad = std::max(pad, i);
+        if (size > 0 && size % i != 0) {
+          size += i - size % i;
+        }
+      }
+      if (size > 0 && size % pad != 0) {
+        size += pad - size % pad;
+      }
+    }
+    return size;
+  }
   RawStructType *getRawStructType() override { return this; }
   std::string getName() { return name; }
 };

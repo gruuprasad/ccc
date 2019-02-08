@@ -315,16 +315,18 @@ public:
           tmp_pre = tmp_pre.substr(0, tmp_pre.find_last_of('.'));
           tmp = tmp_pre + ".__" + v->struct_name->name + "__";
           if (declarations.find(tmp) != declarations.end()) {
-            raw_type = make_unique<RawStructType>("struct " + tmp);
-            raw_type->setSize(declarations.find(tmp)->second->size());
+            raw_type = declarations.find(tmp)->second;
+            v->elem_size = raw_type->elem_size;
+            break;
           }
         }
       }
-      if (!raw_type)
+      auto name = prefix("__" + v->struct_name->name + "__");
+      if (!raw_type) {
         raw_type = make_unique<RawStructType>(
             "struct " + prefix("__" + v->struct_name->name + "__"));
-      auto name = prefix("__" + v->struct_name->name + "__");
-      declarations[name] = raw_type;
+        declarations[name] = raw_type;
+      }
       auto ret = raw_type;
       if (v->is_definition) {
         if (definitions.find(name) != definitions.end())
@@ -333,34 +335,24 @@ public:
                                 "Redefinition of 'struct " +
                                     v->struct_name->name + "'");
         pre.push_back("__" + v->struct_name->name + "__");
+        v->elem_size.clear();
         for (const auto &d : v->member_list) {
           error = d->accept(this);
           if (!error.empty())
             return error;
-          //          if (d->getUType()->getRawTypeValue() !=
-          //          RawTypeValue::STRUCT)
-          v->elem_size.push_back(d->getUType()->size());
+          if (!d->getUType()->elem_size.empty())
+            v->elem_size.insert(v->elem_size.end(),
+                                d->getUType()->elem_size.begin(),
+                                d->getUType()->elem_size.end());
+          else
+            v->elem_size.push_back(d->getUType()->size());
         }
         definitions.insert(name);
         pre.pop_back();
       }
       raw_type = ret;
+      raw_type->elem_size = v->elem_size;
       v->setUType(raw_type);
-      if (!v->elem_size.empty()) {
-        int size = 0;
-        int pad = 1;
-        for (int i : v->elem_size) {
-          size += i;
-          pad = std::max(pad, i);
-          if (size > 0 && size % i != 0) {
-            size += i - size % i;
-          }
-        }
-        if (size > 0 && size % pad != 0) {
-          size += pad - size % pad;
-        }
-        v->getUType()->setSize(size);
-      }
     } else {
       raw_type = nullptr;
     }
@@ -919,6 +911,7 @@ public:
               v->getTokenRef().getLine(), v->getTokenRef().getColumn(),
               "Can't handle " + lhs_type->print() + " + " + rhs_type->print());
         raw_type = std::make_shared<RawScalarType>(RawTypeValue::INT);
+        raw_type->setSize(8);
       } else if (rhs_type->getRawTypeValue() == RawTypeValue::POINTER) {
         raw_type = rhs_type;
         temporary = false;
