@@ -1,11 +1,13 @@
 #ifndef C4_PRETTY_PRINTER_VISITOR_HPP
 #define C4_PRETTY_PRINTER_VISITOR_HPP
+
 #include "../../utils/utils.hpp"
 #include "../ast_node.hpp"
 
 #include <sstream>
 #include <string>
 
+// macros for indentation
 #define BIG_INDENT                                                             \
   switch (indent_mod) {                                                        \
   case IndentModifier::INLINE:                                                 \
@@ -27,8 +29,10 @@
 
 namespace ccc {
 
+// AST visitor class to generate pretty print of input file
 class PrettyPrinterVisitor : public Visitor<std::string> {
 
+  // maps instead of switch cases
   std::unordered_map<BinaryOpValue, std::string, EnumClassHash>
       BinaryOpValueToString{
           {BinaryOpValue::MULTIPLY, " * "},
@@ -57,6 +61,7 @@ public:
   PrettyPrinterVisitor() = default;
   ~PrettyPrinterVisitor() override = default;
 
+  // root of AST
   std::string visitTranslationUnit(TranslationUnit *v) override {
     std::stringstream ss;
     for (const auto &p : v->extern_list) {
@@ -67,6 +72,8 @@ public:
     return ss.str();
   }
 
+  // call children and generate string representation of nodes - all methods
+  // work the same from here on
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
     return INDENT + v->return_type->accept(this) + " " +
            v->fn_name->accept(this) + "\n" + v->fn_body->accept(this);
@@ -359,4 +366,5 @@ public:
 };
 
 } // namespace ccc
+
 #endif

@@ -14,6 +14,7 @@ class PrettyPrinterVisitor;
 class SemanticVisitor;
 class CodegenVisitor;
 
+// object type
 enum class RawTypeValue { NIL, VOID, CHAR, INT, POINTER, FUNCTION, STRUCT };
 
 class RawScalarType;
@@ -21,6 +22,8 @@ class RawPointerType;
 class RawFunctionType;
 class RawStructType;
 
+// object structure for type representation used in semantical analysis instead
+// of AST nodes
 class RawType {
   FRIENDS
 
@@ -31,21 +34,37 @@ protected:
 
 public:
   virtual std::string print() = 0;
+
+  // returns type of class as enum
   virtual RawTypeValue getRawTypeValue() = 0;
+
+  // handle distinct members without casting
   virtual std::shared_ptr<RawType> deref() { return nullptr; }
   virtual std::vector<std::shared_ptr<RawType>> get_param() { return {}; }
   virtual std::shared_ptr<RawType> get_return() { return nullptr; }
+
+  // decide if types are castable into each other
   virtual bool compare_equal(const std::shared_ptr<RawType> &) { return false; }
+
+  // decide if types are the same
   virtual bool compare_exact(const std::shared_ptr<RawType> &) { return false; }
+
+  // wrapper
   virtual RawScalarType *getRawScalarType() { return nullptr; }
   virtual RawPointerType *getRawPointerType() { return nullptr; }
   virtual RawFunctionType *getRawFunctionType() { return nullptr; }
   virtual RawStructType *getRawStructType() { return nullptr; }
+
+  // called on pointer to decide
   virtual bool isVoidPtr() { return false; }
+
+  // generate LLVM types
   virtual llvm::Type *getLLVMType(llvm::IRBuilder<>) { return nullptr; }
   virtual llvm::FunctionType *getLLVMFunctionType(llvm::IRBuilder<>) {
     return nullptr;
   }
+
+  // used in codegen
   virtual int size() { return 8; };
   virtual void setSize(int){};
   virtual int ptr_size() { return size(); };
@@ -294,7 +313,6 @@ public:
 class RawStructType : public RawType {
   FRIENDS
   std::string name;
-  int s = 0;
 
 public:
   explicit RawStructType(std::string name) : name(std::move(name)) {}

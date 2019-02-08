@@ -39,31 +39,48 @@
 
 namespace ccc {
 
+// AST visitor class to generate LLVM IR - requires information from  semantical
+// analysis, so only run afterwards
 class CodegenVisitor : public Visitor<void> {
+
+  // constants
   llvm::LLVMContext ctx;
   llvm::Module mod;
   llvm::IRBuilder<> builder, allocBuilder;
+
+  // current root of function body
   llvm::Function *parent = nullptr;
 
+  // saved in module and dumped with LLVM IR
   std::string filename;
 
+  // save current break / continue block when entering a loop
   std::vector<llvm::BasicBlock *> breaks;
   std::vector<llvm::BasicBlock *> continues;
+
+  // use temporay blocks for labeling
   std::unordered_map<std::string, llvm::BasicBlock *> labels;
   std::unordered_map<std::string, llvm::BasicBlock *> ulabels;
+
+  // maps for all functions / declarations in file, identified by prefix
   std::unordered_map<std::string, llvm::Value *> declarations;
   std::unordered_map<std::string, llvm::Function *> functions;
 
+  // value pointers for handling of objects, set while traversing the
+  // AST recursivly from bottom up
   llvm::Value *rec_val = nullptr;
   llvm::Value *load = nullptr;
 
 public:
+  // pass filename to constructor
   explicit CodegenVisitor(std::string f)
       : mod(f, ctx), builder(ctx), allocBuilder(ctx), filename(std::move(f)){};
   ~CodegenVisitor() override = default;
 
+  // enable external dumping of module to cerr
   void dump() { mod.dump(); }
 
+  // dump LLVM IR of generated module in file
   void compile() {
     for (const auto &p : ulabels) {
       builder.SetInsertPoint(p.second);
@@ -78,11 +95,13 @@ public:
     mod.print(stream, nullptr);
   }
 
+  // root of AST
   void visitTranslationUnit(TranslationUnit *v) override {
     for (const auto &e : v->extern_list)
       e->accept(this);
   }
 
+  // define a global function, which can be accessed through the functions map
   void visitFunctionDefinition(FunctionDefinition *v) override {
     if (!v->isFuncPtr) {
       if (functions.find(v->getUIdentifier()) != functions.end())
@@ -103,6 +122,7 @@ public:
     }
   }
 
+  // only predeclare a function, as we don't support function pointer
   void visitFunctionDeclaration(FunctionDeclaration *v) override {
     if (!v->isFuncPtr) {
       functions[v->getUIdentifier()] =
@@ -112,6 +132,7 @@ public:
     }
   }
 
+  // create LLVM IR for common declarations
   void visitDataDeclaration(DataDeclaration *v) override {
     if (!v->global) {
       allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
@@ -130,6 +151,7 @@ public:
     }
   }
 
+  // TODO WIP
   void visitStructDeclaration(StructDeclaration *v) override { (void)v; }
 
   void visitParamDeclaration(ParamDeclaration *) override {
@@ -144,6 +166,7 @@ public:
     // EMPTY
   }
 
+  // TODO WIP
   void visitStructType(StructType *v) override { (void)v; }
 
   void visitDirectDeclarator(DirectDeclarator *) override {
@@ -158,6 +181,7 @@ public:
     // EMPTY
   }
 
+  // used in function definition to generate entry point
   void visitFunctionDeclarator(FunctionDeclarator *v) override {
     llvm::BasicBlock *FuncMaxEntryBB =
         llvm::BasicBlock::Create(ctx, "entry", parent, nullptr);
@@ -177,15 +201,13 @@ public:
     };
   }
 
+  // iterate over children without the need of an own block
   void visitCompoundStmt(CompoundStmt *v) override {
-    //    llvm::BasicBlock *block =
-    //        llvm::BasicBlock::Create(ctx, "compound", parent, nullptr);
-    //    builder.CreateBr(block);
-    //    builder.SetInsertPoint(block);
     for (const auto &s : v->block_items)
       s->accept(this);
   }
 
+  // create branch instructions
   void visitIfElse(IfElse *v) override {
     llvm::BasicBlock *IfHeaderBlock =
         llvm::BasicBlock::Create(ctx, "if.header", parent, nullptr);
@@ -202,6 +224,9 @@ public:
       rec_val = builder.CreateIsNotNull(rec_val, "notnull");
     rec_val =
         builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
+
+    // always comapare condition to false (accepting all nonzero values as
+    // true)
     auto c = builder.CreateICmpNE(rec_val, builder.getInt32(0), "condition");
     builder.CreateCondBr(c, IfConsequenceBlock, IfAlternativeBlock);
     builder.SetInsertPoint(IfConsequenceBlock);
@@ -214,6 +239,7 @@ public:
     builder.SetInsertPoint(IfEndBlock);
   }
 
+  // insert a block which can be jumped to
   void visitLabel(Label *v) override {
     llvm::BasicBlock *l = llvm::BasicBlock::Create(
         ctx, "label." + v->label_name->name, parent, nullptr);
@@ -223,6 +249,7 @@ public:
     v->stmt->accept(this);
   }
 
+  // gernate LLVM IR of loop
   void visitWhile(While *v) override {
     llvm::BasicBlock *whileHeaderBlock =
         llvm::BasicBlock::Create(ctx, "while.header", parent, nullptr);
@@ -230,6 +257,8 @@ public:
         llvm::BasicBlock::Create(ctx, "while.body", parent, nullptr);
     llvm::BasicBlock *whileEndBlock =
         llvm::BasicBlock::Create(ctx, "while.end", parent, nullptr);
+
+    // save continue / break points
     continues.push_back(whileHeaderBlock);
     breaks.push_back(whileEndBlock);
     builder.CreateBr(whileHeaderBlock);
@@ -247,6 +276,8 @@ public:
     breaks.pop_back();
   }
 
+  // insert a empty block that only gets a jump instruction in the end - in that
+  // way handling undefined labels
   void visitGoto(Goto *v) override {
     (void)v;
     llvm::BasicBlock *b = llvm::BasicBlock::Create(
@@ -255,13 +286,16 @@ public:
     ulabels[v->label_name->name] = b;
   }
 
+  // nothing to do
   void visitExpressionStmt(ExpressionStmt *v) override {
     if (v->expr)
       v->expr->accept(this);
   }
 
+  // jump to loop end
   void visitBreak(Break *) override { builder.CreateBr(breaks.back()); }
 
+  // generate return value, insert a dead block afterwards
   void visitReturn(Return *v) override {
     if (v->expr) {
       v->expr->accept(this);
@@ -275,11 +309,14 @@ public:
     builder.SetInsertPoint(ReturnDeadBlock);
   }
 
+  // jump to loop header
   void visitContinue(Continue *) override {
     builder.CreateBr(continues.back());
   }
 
   void visitVariableName(VariableName *v) override {
+
+    // perform lookup of object in global maps
     if (functions[v->getUIdentifier()])
       rec_val = functions[v->getUIdentifier()];
     else {
@@ -289,11 +326,15 @@ public:
   }
 
   void visitNumber(Number *v) override {
+
+    // get i32 of value
     rec_val = builder.getInt32(static_cast<uint32_t>(v->num_value));
   }
 
   void visitCharacter(Character *v) override {
     unsigned int val = 0;
+
+    // value of escaped character
     if (v->char_value[0] == '\\') {
       switch (v->char_value[1]) {
       case 'a':
@@ -342,6 +383,8 @@ public:
   void visitString(String *v) override {
     std::stringstream ss;
     for (unsigned int i = 0; i < v->str_value.size(); i++) {
+
+      // replace escaped character
       if (v->str_value[i] == '\\') {
         switch (v->str_value[++i]) {
         case 'a':
@@ -396,8 +439,10 @@ public:
         rec_val, builder.getInt8PtrTy(), "cast");
   }
 
-  void visitMemberAccessOp(MemberAccessOp *v) override { (void)v; } // TODO
+  // TODO WIP
+  void visitMemberAccessOp(MemberAccessOp *v) override { (void)v; }
 
+  // calcualte gep with offset value
   void visitArraySubscriptOp(ArraySubscriptOp *v) override {
     v->array_name->accept(this);
     auto callee = rec_val;
@@ -410,6 +455,7 @@ public:
     rec_val = builder.CreateLoad(load, "array");
   }
 
+  // lookup function in map and pass arguments
   void visitFunctionCall(FunctionCall *v) override {
     v->callee_name->accept(this);
     auto callee = rec_val;
@@ -429,27 +475,40 @@ public:
     rec_val = builder.CreateCall(callee, args, "call");
   }
 
+  // gernate code for unary expression
   void visitUnary(Unary *v) override {
     v->operand->accept(this);
     switch (v->op_kind) {
     case UnaryOpValue::ADDRESS_OF:
+
+      // already loaded
       rec_val = load;
       break;
     case UnaryOpValue::DEREFERENCE:
+
+      // points to object
       load = rec_val;
       rec_val = builder.CreateLoad(rec_val, "deref");
       break;
     case UnaryOpValue::MINUS:
+
+      // only appears for numbers
       rec_val = builder.CreateNeg(rec_val, "minus");
       break;
     case UnaryOpValue::NOT:
+
+      // pointer not null
       if (v->operand->getUType()->getRawTypeValue() == RawTypeValue::POINTER) {
         rec_val = builder.CreateIsNull(rec_val, "isnull");
       } else {
+
+        // negate boolean value
         rec_val =
             builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
         rec_val = builder.CreateICmpEQ(rec_val, builder.getInt32(0), "cmpne");
       }
+
+      // return boolean value
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
@@ -458,22 +517,31 @@ public:
 
   void visitSizeOf(SizeOf *v) override {
     if (v->operand)
+
+      // expression
       rec_val = builder.getInt32(
           static_cast<uint32_t>(v->operand->getUType()->size()));
     else if (v->type_name->getUType())
+
+      // type
       rec_val = builder.getInt32(
           static_cast<uint32_t>(v->type_name->getUType()->size()));
     else
       rec_val = builder.getInt32(0);
+
+    // sizeof sizeof
     if (v->operand && v->operand->isSizeOf()) {
       rec_val = builder.getInt32(8);
     } else if (v->operand && v->operand->getString()) {
+
+      // calculate length of string without escape sequences but with tailing \0
       auto str = v->operand->getString()->str_value;
       str.erase(std::remove(str.begin(), str.end(), '\\'), str.end());
       rec_val = builder.getInt32(static_cast<uint32_t>(str.size() + 1));
     }
   }
 
+  // gernate code for binary expressions
   void visitBinary(Binary *v) override {
     llvm::Value *lhs = nullptr;
     llvm::Value *rhs = nullptr;
@@ -489,6 +557,8 @@ public:
         rhs = builder.CreateZExtOrBitCast(rhs, builder.getInt32Ty(), "zext");
       }
       rec_val = builder.CreateICmpSLT(lhs, rhs, "less");
+
+      // always return i32
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
@@ -509,6 +579,8 @@ public:
       lhs = rec_val;
       v->right_operand->accept(this);
       rhs = rec_val;
+
+      // pointer arithmetic
       if (v->left_operand->getUType()->getRawTypeValue() ==
           RawTypeValue::POINTER) {
         load = builder.CreateGEP(lhs, rhs, "gep");
@@ -518,6 +590,8 @@ public:
         load = builder.CreateGEP(rhs, lhs, "gep");
         rec_val = load;
       } else {
+
+        // add numbers
         if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
         } else {
           lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
@@ -531,6 +605,8 @@ public:
       lhs = rec_val;
       v->right_operand->accept(this);
       rhs = rec_val;
+
+      // pointer arithmetic
       if (v->left_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER ||
           v->right_operand->getUType()->getRawTypeValue() ==
@@ -554,6 +630,8 @@ public:
           load = builder.CreateGEP(lhs, rhs, "gep");
           rec_val = load;
         } else {
+
+          // ptrdiff
           lhs = builder.CreatePtrToInt(lhs, builder.getInt32Ty(), "i32");
           rhs = builder.CreatePtrToInt(rhs, builder.getInt32Ty(), "i32");
           rec_val = builder.CreateSub(lhs, rhs, "sub");
@@ -565,6 +643,8 @@ public:
           rec_val = builder.CreateTrunc(rec_val, builder.getInt32Ty(), "trunc");
         }
       } else {
+
+        // subtract numbers
         if (v->left_operand->getUType()->getRawTypeValue() ==
                 RawTypeValue::CHAR &&
             v->right_operand->getUType()->getRawTypeValue() ==
@@ -581,6 +661,8 @@ public:
       lhs = rec_val;
       v->right_operand->accept(this);
       rhs = rec_val;
+
+      // compare pointer
       if (v->left_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER &&
           v->right_operand->getUType()->getRawTypeValue() ==
@@ -598,6 +680,8 @@ public:
                  RawTypeValue::NIL) {
         rec_val = builder.CreateIsNull(lhs, "isnull");
       } else {
+
+        // compare values
         if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
         } else {
           lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
@@ -605,6 +689,8 @@ public:
         }
         rec_val = builder.CreateICmpEQ(lhs, rhs, "euqal");
       }
+
+      // return i32
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
@@ -613,6 +699,8 @@ public:
       lhs = rec_val;
       v->right_operand->accept(this);
       rhs = rec_val;
+
+      // compare pointer
       if (v->left_operand->getUType()->getRawTypeValue() ==
               RawTypeValue::POINTER &&
           v->right_operand->getUType()->getRawTypeValue() ==
@@ -630,6 +718,8 @@ public:
                  RawTypeValue::NIL) {
         rec_val = builder.CreateIsNotNull(lhs, "notnull");
       } else {
+
+        // compare values
         if (lhs->getType()->isIntegerTy(8) && rhs->getType()->isIntegerTy(8)) {
         } else {
           lhs = builder.CreateZExtOrBitCast(lhs, builder.getInt32Ty(), "zext");
@@ -637,6 +727,8 @@ public:
         }
         rec_val = builder.CreateICmpNE(lhs, rhs, "cmpne");
       }
+
+      // return i32
       rec_val =
           builder.CreateZExtOrBitCast(rec_val, builder.getInt32Ty(), "zext");
       break;
@@ -645,6 +737,8 @@ public:
           llvm::BasicBlock::Create(ctx, "land.rhs", parent, nullptr);
       llvm::BasicBlock *lazy_e =
           llvm::BasicBlock::Create(ctx, "land.end", parent, nullptr);
+
+      // store result of lazy evaluation
       allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
                                   allocBuilder.GetInsertBlock()->begin());
       llvm::Value *tmp = allocBuilder.CreateAlloca(builder.getInt1Ty());
@@ -659,6 +753,8 @@ public:
         lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "cmp");
       }
       builder.CreateStore(lhs, tmp);
+
+      // evaluate right expression only if left returned true
       builder.CreateCondBr(lhs, lazy_h, lazy_e);
       builder.SetInsertPoint(lazy_h);
       v->right_operand->accept(this);
@@ -683,6 +779,8 @@ public:
           llvm::BasicBlock::Create(ctx, "lor.rhs", parent, nullptr);
       llvm::BasicBlock *lazy_e =
           llvm::BasicBlock::Create(ctx, "lor.end", parent, nullptr);
+
+      // store result of lazy evaluation
       allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
                                   allocBuilder.GetInsertBlock()->begin());
       llvm::Value *tmp = allocBuilder.CreateAlloca(builder.getInt1Ty());
@@ -697,6 +795,8 @@ public:
         lhs = builder.CreateICmpNE(lhs, builder.getInt32(0), "cmp");
       }
       builder.CreateStore(lhs, tmp);
+
+      // evaluate right expression only if left returned false
       builder.CreateCondBr(lhs, lazy_e, lazy_h);
       builder.SetInsertPoint(lazy_h);
       v->right_operand->accept(this);
@@ -722,6 +822,7 @@ public:
     }
   }
 
+  // gernate code for ternary expression
   void visitTernary(Ternary *v) override {
     llvm::BasicBlock *ternaryHeaderBlock =
         llvm::BasicBlock::Create(ctx, "ternary.header", parent, nullptr);
@@ -733,8 +834,9 @@ public:
         llvm::BasicBlock::Create(ctx, "ternary.end", parent, nullptr);
     builder.CreateBr(ternaryHeaderBlock);
     builder.SetInsertPoint(ternaryHeaderBlock);
-    v->predicate->accept(this);
 
+    // gernate conditional branching
+    v->predicate->accept(this);
     if (v->predicate->getUType()->getRawTypeValue() == RawTypeValue::POINTER)
       rec_val = builder.CreateIsNotNull(rec_val);
     rec_val =
@@ -743,6 +845,7 @@ public:
     builder.CreateCondBr(c, ternaryConsequenceBlock, ternaryAlternativeBlock);
     builder.SetInsertPoint(ternaryConsequenceBlock);
 
+    // calculate result type of both branches
     llvm::Type *type = builder.getInt32Ty();
     if (v->left_branch->getUType()->getRawTypeValue() == RawTypeValue::CHAR &&
         v->right_branch->getUType()->getRawTypeValue() == RawTypeValue::CHAR)
@@ -752,10 +855,14 @@ public:
     else if (v->right_branch->getUType()->getRawTypeValue() ==
              RawTypeValue::POINTER)
       type = v->right_branch->getUType()->getLLVMType(builder);
+
+    // use a temporay variable to store result of branch evaluation
     allocBuilder.SetInsertPoint(allocBuilder.GetInsertBlock(),
                                 allocBuilder.GetInsertBlock()->begin());
     llvm::Value *tmp = allocBuilder.CreateAlloca(type);
     tmp->setName("ternary.val");
+
+    // calculate result of left branch
     if (v->left_branch->getUType()->getRawTypeValue() == RawTypeValue::NIL)
       rec_val = llvm::Constant::getNullValue(type);
     else {
@@ -764,6 +871,8 @@ public:
     }
     builder.CreateStore(rec_val, tmp);
     builder.CreateBr(ternaryEndBlock);
+
+    // calculate result of right branch
     builder.SetInsertPoint(ternaryAlternativeBlock);
     if (v->right_branch->getUType()->getRawTypeValue() == RawTypeValue::NIL)
       rec_val = llvm::Constant::getNullValue(type);
@@ -774,9 +883,13 @@ public:
     builder.CreateStore(rec_val, tmp);
     builder.CreateBr(ternaryEndBlock);
     builder.SetInsertPoint(ternaryEndBlock);
+
+    // load result which contains value of executed branch
     rec_val = builder.CreateLoad(tmp);
   }
 
+  // assign rhs to lhs by handling pointer to object (requires load to be set to
+  // storage point) and cast accordingly (void* etc.)
   void visitAssignment(Assignment *v) override {
     v->left_operand->accept(this);
     auto lhs = load;

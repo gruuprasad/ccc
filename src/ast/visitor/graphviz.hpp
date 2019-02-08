@@ -1,12 +1,16 @@
 #ifndef C4_GRAPHVIZ_VISITOR_HPP
 #define C4_GRAPHVIZ_VISITOR_HPP
+
 #include "../../utils/utils.hpp"
 #include "../ast_node.hpp"
 #include "pretty_printer.hpp"
 
 namespace ccc {
 
+// AST visitor class to generate graphviz code of tree as string
 class GraphvizVisitor : public Visitor<std::string> {
+
+  // generate standard blue node
   static std::string makeGVVertice(unsigned long hash, std::string name) {
     std::stringstream ss;
     ss << hash
@@ -15,6 +19,8 @@ class GraphvizVisitor : public Visitor<std::string> {
               "fillcolor=lightskyblue];\n";
     return ss.str();
   }
+
+  // generate khaki node
   static std::string makeGVVerticeExpr(unsigned long hash, std::string name) {
     std::stringstream ss;
     ss << hash
@@ -23,6 +29,8 @@ class GraphvizVisitor : public Visitor<std::string> {
               "fillcolor=khaki];\n";
     return ss.str();
   }
+
+  // generate grey leaf node
   static std::string makeGVVerticeBox(unsigned long hash, std::string name) {
     std::stringstream ss;
     ss << hash
@@ -34,6 +42,7 @@ class GraphvizVisitor : public Visitor<std::string> {
 
   PrettyPrinterVisitor pp;
 
+  // connect two nodes with an edge
   static std::string makeGVEdge(unsigned long left, unsigned long right) {
     std::stringstream ss;
     ss << left << "--" << right << ";\n";
@@ -44,6 +53,7 @@ public:
   GraphvizVisitor() = default;
   ~GraphvizVisitor() override = default;
 
+  // root of AST, return graphziv header
   std::string visitTranslationUnit(TranslationUnit *v) override {
     std::stringstream ss;
     ss << "graph ast{\nsplines=line;\nstyle=invis;\nsubgraph cluster{\n";
@@ -56,6 +66,8 @@ public:
     return ss.str();
   }
 
+  // create unique node (using hash) and connect with children - all
+  // methods work the same from here on
   std::string visitFunctionDefinition(FunctionDefinition *v) override {
     std::stringstream ss;
     ss << makeGVVertice(v->hash(), "FunctionDefinition");
@@ -393,4 +405,5 @@ public:
 };
 
 } // namespace ccc
+
 #endif // C4_GRAPHVIZ_VISITOR_HPP

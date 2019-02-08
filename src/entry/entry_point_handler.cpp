@@ -33,12 +33,18 @@
   std::cout                                                                    \
       << "Usage: c4 [options] file\n"                                          \
          "Options:\n"                                                          \
-         "  --tokenize     Perform lexical analysis and print token list\n"    \
-         "  --parse        Tokenize, parse and perform semantic analysis\n"    \
-         "  --print-ast    like --parse but pretty print from AST\n"           \
-         "  --graphviz     like --parse but print graphviz represenation "     \
-         "of AST\n"                                                            \
-         "  --compile      Compile to LLVM IR"                                 \
+         "  --tokenize                perform lexical analysis and print "     \
+         "token list\n"                                                        \
+         "  --parse                   tokenize, parse and perform semantic "   \
+         "analysis\n"                                                          \
+         "  --print-ast               like --parse but pretty print from "     \
+         "AST\n"                                                               \
+         "  --graphviz                like --parse but print graphviz "        \
+         "represenation of AST\n"                                              \
+         "  --compile                 compile to LLVM IR\n"                    \
+         "  --optimize                WIP\n"                                   \
+         "  --optimize-run-time       WIP\n"                                   \
+         "  --optimize-compile-time   WIP\n"                                   \
       << std::endl;
 
 using namespace ccc;

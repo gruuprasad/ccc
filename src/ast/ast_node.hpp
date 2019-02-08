@@ -599,6 +599,7 @@ public:
   void accept(Visitor<void> *) override;
 };
 
+// implementing visitor pattern on AST
 template <class T> class Visitor {
 protected:
   Visitor() = default;
