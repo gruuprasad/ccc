@@ -265,6 +265,24 @@ public:
       if (anonymous)
         raw_type = std::make_shared<RawStructType>(
             "struct " + prefix("__" + prefix(identifier->name) + "__"));
+      auto tmp = raw_type;
+      // nameless struct, use alias as scoping information
+      if (anonymous && (*v->struct_type->getStructType()).is_definition) {
+        pre.emplace_back("__" + name + "__");
+        for (const auto &d : (*v->struct_type->getStructType()).member_list) {
+          error = d->accept(this);
+          if (!error.empty())
+            return error;
+          if (!d->getUType()->elem_size.empty())
+            tmp->elem_size.insert(tmp->elem_size.end(),
+                                  d->getUType()->elem_size.begin(),
+                                  d->getUType()->elem_size.end());
+          else
+            tmp->elem_size.push_back(d->getUType()->size());
+        }
+        pre.pop_back();
+      }
+      raw_type = tmp;
       v->struct_alias->accept(this);
       if (declarations.find(name) != declarations.end()) {
         // not global or anonymous
@@ -281,16 +299,6 @@ public:
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
-      // nameless struct, use alias as scoping information
-      if (anonymous && (*v->struct_type->getStructType()).is_definition) {
-        pre.emplace_back("__" + name + "__");
-        for (const auto &d : (*v->struct_type->getStructType()).member_list) {
-          error = d->accept(this);
-          if (!error.empty())
-            return error;
-        }
-        pre.pop_back();
-      }
     } else if (anonymous) {
       // basic support for anonymous structs, flatmaps to current scope
       for (const auto &d : (*v->struct_type->getStructType()).member_list) {
