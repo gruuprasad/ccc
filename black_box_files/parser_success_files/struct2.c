@@ -4,11 +4,13 @@ struct A {
 
 struct B {
   struct A i;
+  struct A *k;
   struct A {
     int x;
     struct A *p;
   } a;
   struct A j;
+  struct A l;
 };
 
 void main {
@@ -19,4 +21,6 @@ void main {
   b.a.x;
   b.i.y;
   b.j.x;
+  b.k->y;
+  b.l.p->p->x;
 }
