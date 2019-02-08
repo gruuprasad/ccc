@@ -295,7 +295,7 @@ public:
                                 identifier->getTokenRef().getColumn(),
                                 "Redefinition of '" + identifier->name +
                                     "' of type " + declarations[name]->print() +
-                                    " with differtent type " +
+                                    " with different type " +
                                     raw_type->print());
       } else
         declarations[name] = raw_type;
@@ -307,7 +307,7 @@ public:
           return error;
       }
     }
-    // set variables used in code gernation
+    // set variables used in code generation
     v->setUType(raw_type);
     return error;
   }
@@ -432,6 +432,33 @@ public:
       v->setUType(raw_type);
     } else {
       // nameless, return null to struct declaration
+      pre.emplace_back("__" + std::to_string(v->hash()) + "__");
+      v->elem_size.clear();
+      for (const auto &d : v->member_list) {
+        error = d->accept(this);
+        if (!error.empty())
+          return error;
+        if (!d->getUType()->elem_size.empty())
+          v->elem_size.insert(v->elem_size.end(),
+                              d->getUType()->elem_size.begin(),
+                              d->getUType()->elem_size.end());
+        else
+          v->elem_size.push_back(d->getUType()->size());
+      }
+      for (auto it = declarations.begin(); it != declarations.end();)
+        if ((*it).first.compare(0, prefix().size(), prefix()) == 0)
+          declarations.erase(it++);
+        else
+          ++it;
+      for (auto it = definitions.begin(); it != definitions.end();)
+        if ((*it).compare(0, prefix().size(), prefix()) == 0)
+          definitions.erase(it++);
+        else
+          ++it;
+      pre.pop_back();
+      raw_type = make_unique<RawStructType>("");
+      raw_type->elem_size = v->elem_size;
+      v->setUType(raw_type);
       raw_type = nullptr;
     }
     return error;

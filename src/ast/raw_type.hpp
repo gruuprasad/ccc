@@ -394,21 +394,19 @@ public:
     return compare_equal(b);
   }
 
-  // calculate allignment of struct
+  // calculate alignment of struct
   int size() override {
     int size = 0;
-    if (!elem_size.empty()) {
-      int pad = 1;
-      for (int i : elem_size) {
-        size += i;
-        pad = std::max(pad, i);
-        if (size > 0 && size % i != 0) {
-          size += i - size % i;
-        }
+    int pad = 1;
+    for (int i : elem_size) {
+      size += i;
+      pad = std::max(pad, i);
+      if (size > 0 && size % i != 0) {
+        size += i - size % i;
       }
-      if (size > 0 && size % pad != 0) {
-        size += pad - size % pad;
-      }
+    }
+    if (size > 0 && size % pad != 0) {
+      size += pad - size % pad;
     }
     return size;
   }
